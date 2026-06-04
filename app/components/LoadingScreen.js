@@ -1,15 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from 'react';
-import Image from 'next/image';
 import styles from './LoadingScreen.module.css';
 
-interface LoadingScreenProps {
-  onComplete?: () => void;
-}
-
-export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
-  const [phase, setPhase] = useState<'drawing' | 'fading' | 'done'>('drawing');
+export default function LoadingScreen({ onComplete }) {
+  const [phase, setPhase] = useState('drawing');
 
   const onCompleteRef = useRef(onComplete);
   useEffect(() => {
@@ -71,4 +66,3 @@ export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
     </div>
   );
 }
-

@@ -1,10 +1,4 @@
-import { type ModelData } from '../components/ProductModal';
-
-export type ProductModel = ModelData & {
-  category: 'classic' | 'occassions' | 'winter' | 'new';
-};
-
-export const models: ProductModel[] = [
+export const models = [
   {
     id: 8,
     name: 'عباية ملكية مطرزة',

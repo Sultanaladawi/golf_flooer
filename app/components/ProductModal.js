@@ -6,48 +6,23 @@ import Image from 'next/image';
 import styles from './ProductModal.module.css';
 import { useAppContext } from '../context/AppContext';
 
-export type ModelData = {
-  id: number;
-  name: string;
-  subtitle: string;
-  price: string;
-  badge: string | null;
-  images: string[];
-  videos: string[];
-  fabric: {
-    label: string;
-    value: string;
-  }[];
-  sizes: string[];
-  care: string[];
-};
-
-type Tab = 'photos' | 'video';
-type InfoTab = 'fabric' | 'sizes';
-
-export default function ProductModal({
-  model,
-  onClose,
-}: {
-  model: ModelData;
-  onClose: () => void;
-}) {
+export default function ProductModal({ model, onClose }) {
   const { addToCart } = useAppContext();
   const hasImages = model.images && model.images.length > 0;
   const hasVideos = model.videos && model.videos.length > 0;
 
-  const [activeTab, setActiveTab] = useState<Tab>(hasImages ? 'photos' : 'video');
-  const [activeInfoTab, setActiveInfoTab] = useState<InfoTab>('fabric');
+  const [activeTab, setActiveTab] = useState(hasImages ? 'photos' : 'video');
+  const [activeInfoTab, setActiveInfoTab] = useState('fabric');
   const [activeImg, setActiveImg] = useState(0);
   const [activeVideo, setActiveVideo] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [selectedSize, setSelectedSize] = useState(null);
   const [addedToCart, setAddedToCart] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const modalRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef(null);
+  const modalRef = useRef(null);
 
   // Close on Escape
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
     document.body.style.overflow = 'hidden';
     return () => {

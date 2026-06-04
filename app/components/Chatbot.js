@@ -1,14 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Volume2, VolumeX, Mic, MicOff } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles } from 'lucide-react';
 import styles from './Chatbot.module.css';
-
-interface Message {
-  id: string;
-  role: 'yasmeen' | 'user';
-  text: string;
-}
 
 const CONCIERGE_KNOWLEDGE = {
   greeting: "أهلاً بكِ في زهرة الخليج للمطرزات الشرقية. أنا ياسمين، مساعدتكِ الرقمية الخاصة بالفخامة. كيف يمكنني مساعدتكِ اليوم؟ ✦",
@@ -30,7 +24,7 @@ const CONCIERGE_KNOWLEDGE = {
 
 export default function Chatbot() {
   const [open, setOpen] = useState(false);
-  const [msgs, setMsgs] = useState<Message[]>([
+  const [msgs, setMsgs] = useState([
     { id: 'w1', role: 'yasmeen', text: CONCIERGE_KNOWLEDGE.greeting },
     { id: 'w2', role: 'yasmeen', text: CONCIERGE_KNOWLEDGE.followUp }
   ]);
@@ -40,8 +34,38 @@ export default function Chatbot() {
   const [speaking, setSpeaking] = useState(false);
   const [voiceLang] = useState('ar-SA');
 
-  const endRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const endRef = useRef(null);
+  const inputRef = useRef(null);
+  const msgIdRef = useRef(0);
+
+  const stopSpeech = () => {
+    if (typeof window !== 'undefined' && window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+      setSpeaking(false);
+    }
+  };
+
+  const handleOpenChat = () => {
+    setOpen(true);
+    setUnread(false);
+  };
+
+  const handleCloseChat = () => {
+    setOpen(false);
+    stopSpeech();
+  };
+
+  const handleToggleChat = () => {
+    setOpen((v) => {
+      const nextOpen = !v;
+      if (nextOpen) {
+        setUnread(false);
+      } else {
+        stopSpeech();
+      }
+      return nextOpen;
+    });
+  };
 
   useEffect(() => {
     if (open) {
@@ -51,21 +75,11 @@ export default function Chatbot() {
 
   useEffect(() => {
     if (open) {
-      setUnread(false);
       setTimeout(() => inputRef.current?.focus(), 300);
-    } else {
-      stopSpeech();
     }
   }, [open]);
 
-  const stopSpeech = () => {
-    if (typeof window !== 'undefined' && window.speechSynthesis) {
-      window.speechSynthesis.cancel();
-      setSpeaking(false);
-    }
-  };
-
-  const speakText = (text: string) => {
+  const speakText = (text) => {
     if (typeof window === 'undefined' || !window.speechSynthesis || !text) return;
     try {
       window.speechSynthesis.cancel();
@@ -81,7 +95,7 @@ export default function Chatbot() {
     }
   };
 
-  const getSmartReply = (text: string): string => {
+  const getSmartReply = (text) => {
     const t = text.toLowerCase();
     if (t.includes('مقاس') || t.includes('حجم') || t.includes('طول')) {
       return CONCIERGE_KNOWLEDGE.responses.sizes;
@@ -98,11 +112,12 @@ export default function Chatbot() {
     return CONCIERGE_KNOWLEDGE.responses.default;
   };
 
-  const send = async (text: string) => {
+  const send = async (text) => {
     const trimmed = text.trim();
     if (!trimmed || typing) return;
 
-    const userMsg: Message = { id: String(Date.now()), role: 'user', text: trimmed };
+    msgIdRef.current += 1;
+    const userMsg = { id: `msg-user-${msgIdRef.current}`, role: 'user', text: trimmed };
     setMsgs(prev => [...prev, userMsg]);
     setInput('');
     setTyping(true);
@@ -110,13 +125,14 @@ export default function Chatbot() {
     // Simulate luxury AI response delay
     setTimeout(() => {
       const replyText = getSmartReply(trimmed);
-      const yasmeenMsg: Message = { id: String(Date.now() + 1), role: 'yasmeen', text: replyText };
+      msgIdRef.current += 1;
+      const yasmeenMsg = { id: `msg-yasmeen-${msgIdRef.current}`, role: 'yasmeen', text: replyText };
       setMsgs(prev => [...prev, yasmeenMsg]);
       setTyping(false);
     }, 1200);
   };
 
-  const onKey = (e: React.KeyboardEvent) => {
+  const onKey = (e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       send(input);
@@ -137,7 +153,7 @@ export default function Chatbot() {
               <div className={styles.status}>المستشار الرقمي الفاخر</div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق">
+          <button className={styles.closeBtn} onClick={handleCloseChat} aria-label="إغلاق">
             <X size={18} />
           </button>
         </div>
@@ -202,7 +218,7 @@ export default function Chatbot() {
         </div>
       </div>
 
-      <button className={`${styles.fab} ${open ? styles.fabOpen : ''}`} onClick={() => setOpen(v => !v)} aria-label="تواصل مع ياسمين">
+      <button className={`${styles.fab} ${open ? styles.fabOpen : ''}`} onClick={handleToggleChat} aria-label="تواصل مع ياسمين">
         {open ? (
           <X size={24} style={{ color: '#ffffff', stroke: '#ffffff' }} />
         ) : (

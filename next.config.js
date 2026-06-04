@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   allowedDevOrigins: [
     'kindly-scalping-hypnosis.ngrok-free.dev',
     'localhost:3000'
@@ -8,4 +7,4 @@ const nextConfig: NextConfig = {
   devIndicators: false
 };
 
-export default nextConfig;
+module.exports = nextConfig;

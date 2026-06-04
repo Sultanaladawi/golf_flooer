@@ -1,9 +1,8 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, User, Search, Menu, ChevronDown } from 'lucide-react';
+import { ShoppingBag, User, Search, Menu, ChevronDown, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useEffect, useState, useRef } from 'react';
 import styles from './Header.module.css';
@@ -27,9 +26,12 @@ export default function Header() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showCurrencyDropdown, setShowCurrencyDropdown] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showMobileCountryDropdown, setShowMobileCountryDropdown] = useState(false);
+  const [showMobileCurrencyDropdown, setShowMobileCurrencyDropdown] = useState(false);
   
-  const countryRef = useRef<HTMLDivElement>(null);
-  const currencyRef = useRef<HTMLDivElement>(null);
+  const countryRef = useRef(null);
+  const currencyRef = useRef(null);
   const pathname = usePathname();
 
   const cartItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -42,11 +44,11 @@ export default function Header() {
 
   // Click outside to close dropdowns
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (countryRef.current && !countryRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (event) => {
+      if (countryRef.current && !countryRef.current.contains(event.target)) {
         setShowCountryDropdown(false);
       }
-      if (currencyRef.current && !currencyRef.current.contains(event.target as Node)) {
+      if (currencyRef.current && !currencyRef.current.contains(event.target)) {
         setShowCurrencyDropdown(false);
       }
     };
@@ -151,7 +153,13 @@ export default function Header() {
       {/* Main Navbar */}
       <nav className={styles.navbar}>
         <div className={styles.navLeft}>
-          <button className={styles.iconBtn} aria-label="القائمة"><Menu size={22} /></button>
+          <button 
+            className={styles.iconBtn} 
+            aria-label="القائمة"
+            onClick={() => setIsMobileMenuOpen(true)}
+          >
+            <Menu size={22} />
+          </button>
           <button className={styles.iconBtn} aria-label="البحث"><Search size={22} /></button>
         </div>
 
@@ -200,6 +208,100 @@ export default function Header() {
           <Link href="/shop?category=occassions" className={styles.menuLink}>مناسبات</Link>
         </div>
       </div>
+
+      {/* Mobile Menu Backdrop */}
+      <div 
+        className={`${styles.mobileMenuBackdrop} ${isMobileMenuOpen ? styles.mobileMenuBackdropVisible : ''}`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Mobile Menu Drawer */}
+      <div className={`${styles.mobileMenuDrawer} ${isMobileMenuOpen ? styles.mobileMenuDrawerOpen : ''}`}>
+        <div className={styles.mobileMenuHeader}>
+          <div className={styles.mobileMenuLogo}>
+            <img src="/logo.png" alt="لوجو زهرة الخليج" width="30" height="30" style={{ borderRadius: '50%' }} />
+            <span className={styles.mobileMenuBrandMain}>زهرة الخليج</span>
+          </div>
+          <button className={styles.mobileMenuCloseBtn} onClick={() => setIsMobileMenuOpen(false)} aria-label="إغلاق القائمة">
+            <X size={24} />
+          </button>
+        </div>
+
+        <div className={styles.mobileMenuLinks}>
+          <Link href="/shop" className={styles.mobileMenuLink} onClick={() => setIsMobileMenuOpen(false)}>الكل</Link>
+          <Link href="/shop?category=new" className={styles.mobileMenuLink} onClick={() => setIsMobileMenuOpen(false)}>وصل حديثاً</Link>
+          <Link href="/shop?category=winter" className={styles.mobileMenuLink} onClick={() => setIsMobileMenuOpen(false)}>تشكيلة الشتاء</Link>
+          <Link href="/shop?category=classic" className={styles.mobileMenuLink} onClick={() => setIsMobileMenuOpen(false)}>كلاسيك</Link>
+          <Link href="/shop?category=occassions" className={styles.mobileMenuLink} onClick={() => setIsMobileMenuOpen(false)}>مناسبات</Link>
+        </div>
+
+        <div className={styles.mobileMenuSelectors}>
+          {/* Mobile Country Selector */}
+          <div>
+            <span className={styles.mobileMenuSelectorLabel}>البلد</span>
+            <button 
+              className={styles.mobileMenuDropdownTrigger}
+              onClick={() => {
+                setShowMobileCountryDropdown(!showMobileCountryDropdown);
+                setShowMobileCurrencyDropdown(false);
+              }}
+            >
+              <span>{countries.find(c => c.code === country)?.flag} {countries.find(c => c.code === country)?.name}</span>
+              <ChevronDown size={14} />
+            </button>
+            {showMobileCountryDropdown && (
+              <div className={styles.mobileMenuDropdownMenu}>
+                {countries.map((c) => (
+                  <button
+                    key={c.code}
+                    className={`${styles.mobileMenuDropdownOption} ${country === c.code ? styles.mobileMenuDropdownOptionActive : ''}`}
+                    onClick={() => {
+                      setCountry(c.code);
+                      setShowMobileCountryDropdown(false);
+                    }}
+                  >
+                    <span>{c.flag}</span>
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Mobile Currency Selector */}
+          <div>
+            <span className={styles.mobileMenuSelectorLabel}>العملة</span>
+            <button 
+              className={styles.mobileMenuDropdownTrigger}
+              onClick={() => {
+                setShowMobileCurrencyDropdown(!showMobileCurrencyDropdown);
+                setShowMobileCountryDropdown(false);
+              }}
+            >
+              <span>{currencies.find(c => c.code === currency)?.label} {currencies.find(c => c.code === currency)?.name}</span>
+              <ChevronDown size={14} />
+            </button>
+            {showMobileCurrencyDropdown && (
+              <div className={styles.mobileMenuDropdownMenu}>
+                {currencies.map((c) => (
+                  <button
+                    key={c.code}
+                    className={`${styles.mobileMenuDropdownOption} ${currency === c.code ? styles.mobileMenuDropdownOptionActive : ''}`}
+                    onClick={() => {
+                      setCurrency(c.code);
+                      setShowMobileCurrencyDropdown(false);
+                    }}
+                  >
+                    <span className={styles.currencyLabel}>{c.label}</span>
+                    <span>{c.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </header>
   );

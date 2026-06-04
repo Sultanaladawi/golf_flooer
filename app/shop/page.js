@@ -6,15 +6,16 @@ import { Filter, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
 import styles from './page.module.css';
 import { useAppContext } from '../context/AppContext';
-import ProductModal, { type ModelData } from '../components/ProductModal';
+import ProductModal from '../components/ProductModal';
 
 function ShopContent() {
-  const { products, currency } = useAppContext();
+  const { products } = useAppContext();
   const searchParams = useSearchParams();
   const categoryParam = searchParams.get('category');
   const [activeCategory, setActiveCategory] = useState('all');
-  const [openModel, setOpenModel] = useState<ModelData | null>(null);
+  const [openModel, setOpenModel] = useState(null);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (categoryParam) {
       setActiveCategory(categoryParam);
@@ -22,6 +23,7 @@ function ShopContent() {
       setActiveCategory('all');
     }
   }, [categoryParam]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const filteredProducts = activeCategory === 'all' 
     ? products 
@@ -111,12 +113,12 @@ function ShopContent() {
                   
                   {hasImages ? (
                     <Image 
-                      src={displayImage} 
-                      alt={product.name} 
-                      fill 
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      loading="lazy" 
-                      style={{ objectFit: 'cover' }}
+                       src={displayImage} 
+                       alt={product.name} 
+                       fill 
+                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                       loading="lazy" 
+                       style={{ objectFit: 'cover' }}
                     />
                   ) : (
                     product.videos.length > 0 && (

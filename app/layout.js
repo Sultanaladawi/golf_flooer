@@ -1,4 +1,3 @@
-import type { Metadata } from 'next';
 import { Amiri, Tajawal } from 'next/font/google';
 import { AppProvider } from './context/AppContext';
 import Header from './components/Header';
@@ -18,16 +17,12 @@ const tajawal = Tajawal({
   variable: '--font-sans',
 });
 
-export const metadata: Metadata = {
+export const metadata = {
   title: 'زهرة الخليج للمطرزات الشرقية | عبايات فاخرة',
   description: 'تسوقي أرقى العبايات من زهرة الخليج للمطرزات الشرقية. فخامة وأناقة تليق بكِ.',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }) {
   return (
     <html lang="ar" dir="rtl">
       <body className={`${tajawal.variable} ${amiri.variable}`}>
@@ -44,4 +39,3 @@ export default function RootLayout({
     </html>
   );
 }
-

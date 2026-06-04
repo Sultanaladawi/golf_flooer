@@ -5,17 +5,14 @@ import LoadingScreen from './LoadingScreen';
 import Chatbot from './Chatbot';
 import { usePathname } from 'next/navigation';
 
-interface LayoutClientWrapperProps {
-  children: React.ReactNode;
-}
-
-export default function LayoutClientWrapper({ children }: LayoutClientWrapperProps) {
+export default function LayoutClientWrapper({ children }) {
   const [mounted, setMounted] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith('/admin') || false;
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -60,7 +57,7 @@ export default function LayoutClientWrapper({ children }: LayoutClientWrapperPro
     );
 
     // Function to observe reveal elements under a node
-    const observeElements = (root: ParentNode) => {
+    const observeElements = (root) => {
       const elements = root.querySelectorAll('.reveal, [class*="reveal"]');
       elements.forEach((el) => observer.observe(el));
       // Also check the root itself
@@ -83,7 +80,7 @@ export default function LayoutClientWrapper({ children }: LayoutClientWrapperPro
       mutations.forEach((mutation) => {
         mutation.addedNodes.forEach((node) => {
           if (node.nodeType === Node.ELEMENT_NODE) {
-            observeElements(node as ParentNode);
+            observeElements(node);
           }
         });
       });

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, Trash2, ArrowLeft, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Trash2, CheckCircle2, ChevronRight } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import styles from './page.module.css';
 
@@ -17,7 +17,7 @@ export default function CartPage() {
   
   // Coupon state
   const [coupon, setCoupon] = useState('');
-  const [activeCoupon, setActiveCoupon] = useState<string | null>(null);
+  const [activeCoupon, setActiveCoupon] = useState(null);
   const [discountPercent, setDiscountPercent] = useState(0);
 
   // Success order state
@@ -46,9 +46,6 @@ export default function CartPage() {
   const discountAmount = rawSubtotal * (discountPercent / 100);
   const finalTotal = Math.max(0, rawSubtotal - discountAmount);
 
-  // Hardcoded shipping
-  const shippingFee = 0; // Free shipping
-
   const handleApplyCoupon = () => {
     const formatted = coupon.trim().toUpperCase();
     if (formatted === 'FIRST15') {
@@ -62,7 +59,7 @@ export default function CartPage() {
     }
   };
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = (e) => {
     e.preventDefault();
     if (!fullName || !phone || !address) {
       alert('الرجاء إدخال كافة المعلومات المطلوبة للتوصيل');

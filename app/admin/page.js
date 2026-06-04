@@ -8,15 +8,10 @@ import {
   Plus, 
   Trash2, 
   Edit, 
-  X, 
-  Eye, 
-  AlertCircle
+  X 
 } from 'lucide-react';
-import { useAppContext, type Order } from '../context/AppContext';
-import { type ProductModel } from '../data/models';
+import { useAppContext } from '../context/AppContext';
 import styles from './page.module.css';
-
-type Tab = 'overview' | 'products' | 'orders';
 
 export default function AdminDashboard() {
   const { 
@@ -29,16 +24,16 @@ export default function AdminDashboard() {
     currency 
   } = useAppContext();
 
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [activeTab, setActiveTab] = useState('overview');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductModel | null>(null);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   // Form states for Product CRUD
   const [name, setName] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [price, setPrice] = useState('');
   const [badge, setBadge] = useState('');
-  const [category, setCategory] = useState<'classic' | 'occassions' | 'winter' | 'new'>('classic');
+  const [category, setCategory] = useState('classic');
   const [imageInput, setImageInput] = useState(''); // comma-separated URLs or single
   const [videoInput, setVideoInput] = useState(''); // comma-separated URLs or single
   
@@ -74,7 +69,7 @@ export default function AdminDashboard() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (prod: ProductModel) => {
+  const openEditModal = (prod) => {
     setEditingProduct(prod);
     setName(prod.name);
     setSubtitle(prod.subtitle);
@@ -85,7 +80,7 @@ export default function AdminDashboard() {
     setVideoInput(prod.videos.join(', '));
     
     // Parse fabric array
-    const getFabricVal = (lbl: string) => prod.fabric.find(f => f.label === lbl)?.value || '';
+    const getFabricVal = (lbl) => prod.fabric.find(f => f.label === lbl)?.value || '';
     setFabricType(getFabricVal('نوع القماش'));
     setEmbroidery(getFabricVal('التطريز'));
     setLining(getFabricVal('البطانة'));
@@ -98,7 +93,7 @@ export default function AdminDashboard() {
     setIsModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = (e) => {
     e.preventDefault();
 
     const parsedImages = imageInput.split(',')
@@ -329,13 +324,13 @@ export default function AdminDashboard() {
                               className={styles.editBtn} 
                               onClick={() => openEditModal(prod)}
                             >
-                              <Edit size={14} /> تعديل
+                              Edit
                             </button>
                             <button 
                               className={styles.deleteBtn} 
                               onClick={() => deleteProduct(prod.id)}
                             >
-                              <Trash2 size={14} /> حذف
+                              Delete
                             </button>
                           </div>
                         </td>
@@ -390,7 +385,7 @@ export default function AdminDashboard() {
                           <select 
                             className={styles.statusSelect}
                             value={ord.status}
-                            onChange={(e) => updateOrderStatus(ord.id, e.target.value as Order['status'])}
+                            onChange={(e) => updateOrderStatus(ord.id, e.target.value)}
                           >
                             <option value="قيد التجهيز">قيد التجهيز</option>
                             <option value="تم الشحن">تم الشحن</option>
@@ -461,7 +456,7 @@ export default function AdminDashboard() {
                   <select 
                     className={styles.input}
                     value={category}
-                    onChange={(e) => setCategory(e.target.value as any)}
+                    onChange={(e) => setCategory(e.target.value)}
                   >
                     <option value="classic">كلاسيك</option>
                     <option value="occassions">مناسبات</option>

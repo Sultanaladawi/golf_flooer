@@ -1,60 +1,11 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { models as defaultModels, type ProductModel } from '../data/models';
+import { models as defaultModels } from '../data/models';
 
-export type CartProduct = {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-};
+const AppContext = createContext(undefined);
 
-export type CartItem = CartProduct & { quantity: number };
-
-export type Order = {
-  id: string;
-  customer: string;
-  phone: string;
-  city: string;
-  address: string;
-  items: { id: number; name: string; quantity: number; price: number }[];
-  total: number;
-  currency: string;
-  status: 'قيد التجهيز' | 'تم الشحن' | 'مكتمل' | 'ملغي';
-  date: string;
-};
-
-type AppContextType = {
-  // Cart
-  cart: CartItem[];
-  addToCart: (product: CartProduct) => void;
-  removeFromCart: (id: number) => void;
-  updateQuantity: (id: number, quantity: number) => void;
-  cartTotal: number;
-  clearCart: () => void;
-  
-  // Country & Currency
-  currency: string;
-  setCurrency: (curr: string) => void;
-  country: string;
-  setCountry: (country: string) => void;
-  
-  // Products Management (Admin CRUD)
-  products: ProductModel[];
-  addProduct: (product: Omit<ProductModel, 'id'>) => void;
-  updateProduct: (id: number, product: ProductModel) => void;
-  deleteProduct: (id: number) => void;
-  
-  // Orders Management (Checkout & Admin Panel)
-  orders: Order[];
-  addOrder: (orderData: Omit<Order, 'id' | 'date' | 'status'>) => string;
-  updateOrderStatus: (id: string, status: Order['status']) => void;
-};
-
-const AppContext = createContext<AppContextType | undefined>(undefined);
-
-const defaultOrders: Order[] = [
+const defaultOrders = [
   {
     id: 'ZH-482012',
     customer: 'سارة المصري',
@@ -86,16 +37,17 @@ const defaultOrders: Order[] = [
   }
 ];
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>([]);
+export function AppProvider({ children }) {
+  const [cart, setCart] = useState([]);
   const [currency, setCurrency] = useState('JOD');
   const [country, setCountry] = useState('JO');
   
-  const [products, setProducts] = useState<ProductModel[]>(defaultModels);
-  const [orders, setOrders] = useState<Order[]>(defaultOrders);
+  const [products, setProducts] = useState(defaultModels);
+  const [orders, setOrders] = useState(defaultOrders);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     
     // Load Cart
@@ -114,10 +66,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const parsed = JSON.parse(savedProducts);
         // Performance Fix: Filter out heavy video files (/8 (2).mp4 and /11.mp4) from cached products
         let modified = false;
-        parsed.forEach((p: any) => {
+        parsed.forEach((p) => {
           if (p.videos && p.videos.length > 0) {
             const originalLength = p.videos.length;
-            p.videos = p.videos.filter((v: string) => v !== '/8 (2).mp4' && v !== '/11.mp4');
+            p.videos = p.videos.filter((v) => v !== '/8 (2).mp4' && v !== '/11.mp4');
             if (p.videos.length !== originalLength) {
               modified = true;
             }
@@ -175,7 +127,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [orders, isClient]);
 
   // Cart Actions
-  const addToCart = (product: CartProduct) => {
+  const addToCart = (product) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
@@ -187,11 +139,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id) => {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateQuantity = (id: number, quantity: number) => {
+  const updateQuantity = (id, quantity) => {
     if (quantity < 1) return;
     setCart((prev) =>
       prev.map((item) => (item.id === id ? { ...item, quantity } : item))
@@ -205,10 +157,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   // Products CRUD Actions
-  const addProduct = (productData: Omit<ProductModel, 'id'>) => {
+  const addProduct = (productData) => {
     setProducts((prev) => {
       const maxId = prev.length > 0 ? Math.max(...prev.map(p => p.id)) : 100;
-      const newProduct: ProductModel = {
+      const newProduct = {
         ...productData,
         id: maxId + 1
       };
@@ -218,7 +170,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const updateProduct = (id: number, updatedData: ProductModel) => {
+  const updateProduct = (id, updatedData) => {
     setProducts((prev) => {
       const updated = prev.map((p) => (p.id === id ? updatedData : p));
       if (isClient) localStorage.setItem('products', JSON.stringify(updated));
@@ -226,7 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const deleteProduct = (id: number) => {
+  const deleteProduct = (id) => {
     setProducts((prev) => {
       const updated = prev.filter((p) => p.id !== id);
       if (isClient) localStorage.setItem('products', JSON.stringify(updated));
@@ -235,9 +187,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Orders Actions
-  const addOrder = (orderData: Omit<Order, 'id' | 'date' | 'status'>) => {
+  const addOrder = (orderData) => {
     const orderId = 'ZH-' + Math.floor(100000 + Math.random() * 900000);
-    const newOrder: Order = {
+    const newOrder = {
       ...orderData,
       id: orderId,
       status: 'قيد التجهيز',
@@ -251,7 +203,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return orderId;
   };
 
-  const updateOrderStatus = (id: string, status: Order['status']) => {
+  const updateOrderStatus = (id, status) => {
     setOrders((prev) => {
       const updated = prev.map((ord) => (ord.id === id ? { ...ord, status } : ord));
       if (isClient) localStorage.setItem('orders', JSON.stringify(updated));

@@ -6,19 +6,14 @@ import { X, Trash2, ShoppingBag } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import styles from './CartDrawer.module.css';
 
-type CartDrawerProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
-
-export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
+export default function CartDrawer({ isOpen, onClose }) {
   const { cart, removeFromCart, updateQuantity, cartTotal, currency } = useAppContext();
   const router = useRouter();
-  const drawerRef = useRef<HTMLDivElement>(null);
+  const drawerRef = useRef(null);
 
   // Close on Escape key
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose();
     };
     if (isOpen) {

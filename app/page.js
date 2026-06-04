@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styles from './page.module.css';
-import ProductModal, { type ModelData } from './components/ProductModal';
+import ProductModal from './components/ProductModal';
 import { useAppContext } from './context/AppContext';
 
 // فئات للتصفح السريع (مثل لوزان)
@@ -21,9 +21,8 @@ const categories = [
 // ===================================================
 export default function Home() {
   const { products } = useAppContext();
-  const heroVideoRef = useRef<HTMLVideoElement>(null);
-  const [openModel, setOpenModel] = useState<ModelData | null>(null);
-  const [announcementVisible, setAnnouncementVisible] = useState(true);
+  const heroVideoRef = useRef(null);
+  const [openModel, setOpenModel] = useState(null);
 
   useEffect(() => {
     if (heroVideoRef.current) heroVideoRef.current.playbackRate = 0.75;
@@ -36,8 +35,6 @@ export default function Home() {
 
       {/* ===== MODAL ===== */}
       {openModel && <ProductModal model={openModel} onClose={handleClose} />}
-
-
 
       {/* ===== HERO ===== */}
       <section className={styles.hero}>
@@ -208,7 +205,7 @@ export default function Home() {
                 style={{ transitionDelay: `${i * 0.08}s` }}
               >
                 <div className={styles.testimonialStars}>{'★'.repeat(t.stars)}</div>
-                <p className={styles.testimonialText}>"{t.text}"</p>
+                <p className={styles.testimonialText}>&quot;{t.text}&quot;</p>
                 <div className={styles.testimonialAuthor}>
                   <div className={styles.testimonialAvatar}>
                     {t.name.charAt(0)}
@@ -247,22 +244,22 @@ export default function Home() {
 // ===================================================
 //   PRODUCT CARD
 // ===================================================
-function ProductCard({ model, index, onOpen }: { model: ModelData; index: number; onOpen: () => void }) {
+function ProductCard({ model, index, onOpen }) {
   const [activeImg, setActiveImg] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRef = useRef(null);
   const hasImages = model.images.length > 0;
 
   const handleMouseEnter = () => {
     setIsHovered(true);
-    if (model.videos.length > 0 && videoRef.current) {
+    if (hasImages && model.videos.length > 0 && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   };
 
   const handleMouseLeave = () => {
     setIsHovered(false);
-    if (videoRef.current) {
+    if (hasImages && videoRef.current) {
       videoRef.current.pause();
       videoRef.current.currentTime = 0;
     }
@@ -302,16 +299,16 @@ function ProductCard({ model, index, onOpen }: { model: ModelData; index: number
           />
         )}
 
-        {!hasImages && model.videos.length > 0 && !isHovered && (
-          <video src={model.videos[0]} muted playsInline preload="none" className={styles.productImg} style={{ objectFit: 'cover' }} />
-        )}
-
         {model.videos.length > 0 && (
           <video
             ref={videoRef}
             src={model.videos[0]}
-            muted loop playsInline preload="none"
-            className={`${styles.productVideo} ${isHovered ? styles.productVideoVisible : ''}`}
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            autoPlay={!hasImages}
+            className={`${styles.productVideo} ${(!hasImages || isHovered) ? styles.productVideoVisible : ''}`}
           />
         )}
 
