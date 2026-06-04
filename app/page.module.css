@@ -947,6 +947,7 @@
 
   .lookbookGrid {
     grid-template-columns: 1fr;
+    min-height: auto; /* Reset desktop height constraint so stacked columns fit naturally */
   }
 
   .lookbookVideo {
