@@ -161,7 +161,7 @@ export default function Home() {
       <section id="lookbook" className={styles.lookbookSection}>
         <div className={styles.lookbookGrid}>
           <div className={`${styles.lookbookVideo} reveal`} style={{ position: 'relative' }}>
-            <Image src="/15.jpg" alt="فن العباية" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover' }} className={styles.lookbookVideoEl} />
+            <Image src="/15.jpg" alt="فن العباية" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover', objectPosition: 'center top' }} className={styles.lookbookVideoEl} />
             <div className={styles.lookbookOverlay}>
               <span className="section-label">اللوك بوك</span>
               <h2 className={styles.lookbookTitle}>فن العباية</h2>
@@ -170,7 +170,7 @@ export default function Home() {
           </div>
           <div className={`${styles.lookbookSide} reveal`} style={{ transitionDelay: '0.15s' }}>
             <div className={styles.lookbookSmallVid}>
-              <Image src="/8.png" alt="قصة العلامة" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover' }} />
+              <Image src="/8.png" alt="قصة العلامة" fill sizes="(max-width: 768px) 100vw, 50vw" style={{ objectFit: 'cover', objectPosition: 'center top' }} />
             </div>
             <div className={styles.lookbookText}>
               <span className="section-label">قصة العلامة</span>

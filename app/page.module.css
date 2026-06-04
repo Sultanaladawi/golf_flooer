@@ -949,6 +949,14 @@
     grid-template-columns: 1fr;
   }
 
+  .lookbookVideo {
+    min-height: 550px;
+  }
+
+  .lookbookSmallVid {
+    min-height: 420px;
+  }
+
   .lookbookSide {
     border-right: none;
     border-top: 1px solid var(--border-subtle);
@@ -985,6 +993,18 @@
   .heroCtas {
     flex-direction: column;
     gap: 1rem;
+  }
+
+  .lookbookVideo {
+    min-height: 480px; /* Taller on mobile to avoid cutting off the model */
+  }
+
+  .lookbookSmallVid {
+    min-height: 380px; /* Taller on mobile */
+  }
+
+  .lookbookTitle {
+    font-size: 2.2rem; /* Avoid text overflow on mobile */
   }
 
   .lookbookText {
