@@ -42,3 +42,5 @@ graduation_project_*
 *.rar
 
 build/
+untracked_media/
+
