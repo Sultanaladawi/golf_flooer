@@ -19,6 +19,10 @@ export default function ProductModal({ model, onClose }) {
   if (imagesArray.length === 0 && model.image_url) {
     imagesArray = [model.image_url];
   }
+  if (imagesArray.length === 0 && model.image) {
+    imagesArray = [model.image];
+  }
+
 
   let videosArray = [];
   try {
