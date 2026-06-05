@@ -1,0 +1,908 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import axios from 'axios';
+import { TrendingUp, ShoppingBag, DollarSign, ArrowUpRight, BarChart3, Zap, Calendar, Search, X, ArrowUpDown } from 'lucide-react';
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const Analytics = () => {
+  const now = new Date();
+  const [viewMode, setViewMode]       = useState('monthly'); // 'monthly' | 'range' | 'alltime'
+  const [selectedYear, setSelectedYear]   = useState(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [rangeFrom, setRangeFrom] = useState('');
+  const [rangeTo,   setRangeTo]   = useState('');
+  const [stats, setStats]   = useState(null);
+  const [allTime, setAllTime] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [weeklyData,   setWeeklyData]   = useState([]);
+  const [topCategory,  setTopCategory]  = useState({ name: 'None', percentage: 0 });
+  const [showAllSoldModal, setShowAllSoldModal] = useState(false);
+  const [allSoldProducts, setAllSoldProducts]   = useState([]);
+  const [modalLoading, setModalLoading]         = useState(false);
+  const [sortField, setSortField]               = useState('total_sold');
+  const [sortDirection, setSortDirection]       = useState('desc');
+  const [modalSearch, setModalSearch]           = useState('');
+  const [activeCatIndex, setActiveCatIndex]     = useState(0);
+
+  const categoryColors = {
+    'classic': '#c4a484',       // gold
+    'occasions': '#ff9a9e',     // pink
+    'winter': '#4facfe',        // blue
+    'new': '#f093fb',           // purple
+    'daily': '#a8e6cf',         // green
+    'other': '#a1a1a1',
+    'uncategorized': '#a1a1a1'
+  };
+
+  const categoryIcons = {
+    'classic': '👑',
+    'occasions': '💎',
+    'winter': '❄️',
+    'new': '📣',
+    'daily': '☀️',
+    'other': '📦',
+    'uncategorized': '📦'
+  };
+
+  const rawCategoryStats = stats?.categoryStats || [];
+  const totalCount = rawCategoryStats.reduce((acc, c) => acc + (parseInt(c.count) || 0), 0);
+  const categoriesData = rawCategoryStats.map(c => {
+    const count = parseInt(c.count) || 0;
+    const percentage = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+    const nameKey = (c.name || 'Other').trim().toLowerCase();
+    
+    // Find matching icon even if partial match
+    let icon = '👗';
+    if (nameKey.includes('classic') || nameKey.includes('كلاسيك')) icon = '👑';
+    else if (nameKey.includes('occasions') || nameKey.includes('مناسبات')) icon = '💎';
+    else if (nameKey.includes('winter') || nameKey.includes('شتوية')) icon = '❄️';
+    else if (nameKey.includes('new') || nameKey.includes('حديث')) icon = '📣';
+    else if (nameKey.includes('daily') || nameKey.includes('يومية')) icon = '☀️';
+
+    // Find matching color
+    let color = '#c4a484';
+    if (nameKey.includes('classic') || nameKey.includes('كلاسيك')) color = '#c4a484';
+    else if (nameKey.includes('occasions') || nameKey.includes('مناسبات')) color = '#ff9a9e';
+    else if (nameKey.includes('winter') || nameKey.includes('شتوية')) color = '#4facfe';
+    else if (nameKey.includes('new') || nameKey.includes('حديث')) color = '#f093fb';
+    else if (nameKey.includes('daily') || nameKey.includes('يومية')) color = '#a8e6cf';
+    else color = '#a1a1a1';
+
+    return {
+      name: c.name || 'Other',
+      count: count,
+      percentage: percentage,
+      color: color,
+      icon: icon
+    };
+  }).sort((a, b) => b.count - a.count);
+
+  useEffect(() => {
+    if (categoriesData.length > 0 && activeCatIndex >= categoriesData.length) {
+      setActiveCatIndex(0);
+    }
+  }, [categoriesData.length, activeCatIndex]);
+
+  const theme = {
+    crema: 'var(--admin-accent)',
+    espresso: 'var(--admin-bg)',
+    card: 'var(--admin-card)',
+    text: 'var(--admin-text)',
+    border: 'var(--admin-border)'
+  };
+
+  /* ── helpers ─────────────────────────────────────── */
+  const formatDate = (d) => {
+    const dt = new Date(d);
+    return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+  };
+
+  const processCategoryStats = (rawCats) => {
+    if (!Array.isArray(rawCats) || rawCats.length === 0) {
+      setTopCategory({ name: 'None', percentage: 0 });
+      return;
+    }
+    const total = rawCats.reduce((acc, c) => acc + (parseInt(c.count)||0), 0);
+    const sorted = [...rawCats].sort((a,b) => b.count - a.count);
+    const top = sorted[0];
+    setTopCategory({ name: top.name, percentage: total > 0 ? Math.round((top.count/total)*100) : 0 });
+  };
+
+  const buildWeeklyBars = (rawDaily, daysCount = 7) => {
+    const result = [];
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const ds = formatDate(date);
+      const match = rawDaily.find(s => formatDate(s.date) === ds);
+      result.push({
+        day: date.toLocaleDateString('en-GB', { weekday: 'short' }).toUpperCase(),
+        total: match ? parseFloat(match.total) : 0,
+        fullDate: date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+      });
+    }
+    return result;
+  };
+
+  /* ── all-time fetch ─────── */
+  const fetchAllTime = useCallback(async () => {
+    try {
+      const res = await axios.get('/api/dashboard-stats');
+      const d = res.data.data || res.data;
+      setAllTime(d);
+      if (viewMode === 'alltime') processCategoryStats(d.categoryStats);
+    } catch(e) { console.error(e); }
+  }, [viewMode]);
+
+  /* ── main stats fetch ────────────────────────────── */
+  const fetchStats = useCallback(async () => {
+    setLoading(true);
+    try {
+      let data = null;
+      if (viewMode === 'monthly') {
+        const res = await axios.get(`/api/analytics-monthly?year=${selectedYear}&month=${selectedMonth}`);
+        data = res.data;
+      } else if (viewMode === 'range' && rangeFrom && rangeTo) {
+        const res = await axios.get(`/api/analytics-range?from=${rangeFrom}&to=${rangeTo}`);
+        data = res.data;
+      } else if (viewMode === 'alltime') {
+        const res = await axios.get('/api/dashboard-stats');
+        const d = res.data.data || res.data;
+        data = {
+          totalOrders: d.totalOrders,
+          totalSales:  d.totalSales,
+          totalProducts: d.totalProducts,
+          avgOrderValue: d.totalOrders > 0 ? d.totalSales / d.totalOrders : 0,
+          topProducts: d.topProducts || [],
+          dailySales: d.dailySales || [],
+          categoryStats: d.categoryStats || []
+        };
+      }
+
+      if (data) {
+        setStats(data);
+        processCategoryStats(data.categoryStats);
+        if (viewMode === 'alltime') {
+            setWeeklyData(buildWeeklyBars(data.dailySales || []));
+        } else {
+            setWeeklyData(data.dailySales.map(s => ({
+                day: new Date(s.date).getDate().toString().padStart(2, '0'),
+                total: parseFloat(s.total),
+                fullDate: new Date(s.date).toLocaleDateString('en-GB',{month:'short'})
+              })));
+        }
+      }
+    } catch(e) {
+      console.error('Analytics fetch error:', e);
+    } finally { setLoading(false); }
+  // eslint-disable-next-line
+  }, [viewMode, selectedYear, selectedMonth, rangeFrom, rangeTo]);
+
+  const fetchAllSoldProducts = useCallback(async () => {
+    setModalLoading(true);
+    try {
+      const res = await axios.get(`/api/analytics-all-sold-products?mode=${viewMode}&year=${selectedYear}&month=${selectedMonth}&from=${rangeFrom}&to=${rangeTo}`);
+      setAllSoldProducts(res.data);
+    } catch (e) {
+      console.error("Error fetching all sold products:", e);
+    } finally {
+      setModalLoading(false);
+    }
+  }, [viewMode, selectedYear, selectedMonth, rangeFrom, rangeTo]);
+
+  useEffect(() => {
+    if (showAllSoldModal) {
+      fetchAllSoldProducts();
+    }
+  }, [showAllSoldModal, fetchAllSoldProducts]);
+
+  useEffect(() => { fetchAllTime(); }, [fetchAllTime]);
+  useEffect(() => { fetchStats(); }, [fetchStats]);
+
+  const maxBar = Math.max(...weeklyData.map(d => d.total), 1);
+  const topProducts = stats?.topProducts || [];
+
+  const cards = stats ? [
+    { title: 'Total Revenue',    value: `${parseFloat(stats.totalSales||0).toLocaleString('en-GB',{minimumFractionDigits:2,maximumFractionDigits:2})} JOD`, icon: DollarSign, color: '#38ef7d', desc: viewMode==='monthly'?`${MONTH_NAMES[selectedMonth-1]} ${selectedYear}`: viewMode==='range'?`${rangeFrom} → ${rangeTo}`:'All Time' },
+    { title: 'Total Orders',     value: stats.totalOrders||0, icon: ShoppingBag, color: '#c4a484', desc: 'Orders Count' },
+    { title: 'Avg Order Value',  value: `${parseFloat(stats.avgOrderValue||0).toFixed(2)} JOD`, icon: TrendingUp, color: '#4facfe', desc: 'Per Transaction' },
+    { title: 'Active Products',  value: stats.totalProducts || (allTime?.totalProducts||0), icon: BarChart3, color: '#f093fb', desc: 'In Menu' },
+    { title: 'Best Selling',     value: topProducts[0]?.item_name || 'N/A', icon: Zap, color: '#ff9a9e', desc: topProducts[0] ? `${topProducts[0].total_sold} Sold` : 'No data' },
+  ] : [];
+
+  const years = [];
+  for (let y = 2026; y <= now.getFullYear(); y++) years.push(y);
+
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
+    }
+  };
+
+  const filteredProducts = allSoldProducts
+    .filter(p => p.item_name.toLowerCase().includes(modalSearch.toLowerCase()))
+    .sort((a, b) => {
+      let valA = a[sortField];
+      let valB = b[sortField];
+      if (sortField === 'product_id' || sortField === 'unit_price' || sortField === 'total_sold' || sortField === 'revenue') {
+        valA = parseFloat(valA) || 0;
+        valB = parseFloat(valB) || 0;
+      } else {
+        valA = String(valA).toLowerCase();
+        valB = String(valB).toLowerCase();
+      }
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  return (
+    <div className="dashboard-fade-in analytics-container" style={{ color: theme.text, backgroundColor: theme.espresso, minHeight: '100vh', padding: '40px', position: 'relative' }}>
+      {/* Background */}
+      <div style={{ position: 'fixed', top:0, left:0, right:0, bottom:0, zIndex:0, overflow:'hidden', pointerEvents:'none' }}>
+        <div style={{ position:'absolute', top:0, left:0, right:0, bottom:0, background:'radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)' }} />
+        <div className="orb orb-1" /><div className="orb orb-2" />
+      </div>
+      <style>{`
+        .orb { position:absolute; border-radius:50%; filter:blur(100px); z-index:0; opacity:0.05; animation:float 25s infinite alternate ease-in-out; }
+        .orb-1 { width:600px; height:600px; background:#c4a484; top:-200px; right:-100px; }
+        .orb-2 { width:500px; height:500px; background:#2a1b10; bottom:-100px; left:-100px; }
+        @keyframes float { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(50px,50px) scale(1.1)} }
+        .page-badge { background:#1b130e; border:1px solid rgba(196,164,132,0.15); padding:12px 25px; border-radius:18px; display:inline-flex; align-items:center; gap:12px; margin:20px 0; }
+        .page-badge span { font-family:'Inter',sans-serif; font-size:2rem; font-weight:900; color:#fff; letter-spacing:-0.5px; }
+        .premium-row { transition:all 0.3s cubic-bezier(0.25,0.8,0.25,1)!important; cursor:pointer; }
+        .premium-row:hover { background-color:rgba(196,164,132,0.12)!important; transform:translateY(-5px) scale(1.005)!important; box-shadow:0 15px 35px rgba(0,0,0,0.4)!important; border-color:rgba(196,164,132,0.5)!important; position:relative; z-index:10; }
+        .bar-wrapper { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%; gap:10px; position:relative; cursor:pointer; }
+        .bar-tooltip { position:absolute; top:-30px; background:#c4a484; color:#070504; padding:5px 12px; border-radius:10px; font-size:0.75rem; font-weight:900; opacity:0; transition:0.3s; pointer-events:none; z-index:10; white-space:nowrap; }
+        .bar-wrapper:hover .bar-tooltip { opacity:1; transform:translateY(-10px); }
+        .bar-fill { transition:all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .bar-wrapper:hover .bar-fill {
+          transform: translateY(-8px) scaleX(1.05);
+          background: linear-gradient(180deg, #c4a484, #8c6a56) !important;
+          box-shadow: 0 10px 28px rgba(196, 164, 132, 0.5) !important;
+          border: 1px solid rgba(196, 164, 132, 0.7) !important;
+        }
+        .filter-btn { padding:10px 20px; border-radius:12px; border:1px solid rgba(196,164,132,0.3); background:rgba(196,164,132,0.05); color:#c4a484; font-weight:700; font-size:0.85rem; cursor:pointer; transition:0.25s; }
+        .filter-btn.active { background:#c4a484; color:#070504; border-color:#c4a484; }
+        .filter-btn:hover:not(.active) { background:rgba(196,164,132,0.15); }
+        .filter-select { padding:10px 14px; border-radius:10px; border:1px solid rgba(196,164,132,0.3); background:#0d0806; color:#fff; font-weight:600; font-size:0.9rem; cursor:pointer; }
+        .filter-date { padding:10px 14px; border-radius:10px; border:1px solid rgba(196,164,132,0.3); background:#0d0806; color:#fff; font-weight:600; font-size:0.9rem; direction:ltr; unicode-bidi:plaintext; }
+        .filter-date::-webkit-calendar-picker-indicator { filter:invert(1); }
+
+        .analytics-cards-grid {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: repeat(5, 1fr);
+          gap: 12px;
+          margin-bottom: 30px;
+        }
+        .analytics-charts-grid {
+          position: relative;
+          z-index: 1;
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 16px;
+          margin-bottom: 30px;
+        }
+        @media (max-width: 1024px) {
+          .analytics-cards-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+          }
+          .analytics-charts-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+        @media (max-width: 768px) {
+          .analytics-container {
+            padding: 20px !important;
+          }
+          .analytics-cards-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .analytics-charts-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .page-badge span {
+            font-size: 1.4rem !important;
+          }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ position:'relative', zIndex:1, marginBottom:'20px' }}>
+        <div style={{ fontFamily:"'DM Serif Display',serif", fontSize:'2.8rem', color:'#c4a484', lineHeight:1 }}>
+          Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+        </div>
+        <div className="page-badge">
+          <BarChart3 size={28} color="#c4a484" />
+          <span>Business Analytics</span>
+        </div>
+
+        {/* Today quick stats */}
+        {allTime && (
+          <div style={{ display:'flex', gap:'15px', marginTop:'15px', flexWrap:'wrap' }}>
+            <div style={{ background:'rgba(56,239,125,0.05)', border:'1px solid rgba(56,239,125,0.15)', padding:'10px 20px', borderRadius:'14px' }}>
+              <div style={{ fontSize:'0.6rem', color:'#38ef7d', fontWeight:'bold', textTransform:'uppercase', letterSpacing:'1px' }}>Today's Revenue</div>
+              <div style={{ fontSize:'1.2rem', color:'#fff', fontWeight:'900' }}>{parseFloat(allTime.todaySales||0).toFixed(2)} JOD</div>
+            </div>
+            <div style={{ background:'rgba(79,172,254,0.05)', border:'1px solid rgba(79,172,254,0.15)', padding:'10px 20px', borderRadius:'14px' }}>
+              <div style={{ fontSize:'0.6rem', color:'#4facfe', fontWeight:'bold', textTransform:'uppercase', letterSpacing:'1px' }}>Today's Orders</div>
+              <div style={{ fontSize:'1.2rem', color:'#fff', fontWeight:'900' }}>{allTime.todayOrders||0}</div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Filter Bar ── */}
+      <div style={{ position:'relative', zIndex:1, background:'rgba(255,255,255,0.02)', border:'1px solid rgba(196,164,132,0.12)', borderRadius:'20px', padding:'20px 25px', marginBottom:'25px', display:'flex', flexWrap:'wrap', gap:'15px', alignItems:'center' }}>
+        <Calendar size={20} color="#c4a484" />
+        <span style={{ color:'rgba(255,255,255,0.5)', fontWeight:'700', fontSize:'0.85rem', textTransform:'uppercase', letterSpacing:'1px' }}>View By:</span>
+
+        <button className={`filter-btn${viewMode==='monthly'?' active':''}`} onClick={() => setViewMode('monthly')}>Monthly</button>
+        <button className={`filter-btn${viewMode==='range'?' active':''}`}   onClick={() => setViewMode('range')}>Date Range</button>
+        <button className={`filter-btn${viewMode==='alltime'?' active':''}`} onClick={() => setViewMode('alltime')}>All Time</button>
+
+        {viewMode === 'monthly' && (
+          <>
+            <select className="filter-select" value={selectedYear} onChange={e => setSelectedYear(+e.target.value)}>
+              {years.map(y => <option key={y} value={y}>{y}</option>)}
+            </select>
+            <select className="filter-select" value={selectedMonth} onChange={e => setSelectedMonth(+e.target.value)}>
+              {MONTH_NAMES.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
+            </select>
+          </>
+        )}
+
+        {viewMode === 'range' && (
+          <>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'3px' }}>
+              <span style={{ fontSize:'0.7rem', color:'rgba(196,164,132,0.8)', fontWeight:'600' }}>From:</span>
+              <input 
+                type={rangeFrom ? "date" : "text"} 
+                placeholder="mm/dd/yyyy"
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
+                className="filter-date" 
+                value={rangeFrom} 
+                onChange={e => setRangeFrom(e.target.value)} 
+              />
+            </div>
+            <span style={{ color:'#c4a484', fontWeight:'700' }}>→</span>
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-start', gap:'3px' }}>
+              <span style={{ fontSize:'0.7rem', color:'rgba(196,164,132,0.8)', fontWeight:'600' }}>To:</span>
+              <input 
+                type={rangeTo ? "date" : "text"} 
+                placeholder="mm/dd/yyyy"
+                onFocus={(e) => (e.target.type = "date")}
+                onBlur={(e) => { if (!e.target.value) e.target.type = "text"; }}
+                className="filter-date" 
+                value={rangeTo}   
+                onChange={e => setRangeTo(e.target.value)}   
+              />
+            </div>
+            {rangeFrom && rangeTo && (
+              <button className="filter-btn active" style={{ display:'flex', alignItems:'center', gap:'6px' }} onClick={fetchStats}>
+                <Search size={14} /> Apply
+              </button>
+            )}
+            {(rangeFrom || rangeTo) && (
+              <button className="filter-btn" style={{ display:'flex', alignItems:'center', gap:'6px' }} onClick={() => { setRangeFrom(''); setRangeTo(''); }}>
+                <X size={14} /> Clear
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {loading ? (
+        <div style={{ color:'#c4a484', padding:'80px', textAlign:'center', position:'relative', zIndex:1, fontSize:'1.1rem', fontWeight:'700' }}>
+          Loading Analytics...
+        </div>
+      ) : (
+        <>
+          {/* ── 5 Stat Cards ── */}
+          <div className="analytics-cards-grid">
+            {cards.map((c, i) => {
+              const isBestSelling = c.title === 'Best Selling';
+              return (
+                <div 
+                  key={i} 
+                  className="premium-row" 
+                  onClick={isBestSelling ? () => setShowAllSoldModal(true) : undefined}
+                  style={{ 
+                    backgroundColor: theme.card, 
+                    padding:'16px 14px', 
+                    borderRadius:'16px', 
+                    border: isBestSelling ? '1px solid rgba(196,164,132,0.45)' : `1px solid ${theme.border}`, 
+                    display:'flex', 
+                    flexDirection:'column', 
+                    gap:'10px', 
+                    boxShadow: isBestSelling ? '0 15px 35px rgba(196,164,132,0.1)' : '0 10px 30px rgba(0,0,0,0.2)',
+                    cursor: isBestSelling ? 'pointer' : 'default',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    minWidth: '0'
+                  }}
+                >
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap: '8px' }}>
+                    <div style={{ backgroundColor:`${c.color}15`, color:c.color, padding:'8px', borderRadius:'10px', flexShrink: 0 }}>
+                      <c.icon size={18} />
+                    </div>
+                    <span 
+                      title={c.desc}
+                      style={{ 
+                        color:'#38ef7d', 
+                        fontSize:'0.65rem', 
+                        fontWeight:'bold', 
+                        display:'flex', 
+                        alignItems:'center', 
+                        gap:'2px',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        maxWidth: '70%',
+                        flexShrink: 0
+                      }}
+                    >
+                      <ArrowUpRight size={12} style={{ flexShrink: 0 }} /> {c.desc}
+                    </span>
+                  </div>
+                  <div style={{ paddingBottom: isBestSelling ? '18px' : '0px' }}>
+                    <p style={{ color: theme.text, opacity:0.6, fontSize:'0.72rem', textTransform:'uppercase', letterSpacing:'0.5px', margin:0 }}>{c.title}</p>
+                    <h3 style={{ color:'#fff', fontSize:'1.25rem', margin:'5px 0 0', fontWeight:'800', wordBreak:'break-word', lineHeight: '1.2' }}>{c.value}</h3>
+                    {isBestSelling && topProducts[0] && (
+                      <div style={{ fontSize: '0.72rem', color: '#38ef7d', fontWeight: 'bold', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        JOD {parseFloat(topProducts[0].revenue||0).toFixed(2)} Rev
+                      </div>
+                    )}
+                  </div>
+                  {isBestSelling && (
+                    <div style={{ position:'absolute', bottom:'4px', right:'10px', fontSize:'0.6rem', color:'#c4a484', fontWeight:'bold', display:'flex', alignItems:'center', gap:'2px' }}>
+                      Full List →
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* ── Bar Chart + Category Dominance ── */}
+          <div className="analytics-charts-grid">
+            <div style={{ background: 'rgba(255,255,255,0.015)', border: `1px solid ${theme.border}`, borderRadius: '24px', padding: '24px 20px', minHeight: '380px', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1, minWidth: '0' }}>
+              <div style={{ marginBottom: '35px' }}>
+                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem', color: '#fff', margin: 0 }}>
+                  {viewMode === 'monthly' ? `Daily Sales — ${MONTH_NAMES[selectedMonth-1]} ${selectedYear}` : viewMode === 'range' ? `Sales: ${rangeFrom} → ${rangeTo}` : 'Last 7 Days Sales'}
+                </h3>
+                <p style={{ color: '#c4a484', fontSize: '0.7rem', fontWeight: 900, letterSpacing: '2.5px', marginTop: '5px', textTransform: 'uppercase' }}>
+                  DATA SOURCE: LIVE METRICS SYNC
+                </p>
+              </div>
+              <div style={{ flex:1, display:'flex', alignItems:'flex-end', justifyContent:'space-between', gap:'20px', paddingBottom:'10px', height:'260px', overflowX:'auto' }}>
+                {weeklyData.length > 0 ? weeklyData.map((d, i) => {
+                  const isLast = i === weeklyData.length - 1;
+                  return (
+                  <div key={i} className="bar-wrapper" style={{ minWidth:'40px' }}>
+                    <div className="bar-tooltip">JOD {d.total.toFixed(2)}</div>
+                    <div style={{ color: '#fff', fontSize: '0.8rem', fontWeight: 900, opacity: d.total > 0 ? 0.9 : 0, marginBottom: '5px' }}>JOD {d.total.toFixed(0)}</div>
+                    <div className="bar-fill" style={{ 
+                      width:'100%', maxWidth:'50px', 
+                      background: isLast ? `linear-gradient(180deg, #c4a484, #8c6a56)` : `linear-gradient(180deg, rgba(196,164,132,0.1), rgba(196,164,132,0.3))`, 
+                      height:`${Math.max((d.total/maxBar)*100,2)}%`, minHeight: d.total > 0 ? '8px' : '4px',
+                      borderRadius:'12px', transition: '1s cubic-bezier(0.23, 1, 0.32, 1)',
+                      boxShadow: isLast && d.total > 0 ? '0 0 25px #c4a48444' : 'none',
+                      border: isLast ? `1px solid #c4a48466` : 'none'
+                    }} />
+                    <div style={{ color: isLast ? '#c4a484' : 'rgba(255,255,255,0.4)', fontSize:'0.75rem', fontWeight:'900', textAlign:'center', marginTop:'10px' }}>
+                      {d.day}<div style={{ fontSize:'0.55rem', opacity:0.5 }}>{d.fullDate}</div>
+                    </div>
+                  </div>
+                )}) : (
+                  <div style={{ color:'#555', width:'100%', textAlign:'center' }}>No sales data for this period.</div>
+                )}
+              </div>
+            </div>
+
+            <div style={{ backgroundColor: theme.card, padding:'24px 20px', borderRadius:'24px', border:`1px solid ${theme.border}`, boxShadow:'0 15px 45px rgba(0,0,0,0.3)', display:'flex', flexDirection:'column', alignItems:'center', minWidth: '0', position: 'relative' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', marginBottom: '20px' }}>
+                <h3 style={{ color:'#fff', margin: 0, fontFamily:'serif', fontSize:'1.4rem' }}>Category Dominance</h3>
+                {/* Arrow controllers */}
+                {categoriesData.length > 0 && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={() => {
+                        setActiveCatIndex(prev => (prev === 0 ? categoriesData.length - 1 : prev - 1));
+                      }}
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${theme.border}`,
+                        color: '#c4a484',
+                        borderRadius: '50%',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(196,164,132,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                    >
+                      <i className="fas fa-chevron-left" style={{ fontSize: '0.85rem' }} />
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setActiveCatIndex(prev => (prev === categoriesData.length - 1 ? 0 : prev + 1));
+                      }}
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${theme.border}`,
+                        color: '#c4a484',
+                        borderRadius: '50%',
+                        width: '32px',
+                        height: '32px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'rgba(196,164,132,0.1)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
+                    >
+                      <i className="fas fa-chevron-right" style={{ fontSize: '0.85rem' }} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {categoriesData.length > 0 && categoriesData[activeCatIndex] ? (() => {
+                const activeCat = categoriesData[activeCatIndex];
+
+                return (
+                  <>
+                    <div style={{ position:'relative', width:'180px', height:'180px', marginBottom:'25px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ 
+                        width:'100%', height:'100%', borderRadius:'50%', 
+                        background:`conic-gradient(${activeCat.color} ${activeCat.percentage*3.6}deg, rgba(255,255,255,0.03) 0deg)`, 
+                        display:'flex', alignItems:'center', justifyContent:'center', 
+                        boxShadow:`0 0 35px ${activeCat.color}15`, 
+                        transition:'all 1s cubic-bezier(0.4,0,0.2,1)' 
+                      }}>
+                        <div style={{ width:'140px', height:'140px', borderRadius:'50%', backgroundColor: theme.card, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', boxShadow:'inset 0 0 20px rgba(0,0,0,0.5)' }}>
+                          <span style={{ color:'#fff', fontSize:'2.5rem', fontWeight:'900', lineHeight:'1' }}>{activeCat.percentage}%</span>
+                          <span style={{ color:'#c4a484', fontSize:'0.65rem', fontWeight:'bold', textTransform:'uppercase', letterSpacing:'1px', marginTop:'5px' }}>Market Share</span>
+                        </div>
+                      </div>
+                      <div style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '1.5rem', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }}>
+                        {activeCat.icon}
+                      </div>
+                    </div>
+                    
+                    <div style={{ textAlign:'center' }}>
+                      <p style={{ color:'#fff', fontSize:'1.25rem', fontWeight:'bold', margin:0, fontFamily:'serif' }}>{activeCat.name}</p>
+                      
+                      <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                        {activeCatIndex === 0 ? (
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            background: 'rgba(212,175,55,0.15)', 
+                            border: '1px solid rgba(212,175,55,0.3)',
+                            padding: '6px 14px', 
+                            borderRadius: '20px',
+                            boxShadow: '0 0 15px rgba(212,175,55,0.15)'
+                          }}>
+                            <span style={{ color: '#D4AF37', fontSize: '0.8rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>🥇 1st Place — Best Seller</span>
+                          </div>
+                        ) : activeCatIndex === 1 ? (
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            background: 'rgba(192,192,192,0.15)', 
+                            border: '1px solid rgba(192,192,192,0.3)',
+                            padding: '6px 14px', 
+                            borderRadius: '20px',
+                            boxShadow: '0 0 15px rgba(192,192,192,0.1)'
+                          }}>
+                            <span style={{ color: '#C0C0C0', fontSize: '0.8rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>🥈 2nd Place</span>
+                          </div>
+                        ) : activeCatIndex === 2 ? (
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            background: 'rgba(205,127,50,0.15)', 
+                            border: '1px solid rgba(205,127,50,0.3)',
+                            padding: '6px 14px', 
+                            borderRadius: '20px',
+                            boxShadow: '0 0 15px rgba(205,127,50,0.1)'
+                          }}>
+                            <span style={{ color: '#CD7F32', fontSize: '0.8rem', fontWeight: 'bold', letterSpacing: '0.5px' }}>🥉 3rd Place</span>
+                          </div>
+                        ) : (
+                          <div style={{ 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '6px', 
+                            background: 'rgba(255,255,255,0.03)', 
+                            border: '1px solid rgba(255,255,255,0.08)',
+                            padding: '4px 12px', 
+                            borderRadius: '20px'
+                          }}>
+                            <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 'bold' }}>🎖️ Rank #{activeCatIndex + 1}</span>
+                          </div>
+                        )}
+                        
+                        <p style={{ color: theme.text, fontSize:'0.85rem', opacity:0.6, margin: 0 }}>
+                          {activeCat.count} Items Sold
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                );
+              })() : (
+                <div style={{ color: '#555', padding: '40px' }}>Loading category data...</div>
+              )}
+            </div>
+          </div>
+
+          {/* ── Top Selling Products ── */}
+          <div style={{ position:'relative', zIndex:1 }}>
+            <div style={{ backgroundColor: theme.card, padding:'24px 20px', borderRadius:'24px', border:`1px solid ${theme.border}`, boxShadow:'0 15px 45px rgba(0,0,0,0.3)' }}>
+              <h3 style={{ color:'#fff', marginBottom:'5px', fontFamily:'serif', fontSize:'1.5rem' }}>
+                Top Selling Products
+              </h3>
+              <p style={{ color:'rgba(255,255,255,0.35)', fontSize:'0.8rem', marginBottom:'25px', fontWeight:'600' }}>
+                {viewMode==='monthly' ? `${MONTH_NAMES[selectedMonth-1]} ${selectedYear}` : viewMode==='range' ? `${rangeFrom} → ${rangeTo}` : 'All Time'}
+              </p>
+              {topProducts.length === 0 ? (
+                <div style={{ textAlign:'center', color:'#555', padding:'40px', fontSize:'1rem' }}>No sales data for this period.</div>
+              ) : (
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(220px, 1fr))', gap:'20px' }}>
+                  {topProducts.map((p, i) => (
+                    <div key={i} className="premium-row" style={{ background:'rgba(255,255,255,0.02)', padding:'20px', borderRadius:'16px', border:`1px solid ${theme.border}`, display:'flex', alignItems:'center', gap:'15px' }}>
+                      <div style={{ width:'42px', height:'42px', borderRadius:'50%', background: i===0 ? 'linear-gradient(135deg,#FFD700,#B8860B)' : i===1 ? 'linear-gradient(135deg,#C0C0C0,#888)' : i===2 ? 'linear-gradient(135deg,#CD7F32,#8B4513)' : 'rgba(196,164,132,0.1)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.1rem', fontWeight:'bold', color: i<3 ? '#000' : '#c4a484', flexShrink:0 }}>
+                        {i+1}
+                      </div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ color:'#fff', fontWeight:'bold', fontSize:'1rem', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.item_name}</div>
+                        <div style={{ display:'flex', gap:'12px', marginTop:'6px', flexWrap:'wrap' }}>
+                          <span style={{ background:'rgba(56,239,125,0.1)', color:'#38ef7d', padding:'3px 10px', borderRadius:'20px', fontSize:'0.78rem', fontWeight:'700' }}>
+                            {parseFloat(p.total_sold||0).toFixed(0)} Sold
+                          </span>
+                          <span style={{ background:'rgba(196,164,132,0.1)', color:'#c4a484', padding:'3px 10px', borderRadius:'20px', fontSize:'0.78rem', fontWeight:'700' }}>
+                            {parseFloat(p.revenue||0).toFixed(2)} JOD Revenue
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ color:'#c4a484', opacity:0.25, fontWeight:'900', fontSize:'1.1rem', flexShrink:0 }}>#{i+1}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {topProducts.length > 0 && (
+                <div 
+                  className="premium-row"
+                  onClick={() => setShowAllSoldModal(true)}
+                  style={{ marginTop: '20px', background: 'rgba(196,164,132,0.08)', border: `1px dashed rgba(196,164,132,0.4)`, padding: '20px', borderRadius: '16px', textAlign: 'center', color: '#c4a484', fontWeight: 'bold', fontSize: '1.1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+                >
+                  View All Sold Products History →
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+      {/* ── All Sold Products Modal ── */}
+      {showAllSoldModal && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: 'rgba(7, 5, 4, 0.85)',
+          backdropFilter: 'blur(20px)',
+          zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          animation: 'fadeIn 0.3s ease-out',
+          padding: '20px'
+        }}>
+          <div style={{
+            backgroundColor: '#0d0806',
+            border: '1px solid rgba(196, 164, 132, 0.25)',
+            width: '100%', maxWidth: '900px',
+            borderRadius: '24px',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(196,164,132,0.1)',
+            maxHeight: '85vh',
+            display: 'flex', flexDirection: 'column',
+            overflow: 'hidden',
+            position: 'relative'
+          }}>
+            {/* Modal Header */}
+            <div style={{
+              padding: '25px 30px',
+              borderBottom: '1px solid rgba(196, 164, 132, 0.15)',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              background: 'linear-gradient(135deg, #1b130e 0%, #0d0806 100%)'
+            }}>
+              <div>
+                <h3 style={{ margin: 0, color: '#fff', fontSize: '1.6rem', fontFamily: 'serif', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <ShoppingBag color="#c4a484" size={24} />
+                  All Sold Products History
+                </h3>
+                <p style={{ margin: '5px 0 0', color: 'rgba(255,255,255,0.4)', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                  Period: {viewMode === 'monthly' ? `${MONTH_NAMES[selectedMonth-1]} ${selectedYear}` : viewMode === 'range' ? `${rangeFrom} → ${rangeTo}` : 'All Time'}
+                </p>
+              </div>
+              <button 
+                onClick={() => setShowAllSoldModal(false)}
+                style={{
+                  background: 'rgba(196, 164, 132, 0.05)',
+                  border: '1px solid rgba(196, 164, 132, 0.15)',
+                  color: '#c4a484',
+                  width: '38px', height: '38px',
+                  borderRadius: '50%',
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  transition: '0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(196,164,132,0.2)'; e.currentTarget.style.color = '#fff'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(196, 164, 132, 0.05)'; e.currentTarget.style.color = '#c4a484'; }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Search Bar / Controls */}
+            <div style={{
+              padding: '20px 30px',
+              borderBottom: '1px solid rgba(196, 164, 132, 0.1)',
+              display: 'flex', gap: '15px', alignItems: 'center',
+              backgroundColor: 'rgba(196, 164, 132, 0.02)'
+            }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} color="rgba(255,255,255,0.4)" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)' }} />
+                <input 
+                  type="text" 
+                  placeholder="Search sold products by name..."
+                  value={modalSearch}
+                  onChange={e => setModalSearch(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px 15px 12px 45px',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(196, 164, 132, 0.2)',
+                    background: '#070504',
+                    color: '#fff',
+                    fontWeight: '600',
+                    fontSize: '0.9rem',
+                    outline: 'none'
+                  }}
+                />
+              </div>
+              <div style={{ fontSize: '0.85rem', color: '#c4a484', fontWeight: 'bold', background: 'rgba(196,164,132,0.05)', padding: '10px 15px', borderRadius: '10px', border: '1px solid rgba(196,164,132,0.1)' }}>
+                {filteredProducts.length} Items Found
+              </div>
+            </div>
+
+            {/* Modal Body / Table */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '30px' }}>
+              {modalLoading ? (
+                <div style={{ padding: '80px 0', textAlign: 'center', color: '#c4a484', fontWeight: 'bold' }}>
+                  Loading Sold Products History...
+                </div>
+              ) : filteredProducts.length === 0 ? (
+                <div style={{ padding: '80px 0', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontWeight: 'bold' }}>
+                  No sold products matching your query found.
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto', borderRadius: '16px', border: '1px solid rgba(196, 164, 132, 0.15)' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', color: '#fff', fontSize: '0.9rem' }}>
+                    <thead>
+                      <tr style={{ background: '#1b130e', borderBottom: '1px solid rgba(196, 164, 132, 0.25)' }}>
+                        {[
+                          { key: 'item_name', label: 'Product Name' },
+                          { key: 'unit_price', label: 'Unit Price' },
+                          { key: 'total_sold', label: 'Total Sold' },
+                          { key: 'revenue', label: 'Total Revenue' }
+                        ].map(col => {
+                          const isActive = sortField === col.key;
+                          return (
+                            <th 
+                              key={col.key}
+                              onClick={() => handleSort(col.key)}
+                              style={{
+                                padding: '15px 20px',
+                                color: isActive ? '#fff' : '#c4a484',
+                                fontWeight: '900',
+                                fontSize: '0.8rem',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                transition: '0.2s',
+                                whiteSpace: 'nowrap'
+                              }}
+                              onMouseEnter={e => e.currentTarget.style.color = '#fff'}
+                              onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = '#c4a484'; }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                {col.label}
+                                <ArrowUpDown size={12} style={{ opacity: isActive ? 1 : 0.3, transform: isActive && sortDirection === 'asc' ? 'rotate(180deg)' : 'none', transition: '0.3s' }} />
+                              </div>
+                            </th>
+                          );
+                        })}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredProducts.map((p, index) => (
+                        <tr 
+                          key={p.item_name}
+                          style={{
+                            borderBottom: '1px solid rgba(196, 164, 132, 0.1)',
+                            backgroundColor: index % 2 === 0 ? 'transparent' : 'rgba(196,164,132,0.02)',
+                            transition: '0.2s'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(196,164,132,0.05)'}
+                          onMouseLeave={e => e.currentTarget.style.backgroundColor = index % 2 === 0 ? 'transparent' : 'rgba(196,164,132,0.02)'}
+                        >
+                          <td style={{ padding: '15px 20px', fontWeight: 'bold', color: '#fff' }}>
+                            {p.item_name}
+                          </td>
+                          <td style={{ padding: '15px 20px', color: '#c4a484', fontWeight: '600' }}>
+                            {parseFloat(p.unit_price || 0).toFixed(2)} JOD
+                          </td>
+                          <td style={{ padding: '15px 20px' }}>
+                            <span style={{ background: 'rgba(56, 239, 125, 0.1)', color: '#38ef7d', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                              {parseFloat(p.total_sold || 0).toFixed(0)} Sold
+                            </span>
+                          </td>
+                          <td style={{ padding: '15px 20px', color: '#38ef7d', fontWeight: 'bold' }}>
+                            {parseFloat(p.revenue || 0).toFixed(2)} JOD
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+            {/* Modal Footer */}
+            <div style={{
+              padding: '20px 30px',
+              borderTop: '1px solid rgba(196, 164, 132, 0.15)',
+              display: 'flex', justifyContent: 'flex-end',
+              background: '#0d0806'
+            }}>
+              <button 
+                onClick={() => setShowAllSoldModal(false)}
+                style={{
+                  padding: '12px 25px',
+                  borderRadius: '12px',
+                  border: '1px solid #c4a484',
+                  background: '#c4a484',
+                  color: '#070504',
+                  fontWeight: 'bold',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: '0.2s'
+                }}
+                onMouseEnter={e => { e.currentTarget.style.filter = 'brightness(1.15)'; }}
+                onMouseLeave={e => { e.currentTarget.style.filter = 'none'; }}
+              >
+                Close Window
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Analytics;

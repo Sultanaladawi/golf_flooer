@@ -1,21 +1,54 @@
 {
-  "name": "dazzling-carson",
-  "version": "0.1.0",
-  "private": true,
+  "name": "gp-main",
+  "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "node server.js",
+    "client": "cross-env GENERATE_SOURCEMAP=false react-scripts start",
+    "server": "node server.js",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build"
   },
   "dependencies": {
-    "lucide-react": "^1.17.0",
-    "next": "16.2.7",
-    "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "@stripe/react-stripe-js": "^6.6.0",
+    "@stripe/stripe-js": "^9.7.0",
+    "@studio-freight/lenis": "^1.0.42",
+    "axios": "^1.15.2",
+    "concurrently": "^8.2.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
+    "lucide-react": "^1.8.0",
+    "multer": "^2.1.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.22.2",
+    "nodemon": "^3.1.14",
+    "openai": "^6.34.0",
+    "pdf-parse": "^2.4.5",
+    "pptxgenjs": "^4.0.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^5.6.0",
+    "react-router-dom": "^7.14.1",
+    "react-scripts": "5.0.1",
+    "stripe": "^22.2.0"
   },
   "devDependencies": {
-    "eslint": "^9",
-    "eslint-config-next": "16.2.7"
-  }
+    "@types/node": "^25.6.0",
+    "cross-env": "^10.1.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "proxy": "http://127.0.0.1:5000"
 }

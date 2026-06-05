@@ -1,0 +1,215 @@
+.footer {
+  background: var(--cream-dark);
+  color: var(--espresso);
+  padding: 100px 0 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(196, 164, 132, 0.3), transparent);
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1.5fr;
+  gap: 60px;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.logoMark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.5rem;
+  color: var(--gold-dim);
+  background: var(--gold-glow);
+  padding: 10px 20px;
+  border-radius: 15px;
+  border: 1px solid var(--border);
+}
+
+.logoName {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.8rem;
+  color: var(--espresso);
+  line-height: 1;
+}
+
+.logoCity {
+  color: var(--gold-dim);
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+
+.brandDesc {
+  color: var(--espresso-mid);
+  font-size: 1rem;
+  line-height: 1.8;
+  max-width: 300px;
+}
+
+.socialGroup {
+  display: flex;
+  gap: 15px;
+}
+
+.socialIcon {
+  width: 45px;
+  height: 45px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--espresso);
+  text-decoration: none;
+  transition: all 0.4s ease;
+}
+
+.socialIcon:hover {
+  background: var(--gold);
+  color: var(--espresso);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-gold);
+}
+
+.col h4 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 1.4rem;
+  color: var(--gold-dim);
+  margin-bottom: 30px;
+  position: relative;
+}
+
+.col h4::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 30px;
+  height: 2px;
+  background: var(--gold);
+}
+
+.col ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.col ul li a {
+  color: var(--espresso-mid);
+  text-decoration: none;
+  transition: 0.3s;
+  font-size: 0.95rem;
+}
+
+.col ul li a:hover {
+  color: var(--gold);
+  padding-left: 5px;
+}
+
+.hoursRow {
+  display: flex;
+  justify-content: space-between;
+  color: var(--espresso-mid);
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--divider);
+  padding-bottom: 8px;
+}
+
+.time {
+  color: var(--espresso);
+  font-weight: 600;
+}
+
+.mapContainer {
+  width: 100%;
+  height: 150px;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid rgba(196, 164, 132, 0.2);
+  filter: grayscale(0.1) contrast(1.05);
+  transition: 0.5s;
+}
+
+.mapContainer:hover {
+  filter: grayscale(0) invert(0) contrast(1);
+}
+
+.address, .emailLink {
+  display: flex;
+  gap: 12px;
+  color: var(--espresso-mid);
+  text-decoration: none;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  transition: 0.3s;
+}
+
+.address i, .emailLink i {
+  color: var(--gold-dim);
+  margin-top: 4px;
+}
+
+.address:hover, .emailLink:hover {
+  color: var(--gold);
+}
+
+.bottom {
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding: 40px;
+  border-top: 1px solid var(--divider);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+  .inner {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .inner {
+    grid-template-columns: 1fr;
+    padding: 0 25px;
+  }
+  .bottom {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+}

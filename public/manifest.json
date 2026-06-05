@@ -1,0 +1,29 @@
+{
+  "short_name": "Yafa Online",
+  "name": "Yafa Online - Oriental Embroidery",
+  "description": "Experience the finest oriental embroidery and abayas. Order luxury designs directly from our shop.",
+  "icons": [
+    {
+      "src": "favicon.jpg",
+      "type": "image/jpeg",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": ".",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#c5a880",
+  "background_color": "#faf8f5",
+  "orientation": "portrait",
+  "lang": "ar-JO",
+  "shortcuts": [
+    {
+      "name": "Admin Dashboard",
+      "short_name": "Admin",
+      "description": "Manage orders, inventory and products",
+      "url": "/admin",
+      "icons": [{ "src": "favicon.jpg", "sizes": "512x512", "type": "image/jpeg" }]
+    }
+  ]
+}

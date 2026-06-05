@@ -1,0 +1,72 @@
+
+/* Custom Luxury Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 50px;
+  border: 2px solid var(--bg-surface);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #c4a484;
+}
+
+/* Premium Reveal Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+.reveal.vis {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Global Responsiveness for Customer & Admin Sites */
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+@media screen and (max-width: 1400px) {
+  html { font-size: 15px; }
+}
+
+@media screen and (max-width: 1024px) {
+  html { font-size: 14px; }
+  .grid-container, .admin-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  html { font-size: 13px; }
+  .grid-container, .admin-grid, .menu-grid {
+    grid-template-columns: 1fr !important;
+  }
+  h1 { font-size: 1.8rem !important; }
+  h2 { font-size: 1.5rem !important; }
+  .mobile-hide { display: none !important; }
+  
+  /* Admin Sidebar Handling */
+  .admin-sidebar {
+    width: 60px !important;
+  }
+  .admin-sidebar span { display: none; }
+  .admin-main { margin-left: 60px !important; }
+}
+
+@media screen and (max-width: 480px) {
+  .card, .panel { padding: 15px !important; }
+  button { padding: 10px 15px !important; }
+}
+
