@@ -11,7 +11,8 @@ export default function ProductModal({ model, onClose }) {
   // Parse JSON arrays safely
   let imagesArray = [];
   try {
-    imagesArray = typeof model.images === 'string' ? JSON.parse(model.images) : (model.images || []);
+    const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
+    imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
   } catch (e) {
     imagesArray = [];
   }
@@ -21,16 +22,20 @@ export default function ProductModal({ model, onClose }) {
 
   let videosArray = [];
   try {
-    videosArray = typeof model.videos === 'string' ? JSON.parse(model.videos) : (model.videos || []);
+    const raw = typeof model.videos === 'string' ? JSON.parse(model.videos) : model.videos;
+    videosArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
   } catch (e) {
     videosArray = [];
   }
 
   let fabricArray = [];
   try {
-    fabricArray = typeof model.fabric === 'string' ? JSON.parse(model.fabric) : (model.fabric || []);
+    const raw = typeof model.fabric === 'string' ? JSON.parse(model.fabric) : model.fabric;
+    fabricArray = Array.isArray(raw) ? raw : [];
   } catch (e) {
-    // If it fails or is empty, use default fields
+    fabricArray = [];
+  }
+  if (!fabricArray || fabricArray.length === 0) {
     fabricArray = [
       { label: 'نوع القماش', value: 'كريب فاخر' },
       { label: 'بلد المنشأ', value: 'صنع في الأردن' }
@@ -39,18 +44,23 @@ export default function ProductModal({ model, onClose }) {
 
   let careArray = [];
   try {
-    careArray = typeof model.care === 'string' ? JSON.parse(model.care) : (model.care || []);
+    const raw = typeof model.care === 'string' ? JSON.parse(model.care) : model.care;
+    careArray = Array.isArray(raw) ? raw : [];
   } catch (e) {
+    careArray = [];
+  }
+  if (!careArray || careArray.length === 0) {
     careArray = ['غسيل يدوي بماء بارد', 'كي على حرارة منخفضة'];
   }
 
   let sizesArray = [];
   try {
-    sizesArray = typeof model.sizes === 'string' ? JSON.parse(model.sizes) : (model.sizes || []);
+    const raw = typeof model.sizes === 'string' ? JSON.parse(model.sizes) : model.sizes;
+    sizesArray = Array.isArray(raw) ? raw : [];
   } catch (e) {
-    sizesArray = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
+    sizesArray = [];
   }
-  if (sizesArray.length === 0) {
+  if (!sizesArray || sizesArray.length === 0) {
     sizesArray = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
   }
 
@@ -63,8 +73,8 @@ export default function ProductModal({ model, onClose }) {
   const [activeVideo, setActiveVideo] = useState(0);
   const [selectedSize, setSelectedSize] = useState(null);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [visible, setVisible] = useState(false);
   const videoRef = useRef(null);
-  const modalRef = useRef(null);
 
   // Use a stable ref to hold onClose so we don't recreate the effect on every render
   const onCloseRef = useRef(onClose);
@@ -84,13 +94,13 @@ export default function ProductModal({ model, onClose }) {
   // Animate in
   useEffect(() => {
     const t = setTimeout(() => {
-      modalRef.current?.classList.add(styles.visible);
+      setVisible(true);
     }, 10);
     return () => clearTimeout(t);
   }, []);
 
   const handleClose = useCallback(() => {
-    modalRef.current?.classList.remove(styles.visible);
+    setVisible(false);
     setTimeout(() => onCloseRef.current?.(), 400);
   }, []);
 
@@ -120,10 +130,9 @@ export default function ProductModal({ model, onClose }) {
   };
 
   return (
-    <div className={styles.backdrop} onClick={handleClose}>
+    <div className={`${styles.backdrop} ${visible ? styles.visible : ''}`} onClick={handleClose}>
       <div
-        ref={modalRef}
-        className={styles.modal}
+        className={`${styles.modal} ${visible ? styles.visible : ''}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
