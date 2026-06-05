@@ -95,11 +95,11 @@ export default function Gallery() {
           <i className="fab fa-instagram" />
           تابعونا على{' '}
           <a
-            href="https://instagram.com/yafaonline"
+            href="https://instagram.com/zahratbeesan"
             target="_blank"
             rel="noopener noreferrer"
           >
-            @yafaonline
+            @zahratbeesan
           </a>
         </p>
       </div>

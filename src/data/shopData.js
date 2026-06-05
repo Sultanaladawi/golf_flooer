@@ -81,8 +81,8 @@ export const shopInfo = {
   // Online-only global store — no physical address
   email: "info@zahratbeesan.com",
   careersEmail: "careers@zahratbeesan.com",
-  instagram: "https://instagram.com/yafaonline",
-  instagramHandle: "@yafaonline",
+  instagram: "https://instagram.com/zahratbeesan",
+  instagramHandle: "@zahratbeesan",
   phone: "0796697413"
 };
 
