@@ -201,7 +201,9 @@ export default function Menu() {
         {featuredItems.map((feat) => {
           // Sync with DB item to get latest stock/details
           const dbItem = dbItems.find(i => i.id === feat.id);
-          const rawItem = dbItem ? { ...dbItem, tag: feat.tag } : feat;
+          const rawItem = dbItem
+            ? { ...dbItem, tag: feat.tag, image: dbItem.image_url || feat.image }
+            : feat;
           const item = {
             ...rawItem,
             displayPrice: format(parsePrice(rawItem.price_num || rawItem.price))
@@ -442,7 +444,7 @@ export default function Menu() {
 }
 
 function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
-  const imgUrl = item.image ? item.image : getImageUrl(item);
+  const imgUrl = item.image || item.image_url || getImageUrl(item);
   const isOutOfStock = !!item.isOutOfStock;
   return (
     <div 
