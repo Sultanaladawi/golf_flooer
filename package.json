@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "node server.js",
-    "client": "cross-env GENERATE_SOURCEMAP=false react-scripts start",
+    "client": "cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
     "server": "node server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build"
