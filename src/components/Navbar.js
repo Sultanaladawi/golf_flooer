@@ -27,6 +27,13 @@ const LINKS = [
   { label: 'التشكيلة',  href: '#collection' },
   { label: 'معرضنا',    href: '#gallery' },
   { label: 'اتصلي بنا', href: '#contact' },
+const LANGUAGES = [
+  { code: 'ar', name: 'العربية', iso: 'jo' },
+  { code: 'en', name: 'English', iso: 'gb' },
+  { code: 'tr', name: 'Türkçe', iso: 'tr' },
+  { code: 'fr', name: 'Français', iso: 'fr' },
+  { code: 'de', name: 'Deutsch', iso: 'de' },
+  { code: 'zh-CN', name: '中文', iso: 'cn' }
 ];
 
 export default function Navbar({ onCartOpen }) {
@@ -38,6 +45,17 @@ export default function Navbar({ onCartOpen }) {
   const currencyRef               = useRef(null);
   const { totalItems }            = useCart();
   const { currency, setCurrency, currencies } = useCurrency();
+
+  const [showLanguage, setShowLanguage] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState(() => {
+    try {
+      const saved = localStorage.getItem('zahrat_language');
+      return saved || 'ar';
+    } catch {
+      return 'ar';
+    }
+  });
+  const languageRef               = useRef(null);
 
   useEffect(() => {
     fetch('/api/offers')
@@ -66,21 +84,54 @@ export default function Navbar({ onCartOpen }) {
   }, [open]);
 
   useEffect(() => {
-    const onEsc = (e) => { if (e.key === 'Escape') { setOpen(false); setShowCurrency(false); } };
+    const onEsc = (e) => { if (e.key === 'Escape') { setOpen(false); setShowCurrency(false); setShowLanguage(false); } };
     document.addEventListener('keydown', onEsc);
     return () => document.removeEventListener('keydown', onEsc);
   }, []);
 
-  // Close currency dropdown when clicking outside
+  // Close currency and language dropdowns when clicking outside
   useEffect(() => {
     const onClick = (e) => {
       if (currencyRef.current && !currencyRef.current.contains(e.target)) {
         setShowCurrency(false);
       }
+      if (languageRef.current && !languageRef.current.contains(e.target)) {
+        setShowLanguage(false);
+      }
     };
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
+
+  const changeLanguage = (langCode) => {
+    try {
+      const selectEl = document.querySelector('.goog-te-combo');
+      if (selectEl) {
+        selectEl.value = langCode;
+        selectEl.dispatchEvent(new Event('change'));
+        setSelectedLanguage(langCode);
+        localStorage.setItem('zahrat_language', langCode);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const selectEl = document.querySelector('.goog-te-combo');
+      if (selectEl) {
+        if (selectEl.value !== selectedLanguage) {
+          selectEl.value = selectedLanguage;
+          selectEl.dispatchEvent(new Event('change'));
+        }
+        clearInterval(interval);
+      }
+    }, 500);
+    return () => clearInterval(interval);
+  }, [selectedLanguage]);
+
+  const currentLangObj = LANGUAGES.find(l => l.code === selectedLanguage) || LANGUAGES[0];
 
   const textColor = scrolled ? 'var(--espresso)' : '#fff';
   const logoStyle = {
@@ -174,25 +225,102 @@ export default function Navbar({ onCartOpen }) {
           {/* Right Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 
-            {/* Google Translate Widget */}
+            {/* Hidden Google Translate Widget (used for backend translation trigger) */}
             <div
               id="google_translate_element"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: scrolled ? 'var(--bg-elevated)' : 'rgba(255,255,255,0.12)',
-                border: scrolled ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.25)',
-                borderRadius: '20px',
-                padding: '4px 10px',
-                color: textColor,
-                fontSize: '0.78rem',
-                fontWeight: '700',
-                cursor: 'pointer',
-                transition: 'all 0.3s',
-                minWidth: '50px'
+                position: 'absolute',
+                opacity: 0,
+                width: 0,
+                height: 0,
+                overflow: 'hidden',
+                pointerEvents: 'none'
               }}
-              title="Translate to any language"
             />
+
+            {/* Custom Language Switcher (matching Country/Currency dropdown styling) */}
+            <div ref={languageRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowLanguage(v => !v)}
+                style={{
+                  background: scrolled ? 'var(--bg-elevated)' : 'rgba(255,255,255,0.12)',
+                  border: scrolled ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: '20px',
+                  padding: '5px 12px',
+                  cursor: 'pointer',
+                  color: textColor,
+                  fontSize: '0.78rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'all 0.3s',
+                  letterSpacing: '0.5px'
+                }}
+                aria-label="تغيير اللغة"
+              >
+                <img
+                  src={getFlagUrl(currentLangObj.iso)}
+                  alt={currentLangObj.name}
+                  style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+                <span>{currentLangObj.name}</span>
+                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
+              </button>
+
+              {showLanguage && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: '0',
+                  background: '#fff',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                  padding: '10px 0',
+                  minWidth: '180px',
+                  zIndex: 9999,
+                  direction: 'rtl'
+                }}>
+                  <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
+                    اختاري اللغة
+                  </div>
+                  {LANGUAGES.map(l => (
+                    <button
+                      key={l.code}
+                      onClick={() => { changeLanguage(l.code); setShowLanguage(false); }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: selectedLanguage === l.code ? 'var(--gold-glow)' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        fontSize: '0.88rem',
+                        color: 'var(--espresso)',
+                        fontWeight: selectedLanguage === l.code ? '700' : '400',
+                        textAlign: 'right',
+                        transition: 'background 0.2s',
+                        borderRight: selectedLanguage === l.code ? '3px solid var(--gold)' : '3px solid transparent',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                      onMouseLeave={e => e.currentTarget.style.background = selectedLanguage === l.code ? 'var(--gold-glow)' : 'transparent'}
+                    >
+                      <img
+                        src={getFlagUrl(l.iso)}
+                        alt={l.name}
+                        style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                        onError={e => { e.target.style.display = 'none'; }}
+                      />
+                      <span style={{ flex: 1 }}>{l.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
 
             {/* Currency Switcher */}
