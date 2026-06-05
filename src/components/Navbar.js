@@ -30,12 +30,38 @@ const LINKS = [
 ];
 
 const LANGUAGES = [
-  { code: 'ar', name: 'العربية', iso: 'jo' },
-  { code: 'en', name: 'English', iso: 'gb' },
-  { code: 'tr', name: 'Türkçe', iso: 'tr' },
-  { code: 'fr', name: 'Français', iso: 'fr' },
-  { code: 'de', name: 'Deutsch', iso: 'de' },
-  { code: 'zh-CN', name: '中文', iso: 'cn' }
+  // ── الدول العربية ──
+  { code: 'ar', name: 'الأردن', iso: 'jo' },
+  { code: 'ar', name: 'فلسطين', iso: 'ps' },
+  { code: 'ar', name: 'السعودية', iso: 'sa' },
+  { code: 'ar', name: 'الإمارات', iso: 'ae' },
+  { code: 'ar', name: 'الكويت', iso: 'kw' },
+  { code: 'ar', name: 'قطر', iso: 'qa' },
+  { code: 'ar', name: 'البحرين', iso: 'bh' },
+  { code: 'ar', name: 'عُمان', iso: 'om' },
+  { code: 'ar', name: 'العراق', iso: 'iq' },
+  { code: 'ar', name: 'مصر', iso: 'eg' },
+  { code: 'ar', name: 'اليمن', iso: 'ye' },
+  { code: 'ar', name: 'السودان', iso: 'sd' },
+  { code: 'ar', name: 'المغرب', iso: 'ma' },
+  { code: 'ar', name: 'الجزائر', iso: 'dz' },
+  { code: 'ar', name: 'تونس', iso: 'tn' },
+  { code: 'ar', name: 'ليبيا', iso: 'ly' },
+  
+  // ── دول عالمية ──
+  { code: 'en', name: 'الولايات المتحدة', iso: 'us' },
+  { code: 'en', name: 'بريطانيا', iso: 'gb' },
+  { code: 'en', name: 'كندا', iso: 'ca' },
+  { code: 'en', name: 'أستراليا', iso: 'au' },
+  { code: 'tr', name: 'تركيا', iso: 'tr' },
+  { code: 'fr', name: 'فرنسا', iso: 'fr' },
+  { code: 'de', name: 'ألمانيا', iso: 'de' },
+  { code: 'zh-CN', name: 'الصين', iso: 'cn' },
+  { code: 'ja', name: 'اليابان', iso: 'jp' },
+  { code: 'hi', name: 'الهند', iso: 'in' },
+  { code: 'sv', name: 'السويد', iso: 'se' },
+  { code: 'no', name: 'النرويج', iso: 'no' },
+  { code: 'de', name: 'سويسرا', iso: 'ch' }
 ];
 
 
@@ -58,6 +84,16 @@ export default function Navbar({ onCartOpen }) {
       return 'ar';
     }
   });
+
+  const [selectedIso, setSelectedIso] = useState(() => {
+    try {
+      const saved = localStorage.getItem('zahrat_language_iso');
+      return saved || 'jo';
+    } catch {
+      return 'jo';
+    }
+  });
+
   const languageRef               = useRef(null);
 
   useEffect(() => {
@@ -106,14 +142,22 @@ export default function Navbar({ onCartOpen }) {
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  const changeLanguage = (langCode) => {
+  const changeLanguage = (langCode, countryIso) => {
     try {
       const selectEl = document.querySelector('.goog-te-combo');
       if (selectEl) {
         selectEl.value = langCode;
         selectEl.dispatchEvent(new Event('change'));
         setSelectedLanguage(langCode);
+        setSelectedIso(countryIso);
         localStorage.setItem('zahrat_language', langCode);
+        localStorage.setItem('zahrat_language_iso', countryIso);
+
+        // Sync currency with language country
+        const matchingCurr = currencies.find(c => c.iso === countryIso);
+        if (matchingCurr) {
+          setCurrency(matchingCurr);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -134,7 +178,24 @@ export default function Navbar({ onCartOpen }) {
     return () => clearInterval(interval);
   }, [selectedLanguage]);
 
-  const currentLangObj = LANGUAGES.find(l => l.code === selectedLanguage) || LANGUAGES[0];
+  // Sync language country flag with currency selector country flag
+  useEffect(() => {
+    if (currency && currency.iso) {
+      const matchingLang = LANGUAGES.find(l => l.iso === currency.iso);
+      if (matchingLang) {
+        if (matchingLang.code !== selectedLanguage) {
+          changeLanguage(matchingLang.code, matchingLang.iso);
+        } else if (matchingLang.iso !== selectedIso) {
+          setSelectedIso(matchingLang.iso);
+          localStorage.setItem('zahrat_language_iso', matchingLang.iso);
+        }
+      }
+    }
+  }, [currency]);
+
+  const currentLangObj = LANGUAGES.find(l => l.code === selectedLanguage && l.iso === selectedIso) ||
+                         LANGUAGES.find(l => l.code === selectedLanguage) ||
+                         LANGUAGES[0];
 
   const textColor = scrolled ? 'var(--espresso)' : '#fff';
   const logoStyle = {
@@ -282,45 +343,50 @@ export default function Navbar({ onCartOpen }) {
                   border: '1px solid var(--border)',
                   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                   padding: '10px 0',
-                  minWidth: '180px',
+                  minWidth: '200px',
+                  maxHeight: '340px',
+                  overflowY: 'auto',
                   zIndex: 9999,
                   direction: 'rtl'
                 }}>
                   <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                    اختاري اللغة
+                    اختاري اللغة / البلد
                   </div>
-                  {LANGUAGES.map(l => (
-                    <button
-                      key={l.code}
-                      onClick={() => { changeLanguage(l.code); setShowLanguage(false); }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: selectedLanguage === l.code ? 'var(--gold-glow)' : 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        fontSize: '0.88rem',
-                        color: 'var(--espresso)',
-                        fontWeight: selectedLanguage === l.code ? '700' : '400',
-                        textAlign: 'right',
-                        transition: 'background 0.2s',
-                        borderRight: selectedLanguage === l.code ? '3px solid var(--gold)' : '3px solid transparent',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                      onMouseLeave={e => e.currentTarget.style.background = selectedLanguage === l.code ? 'var(--gold-glow)' : 'transparent'}
-                    >
-                      <img
-                        src={getFlagUrl(l.iso)}
-                        alt={l.name}
-                        style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-                        onError={e => { e.target.style.display = 'none'; }}
-                      />
-                      <span style={{ flex: 1 }}>{l.name}</span>
-                    </button>
-                  ))}
+                  {LANGUAGES.map(l => {
+                    const isSelected = selectedLanguage === l.code && selectedIso === l.iso;
+                    return (
+                      <button
+                        key={`${l.code}-${l.iso}`}
+                        onClick={() => { changeLanguage(l.code, l.iso); setShowLanguage(false); }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px',
+                          background: isSelected ? 'var(--gold-glow)' : 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          fontSize: '0.88rem',
+                          color: 'var(--espresso)',
+                          fontWeight: isSelected ? '700' : '400',
+                          textAlign: 'right',
+                          transition: 'background 0.2s',
+                          borderRight: isSelected ? '3px solid var(--gold)' : '3px solid transparent',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                        onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
+                      >
+                        <img
+                          src={getFlagUrl(l.iso)}
+                          alt={l.name}
+                          style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
+                        <span style={{ flex: 1 }}>{l.name}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -467,6 +533,42 @@ export default function Navbar({ onCartOpen }) {
             {totalItems > 0 && <span className={styles.mobileBadge}>{totalItems}</span>}
           </button>
         </nav>
+
+        {/* Language in mobile */}
+        <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '10px', color: '#fff', letterSpacing: '1px' }}>اللغة / البلد</div>
+          <div style={{ position: 'relative' }}>
+            <select
+              value={`${selectedLanguage}-${selectedIso}`}
+              onChange={(e) => {
+                const [code, iso] = e.target.value.split('-');
+                changeLanguage(code, iso);
+              }}
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.15)',
+                borderRadius: '12px',
+                padding: '10px 15px',
+                color: '#fff',
+                fontSize: '0.88rem',
+                fontWeight: '700',
+                outline: 'none',
+                cursor: 'pointer',
+                appearance: 'none',
+                textAlign: 'right',
+                direction: 'rtl'
+              }}
+            >
+              {LANGUAGES.map(l => (
+                <option key={`${l.code}-${l.iso}`} value={`${l.code}-${l.iso}`} style={{ background: '#1a1a1a', color: '#fff' }}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
+            <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#fff', pointerEvents: 'none', fontSize: '0.7rem' }}>▼</span>
+          </div>
+        </div>
 
         {/* Currency in mobile */}
         <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
