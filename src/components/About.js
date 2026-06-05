@@ -24,7 +24,7 @@ export default function About() {
             <h2 className="h2" style={{ color: 'var(--espresso)' }}>أصالة توارثناها</h2>
             
             <p className={styles.body} style={{ color: 'var(--espresso-mid)' }}>
-              منذ أكثر من عقدين، نُتقن في <strong>يافا اونلاين</strong> فن المطرزات الشرقية على أيدي حرفيين مهرة.
+              منذ أكثر من عقدين، نُتقن في <strong>زهرة بيسان اونلاين</strong> فن المطرزات الشرقية على أيدي حرفيين مهرة.
               كل خيط، كل غرزة، كل تفصيل — هو قصيدة نسجناها لكِ لتتوج إطلالتكِ بأرقى المعايير.
             </p>
             
@@ -46,14 +46,14 @@ export default function About() {
             <div className={styles.imgMain}>
               <img
                 src="/15.jpg"
-                alt="Yafa Online lookbook"
+                alt="Zahrat Beesan Online lookbook"
                 loading="lazy"
               />
             </div>
             <div className={styles.imgAccent}>
               <img
                 src="/8.png"
-                alt="Yafa Online detail view"
+                alt="Zahrat Beesan Online detail view"
                 loading="lazy"
               />
             </div>

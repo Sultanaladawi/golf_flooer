@@ -180,7 +180,7 @@ const Dashboard = () => {
 
       <div style={{ position: 'relative', zIndex: 1, marginBottom: '50px' }}>
         <div className="header-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.accent, lineHeight: 1 }}>
-          Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+          Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
         </div>
 
         <div className="page-badge">

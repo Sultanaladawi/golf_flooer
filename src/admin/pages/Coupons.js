@@ -168,7 +168,7 @@ const Coupons = () => {
       const doc = new jsPDF();
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Yafa Online - Coupon Codes', 14, 22);
+      doc.text('Zahrat Beesan Online - Coupon Codes', 14, 22);
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Generated on: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
@@ -191,7 +191,7 @@ const Coupons = () => {
         theme: 'grid',
         headStyles: { fillColor: [196, 164, 132], textColor: [255, 255, 255] }
       });
-      doc.save(`Yafa_Online_Coupons_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Online_Coupons_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
       alert("Error generating PDF: " + error.message);
@@ -263,7 +263,7 @@ const Coupons = () => {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.primary, lineHeight: 1 }}>
-            Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>يافا اونلاين</span>
+            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
           </div>
           <div className="page-badge">
             <Ticket size={28} color={colors.primary} />
@@ -297,7 +297,7 @@ const Coupons = () => {
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={labelStyle}>Coupon Code *</label>
-                <input style={{...inputStyle, textTransform: 'uppercase'}} value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} placeholder="e.g. YAFA10" required />
+                <input style={{...inputStyle, textTransform: 'uppercase'}} value={formData.code} onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})} placeholder="e.g. BEESAN10" required />
               </div>
 
               <div>

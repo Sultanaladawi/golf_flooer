@@ -97,7 +97,7 @@ const LeaderDashboard = () => {
       
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Yafa Online - Team Activity Audit', 14, 22);
+      doc.text('Zahrat Beesan Online - Team Activity Audit', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -134,7 +134,7 @@ const LeaderDashboard = () => {
       });
 
       const today = new Date().toISOString().split('T')[0];
-      doc.save(`Yafa_Online_AuditLog_${today}.pdf`);
+      doc.save(`Zahrat Beesan_Online_AuditLog_${today}.pdf`);
     } catch (error) {
       alert("Error generating PDF: " + error.message);
     }
@@ -153,7 +153,7 @@ const LeaderDashboard = () => {
       <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1, marginBottom: '20px' }}>
-            Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div style={{ 
@@ -179,7 +179,7 @@ const LeaderDashboard = () => {
           </div>
 
           <p style={{ margin: '5px 0 0 5px', color: 'rgba(255,255,255,0.4)', fontSize: '0.95rem', fontWeight: '500' }}>
-            Yafa Online | <span style={{ color: 'rgba(255,255,255,0.3)' }}>Audit Logs & Critical Performance Oversight</span>
+            Zahrat Beesan Online | <span style={{ color: 'rgba(255,255,255,0.3)' }}>Audit Logs & Critical Performance Oversight</span>
           </p>
         </div>
 

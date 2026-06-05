@@ -76,11 +76,11 @@ export const featuredItems = [
 ];
 
 export const shopInfo = {
-  name: "يافا اونلاين",
+  name: "زهرة بيسان اونلاين",
   tagline: "للمطرزات الشرقية والعبايات الفاخرة",
   // Online-only global store — no physical address
-  email: "info@yafaonline.com",
-  careersEmail: "careers@yafaonline.com",
+  email: "info@zahratbeesan.com",
+  careersEmail: "careers@zahratbeesan.com",
   instagram: "https://instagram.com/yafaonline",
   instagramHandle: "@yafaonline",
 };
@@ -88,7 +88,7 @@ export const shopInfo = {
 // Online-only global store — no opening hours
 
 export const sophieKnowledge = {
-  greeting: "أهلاً بكِ في يافا اونلاين للمطرزات الشرقية! ✨ أنا ياسمين، مساعدتكِ الافتراضية لعالم الموضة والعبايات الفاخرة. كيف يمكنني مساعدتكِ اليوم؟",
+  greeting: "أهلاً بكِ في زهرة بيسان اونلاين للمطرزات الشرقية! ✨ أنا ياسمين، مساعدتكِ الافتراضية لعالم الموضة والعبايات الفاخرة. كيف يمكنني مساعدتكِ اليوم؟",
   followUp: "يمكنني مساعدتكِ في التعرف على التشكيلة المتوفرة، اختيار المقاس المناسب، التوصيل الدولي، أو أي استفسار آخر!",
   quickReplies: [
     "ما هي أحدث تشكيلة عبايات؟",

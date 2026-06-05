@@ -959,7 +959,7 @@ app.post('/api/create-payment-intent', async (req, res) => {
       amount: Math.round(parseFloat(amount) * 100), // smallest unit (cents/fils)
       currency: currency.toLowerCase(),
       automatic_payment_methods: { enabled: true },
-      metadata: { store: 'Yafa Eastern Embroidery' }
+      metadata: { store: 'Zahrat Beesan Eastern Embroidery' }
     });
     res.json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
   } catch (err) {
@@ -1593,7 +1593,7 @@ app.post('/api/ai', async (req, res) => {
 
     const menuItems = menuRes.map(m => `${m.name} (${m.price_display})`).join(', ');
 
-    let context = `You are Yasmin (ياسمين), the friendly and professional abaya fashion consultant for Yafa Online (يافا اونلاين) — a global online boutique for luxury abayas and oriental embroideries, shipping worldwide. We are an online-only store with no physical location. Current time: ${currentDateTime}.
+    let context = `You are Yasmin (ياسمين), the friendly and professional abaya fashion consultant for Zahrat Beesan Online (زهرة بيسان اونلاين) — a global online boutique for luxury abayas and oriental embroideries, shipping worldwide. We are an online-only store with no physical location. Current time: ${currentDateTime}.
 Focus on helping customers choose abayas, match colors, select sizes (S, M, L, XL, XXL, 3XL), and answer questions about international shipping and payment methods (COD for local, card worldwide).
 Menu: ${menuItems}
 CRITICAL RULES:
@@ -1756,7 +1756,7 @@ app.post('/api/coupons', (req, res) => {
     [code, description || null, discountType || 'percent', discountValue, minOrderJOD || 0, maxUses || null, expiresAt || null],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message });
-      const adminEmail = req.headers['x-admin-email'] || 'admin@yafaonline.com';
+      const adminEmail = req.headers['x-admin-email'] || 'admin@zahratbeesan.com';
       logToAudit(adminEmail, `Created coupon code: ${code}`, 'coupons', 'info', 'coupon', String(result.insertId), `Discount: ${discountValue} (${discountType})`, req);
       res.status(201).json({ success: true, id: result.insertId });
     }
@@ -1769,7 +1769,7 @@ app.put('/api/coupons/:id', (req, res) => {
     [code, description, discountType, discountValue, minOrderJOD, maxUses, expiresAt, isActive ? 1 : 0, req.params.id],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
-      const adminEmail = req.headers['x-admin-email'] || 'admin@yafaonline.com';
+      const adminEmail = req.headers['x-admin-email'] || 'admin@zahratbeesan.com';
       logToAudit(adminEmail, `Updated coupon: ${code}`, 'coupons', 'info', 'coupon', req.params.id, `Status active: ${isActive}`, req);
       res.json({ success: true });
     }
@@ -1779,7 +1779,7 @@ app.put('/api/coupons/:id', (req, res) => {
 app.delete('/api/coupons/:id', (req, res) => {
   db.query('DELETE FROM coupon WHERE id = ?', [req.params.id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    const adminEmail = req.headers['x-admin-email'] || 'admin@yafaonline.com';
+    const adminEmail = req.headers['x-admin-email'] || 'admin@zahratbeesan.com';
     logToAudit(adminEmail, `Deleted coupon ID: ${req.params.id}`, 'coupons', 'warning', 'coupon', req.params.id, null, req);
     res.json({ success: true });
   });
@@ -1870,7 +1870,7 @@ app.put('/api/reviews/:id', (req, res) => {
   const { isApproved } = req.body;
   db.query('UPDATE review SET isApproved = ? WHERE id = ?', [isApproved ? 1 : 0, req.params.id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    const adminEmail = req.headers['x-admin-email'] || 'admin@yafaonline.com';
+    const adminEmail = req.headers['x-admin-email'] || 'admin@zahratbeesan.com';
     logToAudit(adminEmail, `Approved review ID: ${req.params.id}`, 'reviews', 'info', 'review', req.params.id, `Status: approved`, req);
     res.json({ success: true });
   });
@@ -1879,7 +1879,7 @@ app.put('/api/reviews/:id', (req, res) => {
 app.delete('/api/reviews/:id', (req, res) => {
   db.query('DELETE FROM review WHERE id = ?', [req.params.id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
-    const adminEmail = req.headers['x-admin-email'] || 'admin@yafaonline.com';
+    const adminEmail = req.headers['x-admin-email'] || 'admin@zahratbeesan.com';
     logToAudit(adminEmail, `Deleted review ID: ${req.params.id}`, 'reviews', 'warning', 'review', req.params.id, null, req);
     res.json({ success: true });
   });
@@ -1989,8 +1989,8 @@ app.post('/api/ai-chat', async (req, res) => {
   const now = new Date();
   const currentDateTime = now.toLocaleString('en-GB', { timeZone: 'Asia/Amman' });
   let businessContext = isAdmin
-    ? `You are the Yafa Online Internal Business Intelligence AI. Current time is ${currentDateTime}.`
-    : `You are Yasmin (ياسمين), the friendly and professional abaya fashion consultant for Yafa Online (يافا اونلاين) — a global online store shipping worldwide. No physical location. Current time: ${currentDateTime}.
+    ? `You are the Zahrat Beesan Online Internal Business Intelligence AI. Current time is ${currentDateTime}.`
+    : `You are Yasmin (ياسمين), the friendly and professional abaya fashion consultant for Zahrat Beesan Online (زهرة بيسان اونلاين) — a global online store shipping worldwide. No physical location. Current time: ${currentDateTime}.
 You help customers select abayas, match designs, choose sizes (S, M, L, XL, XXL, 3XL), and answer questions about international shipping and payment. Respond in the customer's language.`;
 
   try {
@@ -2068,7 +2068,7 @@ You help customers select abayas, match designs, choose sizes (S, M, L, XL, XXL,
         const lowStock = inventory.filter(i => i.stock_status === 'LOW');
         const okStock  = inventory.filter(i => i.stock_status === 'OK');
 
-        businessContext = `You are the Yafa Online Business Intelligence Expert for Yafa Online — a global online abaya boutique.
+        businessContext = `You are the Zahrat Beesan Online Business Intelligence Expert for Zahrat Beesan Online — a global online abaya boutique.
 Current Jordan Date/Time: ${currentDateTime}
 
 === TODAY ===

@@ -52,7 +52,7 @@ function cartReducer(state, action) {
     }
 }
 
-const STORAGE_KEY = 'Yafa_Online_cart';
+const STORAGE_KEY = 'Zahrat Beesan_Online_cart';
 
 const CART_VERSION = 2; // Increment this to force-fix old cached carts
 

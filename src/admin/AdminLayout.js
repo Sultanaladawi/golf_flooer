@@ -72,7 +72,7 @@ const AdminLayout = () => {
       newLink.href = '/favicon.ico';
       document.head.appendChild(newLink);
     }
-      document.title = "Yafa Online | Admin Dashboard";
+      document.title = "Zahrat Beesan Online | Admin Dashboard";
   }, []);
 
   useEffect(() => {
@@ -257,7 +257,7 @@ const AdminLayout = () => {
             margin: 0, fontSize: '1.05rem', color: '#fff', fontWeight: '900',
             letterSpacing: '2px', textTransform: 'uppercase', fontFamily: "'DM Serif Display', serif"
           }}>
-            Yafa Online <span style={{ color: 'var(--admin-accent)' }}>Embroidery</span>
+            Zahrat Beesan Online <span style={{ color: 'var(--admin-accent)' }}>Embroidery</span>
           </h1>
           <div style={{ fontSize: '0.7rem', color: 'var(--admin-accent)', letterSpacing: '3px', marginTop: '4px', opacity: 0.8 }}>EMBROIDERY</div>
         </div>

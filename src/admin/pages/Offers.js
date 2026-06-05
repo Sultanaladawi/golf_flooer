@@ -32,7 +32,7 @@ const Offers = () => {
       const doc = new jsPDF();
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('يافا اونلاين - العروض التسويقية', 14, 22);
+      doc.text('زهرة بيسان اونلاين - العروض التسويقية', 14, 22);
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`تاريخ الإنشاء: ${new Date().toLocaleString('ar-JO', { timeZone: 'Asia/Amman' })}`, 14, 32);
@@ -55,7 +55,7 @@ const Offers = () => {
         theme: 'grid',
         headStyles: { fillColor: [166, 134, 93], textColor: [255, 255, 255] }
       });
-      doc.save(`Yafa_Offers_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Offers_${Date.now()}.pdf`);
     } catch (error) {
       console.error('PDF Export Error:', error);
       alert('خطأ في إنشاء الملف: ' + error.message);
@@ -321,7 +321,7 @@ const Offers = () => {
                 العروض والخصومات
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0 0' }}>
-                يافا اونلاين — الحملات التسويقية والخصومات الموسمية
+                زهرة بيسان اونلاين — الحملات التسويقية والخصومات الموسمية
               </p>
             </div>
           </div>

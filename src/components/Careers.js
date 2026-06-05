@@ -141,7 +141,7 @@ export default function Careers() {
             ) : (
               <div className={styles.introContainer} style={{ textAlign: 'right' }}>
                 <p className={styles.intro} style={{ color: 'var(--espresso-mid)', fontSize: '1.1rem' }}>
-                  في <strong>يافا اونلاين</strong>، نبحث دائماً عن العقول المبدعة والأيدي الماهرة التي تشاركنا شغف التميز والارتقاء بفن المطرزات الشرقية والعبايات الراقية.
+                  في <strong>زهرة بيسان اونلاين</strong>، نبحث دائماً عن العقول المبدعة والأيدي الماهرة التي تشاركنا شغف التميز والارتقاء بفن المطرزات الشرقية والعبايات الراقية.
                 </p>
                 <div className={styles.applyBox} style={{ background: 'var(--gold-glow)', border: '1px dashed var(--gold)' }}>
                   <span className={styles.applyText} style={{ color: 'var(--gold)' }}>للتواصل المباشر:</span>

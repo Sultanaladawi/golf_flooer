@@ -94,7 +94,7 @@ const Orders = () => {
       
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Yafa Online - Sales Report', 14, 22);
+      doc.text('Zahrat Beesan Online - Sales Report', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -132,7 +132,7 @@ const Orders = () => {
       });
 
       const today = new Date().toISOString().split('T')[0];
-      doc.save(`Yafa_Online_Orders_${today}.pdf`);
+      doc.save(`Zahrat Beesan_Online_Orders_${today}.pdf`);
     } catch (error) {
       alert("Error generating PDF: " + error.message);
     }
@@ -372,7 +372,7 @@ const Orders = () => {
       <div className="header-section" style={{ position: 'relative', zIndex: 1, marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.primary, lineHeight: 1 }}>
-            Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>يافا اونلاين</span>
+            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
           </div>
 
           <div className="page-badge">

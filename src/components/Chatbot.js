@@ -6,7 +6,7 @@ const GITHUB_API_KEY = process.env.REACT_APP_GITHUB_AI_KEY;
 const GITHUB_URL     = 'https://models.inference.ai.azure.com/chat/completions';
 
 const SYSTEM_PROMPT = `
-You are Yasmin (ياسمين), the elegant and friendly fashion consultant for Yafa Online (يافا اونلاين) — a global online boutique specializing in luxury abayas and oriental embroideries, shipping worldwide.
+You are Yasmin (ياسمين), the elegant and friendly fashion consultant for Zahrat Beesan Online (زهرة بيسان اونلاين) — a global online boutique specializing in luxury abayas and oriental embroideries, shipping worldwide.
 You help customers from all over the world select abayas, choose sizes, learn about fabrics, and complete their purchase. You speak any language the customer uses.
 Personality: Professional, warm, and sophisticated. Use ✨ ⚜️ 👑.
 Key info: We ship internationally to all countries. Payment methods include cash on delivery (local) and credit/debit cards worldwide. No physical store — online only.
@@ -175,7 +175,7 @@ export default function Chatbot() {
             </div>
             <div>
               <div className={styles.name} style={{ color: 'var(--espresso)' }}>ياسمين</div>
-              <div className={styles.status} style={{ color: 'var(--espresso)', opacity: 0.8 }}>يافا اونلاين · مستشارة الأناقة</div>
+              <div className={styles.status} style={{ color: 'var(--espresso)', opacity: 0.8 }}>زهرة بيسان اونلاين · مستشارة الأناقة</div>
             </div>
           </div>
           <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق" style={{ color: 'var(--espresso)' }}>

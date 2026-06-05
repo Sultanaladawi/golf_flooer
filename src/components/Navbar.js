@@ -154,8 +154,8 @@ export default function Navbar({ onCartOpen }) {
         <div className={styles.inner}>
 
           {/* Logo */}
-          <a href="#home" aria-label="يافا للمطرزات الشرقية" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <img src="/logo.png" alt="يافا للمطرزات الشرقية" style={logoStyle} />
+          <a href="#home" aria-label="زهرة بيسان للمطرزات الشرقية" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.png" alt="زهرة بيسان للمطرزات الشرقية" style={logoStyle} />
           </a>
 
           {/* Desktop Links */}

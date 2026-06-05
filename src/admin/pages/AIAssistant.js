@@ -7,7 +7,7 @@ const AIAssistant = () => {
   const [messages, setMessages] = useState([
     { 
       id: 1, type: 'bot', 
-      text: "Welcome back, Admin. I'm your Yafa Online AI assistant, now synced with your live data. How can I help you analyze the business today?",
+      text: "Welcome back, Admin. I'm your Zahrat Beesan Online AI assistant, now synced with your live data. How can I help you analyze the business today?",
       metrics: { status: "Active", db: "Connected" }
     }
   ]);
@@ -236,7 +236,7 @@ const AIAssistant = () => {
         <header style={{ borderBottom: `1px dashed ${theme.border}`, paddingBottom: '20px', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.crema, lineHeight: 1 }}>
-              Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+              Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
             </div>
             <div className="page-badge">
               <BrainCircuit size={28} color={theme.crema} />

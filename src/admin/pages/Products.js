@@ -415,7 +415,7 @@ const Products = () => {
       // Header
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Yafa Online - Abaya Inventory', 14, 22);
+      doc.text('Zahrat Beesan Online - Abaya Inventory', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -454,7 +454,7 @@ const Products = () => {
         }
       });
 
-      doc.save(`Yafa_Online_Products_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Online_Products_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
       alert("Error generating PDF: " + error.message);
@@ -1102,7 +1102,7 @@ const Products = () => {
       }}>
         <div>
           <div className="header-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-            Yafa Online <span style={{ color: '#fff', fontStyle: 'italic' }}>يافا اونلاين</span>
+            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
           </div>
 
           <div className="page-badge">

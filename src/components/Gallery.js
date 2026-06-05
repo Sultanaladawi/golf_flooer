@@ -52,9 +52,9 @@ export default function Gallery() {
         >
           <div className="label">المعرض</div>
           <div className="divider" />
-          <h2 className="h2">معرض يافا اونلاين</h2>
+          <h2 className="h2">معرض زهرة بيسان اونلاين</h2>
           <p className={styles.headerSub}>
-            يافا اونلاين للمطرزات الشرقية والعبايات الفاخرة — حيث تلتقي الأصالة بالفخامة والجمال.
+            زهرة بيسان اونلاين للمطرزات الشرقية والعبايات الفاخرة — حيث تلتقي الأصالة بالفخامة والجمال.
           </p>
         </div>
 

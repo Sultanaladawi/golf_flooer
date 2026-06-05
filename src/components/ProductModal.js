@@ -108,11 +108,12 @@ export default function ProductModal({ model, onClose }) {
   const nextImg = () => setActiveImg(i => (i === imagesArray.length - 1 ? 0 : i + 1));
 
   const handleAddCart = () => {
-    if (activeInfoTab === 'sizes' && !selectedSize) {
+    if (!selectedSize) {
+      setActiveInfoTab('sizes');
       return;
     }
     
-    const sizeVal = selectedSize || 'M';
+    const sizeVal = selectedSize;
     const priceNumVal = parseFloat(model.price_num || model.price) || 0;
     
     addItem({
@@ -336,13 +337,12 @@ export default function ProductModal({ model, onClose }) {
 
           {/* ===== ADD TO CART ===== */}
           <div className={styles.cartSection}>
-            {activeInfoTab === 'sizes' && !selectedSize && (
+            {!selectedSize && (
               <p className={styles.sizeWarning}>✦ يرجى اختيار المقاس أولاً</p>
             )}
             <button
               className={`${styles.addToCartBtn} ${addedToCart ? styles.addedToCart : ''}`}
               onClick={handleAddCart}
-              disabled={activeInfoTab === 'sizes' && !selectedSize}
             >
               <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
               <span>{addedToCart ? '✓ تمت الإضافة للسلة' : 'أضيفي للسلة'}</span>

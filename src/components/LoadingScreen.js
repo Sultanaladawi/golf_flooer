@@ -49,7 +49,7 @@ export default function LoadingScreen({ onComplete }) {
               fill: 'none'
             }}
           >
-            يافا اونلاين
+            زهرة بيسان اونلاين
           </text>
           
           <text

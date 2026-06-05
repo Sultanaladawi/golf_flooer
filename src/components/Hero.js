@@ -32,7 +32,7 @@ export default function Hero() {
       <div className={styles.heroContent}>
         <span className="section-label">✦ التشكيلة الحصرية 2026 ✦</span>
         <h1 className={styles.heroTitle}>
-          يافا اونلاين
+          زهرة بيسان اونلاين
           <span className={styles.heroTitleAccent}>للمطرزات الشرقية</span>
         </h1>
         <p className={styles.heroSubtitle}>

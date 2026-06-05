@@ -77,10 +77,10 @@ export default function Footer() {
         {/* Brand */}
         <div className={styles.brand} style={{ textAlign: 'right' }}>
           <a href="#home" className={styles.logo} aria-label={shopInfo.name}>
-            <img src="/logo.png" alt="يافا للمطرزات الشرقية" style={{ height: '60px', width: 'auto', borderRadius: '10px' }} />
+            <img src="/logo.png" alt="زهرة بيسان للمطرزات الشرقية" style={{ height: '60px', width: 'auto', borderRadius: '10px' }} />
           </a>
           <p className={styles.brandDesc} style={{ color: 'var(--text-secondary)', marginTop: '15px' }}>
-            يافا للمطرزات الشرقية — تصاميم حصرية وخامات فاخرة تعكس الأصالة والوقار للمرأة العربية. نوصّل لجميع دول العالم.
+            زهرة بيسان للمطرزات الشرقية — تصاميم حصرية وخامات فاخرة تعكس الأصالة والوقار للمرأة العربية. نوصّل لجميع دول العالم.
           </p>
 
           {/* Shipping badges */}
@@ -209,8 +209,8 @@ export default function Footer() {
         paddingTop: '20px', display: 'flex', justifyContent: 'space-between',
         flexWrap: 'wrap', gap: '10px'
       }}>
-        <span>© {new Date().getFullYear()} يافا للمطرزات الشرقية. جميع الحقوق محفوظة.</span>
-        <span>Yafa Eastern Embroidery — Worldwide Shipping</span>
+        <span>© {new Date().getFullYear()} زهرة بيسان للمطرزات الشرقية. جميع الحقوق محفوظة.</span>
+        <span>Zahrat Beesan Eastern Embroidery — Worldwide Shipping</span>
       </div>
     </footer>
   );

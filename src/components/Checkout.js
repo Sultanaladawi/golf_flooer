@@ -387,7 +387,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 </div>
               </div>
               <h2 style={{ fontFamily: "var(--font-primary)", fontSize: '2.2rem', color: 'var(--gold-dim)', margin: '20px 0 10px', fontWeight: '900' }}>تم تسجيل طلبكِ بنجاح!</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '30px' }}>شكراً لكِ لتسوقكِ من يافا اونلاين. طلبكِ رقم <strong>#{orderId}</strong> قيد التجهيز وسيصلكِ قريباً.</p>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '30px' }}>شكراً لكِ لتسوقكِ من زهرة بيسان اونلاين. طلبكِ رقم <strong>#{orderId}</strong> قيد التجهيز وسيصلكِ قريباً.</p>
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', marginBottom: '30px', color: 'var(--gold-dim)', fontSize: '1rem', fontWeight: 'bold' }}>
