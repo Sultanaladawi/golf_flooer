@@ -83,7 +83,9 @@ export const shopInfo = {
   careersEmail: "careers@zahratbeesan.com",
   instagram: "https://instagram.com/yafaonline",
   instagramHandle: "@yafaonline",
+  phone: "0796697413"
 };
+
 
 // Online-only global store — no opening hours
 
