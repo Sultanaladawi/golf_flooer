@@ -214,6 +214,10 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       if (!(form.country || '').trim()) e.country = 'يرجى اختيار الدولة';
       if (!(form.city || '').trim()) e.city = 'يرجى إدخال المدينة';
       if (!(form.address || '').trim()) e.address = 'يرجى إدخال تفاصيل العنوان';
+      
+      if (form.country && form.country !== 'الأردن' && form.paymentMethod === 'cod') {
+        e.paymentMethod = 'الدفع عند الاستلام متاح فقط داخل الأردن. يرجى اختيار الدفع بالبطاقة الائتمانية.';
+      }
     }
 
     // Card payment is processed via Stripe Checkout session redirect, so no local fields validation is needed
@@ -723,7 +727,12 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                               <div
                                 key={c.name}
                                 onClick={() => {
-                                  setForm(f => ({ ...f, country: c.name }));
+                                  const isJo = c.name === 'الأردن';
+                                  setForm(f => ({
+                                    ...f,
+                                    country: c.name,
+                                    paymentMethod: isJo ? f.paymentMethod : 'card'
+                                  }));
                                   setErrors(err => ({ ...err, country: '' }));
                                   setShowCountrySelect(false);
                                   setCountrySearch('');
@@ -867,25 +876,82 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               </div>
             </div>
 
+            {/* Policy Notice Box */}
+            <div style={{
+              background: 'rgba(196, 164, 132, 0.06)',
+              border: '1px solid var(--border)',
+              borderRadius: '20px',
+              padding: '20px',
+              marginBottom: '20px',
+              textAlign: 'right',
+              fontSize: '0.9rem',
+              color: 'var(--espresso)',
+              lineHeight: '1.6',
+              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.02)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--gold-dim)', fontWeight: '800', fontSize: '1rem' }}>
+                <AlertTriangle size={20} style={{ color: 'var(--gold)' }} />
+                <span>سياسة التوصيل، التبديل والاسترجاع:</span>
+              </div>
+              <ul style={{ margin: 0, paddingRight: '20px', listStyleType: 'disc' }}>
+                <li style={{ marginBottom: '8px' }}>
+                  <strong>الترجيع (الاسترجاع):</strong> خيار الاسترجاع <strong>غير متوفر نهائياً</strong> لجميع الطلبات.
+                </li>
+                <li style={{ marginBottom: '8px' }}>
+                  <strong>التبديل (الاستبدال):</strong> التبديل متاح <strong>داخل الأردن فقط</strong>. لا يوجد تبديل للطلبات خارج الأردن.
+                </li>
+                <li>
+                  <strong>الدفع عند الاستلام:</strong> متوفر <strong>داخل الأردن فقط</strong>. للطلبات خارج الأردن، الدفع عبر فيزا / ماستركارد فقط.
+                </li>
+              </ul>
+            </div>
+
             {/* Payment Method Selection */}
             <div className={styles.formSection} style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)' }}>
               <label className={styles.label} style={{ fontSize: '1.1rem', color: 'var(--gold-dim)', marginBottom: '15px', display: 'block', fontWeight: '800', textAlign: 'center' }}>طريقة الدفع</label>
+              
+              {errors.paymentMethod && (
+                <p style={{ color: '#dc3545', fontSize: '0.85rem', textAlign: 'center', marginTop: '-5px', marginBottom: '15px', fontWeight: 'bold' }}>
+                  {errors.paymentMethod}
+                </p>
+              )}
+
               <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
                 <div
-                  onClick={() => setForm(f => ({ ...f, paymentMethod: 'cod' }))}
+                  onClick={() => {
+                    if (form.country === 'الأردن') {
+                      setForm(f => ({ ...f, paymentMethod: 'cod' }));
+                      setErrors(err => ({ ...err, paymentMethod: '' }));
+                    }
+                  }}
                   style={{
-                    flex: 1, padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
-                    border: form.paymentMethod === 'cod' ? '2px solid var(--gold)' : '2px solid var(--border)',
-                    backgroundColor: form.paymentMethod === 'cod' ? 'var(--gold-glow)' : 'var(--white)',
-                    color: 'var(--espresso)', fontWeight: 'bold'
+                    flex: 1, padding: '15px 10px', textAlign: 'center', borderRadius: '12px',
+                    cursor: form.country === 'الأردن' ? 'pointer' : 'not-allowed',
+                    transition: '0.3s',
+                    border: form.paymentMethod === 'cod' && form.country === 'الأردن' ? '2px solid var(--gold)' : '2px solid var(--border)',
+                    backgroundColor: form.country !== 'الأردن'
+                      ? 'var(--bg-elevated)'
+                      : (form.paymentMethod === 'cod' ? 'var(--gold-glow)' : 'var(--white)'),
+                    color: form.country !== 'الأردن' ? 'var(--espresso-dim)' : 'var(--espresso)',
+                    fontWeight: 'bold',
+                    opacity: form.country === 'الأردن' ? 1 : 0.5,
+                    position: 'relative'
                   }}
                 >
-                  <Landmark size={22} style={{ marginBottom: '6px', color: form.paymentMethod === 'cod' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
+                  <Landmark size={22} style={{ marginBottom: '6px', color: form.paymentMethod === 'cod' && form.country === 'الأردن' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
                   <div>الدفع عند الاستلام</div>
+                  {form.country !== 'الأردن' && (
+                    <div style={{ fontSize: '0.65rem', color: '#dc3545', marginTop: '4px', fontWeight: 'normal' }}>
+                      (متاح داخل الأردن فقط)
+                    </div>
+                  )}
                 </div>
 
                 <div
-                  onClick={() => setForm(f => ({ ...f, paymentMethod: 'card' }))}
+                  onClick={() => {
+                    setForm(f => ({ ...f, paymentMethod: 'card' }));
+                    setErrors(err => ({ ...err, paymentMethod: '' }));
+                  }}
                   style={{
                     flex: 1, padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
                     border: form.paymentMethod === 'card' ? '2px solid var(--gold)' : '2px solid var(--border)',
@@ -895,6 +961,11 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 >
                   <CreditCard size={22} style={{ marginBottom: '6px', color: form.paymentMethod === 'card' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
                   <div>البطاقة الائتمانية</div>
+                  {form.country !== 'الأردن' && (
+                    <div style={{ fontSize: '0.65rem', color: '#27ae60', marginTop: '4px', fontWeight: 'normal' }}>
+                      (الدفع الإلكتروني المطلوب)
+                    </div>
+                  )}
                 </div>
               </div>
 

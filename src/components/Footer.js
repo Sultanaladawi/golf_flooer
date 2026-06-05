@@ -85,7 +85,7 @@ export default function Footer() {
 
           {/* Shipping badges */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-            {['🌍 توصيل دولي', '🔒 دفع آمن', '↩️ إرجاع مجاني'].map(b => (
+            {['🌍 توصيل دولي', '🔒 دفع آمن', '🔄 تبديل داخل الأردن فقط'].map(b => (
               <span key={b} style={{
                 fontSize: '0.75rem', fontWeight: '700',
                 padding: '4px 10px', borderRadius: '20px',
