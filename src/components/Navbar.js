@@ -26,7 +26,9 @@ const LINKS = [
   { label: 'الرئيسية',  href: '#home' },
   { label: 'التشكيلة',  href: '#collection' },
   { label: 'معرضنا',    href: '#gallery' },
-  { label: 'اتصلي بنا', href: '#contact' },
+  { label: 'اتصلي بنا', href: '#contact' }
+];
+
 const LANGUAGES = [
   { code: 'ar', name: 'العربية', iso: 'jo' },
   { code: 'en', name: 'English', iso: 'gb' },
@@ -35,6 +37,7 @@ const LANGUAGES = [
   { code: 'de', name: 'Deutsch', iso: 'de' },
   { code: 'zh-CN', name: '中文', iso: 'cn' }
 ];
+
 
 export default function Navbar({ onCartOpen }) {
   const [scrolled, setScrolled]   = useState(false);
