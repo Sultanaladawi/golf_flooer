@@ -1466,10 +1466,8 @@ app.get('/api/inventory', (req, res) => {
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
   const team = [
-    { email: 'omar@coffee.com', pass: 'omar2026', name: 'Omar Al-Ajarma', role: 'super_admin' },
-    { email: 'sultan@coffee.com', pass: 'sultan2026', name: 'Sultan Al-Adawi', role: 'admin' },
-    { email: 'mohammad@coffee.com', pass: 'mohammad2026', name: 'Mohammad Al-Hadidi', role: 'admin' },
-    { email: 'bashar@coffee.com', pass: 'bashar2026', name: 'Bashar Al-Dabbas', role: 'admin' }
+    { email: 'sultan@zahratbeesan.com', pass: 'sultan2026', name: 'Sultan', role: 'super_admin' },
+    { email: 'zuhair@zahratbeesan.com', pass: 'zuhair2026', name: 'Zuhair', role: 'admin' }
   ];
   const user = team.find(u => u.email === email?.toLowerCase().trim() && u.pass === password);
   if (user) {
