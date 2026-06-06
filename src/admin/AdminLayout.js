@@ -216,11 +216,8 @@ const AdminLayout = () => {
     { path: '/admin/messages', name: 'Inbox Messages', icon: <Mail size={18} /> },
     { path: '/admin/feedback', name: 'Feedback & Reviews', icon: <MessageSquare size={18} /> },
     { path: '/admin/ai-assistant', name: 'AI Assistant', icon: <BotMessageSquare size={18} /> },
+    { path: '/admin/leader', name: 'Team Activity', icon: <Activity size={18} /> },
   ];
-
-  if (admin?.role === 'super_admin') {
-    menuItems.push({ path: '/admin/leader', name: 'Team Activity', icon: <Activity size={18} /> });
-  }
 
   return (
     <div style={{

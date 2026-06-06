@@ -27,10 +27,6 @@ const LeaderDashboard = () => {
   };
 
   useEffect(() => {
-    if (admin && admin.role !== 'super_admin') {
-      navigate('/admin/dashboard');
-      return;
-    }
 
     const fetchData = async () => {
       try {
