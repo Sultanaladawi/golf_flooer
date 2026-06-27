@@ -213,8 +213,6 @@ const AdminLayout = () => {
     { path: '/admin/offers', name: t('Offers'), icon: <ShoppingCart size={18} /> },
     { path: '/admin/coupons', name: t('Coupons & Codes'), icon: <Ticket size={18} /> },
     { path: '/admin/newsletter', name: t('Newsletter Subscribers'), icon: <Mail size={18} /> },
-    { path: '/admin/jobs', name: t('Manage Jobs'), icon: <Briefcase size={18} /> },
-    { path: '/admin/applications', name: t('Job Requests'), icon: <FileText size={18} /> },
     { path: '/admin/messages', name: t('Inbox Messages'), icon: <Mail size={18} /> },
     { path: '/admin/feedback', name: t('Feedback & Reviews'), icon: <MessageSquare size={18} /> },
     { path: '/admin/ai-assistant', name: t('AI Assistant'), icon: <BotMessageSquare size={18} /> },

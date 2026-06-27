@@ -33,8 +33,6 @@ import Offers             from './admin/pages/Offers';
 import Coupons            from './admin/pages/Coupons';
 import Newsletter         from './admin/pages/Newsletter';
 import AIAssistant        from './admin/pages/AIAssistant';
-import Applications       from './admin/pages/Applications';
-import Jobs               from './admin/pages/Jobs';
 import Feedback           from './admin/pages/Feedback';
 import Messages           from './admin/pages/Messages';
 import LeaderDashboard    from './admin/pages/LeaderDashboard';
@@ -178,8 +176,6 @@ export default function App() {
                         <Route path="coupons" element={<Coupons />} />
                         <Route path="newsletter" element={<Newsletter />} />
                         <Route path="ai-assistant" element={<AIAssistant />} />
-                        <Route path="applications" element={<Applications />} />
-                        <Route path="jobs" element={<Jobs />} />
                         <Route path="feedback" element={<Feedback />} />
                         <Route path="messages" element={<Messages />} />
                         <Route path="leader" element={<LeaderDashboard />} />
