@@ -251,12 +251,14 @@ const LeaderDashboard = () => {
       )}
 
       {/* Team Activity Section */}
-      <div style={{
-        backgroundColor: 'rgba(255, 255, 255, 0.01)',
-        borderRadius: '32px',
-        border: `1px solid rgba(255, 255, 255, 0.08)`,
-        padding: '20px',
-        boxShadow: '0 30px 70px rgba(0,0,0,0.5)',
+      <div className="table-wrapper" style={{
+        position: 'relative',
+        zIndex: 1,
+        backgroundColor: colors.bean,
+        borderRadius: '20px',
+        border: `1px solid ${colors.border}`,
+        overflow: 'hidden',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
         zIndex: 1,
         position: 'relative'
       }}>
@@ -284,17 +286,17 @@ const LeaderDashboard = () => {
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', color: colors.latte, textAlign: 'start', tableLayout: 'fixed' }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(45, 41, 38, 0.8)' }}>
-                <th style={{ padding: '25px', width: '18%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
+              <tr style={{ backgroundColor: 'var(--cream-dark)', borderBottom: `1px solid ${colors.border}` }}>
+                <th style={{ padding: '20px 25px', width: '18%', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={16} /> {t('Timestamp')}</div>
                 </th>
-                <th style={{ padding: '25px', width: '22%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
+                <th style={{ padding: '20px 25px', width: '22%', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><User size={16} /> {t('Administrator')}</div>
                 </th>
-                <th style={{ padding: '25px', width: '25%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
+                <th style={{ padding: '20px 25px', width: '25%', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>
                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Activity size={16} /> {t('Operation')}</div>
                 </th>
-                <th style={{ padding: '25px', width: '35%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Transaction Details')}</th>
+                <th style={{ padding: '20px 25px', width: '35%', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Transaction Details')}</th>
               </tr>
             </thead>
             <tbody>
@@ -313,14 +315,14 @@ const LeaderDashboard = () => {
                     }}
                   >
                     <td style={{ 
-                      padding: '25px', 
-                      color: hoveredRow === log.id ? colors.crema : '#888', 
+                      padding: '20px 25px', 
+                      color: hoveredRow === log.id ? colors.crema : 'var(--text-secondary)', 
                       fontSize: '0.85rem', fontWeight: '600',
                       transition: '0.3s'
                     }}>
                       {formatDate(log.created_at)}
                     </td>
-                    <td style={{ padding: '25px' }}>
+                    <td style={{ padding: '20px 25px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                         <div style={{ 
                           width: '40px', height: '40px', borderRadius: '12px', 
@@ -336,7 +338,7 @@ const LeaderDashboard = () => {
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '25px' }}>
+                    <td style={{ padding: '20px 25px' }}>
                       <span style={{ 
                         backgroundColor: 'rgba(196, 164, 132, 0.1)', 
                         border: `1px solid ${hoveredRow === log.id ? colors.crema : 'rgba(196, 164, 132, 0.2)'}`,
@@ -351,8 +353,8 @@ const LeaderDashboard = () => {
                       </span>
                     </td>
                     <td style={{ 
-                      padding: '25px', 
-                      color: hoveredRow === log.id ? '#fff' : '#aaa', 
+                      padding: '20px 25px', 
+                      color: hoveredRow === log.id ? 'var(--admin-accent)' : 'var(--admin-text)', 
                       fontSize: '0.95rem', lineHeight: '1.5',
                       transition: '0.3s'
                     }}>

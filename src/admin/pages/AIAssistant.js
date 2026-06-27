@@ -337,14 +337,13 @@ const AIAssistant = () => {
       </div>
 
       <div className="ai-sidebar" style={{ 
-        background: 'rgba(255,255,255,0.02)', 
+        background: theme.bean, 
         borderRadius: '20px', 
-        border: `1px solid rgba(255,255,255,0.06)`, 
-        backdropFilter: 'blur(10px)', 
+        border: `1px solid ${theme.border}`, 
         display: 'flex', 
         flexDirection: 'column', 
         overflow: 'hidden', 
-        boxShadow: '0 20px 40px rgba(0,0,0,0.4)' 
+        boxShadow: '0 10px 30px rgba(0,0,0,0.05)' 
       }}>
         <style>{`
           @keyframes pulse-mic { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.1); opacity: 0.7; } 100% { transform: scale(1); opacity: 1; } }
@@ -362,10 +361,10 @@ const AIAssistant = () => {
             .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: ${theme.crema}; }
           `}</style>
           {customerQueries.length === 0 ? (
-            <div style={{ color: '#444', textAlign: 'center', marginTop: '50px', fontSize: '0.9rem' }}>{t("No recent inquiries")}</div>
+            <div style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '50px', fontSize: '0.9rem' }}>{t("No recent inquiries")}</div>
           ) : (
             customerQueries.map(q => (
-              <div key={q.id} className="premium-row" style={{ padding: '15px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: `1px solid ${theme.border}` }}>
+              <div key={q.id} className="premium-row" style={{ padding: '15px', background: 'var(--cream-dark)', borderRadius: '12px', border: `1px solid ${theme.border}` }}>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
                   <div style={{ background: theme.border, width: '24px', height: '24px', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <BsPerson size={14} color={theme.crema} />
@@ -381,7 +380,7 @@ const AIAssistant = () => {
                   <span style={{ color: theme.latte, fontSize: '0.75rem', fontStyle: 'italic' }}>{t("Yafa's Reply:")}</span>
                 </div>
                 <p dir="auto" style={{ color: theme.latte, fontSize: '0.8rem', margin: '5px 0 0', paddingInlineStart: '34px', opacity: 0.8 }}>{q.ai_msg}</p>
-                <div style={{ fontSize: '0.6rem', color: '#444', textAlign: 'end', marginTop: '8px' }}>
+                <div style={{ fontSize: '0.6rem', color: 'var(--text-secondary)', textAlign: 'end', marginTop: '8px' }}>
                   {new Date(q.created_at).toLocaleString()}
                 </div>
               </div>
