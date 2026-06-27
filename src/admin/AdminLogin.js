@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAdminContext } from './AdminContext';
-import { ShieldCheck, Eye, EyeOff, Lock, Mail, ChevronRight, Loader2, AlertTriangle, Coffee, Zap } from 'lucide-react';
+import { useAdminLang } from './AdminLangContext';
+import { ShieldCheck, Eye, EyeOff, Lock, Mail, Loader2, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 
 export default function AdminLogin() {
   const { login, loading, error } = useAdminContext();
+  const { t } = useAdminLang();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -14,19 +16,19 @@ export default function AdminLogin() {
   const [showPass, setShowPass] = useState(false);
 
   const colors = {
-    espresso: '#070504',
-    latte: '#c4a484',
-    crema: '#e6d5c3',
-    border: 'rgba(196, 164, 132, 0.15)',
-    danger: '#ff4d4d',
-    success: '#38ef7d'
+    bg: '#faf8f5',
+    card: '#ffffff',
+    accent: '#a6865d',
+    text: '#1a1a1a',
+    textMuted: '#777777',
+    border: 'rgba(166, 134, 93, 0.25)',
+    danger: '#ef4444',
   };
 
   async function handleSubmit(e) {
     e.preventDefault();
     const success = await login(form.email, form.password);
     if (success) {
-      // Log the successful login for the Leader
       try {
         await axios.post('/api/log-action', {
           action: 'Login',
@@ -34,16 +36,14 @@ export default function AdminLogin() {
         }, {
           headers: { 'x-admin-email': form.email, 'x-admin-name': form.email.split('@')[0] }
         });
-      } catch (logErr) {
-        console.warn('Silent failure on login log');
-      }
+      } catch (logErr) {}
       navigate(from, { replace: true });
     }
   }
 
   return (
     <div style={{ 
-      backgroundColor: colors.espresso, 
+      backgroundColor: colors.bg, 
       minHeight: '100vh', 
       display: 'flex', 
       alignItems: 'center', 
@@ -53,162 +53,147 @@ export default function AdminLogin() {
       padding: '20px',
       fontFamily: "'Inter', sans-serif"
     }}>
-      {/* Dynamic Animated Background Components */}
-      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)`, zIndex: 0 }} />
+      {/* Light aesthetic gradient background */}
+      <div style={{ position: 'absolute', inset: 0, background: `radial-gradient(circle at 50% -20%, rgba(166,134,93,0.15) 0%, transparent 70%)`, zIndex: 0 }} />
       
-      {/* Floating Orbs - The "Terrifyingly Professional" Animation */}
+      {/* Floating Light Orbs */}
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <div className="orb orb-3" />
-      <div className="orb orb-4" />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;700;900&display=swap');
         
         .orb {
           position: absolute;
           border-radius: 50%;
           filter: blur(80px);
           z-index: 0;
-          opacity: 0.15;
+          opacity: 0.4;
           animation: float 20s infinite alternate ease-in-out;
         }
-        .orb-1 { width: 400px; height: 400px; background: ${colors.latte}; top: -100px; left: -100px; animation-duration: 25s; }
-        .orb-2 { width: 300px; height: 300px; background: #8c6a56; bottom: -50px; right: -50px; animation-duration: 18s; animation-delay: -5s; }
-        .orb-3 { width: 250px; height: 250px; background: ${colors.crema}; top: 40%; left: 60%; animation-duration: 22s; animation-delay: -10s; }
-        .orb-4 { width: 350px; height: 350px; background: #2a1b10; bottom: 20%; left: 10%; animation-duration: 30s; animation-delay: -2s; }
+        .orb-1 { width: 400px; height: 400px; background: rgba(166, 134, 93, 0.2); top: -100px; left: -100px; animation-duration: 25s; }
+        .orb-2 { width: 350px; height: 350px; background: rgba(220, 205, 185, 0.3); bottom: -50px; right: -50px; animation-duration: 18s; animation-delay: -5s; }
+        .orb-3 { width: 300px; height: 300px; background: rgba(250, 248, 245, 0.8); top: 40%; left: 60%; animation-duration: 22s; animation-delay: -10s; }
 
         @keyframes float {
           0% { transform: translate(0, 0) scale(1); }
-          33% { transform: translate(50px, 100px) scale(1.1); }
-          66% { transform: translate(-80px, 50px) scale(0.9); }
-          100% { transform: translate(20px, -40px) scale(1); }
+          33% { transform: translate(30px, 50px) scale(1.05); }
+          66% { transform: translate(-40px, 30px) scale(0.95); }
+          100% { transform: translate(20px, -20px) scale(1); }
         }
 
         .login-card {
           width: 100%;
-          max-width: 400px;
-          background: rgba(255, 255, 255, 0.015);
-          backdrop-filter: blur(40px);
+          max-width: 420px;
+          background: ${colors.card};
           border: 1px solid ${colors.border};
-          border-radius: 35px;
-          padding: 45px 35px;
+          border-radius: 30px;
+          padding: 45px 40px;
           position: relative;
           z-index: 1;
-          transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1);
-          box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-        }
-        .login-card:hover {
-          border-color: ${colors.latte}66;
-          transform: translateY(-8px) scale(1.01);
-          box-shadow: 0 50px 120px rgba(0,0,0,0.9);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.05), 0 0 0 1px rgba(255,255,255,0.8) inset;
+          transition: all 0.4s ease;
         }
 
         .lux-input {
           width: 100%;
-          background: rgba(255,255,255,0.02) !important;
+          background: #fbfaf8 !important;
           border: 1px solid ${colors.border} !important;
-          border-radius: 15px !important;
-          padding: 16px 22px !important;
-          color: #fff !important;
+          border-radius: 16px !important;
+          padding: 16px 20px !important;
+          color: ${colors.text} !important;
           outline: none !important;
-          transition: 0.3s !important;
-          font-size: 0.9rem !important;
+          transition: all 0.3s ease !important;
+          font-size: 0.95rem !important;
+          font-weight: 500;
+        }
+        .lux-input::placeholder {
+          color: #a0a0a0 !important;
         }
         .lux-input:focus {
-          border-color: ${colors.latte} !important;
-          background: rgba(196, 164, 132, 0.08) !important;
-          box-shadow: 0 0 20px ${colors.latte}11;
+          border-color: ${colors.accent} !important;
+          background: #ffffff !important;
+          box-shadow: 0 0 0 4px rgba(166, 134, 93, 0.1) !important;
         }
 
         .login-btn {
-          background: linear-gradient(135deg, #c4a484 0%, #8c6a56 100%);
-          color: #070504;
+          background: ${colors.accent};
+          color: #ffffff;
           border: none;
-          border-radius: 15px;
+          border-radius: 16px;
           padding: 18px;
-          font-weight: 900;
+          font-weight: 700;
           cursor: pointer;
-          font-size: 0.85rem;
+          font-size: 1rem;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 12px;
-          transition: all 0.4s;
-          box-shadow: 0 10px 25px rgba(196, 164, 132, 0.15);
-          text-transform: uppercase;
-          letter-spacing: 2px;
+          gap: 10px;
+          transition: all 0.3s;
+          box-shadow: 0 8px 20px rgba(166, 134, 93, 0.25);
+          margin-top: 10px;
         }
         .login-btn:hover {
-          transform: translateY(-4px);
-          filter: brightness(1.1);
-          box-shadow: 0 15px 35px rgba(196, 164, 132, 0.3);
+          transform: translateY(-2px);
+          background: #90734e;
+          box-shadow: 0 12px 25px rgba(166, 134, 93, 0.35);
         }
 
         .label-text {
-          color: rgba(255,255,255,0.25);
-          font-size: 0.6rem;
-          font-weight: 900;
-          text-transform: uppercase;
-          letter-spacing: 2.5px;
+          color: ${colors.textMuted};
+          font-size: 0.75rem;
+          font-weight: 700;
           display: flex;
           align-items: center;
-          gap: 8px;
-          margin-bottom: 12px;
+          gap: 6px;
+          margin-bottom: 8px;
+          transition: 0.3s;
         }
-        .input-group:focus-within .label-text { color: ${colors.latte}; letter-spacing: 4px; }
+        .input-group:focus-within .label-text { color: ${colors.accent}; }
       `}</style>
 
       <div className="login-card">
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <div style={{ 
-            background: `linear-gradient(135deg, ${colors.latte}15, transparent)`, 
-            width: '75px', height: '75px', borderRadius: '22px', 
-            display: 'flex', alignItems: 'center', justifyContent: 'center', 
-            margin: '0 auto 25px auto', color: colors.latte,
-            border: `1px solid ${colors.border}`
-          }}>
-            <ShieldCheck size={38} strokeWidth={1.5} />
-          </div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', color: '#fff', margin: '0 0 8px 0', lineHeight: 1 }}>
-            Zahrat Beesan Online <span style={{ color: colors.latte, fontStyle: 'italic' }}>Embroidery</span>
+        <div style={{ textAlign: 'center', marginBottom: '35px' }}>
+          <img src="/logo.png" alt="Logo" style={{ width: '70px', height: '70px', borderRadius: '50%', marginBottom: '15px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }} />
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.2rem', color: colors.accent, margin: '0 0 5px 0', lineHeight: 1 }}>
+            Zahrat Beesan
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.15)', fontSize: '0.65rem', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '4px' }}>
-            Restricted Terminal
+          <p style={{ color: colors.textMuted, fontSize: '0.85rem', fontWeight: 500 }}>
+            {t('System Administration')}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div className="input-group">
-            <label className="label-text"><Mail size={12} /> Neural ID</label>
+            <label className="label-text"><Mail size={14} /> {t('Email Address')}</label>
             <input type="email" className="lux-input" placeholder="admin@zahratbeesan.com" value={form.email} onChange={e => setForm({...form, email: e.target.value})} required autoFocus />
           </div>
 
           <div className="input-group">
-            <label className="label-text"><Lock size={12} /> Security Key</label>
+            <label className="label-text"><Lock size={14} /> {t('Password')}</label>
             <div style={{ position: 'relative' }}>
               <input type={showPass ? 'text' : 'password'} className="lux-input" placeholder="••••••••" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required />
-              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: colors.latte, cursor: 'pointer', padding: '5px', opacity: 0.5 }}>
+              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', padding: '5px' }}>
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
 
           {error && (
-            <div style={{ background: 'rgba(255, 77, 77, 0.05)', border: '1px solid rgba(255, 77, 77, 0.1)', borderRadius: '12px', padding: '12px 18px', color: colors.danger, fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 700, animation: 'shake 0.4s' }}>
-              <AlertTriangle size={16} /> {error}
+            <div style={{ background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '12px', padding: '12px 16px', color: colors.danger, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 500, animation: 'shake 0.4s' }}>
+              <AlertTriangle size={18} /> {error}
             </div>
           )}
 
           <button type="submit" disabled={loading} className="login-btn">
-            {loading ? <Loader2 className="animate-spin" size={20} /> : <>ESTABLISH ACCESS <Zap size={16} fill="#070504" /></>}
+            {loading ? <Loader2 className="animate-spin" size={22} /> : t('Login')}
           </button>
         </form>
 
-        <div style={{ marginTop: '40px', textAlign: 'center' }}>
-          <div style={{ height: '1px', background: `linear-gradient(90deg, transparent, ${colors.border}, transparent)`, marginBottom: '15px' }} />
-          <p style={{ color: 'rgba(255,255,255,0.1)', fontSize: '0.55rem', fontWeight: 900, letterSpacing: '2px', textTransform: 'uppercase' }}>
-            Zahrat Beesan Online System <ShieldCheck size={10} style={{ marginLeft: '4px' }} />
+        <div style={{ marginTop: '30px', textAlign: 'center' }}>
+          <p style={{ color: '#aaa', fontSize: '0.7rem', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+            <ShieldCheck size={12} /> {t('Secure Connection')}
           </p>
         </div>
       </div>

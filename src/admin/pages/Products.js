@@ -5,8 +5,10 @@ import { Plus, Edit, Trash2, X, GripVertical, Image, Download, CheckCircle2 } fr
 import { BsGrid3X3 } from 'react-icons/bs';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const Products = () => {
+  const { t } = useAdminLang();
   const [products, setProducts] = useState([]);
   const [allAddons, setAllAddons] = useState([]);
   const [allTags, setAllTags] = useState([]);
@@ -41,6 +43,11 @@ const Products = () => {
   const [allInventory, setAllInventory] = useState([]);
   const [recipeIngredients, setRecipeIngredients] = useState([]);
 
+  // Color Variants management
+  const [variants, setVariants] = useState([]);
+  const [editingVariant, setEditingVariant] = useState(null);
+  const [showVariantImagePicker, setShowVariantImagePicker] = useState(false);
+
   const dragItem = useRef(null);
   const dragOverItem = useRef(null);
 
@@ -59,6 +66,7 @@ const Products = () => {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  const cellTextStyle = { color: colors.latte, fontSize: '1rem', fontWeight: 600, fontFamily: "'DM Serif Display', serif" };
   const headerTextStyle = { color: colors.latte, fontSize: '2.2rem', fontFamily: "'DM Serif Display', serif", fontWeight: 700 };
   const headerBoxStyle = { display: 'inline-block', padding: '10px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)' };
 
@@ -154,6 +162,16 @@ const Products = () => {
     }
   };
 
+  const fetchVariants = async (productId) => {
+    try {
+      const res = await axios.get(`/api/products/${productId}/variants`);
+      setVariants(res.data || []);
+    } catch (err) {
+      console.error('Variants fetch error:', err);
+      setVariants([]);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
     fetchCategories();
@@ -206,13 +224,15 @@ const Products = () => {
   const openAddModal = () => {
     setModalMode('add');
     setFormData({ 
-      id: null, name: '', price_num: '', description: '', available: 1, category_id: dbCategories[0]?.id || '', image_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
+      id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, category_id: dbCategories[0]?.id || '', image_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
       sku: '', subtitle: '', badge: '',
       sizes_json: '["S", "M", "L", "XL", "XXL", "3XL"]',
       fabric_json: '[{"label": "نوع القماش", "value": "كريب فاخر"}, {"label": "بلد المنشأ", "value": "الأردن"}]',
       care_json: '["غسيل يدوي بماء بارد", "كي على حرارة منخفضة"]'
     });
     setRecipeIngredients([]);
+    setVariants([]);
+    setEditingVariant(null);
     setShowModal(true);
   };
 
@@ -222,6 +242,8 @@ const Products = () => {
       id: product.id,
       name: product.name,
       price_num: product.price_num,
+      cost_price: product.cost_price || '',
+      tax_amount: product.tax_amount || '',
       description: product.description,
       available: product.available ?? 1,
       category_id: product.category_id || (dbCategories[0]?.id || ''),
@@ -238,6 +260,8 @@ const Products = () => {
       care_json: product.care ? (typeof product.care === 'string' ? product.care : JSON.stringify(product.care)) : '[]'
     });
     fetchRecipe(product.id);
+    fetchVariants(product.id);
+    setEditingVariant(null);
     setShowModal(true);
   };
 
@@ -482,7 +506,7 @@ const Products = () => {
     width: '100%',
     padding: '14px',
     borderRadius: '12px',
-    backgroundColor: colors.input,
+    backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
     border: `1px solid ${colors.border}`,
     color: colors.latte,
     fontSize: '0.95rem',
@@ -500,24 +524,28 @@ const Products = () => {
   };
 
   return (
-    <div className="dashboard-fade-in" style={{ 
+    <div className="dashboard-fade-in products-container" style={{ 
+      color: colors.latte, 
       backgroundColor: colors.espresso, 
       minHeight: '100vh', 
-      padding: '40px 10px 40px 5px', // Shifting left significantly
+      padding: '40px',
       position: 'relative',
       overflow: 'hidden'
     }}>
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)`, zIndex: 0 }} />
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${colors.crema}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
+        @media (max-width: 768px) {
+          .products-container { padding: 20px !important; }
+          .page-badge span { font-size: 1.4rem !important; }
+        }
 
         /* Premium Row Hover Animation */
         .premium-row {
@@ -539,13 +567,14 @@ const Products = () => {
         }
         
         .product-mobile-card {
-          background: rgba(255, 255, 255, 0.03);
+          background: var(--admin-card);
           border: 1px solid ${colors.border};
           border-radius: 20px;
           padding: 20px;
           display: flex;
           flex-direction: column;
           gap: 15px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
 
         @media (max-width: 768px) {
@@ -575,13 +604,13 @@ const Products = () => {
             </button>
           
             <h3 style={{ color: colors.crema, margin: '0 0 30px 0', fontFamily: "'DM Serif Display', serif", fontSize: '2rem' }}>
-              {modalMode === 'add' ? 'Add New Product' : 'Edit Product'}
+              {modalMode === 'add' ? t('Add New Product') : t('Edit Product')}
             </h3>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Image Picker Field */}
               <div>
-                <label style={labelStyle}>Product Image</label>
+                <label style={labelStyle}>{t('Product Image')}</label>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <div style={{ 
                     width: '60px', height: '60px', borderRadius: '10px', overflow: 'hidden',
@@ -590,10 +619,10 @@ const Products = () => {
                   }}>
                     {formData.image_url ? 
                       <img 
-                        src={formData.image_url.startsWith('/images/') || formData.image_url.startsWith('http') ? formData.image_url : `/images/${formData.image_url}`} 
+                        src={formData.image_url.startsWith('/') || formData.image_url.startsWith('http') ? formData.image_url : `/images/${formData.image_url}`} 
                         alt="" 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                        onError={e => { e.target.onerror = null; e.target.src = '/images/coffee-beans.png'; }} 
+                        onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }} 
                       /> 
                       : <Image size={24} color="#888" />}
                   </div>
@@ -602,7 +631,7 @@ const Products = () => {
                     border: `1px solid ${colors.border}`, color: formData.image_url ? colors.latte : '#888',
                     cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem'
                   }}>
-                    {formData.image_url || 'Click to select image...'}
+                    {formData.image_url || t('Click to select image...')}
                   </button>
                   {formData.image_url && <button type="button" onClick={() => setFormData({...formData, image_url: ''})} style={{ background: 'none', border: 'none', color: '#e74a3b', cursor: 'pointer' }}><X size={18} /></button>}
                 </div>
@@ -610,16 +639,16 @@ const Products = () => {
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Product Name</label>
+                  <label style={labelStyle}>{t('Product Name')}</label>
                   <input 
                     type="text" value={formData.name} 
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="e.g. Espresso Shot" required
+                    placeholder={t('e.g. Royal Embroidered Abaya')} required
                     style={inputStyle}
                   />
                 </div>
                 <div style={{ width: '150px' }}>
-                  <label style={labelStyle}>Price (JOD)</label>
+                  <label style={labelStyle}>{t('Price (JOD)')}</label>
                   <input 
                     type="text" value={formData.price_num} 
                     onChange={(e) => setFormData({...formData, price_num: e.target.value})}
@@ -627,21 +656,78 @@ const Products = () => {
                     style={inputStyle}
                   />
                 </div>
+                <div style={{ width: '100px' }}>
+                  <label style={labelStyle}>{t('Cost Price')}</label>
+                  <input 
+                    type="text" value={formData.cost_price} 
+                    onChange={(e) => setFormData({...formData, cost_price: e.target.value})}
+                    placeholder="0.00"
+                    style={inputStyle}
+                  />
+                </div>
+                <div style={{ width: '100px' }}>
+                  <label style={labelStyle}>{t('Tax Amount')}</label>
+                  <input 
+                    type="text" value={formData.tax_amount} 
+                    onChange={(e) => setFormData({...formData, tax_amount: e.target.value})}
+                    placeholder="0.00"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
 
+              {/* Live Profit Summary Card */}
+              {(formData.price_num || formData.cost_price) && (() => {
+                const selling = parseFloat(formData.price_num) || 0;
+                const cost    = parseFloat(formData.cost_price) || 0;
+                const tax     = parseFloat(formData.tax_amount) || 0;
+                const profit  = selling - cost - tax;
+                const margin  = selling > 0 ? ((profit / selling) * 100).toFixed(1) : 0;
+                const profitColor = profit > 0 ? '#4ade80' : profit < 0 ? '#f87171' : '#aaa';
+                return (
+                  <div style={{
+                    padding: '18px 22px',
+                    borderRadius: '16px',
+                    background: 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${profit >= 0 ? 'rgba(74,222,128,0.2)' : 'rgba(248,113,113,0.2)'}`,
+                    display: 'flex',
+                    gap: '20px',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    marginTop: '4px'
+                  }}>
+                    <div style={{ fontSize: '0.75rem', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', flexBasis: '100%' }}>
+                      {t('Profit Summary')} — {t('Live Preview')}
+                    </div>
+                    {[
+                      { label: t('Selling Price'), value: `${selling.toFixed(2)} JOD`, color: 'var(--admin-accent)' },
+                      { label: t('Cost Price'), value: `${cost.toFixed(2)} JOD`, color: '#f59e0b' },
+                      { label: t('Tax Amount'), value: `${tax.toFixed(2)} JOD`, color: '#a78bfa' },
+                      { label: t('Net Profit'), value: `${profit.toFixed(2)} JOD`, color: profitColor },
+                      { label: t('Profit Margin'), value: `${margin}%`, color: profitColor },
+                    ].map(({ label, value, color }) => (
+                      <div key={label} style={{ textAlign: 'center', flex: 1, minWidth: '80px' }}>
+                        <div style={{ fontSize: '0.7rem', color: '#888', marginBottom: '4px' }}>{label}</div>
+                        <div style={{ fontSize: '1rem', fontWeight: '700', color }}>{value}</div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               <div>
-                <label style={labelStyle}>Description</label>
+                <label style={labelStyle}>{t('Description')}</label>
                 <textarea 
                   value={formData.description || ''} 
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  placeholder="Tell us about this product..."
+                  placeholder={t('Description')}
                   style={{ ...inputStyle, minHeight: '80px', resize: 'vertical' }}
                 />
               </div>
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Product Category</label>
+                  <label style={labelStyle}>{t('Product Category')}</label>
                   
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
                     {dbCategories.map(cat => {
@@ -671,20 +757,20 @@ const Products = () => {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Availability</label>
+                  <label style={labelStyle}>{t('Availability')}</label>
                   <select 
                     value={formData.available} 
                     onChange={(e) => setFormData({...formData, available: parseInt(e.target.value)})}
                     style={inputStyle}
                   >
-                    <option value={1} style={{ backgroundColor: colors.espresso }}>Available (Live)</option>
-                    <option value={0} style={{ backgroundColor: colors.espresso }}>Unavailable (Hidden)</option>
+                    <option value={1} style={{ backgroundColor: colors.espresso }}>{t('Available (Live)')}</option>
+                    <option value={0} style={{ backgroundColor: colors.espresso }}>{t('Unavailable (Hidden)')}</option>
                   </select>
 
                   <div style={{ marginTop: '20px', padding: '15px', borderRadius: '15px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}` }}>
-                    <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '5px' }}>Quick Tip:</div>
+                    <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '5px' }}>{t('Quick Tip:')}</div>
                     <div style={{ fontSize: '0.8rem', color: colors.latte, lineHeight: '1.4' }}>
-                      Categories define where the product appears on the customer menu. Tags help with filtering and search.
+                      {t('Categories define where the product appears on the customer menu. Tags help with filtering and search.')}
                     </div>
                   </div>
                 </div>
@@ -693,7 +779,7 @@ const Products = () => {
               {/* Extended Abaya Fields */}
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>رمز المنتج (SKU)</label>
+                  <label style={labelStyle}>{t('Product SKU')}</label>
                   <input 
                     type="text" value={formData.sku || ''} 
                     onChange={(e) => setFormData({...formData, sku: e.target.value})}
@@ -702,7 +788,7 @@ const Products = () => {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>العنوان الفرعي (Subtitle)</label>
+                  <label style={labelStyle}>{t('Product Subtitle')}</label>
                   <input 
                     type="text" value={formData.subtitle || ''} 
                     onChange={(e) => setFormData({...formData, subtitle: e.target.value})}
@@ -714,7 +800,7 @@ const Products = () => {
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>الشارة (Badge)</label>
+                  <label style={labelStyle}>{t('Product Badge')}</label>
                   <input 
                     type="text" value={formData.badge || ''} 
                     onChange={(e) => setFormData({...formData, badge: e.target.value})}
@@ -723,7 +809,7 @@ const Products = () => {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>المقاسات المتاحة (JSON Array)</label>
+                  <label style={labelStyle}>{t('Available Sizes (JSON Array)')}</label>
                   <input 
                     type="text" value={formData.sizes_json || ''} 
                     onChange={(e) => setFormData({...formData, sizes_json: e.target.value})}
@@ -735,7 +821,7 @@ const Products = () => {
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>مواصفات القماش (JSON Array)</label>
+                  <label style={labelStyle}>{t('Fabric Specifications (JSON Array)')}</label>
                   <textarea 
                     value={formData.fabric_json || ''} 
                     onChange={(e) => setFormData({...formData, fabric_json: e.target.value})}
@@ -744,7 +830,7 @@ const Products = () => {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>تعليمات العناية (JSON Array)</label>
+                  <label style={labelStyle}>{t('Care Instructions (JSON Array)')}</label>
                   <textarea 
                     value={formData.care_json || ''} 
                     onChange={(e) => setFormData({...formData, care_json: e.target.value})}
@@ -756,7 +842,7 @@ const Products = () => {
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '25px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Category Tags</label>
+                  <label style={labelStyle}>{t('Category Tags')}</label>
 
                   {/* Selected tags as removable pills */}
                   {formData.tag_ids.length > 0 && (
@@ -819,7 +905,7 @@ const Products = () => {
                 </div>
 
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Available Add-ons</label>
+                  <label style={labelStyle}>{t('Available Add-ons')}</label>
                   
                   {/* Selected addons as removable pills */}
                   {formData.addon_ids.length > 0 && (
@@ -897,10 +983,312 @@ const Products = () => {
                   </div>
                 </div>
 
+              {/* Color Variants Section */}
+              {modalMode === 'add' ? (
+                <div style={{ padding: '20px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '20px', border: `1px solid ${colors.border}`, marginTop: '10px' }}>
+                  <label style={{ ...labelStyle, color: colors.crema }}>{t('ألوان وموديلات أخرى للمنتج')}</label>
+                  <div style={{ color: '#888', fontSize: '0.85rem', marginTop: '5px' }}>
+                    {t('يرجى حفظ المنتج أولاً لتتمكن من إضافة ألوان ومقاسات وصور أخرى للموديل.')}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ padding: '20px', backgroundColor: 'rgba(255, 255, 255, 0.02)', borderRadius: '20px', border: `1px solid ${colors.border}`, marginTop: '10px' }}>
+                  <label style={{ ...labelStyle, color: colors.crema, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '15px' }}>
+                    🎨 {t('أشكال الموديل وألوانه الأخرى (Color Variants)')}
+                  </label>
+
+                  {editingVariant ? (
+                    /* Variant Add/Edit Form */
+                    <div style={{ backgroundColor: 'rgba(0,0,0,0.2)', padding: '15px', borderRadius: '15px', border: `1px solid ${colors.border}`, display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                      <h5 style={{ color: colors.crema, margin: 0 }}>
+                        {editingVariant.id ? t('تعديل خيار اللون') : t('إضافة خيار لون جديد')}
+                      </h5>
+
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: '0.8rem' }}>{t('اسم هذا اللون / التشكيلة')}</label>
+                        <input 
+                          type="text" 
+                          value={editingVariant.color_name || ''} 
+                          onChange={e => setEditingVariant({...editingVariant, color_name: e.target.value})}
+                          placeholder={t("مثال: أسود مع تطريز ذهبي")}
+                          style={inputStyle}
+                          required
+                        />
+                      </div>
+
+                      {/* Colors Swatch Generator */}
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: '0.8rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span>{t('ألوان كرة المعاينة (1 - 4 ألوان)')}</span>
+                          <span style={{ fontSize: '0.75rem', color: '#888' }}>{t('تظهر للعميل في اختيار الألوان')}</span>
+                        </label>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap', marginTop: '5px' }}>
+                          {(editingVariant.colors || []).map((hex, idx) => (
+                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '5px', backgroundColor: 'rgba(255,255,255,0.05)', padding: '5px 10px', borderRadius: '10px', border: `1px solid ${colors.border}` }}>
+                              <input 
+                                type="color" 
+                                value={hex} 
+                                onChange={e => {
+                                  const newCols = [...editingVariant.colors];
+                                  newCols[idx] = e.target.value;
+                                  setEditingVariant({...editingVariant, colors: newCols});
+                                }}
+                                style={{ width: '30px', height: '30px', border: 'none', borderRadius: '50%', cursor: 'pointer', padding: 0, backgroundColor: 'transparent' }}
+                              />
+                              <span style={{ fontSize: '0.75rem', color: colors.latte }}>{hex.toUpperCase()}</span>
+                              {editingVariant.colors.length > 1 && (
+                                <button type="button" onClick={() => {
+                                  const newCols = editingVariant.colors.filter((_, i) => i !== idx);
+                                  setEditingVariant({...editingVariant, colors: newCols});
+                                }} style={{ background: 'none', border: 'none', color: '#e74a3b', cursor: 'pointer', fontSize: '0.85rem' }}>✕</button>
+                              )}
+                            </div>
+                          ))}
+                          
+                          {editingVariant.colors.length < 4 && (
+                            <button 
+                              type="button" 
+                              onClick={() => setEditingVariant({...editingVariant, colors: [...editingVariant.colors, '#ffffff']})}
+                              style={{ padding: '8px 12px', borderRadius: '10px', backgroundColor: 'rgba(196,164,132,0.1)', color: colors.crema, border: `1px dashed ${colors.crema}`, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 'bold' }}
+                            >
+                              + {t('إضافة لون للكرة')}
+                            </button>
+                          )}
+
+                          {/* Live Circle Preview */}
+                          <div style={{ marginStart: 'auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '0.75rem', color: '#888' }}>{t('المعاينة:')}</span>
+                            {(() => {
+                              const list = editingVariant.colors || [];
+                              let bg = '';
+                              if (list.length === 1) bg = list[0];
+                              else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+                              else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+                              else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+                              return (
+                                <div style={{
+                                  width: '36px', height: '36px', borderRadius: '50%',
+                                  background: bg || '#333', border: '2px solid #555',
+                                  boxShadow: '0 4px 10px rgba(0,0,0,0.4)'
+                                }} />
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Images Section */}
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: '0.8rem' }}>{t('صور هذا اللون')}</label>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '5px' }}>
+                          {(editingVariant.images || []).map((img, idx) => (
+                            <div key={idx} style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', border: `1px solid ${colors.border}`, position: 'relative' }}>
+                              <img src={img.startsWith('http') || img.startsWith('/images/') ? img : `/images/${img}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              <button 
+                                type="button" 
+                                onClick={() => {
+                                  const newImgs = editingVariant.images.filter((_, i) => i !== idx);
+                                  setEditingVariant({...editingVariant, images: newImgs});
+                                }}
+                                style={{ position: 'absolute', top: 2, right: 2, backgroundColor: 'rgba(0,0,0,0.7)', border: 'none', borderRadius: '50%', width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#e74a3b', cursor: 'pointer', fontSize: '0.7rem' }}
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          <button 
+                            type="button" 
+                            onClick={() => setShowVariantImagePicker(true)}
+                            style={{ width: '60px', height: '60px', borderRadius: '8px', border: `1px dashed ${colors.crema}`, backgroundColor: 'rgba(196,164,132,0.05)', color: colors.crema, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', gap: '4px' }}
+                          >
+                            <Image size={18} />
+                            <span style={{ fontSize: '0.65rem' }}>{t('أضف')}</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Video URL */}
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: '0.8rem' }}>{t('رابط فيديو هذا اللون (اختياري)')}</label>
+                        <input 
+                          type="text" 
+                          value={editingVariant.video_url || ''} 
+                          onChange={e => setEditingVariant({...editingVariant, video_url: e.target.value})}
+                          placeholder="e.g. /images/variant_video.mp4 or YouTube link"
+                          style={inputStyle}
+                        />
+                      </div>
+
+                      {/* Sizes and Quantities */}
+                      <div>
+                        <label style={{ ...labelStyle, fontSize: '0.8rem' }}>{t('المقاسات والكميات المتوفرة')}</label>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '5px' }}>
+                          {(() => {
+                            let productSizes = [];
+                            try { productSizes = JSON.parse(formData.sizes_json || '[]'); } catch(e){ productSizes = ["S", "M", "L", "XL", "XXL", "3XL"]; }
+                            
+                            return productSizes.map(sizeName => {
+                              const existingSize = (editingVariant.sizes || []).find(s => s.size === sizeName);
+                              const qty = existingSize ? existingSize.quantity : 0;
+                              const isChecked = existingSize !== undefined;
+                              
+                              return (
+                                <div key={sizeName} style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: isChecked ? 'rgba(196,164,132,0.1)' : 'rgba(255,255,255,0.02)', padding: '6px 12px', borderRadius: '10px', border: `1px solid ${isChecked ? colors.crema : colors.border}` }}>
+                                  <input 
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={e => {
+                                      let newSizes = [...(editingVariant.sizes || [])];
+                                      if (e.target.checked) {
+                                        newSizes.push({ size: sizeName, quantity: 10 });
+                                      } else {
+                                        newSizes = newSizes.filter(s => s.size !== sizeName);
+                                      }
+                                      setEditingVariant({...editingVariant, sizes: newSizes});
+                                    }}
+                                    style={{ accentColor: colors.crema }}
+                                  />
+                                  <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: isChecked ? colors.crema : colors.latte }}>{sizeName}</span>
+                                  {isChecked && (
+                                    <input 
+                                      type="number"
+                                      value={qty}
+                                      onChange={e => {
+                                        const newSizes = (editingVariant.sizes || []).map(s => {
+                                          if (s.size === sizeName) {
+                                            return { ...s, quantity: Math.max(0, parseInt(e.target.value) || 0) };
+                                          }
+                                          return s;
+                                        });
+                                        setEditingVariant({...editingVariant, sizes: newSizes});
+                                      }}
+                                      style={{ ...inputStyle, width: '60px', padding: '4px 6px', margin: 0, fontSize: '0.8rem', textAlign: 'center' }}
+                                      min="0"
+                                    />
+                                  )}
+                                </div>
+                              );
+                            });
+                          })()}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                        <button 
+                          type="button" 
+                          onClick={async () => {
+                            if (!editingVariant.color_name) {
+                              alert(t('الرجاء إدخال اسم اللون'));
+                              return;
+                            }
+                            try {
+                              if (editingVariant.id) {
+                                await axios.put(`/api/products/variants/${editingVariant.id}`, editingVariant);
+                                showToast(t('تم تحديث اللون بنجاح'));
+                              } else {
+                                await axios.post(`/api/products/${formData.id}/variants`, editingVariant);
+                                showToast(t('تم إضافة اللون بنجاح'));
+                              }
+                              fetchVariants(formData.id);
+                              setEditingVariant(null);
+                            } catch (err) {
+                              alert('Failed to save variant: ' + (err.response?.data?.error || err.message));
+                            }
+                          }}
+                          style={{ flex: 1, padding: '10px 15px', backgroundColor: colors.crema, color: colors.espresso, border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.9rem' }}
+                        >
+                          {t('حفظ اللون')}
+                        </button>
+                        <button 
+                          type="button" 
+                          onClick={() => setEditingVariant(null)}
+                          style={{ flex: 1, padding: '10px 15px', backgroundColor: 'transparent', color: colors.latte, border: `1px solid ${colors.border}`, borderRadius: '10px', cursor: 'pointer', fontSize: '0.9rem' }}
+                        >
+                          {t('إلغاء')}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Variants List */
+                    <div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
+                        {variants.map(v => (
+                          <div key={v.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 15px', borderRadius: '15px', backgroundColor: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}` }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              {(() => {
+                                const list = v.colors || [];
+                                let bg = '';
+                                if (list.length === 1) bg = list[0];
+                                else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+                                else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+                                else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+                                return (
+                                  <div style={{
+                                    width: '28px', height: '28px', borderRadius: '50%',
+                                    background: bg || '#333', border: '1px solid rgba(255,255,255,0.2)',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.3)', flexShrink: 0
+                                  }} />
+                                );
+                              })()}
+                              <div>
+                                <div style={{ fontSize: '0.9rem', color: colors.latte, fontWeight: '600' }}>{v.color_name}</div>
+                                <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
+                                  {t('المقاسات:')} {(v.sizes || []).map(s => `${s.size} (${s.quantity})`).join(', ') || t('لا يوجد مقاسات')}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                              <button 
+                                type="button" 
+                                onClick={() => setEditingVariant({...v})}
+                                style={{ padding: '6px 12px', borderRadius: '8px', border: `1px solid ${colors.border}`, backgroundColor: 'rgba(255,255,255,0.05)', color: colors.latte, cursor: 'pointer', fontSize: '0.8rem' }}
+                              >
+                                {t('تعديل')}
+                              </button>
+                              <button 
+                                type="button" 
+                                onClick={async () => {
+                                  if (window.confirm(t('هل أنت متأكد من حذف هذا اللون؟'))) {
+                                    try {
+                                      await axios.delete(`/api/products/variants/${v.id}`);
+                                      showToast(t('تم حذف اللون بنجاح'));
+                                      fetchVariants(formData.id);
+                                    } catch(err) {
+                                      alert('Failed to delete variant: ' + err.message);
+                                    }
+                                  }
+                                }}
+                                style={{ padding: '6px 12px', borderRadius: '8px', border: 'none', backgroundColor: 'rgba(231,74,59,0.15)', color: '#e74a3b', cursor: 'pointer', fontSize: '0.8rem' }}
+                              >
+                                {t('حذف')}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        {variants.length === 0 && (
+                          <div style={{ color: '#666', fontSize: '0.85rem', textAlign: 'center', padding: '15px' }}>
+                            {t('لا يوجد ألوان إضافية لهذا المنتج بعد.')}
+                          </div>
+                        )}
+                      </div>
+
+                      <button 
+                        type="button" 
+                        onClick={() => setEditingVariant({ id: null, color_name: '', colors: ['#000000'], images: [], video_url: '', sizes: [] })}
+                        style={{ width: '100%', padding: '12px', borderRadius: '15px', backgroundColor: 'rgba(196,164,132,0.1)', color: colors.crema, border: `1px dashed ${colors.crema}`, cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                      >
+                        <Plus size={16} /> {t('إضافة لون جديد للموديل')}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* NEW: Recipe / Ingredients Section */}
               <div style={{ padding: '20px', backgroundColor: 'rgba(196,164,132,0.05)', borderRadius: '20px', border: `1px solid ${colors.border}`, marginTop: '10px' }}>
                 <label style={{ ...labelStyle, marginBottom: '15px', color: colors.crema, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <GripVertical size={16} /> Recipe &amp; Ingredients Mapping
+                  <GripVertical size={16} /> {t('Recipe & Ingredients Mapping')}
                 </label>
                 
                 {/* Existing ingredients list */}
@@ -916,7 +1304,7 @@ const Products = () => {
                         }}
                         style={{ ...inputStyle, flex: 2, padding: '10px' }}
                       >
-                        <option value="">Select Ingredient...</option>
+                        <option value="">{t('Select Ingredient...')}</option>
                         {allInventory.map(inv => (
                           <option key={inv.id} value={inv.id}>{inv.item_name} ({inv.unit})</option>
                         ))}
@@ -929,7 +1317,7 @@ const Products = () => {
                           newIngs[idx].quantity_required = e.target.value;
                           setRecipeIngredients(newIngs);
                         }}
-                        placeholder="Qty used"
+                        placeholder={t('Qty used')}
                         style={{ ...inputStyle, flex: 1, padding: '10px' }}
                       />
                       <button type="button" onClick={() => setRecipeIngredients(recipeIngredients.filter((_, i) => i !== idx))} style={{ background: 'none', border: 'none', color: '#e74a3b', cursor: 'pointer' }}><Trash2 size={18} /></button>
@@ -942,17 +1330,17 @@ const Products = () => {
                   onClick={() => setRecipeIngredients([...recipeIngredients, { inventory_id: '', quantity_required: '' }])}
                   style={{ background: 'rgba(196,164,132,0.1)', border: `1px dashed ${colors.crema}`, color: colors.crema, padding: '10px', borderRadius: '10px', width: '100%', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '15px' }}
                 >
-                  + Add Ingredient to Recipe
+                  {t('Add Ingredient to Recipe')}
                 </button>
 
                 {/* Add New Raw Material */}
                 <details style={{ borderTop: `1px solid ${colors.border}`, paddingTop: '15px' }}>
                   <summary style={{ cursor: 'pointer', color: '#aaa', fontSize: '0.82rem', fontWeight: '600', userSelect: 'none', listStyle: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span style={{ fontSize: '1rem' }}>➕</span> Create New Raw Material (if not in list above)
+                    <span style={{ fontSize: '1rem' }}>➕</span> {t('Create New Raw Material (if not in list above)')}
                   </summary>
                   <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <input type="text" value={newInvName} onChange={e => setNewInvName(e.target.value)}
-                      placeholder="Material name (e.g. Espresso Beans)"
+                      placeholder={t('Material name (e.g. Linen/Crepe Fabric)')}
                       style={{ ...inputStyle, padding: '10px', fontSize: '0.85rem' }} />
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <input type="number" value={newInvQty} onChange={e => setNewInvQty(e.target.value)}
@@ -984,7 +1372,7 @@ const Products = () => {
                     </div>
                     <button type="button" onClick={handleQuickAddInventory}
                       style={{ backgroundColor: colors.crema, color: colors.espresso, border: 'none', borderRadius: '10px', padding: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>
-                      ➕ Add to Inventory
+                      ➕ {t('Add to Inventory')}
                     </button>
                   </div>
                 </details>
@@ -992,9 +1380,9 @@ const Products = () => {
 
               <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
                 <button type="submit" style={{ flex: 2, padding: '16px', backgroundColor: colors.crema, color: colors.espresso, border: 'none', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem', transition: '0.3s' }}>
-                  {modalMode === 'add' ? 'Create Product' : 'Save Changes'}
+                  {modalMode === 'add' ? t('Create Product') : t('Save Changes')}
                 </button>
-                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', backgroundColor: 'transparent', color: colors.latte, border: `1px solid ${colors.border}`, borderRadius: '15px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', backgroundColor: 'transparent', color: colors.latte, border: `1px solid ${colors.border}`, borderRadius: '15px', cursor: 'pointer', fontWeight: '600' }}>{t('Cancel')}</button>
               </div>
             </form>
           </div>
@@ -1071,7 +1459,111 @@ const Products = () => {
                                e.target.src = `http://127.0.0.1:5000/images/${img}`; // Fallback direct to server if proxy misses the static folder
                             } else {
                                e.target.onerror = null;
-                               e.target.src = '/images/coffee-beans.png';
+                               e.target.src = '/12.png';
+                            }
+                          }}
+                        />
+                      </div>
+                      <div style={{ 
+                        padding: '10px', fontSize: '0.7rem', color: colors.latte, 
+                        textAlign: 'center', backgroundColor: colors.input,
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                      }}>
+                        {img}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Variant Image Picker Modal */}
+        {showVariantImagePicker && (
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}>
+            <div style={{ backgroundColor: colors.bean, borderRadius: '30px', padding: '35px', width: '100%', maxWidth: '900px', maxHeight: '85vh', overflowY: 'auto', border: `1px solid ${colors.border}`, boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
+                <h3 style={{ color: colors.crema, margin: 0, fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem' }}>Select Variant Image</h3>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                  {/* Upload from Device Button */}
+                  <label style={{ 
+                    display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                    padding: '10px 18px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '600',
+                    backgroundColor: uploadLoading ? '#555' : colors.latte,
+                    color: colors.bean, border: 'none', transition: '0.2s'
+                  }}>
+                    {uploadLoading ? '⏳ Uploading...' : '📁 Upload from Device'}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: 'none' }}
+                      disabled={uploadLoading}
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        setUploadLoading(true);
+                        const fd = new FormData();
+                        fd.append('image', file);
+                        try {
+                          const res = await axios.post('/api/upload-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                          const newFilename = res.data.filename;
+                          await fetchImages(); // refresh grid
+                          setEditingVariant(prev => ({ ...prev, images: [...(prev.images || []), newFilename] }));
+                          setShowVariantImagePicker(false);
+                        } catch (err) {
+                          alert('Upload failed: ' + (err.response?.data?.error || err.message));
+                        } finally {
+                          setUploadLoading(false);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                  </label>
+                  <button onClick={() => setShowVariantImagePicker(false)} style={{ background: 'none', border: 'none', color: colors.latte, cursor: 'pointer', padding: '5px' }}><X size={28} /></button>
+                </div>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '20px' }}>
+                {images.map(img => {
+                  const imgSrc = `/images/${img}`;
+                  const isSelected = (editingVariant.images || []).includes(img);
+                  
+                  return (
+                    <div key={img} 
+                      onClick={() => {
+                        if (isSelected) {
+                          setEditingVariant({
+                            ...editingVariant,
+                            images: editingVariant.images.filter(i => i !== img)
+                          });
+                        } else {
+                          setEditingVariant({
+                            ...editingVariant,
+                            images: [...(editingVariant.images || []), img]
+                          });
+                        }
+                        setShowVariantImagePicker(false);
+                      }}
+                      style={{ 
+                        cursor: 'pointer', borderRadius: '20px', overflow: 'hidden', 
+                        border: isSelected ? `3px solid ${colors.crema}` : `1px solid ${colors.border}`, 
+                        transition: '0.3s', backgroundColor: 'rgba(0,0,0,0.2)',
+                        transform: isSelected ? 'scale(1.05)' : 'none',
+                        boxShadow: isSelected ? `0 0 20px ${colors.crema}40` : 'none'
+                      }}>
+                      <div style={{ height: '120px', width: '100%', overflow: 'hidden', position: 'relative' }}>
+                        <img 
+                          src={imgSrc} 
+                          alt={img} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                          onError={(e) => {
+                            if (!e.target.dataset.retried) {
+                               e.target.dataset.retried = 'true';
+                               e.target.src = `http://127.0.0.1:5000/images/${img}`;
+                            } else {
+                               e.target.onerror = null;
+                               e.target.src = '/12.png';
                             }
                           }}
                         />
@@ -1102,16 +1594,16 @@ const Products = () => {
       }}>
         <div>
           <div className="header-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div className="page-badge">
             <BsGrid3X3 size={28} color={colors.crema} />
-            <span>Product Catalog</span>
+            <span>{t('Product Catalog')}</span>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            CaffAIne | Menu Items & Product Configuration
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t('Zahrat Beesan | Abaya Catalog & Product Management')}
           </p>
         </div>
         <div className="header-btns" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
@@ -1126,7 +1618,7 @@ const Products = () => {
               display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
               transition: '0.3s'
             }}>
-            <Download size={20} /> Export PDF
+            <Download size={20} /> {t('Export PDF')}
           </button>
           <button 
             onClick={openAddModal}
@@ -1136,7 +1628,7 @@ const Products = () => {
               display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
               transition: '0.3s', boxShadow: '0 10px 20px rgba(196, 164, 132, 0.2)'
             }}>
-            <Plus size={20} /> Add New Item
+            <Plus size={20} /> {t('Add New Item')}
           </button>
           </div>
           {orderChanged && (
@@ -1150,7 +1642,7 @@ const Products = () => {
                 fontSize: '0.9rem',
                 boxShadow: '0 4px 15px rgba(56, 239, 125, 0.1)'
               }}>
-              Save New Order
+              {t('Save New Order')}
             </button>
           )}
         </div>
@@ -1176,27 +1668,29 @@ const Products = () => {
           <>
             {/* Desktop View Table */}
             <div className="desktop-table" style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px', color: colors.latte, textAlign: 'left', tableLayout: 'fixed' }}>
+              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px', color: colors.latte, textAlign: 'start', tableLayout: 'fixed' }}>
                 <colgroup>
-                  <col style={{ width: '14%' }} />
-                  <col style={{ width: '20%' }} />
-                  <col style={{ width: '11%' }} />
-                  <col style={{ width: '9%' }} />
-                  <col style={{ width: '15%' }} />
-                  <col style={{ width: '13%' }} />
                   <col style={{ width: '10%' }} />
+                  <col style={{ width: '22%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '8%' }} />
                   <col style={{ width: '8%' }} />
                 </colgroup>
                 <thead style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)' }}>
                   <tr>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>ID</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Product</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Category</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Price</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Tags</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Add-ons</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Status</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700', textAlign: 'center' }}>Actions</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('ID')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Product')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Category')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Price')}</th>
+                    <th style={{ padding: '20px 12px', color: '#4ade80', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Net Profit')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Tags')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Add-ons')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Status')}</th>
+                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700', textAlign: 'center' }}>{t('Actions')}</th>
                   </tr>
                 </thead>
               <tbody>
@@ -1223,23 +1717,44 @@ const Products = () => {
                     <td style={{ padding: '12px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ 
-                          width: '52px', height: '52px', minWidth: '52px', backgroundColor: 'rgba(196, 164, 132, 0.1)', 
+                          width: '52px', height: '52px', minWidth: '52px', backgroundColor: 'transparent', 
                           borderRadius: '12px', overflow: 'hidden', display: 'flex', 
                           alignItems: 'center', justifyContent: 'center', border: `1px solid ${colors.border}` 
                         }}>
                           <img 
-                            src={item.image_url ? (item.image_url.startsWith('/images/') || item.image_url.startsWith('http') ? item.image_url : `/images/${item.image_url.toLowerCase()}`) : '/images/coffee-beans.png'}
+                            src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') ? item.image_url : `/images/${item.image_url.toLowerCase()}`) : '/12.png'}
                             alt={item.name} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
                               e.target.onerror = null; 
-                              e.target.src = '/images/coffee-beans.png';
+                              e.target.src = '/12.png';
                             }}
                           />
                         </div>
                         <div style={{ overflow: 'hidden' }}>
-                          <div style={{ fontWeight: '600', color: colors.latte, fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name || 'Unnamed Product'}</div>
-                          <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description?.substring(0, 35)}{item.description?.length > 35 ? '…' : ''}</div>
+                          <div style={{ display: 'block', marginBottom: '2px' }}>
+                            <strong style={cellTextStyle}>{item.name || 'Unnamed Product'}</strong>
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description?.substring(0, 35)}{item.description?.length > 35 ? '…' : ''}</div>
+                          {item.variants && item.variants.length > 0 && (
+                            <div style={{ display: 'flex', gap: '4px', marginTop: '6px', alignItems: 'center' }}>
+                              {item.variants.map(v => {
+                                const list = v.colors || [];
+                                let bg = '';
+                                if (list.length === 1) bg = list[0];
+                                else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+                                else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+                                else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+                                return (
+                                  <div key={v.id} title={v.color_name} style={{
+                                    width: '12px', height: '12px', borderRadius: '50%',
+                                    background: bg || '#333', border: '1px solid rgba(255,255,255,0.2)',
+                                    boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                                  }} />
+                                );
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -1262,6 +1777,20 @@ const Products = () => {
                           </span>
                         )}
                       </div>
+                    </td>
+                    <td style={{ padding: '12px', fontSize: '0.85rem', fontWeight: '700' }}>
+                      {(() => {
+                        const s = parseFloat(item.price_num || 0);
+                        const c = parseFloat(item.cost_price || 0);
+                        const tx = parseFloat(item.tax_amount || 0);
+                        if (!c && !tx) return <span style={{ color: '#555', fontSize: '0.7rem' }}>—</span>;
+                        const profit = s - c - tx;
+                        return (
+                          <span style={{ color: profit >= 0 ? '#4ade80' : '#f87171' }}>
+                            {profit.toFixed(2)} JOD
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td style={{ padding: '12px' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
@@ -1355,14 +1884,14 @@ const Products = () => {
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                     <div style={{ width: '80px', height: '80px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
                       <img 
-                        src={item.image_url ? (item.image_url.startsWith('/images/') || item.image_url.startsWith('http') ? item.image_url : `/images/${item.image_url.toLowerCase()}`) : '/images/coffee-beans.png'}
+                        src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') ? item.image_url : `/images/${item.image_url.toLowerCase()}`) : '/12.png'}
                         alt={item.name} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                        onError={e => { e.target.onerror = null; e.target.src = '/images/coffee-beans.png'; }}
+                        onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
                       />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <h4 style={{ color: '#fff', margin: '0 0 5px 0', fontSize: '1.1rem' }}>{item.name}</h4>
+                      <h4 style={{ color: colors.latte, margin: '0 0 5px 0', fontSize: '1.1rem', fontFamily: "'DM Serif Display', serif", fontWeight: 600 }}>{item.name}</h4>
                       <div style={{ color: colors.crema, fontSize: '0.85rem', fontWeight: '700' }}>
                         {item.discounted_price ? (
                           <>
@@ -1374,10 +1903,29 @@ const Products = () => {
                       <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '5px' }}>
                         {dbCategories.find(c => String(c.id) === String(item.category_id))?.name || 'Uncategorized'}
                       </div>
+                      {item.variants && item.variants.length > 0 && (
+                        <div style={{ display: 'flex', gap: '4px', marginTop: '6px', alignItems: 'center' }}>
+                          {item.variants.map(v => {
+                            const list = v.colors || [];
+                            let bg = '';
+                            if (list.length === 1) bg = list[0];
+                            else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+                            else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+                            else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+                            return (
+                              <div key={v.id} title={v.color_name} style={{
+                                width: '12px', height: '12px', borderRadius: '50%',
+                                background: bg || '#333', border: '1px solid rgba(255,255,255,0.2)',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.3)'
+                              }} />
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: `1px solid rgba(255,255,255,0.05)` }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '10px', borderTop: `1px solid ${colors.border}` }}>
                     <span style={{ 
                       backgroundColor: item.available === 0 ? 'rgba(231, 74, 59, 0.1)' : 'rgba(40, 167, 69, 0.1)', 
                       color: item.available === 0 ? '#e74a3b' : '#28a745',

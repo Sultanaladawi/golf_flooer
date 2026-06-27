@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import styles from './Hero.module.css';
+import { Sparkles } from 'lucide-react';
 
 export default function Hero() {
   const heroVideoRef = useRef(null);
@@ -30,9 +31,9 @@ export default function Hero() {
       <div className={styles.heroDecorBR} />
 
       <div className={styles.heroContent}>
-        <span className="section-label">✦ التشكيلة الحصرية 2026 ✦</span>
+        <span className="section-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sparkles size={14} /> التشكيلة الحصرية 2026 <Sparkles size={14} /></span>
         <h1 className={styles.heroTitle}>
-          زهرة بيسان اونلاين
+          زهرة بيسان
           <span className={styles.heroTitleAccent}>للمطرزات الشرقية</span>
         </h1>
         <p className={styles.heroSubtitle}>

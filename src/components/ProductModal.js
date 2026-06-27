@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import styles from './ProductModal.module.css';
@@ -8,30 +8,111 @@ export default function ProductModal({ model, onClose }) {
   const { addItem, items } = useCart();
   const { format } = useCurrency();
   
+  const [variants, setVariants] = useState(model.variants || []);
+  const [selectedVariant, setSelectedVariant] = useState(null);
+
+  useEffect(() => {
+    if (!model.variants) {
+      fetch(`/api/products/${model.id}/variants`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setVariants(data);
+          }
+        })
+        .catch(err => console.error("Error fetching variants:", err));
+    }
+  }, [model.id, model.variants]);
+
   // Parse JSON arrays safely
   let imagesArray = [];
-  try {
-    const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
-    imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-  } catch (e) {
-    imagesArray = [];
-  }
-  if (imagesArray.length === 0 && model.image_url) {
-    imagesArray = [model.image_url];
-  }
-  if (imagesArray.length === 0 && model.image) {
-    imagesArray = [model.image];
-  }
-
-
   let videosArray = [];
-  try {
-    const raw = typeof model.videos === 'string' ? JSON.parse(model.videos) : model.videos;
-    videosArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-  } catch (e) {
-    videosArray = [];
+  let sizesArray = [];
+
+  if (selectedVariant) {
+    // 1. Variant Images
+    try {
+      const raw = typeof selectedVariant.images === 'string' ? JSON.parse(selectedVariant.images) : selectedVariant.images;
+      imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    } catch (e) {
+      imagesArray = [];
+    }
+    // Fallback to product images if variant has none
+    if (imagesArray.length === 0) {
+      try {
+        const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
+        imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+      } catch (e) {
+        imagesArray = [];
+      }
+      if (imagesArray.length === 0 && model.image_url) {
+        imagesArray = [model.image_url];
+      }
+      if (imagesArray.length === 0 && model.image) {
+        imagesArray = [model.image];
+      }
+    }
+
+    // 2. Variant Video
+    if (selectedVariant.video_url) {
+      videosArray = [selectedVariant.video_url];
+    } else {
+      try {
+        const raw = typeof model.videos === 'string' ? JSON.parse(model.videos) : model.videos;
+        videosArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+      } catch (e) {
+        videosArray = [];
+      }
+    }
+
+    // 3. Variant Sizes
+    try {
+      const raw = typeof selectedVariant.sizes === 'string' ? JSON.parse(selectedVariant.sizes) : selectedVariant.sizes;
+      sizesArray = Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      sizesArray = [];
+    }
+    if (sizesArray.length === 0) {
+      try {
+        const raw = typeof model.sizes === 'string' ? JSON.parse(model.sizes) : model.sizes;
+        sizesArray = Array.isArray(raw) ? raw : [];
+      } catch (e) {
+        sizesArray = [];
+      }
+    }
+  } else {
+    // Default product images
+    try {
+      const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
+      imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    } catch (e) {
+      imagesArray = [];
+    }
+    if (imagesArray.length === 0 && model.image_url) {
+      imagesArray = [model.image_url];
+    }
+    if (imagesArray.length === 0 && model.image) {
+      imagesArray = [model.image];
+    }
+
+    // Default product video
+    try {
+      const raw = typeof model.videos === 'string' ? JSON.parse(model.videos) : model.videos;
+      videosArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+    } catch (e) {
+      videosArray = [];
+    }
+
+    // Default product sizes
+    try {
+      const raw = typeof model.sizes === 'string' ? JSON.parse(model.sizes) : model.sizes;
+      sizesArray = Array.isArray(raw) ? raw : [];
+    } catch (e) {
+      sizesArray = [];
+    }
   }
 
+  // Fabric and Care arrays (fallbacks)
   let fabricArray = [];
   try {
     const raw = typeof model.fabric === 'string' ? JSON.parse(model.fabric) : model.fabric;
@@ -57,13 +138,7 @@ export default function ProductModal({ model, onClose }) {
     careArray = ['غسيل يدوي بماء بارد', 'كي على حرارة منخفضة'];
   }
 
-  let sizesArray = [];
-  try {
-    const raw = typeof model.sizes === 'string' ? JSON.parse(model.sizes) : model.sizes;
-    sizesArray = Array.isArray(raw) ? raw : [];
-  } catch (e) {
-    sizesArray = [];
-  }
+  // Fallback default sizes if both product and variant have none
   if (!sizesArray || sizesArray.length === 0) {
     sizesArray = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
   }
@@ -79,6 +154,17 @@ export default function ProductModal({ model, onClose }) {
   const [addedToCart, setAddedToCart] = useState(false);
   const [visible, setVisible] = useState(false);
   const videoRef = useRef(null);
+
+  // Reset image/video indices and switch tabs when variant changes
+  useEffect(() => {
+    setActiveImg(0);
+    setActiveVideo(0);
+    if (imagesArray.length > 0) {
+      setActiveTab('photos');
+    } else if (videosArray.length > 0) {
+      setActiveTab('video');
+    }
+  }, [selectedVariant]);
 
   // Use a stable ref to hold onClose so we don't recreate the effect on every render
   const onCloseRef = useRef(onClose);
@@ -116,18 +202,41 @@ export default function ProductModal({ model, onClose }) {
       setActiveInfoTab('sizes');
       return;
     }
+
+    let finalSizes = [];
+    if (selectedVariant) {
+      try {
+        const raw = typeof selectedVariant.sizes === 'string' ? JSON.parse(selectedVariant.sizes) : selectedVariant.sizes;
+        finalSizes = Array.isArray(raw) ? raw : [];
+      } catch (e) { }
+    } else {
+      try {
+        const raw = typeof model.sizes === 'string' ? JSON.parse(model.sizes) : model.sizes;
+        finalSizes = Array.isArray(raw) ? raw : [];
+      } catch (e) { }
+    }
+
+    if (finalSizes.length > 0 && typeof finalSizes[0] === 'object') {
+      const sizeObj = finalSizes.find(s => s.size === selectedSize);
+      if (sizeObj && sizeObj.quantity <= 0) {
+        alert("عذراً، هذا المقاس نفدت كميته حالياً");
+        return;
+      }
+    }
     
     const sizeVal = selectedSize;
     const priceNumVal = parseFloat(model.price_num || model.price) || 0;
     
     addItem({
-      id: `${model.id}-${sizeVal}`,
+      id: `${model.id}-${sizeVal}-${selectedVariant ? selectedVariant.id : 'default'}`,
       productId: model.id,
-      name: model.name,
+      name: selectedVariant ? `${model.name} - ${selectedVariant.color_name}` : model.name,
       priceNum: priceNumVal,
       price: `${priceNumVal.toFixed(2)} JOD`,
       size: sizeVal,
-      image: imagesArray[0] || '/12.png'
+      image: imagesArray[0] || '/12.png',
+      variantId: selectedVariant ? selectedVariant.id : null,
+      variantName: selectedVariant ? selectedVariant.color_name : null
     });
     
     setAddedToCart(true);
@@ -263,6 +372,58 @@ export default function ProductModal({ model, onClose }) {
             <p className={styles.price}>{format(parseFloat(model.price_num || model.price))}</p>
           </div>
 
+          {/* Color Variants Selection */}
+          {variants && variants.length > 0 && (
+            <div className={styles.variantsSection}>
+              <div className={styles.variantsTitle}>
+                <span>الخيارات والألوان:</span>
+                <span className={styles.variantName}>
+                  {selectedVariant ? selectedVariant.color_name : 'الأساسي'}
+                </span>
+              </div>
+              <div className={styles.variantsRow}>
+                {/* Default/Base Variant button */}
+                <button
+                  className={`${styles.swatchBtn} ${!selectedVariant ? styles.swatchActive : ''}`}
+                  style={{ 
+                    background: model.image_url ? `url(${model.image_url.startsWith('/images/') || model.image_url.startsWith('http') ? model.image_url : `/images/${model.image_url.toLowerCase()}`}) center/cover` : 'linear-gradient(135deg, #c5a880, #8f6e40)',
+                    border: '1px solid rgba(255,255,255,0.4)'
+                  }}
+                  onClick={() => {
+                    setSelectedVariant(null);
+                    setSelectedSize(null);
+                  }}
+                  title="اللون الأساسي"
+                  aria-label="اللون الأساسي"
+                />
+                {/* Variant Swatches */}
+                {variants.map(v => {
+                  const list = v.colors || [];
+                  let bg = '';
+                  if (list.length === 1) bg = list[0];
+                  else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+                  else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+                  else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+                  
+                  const isActive = selectedVariant?.id === v.id;
+                  return (
+                    <button
+                      key={v.id}
+                      className={`${styles.swatchBtn} ${isActive ? styles.swatchActive : ''}`}
+                      style={{ background: bg || '#333' }}
+                      onClick={() => {
+                        setSelectedVariant(v);
+                        setSelectedSize(null);
+                      }}
+                      title={v.color_name}
+                      aria-label={v.color_name}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Info Tabs */}
           <div className={styles.infoTabBar}>
             <button
@@ -306,15 +467,34 @@ export default function ProductModal({ model, onClose }) {
             <div className={styles.sizesTab}>
               <p className={styles.sizesLabel}>اختاري مقاسك</p>
               <div className={styles.sizesGrid}>
-                {sizesArray.map((sz) => (
-                  <button
-                    key={sz}
-                    className={`${styles.sizeBtn} ${selectedSize === sz ? styles.sizeBtnActive : ''}`}
-                    onClick={() => setSelectedSize(sz)}
-                  >
-                    {sz}
-                  </button>
-                ))}
+                {(() => {
+                  let finalSizes = [];
+                  if (!sizesArray || sizesArray.length === 0) {
+                    finalSizes = [{ size: 'S', quantity: 10 }, { size: 'M', quantity: 10 }, { size: 'L', quantity: 10 }, { size: 'XL', quantity: 10 }, { size: 'XXL', quantity: 10 }, { size: '3XL', quantity: 10 }];
+                  } else {
+                    if (typeof sizesArray[0] === 'string') {
+                      finalSizes = sizesArray.map(s => ({ size: s, quantity: 10 }));
+                    } else {
+                      finalSizes = sizesArray;
+                    }
+                  }
+
+                  return finalSizes.map((item) => {
+                    const isOutOfStock = item.quantity <= 0;
+                    return (
+                      <button
+                        key={item.size}
+                        disabled={isOutOfStock}
+                        className={`${styles.sizeBtn} ${selectedSize === item.size ? styles.sizeBtnActive : ''} ${isOutOfStock ? styles.outOfStock : ''}`}
+                        onClick={() => setSelectedSize(item.size)}
+                        style={{ opacity: isOutOfStock ? 0.4 : 1, textDecoration: isOutOfStock ? 'line-through' : 'none', cursor: isOutOfStock ? 'not-allowed' : 'pointer' }}
+                        title={isOutOfStock ? 'نفدت الكمية' : ''}
+                      >
+                        {item.size}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
               <div className={styles.sizeChart}>
                 <table className={styles.sizeTable}>
@@ -342,16 +522,16 @@ export default function ProductModal({ model, onClose }) {
           {/* ===== ADD TO CART ===== */}
           <div className={styles.cartSection}>
             {!selectedSize && (
-              <p className={styles.sizeWarning}>✦ يرجى اختيار المقاس أولاً</p>
+              <p className={styles.sizeWarning} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> يرجى اختيار المقاس أولاً</p>
             )}
             <button
               className={`${styles.addToCartBtn} ${addedToCart ? styles.addedToCart : ''}`}
               onClick={handleAddCart}
             >
               <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
-              <span>{addedToCart ? '✓ تمت الإضافة للسلة' : 'أضيفي للسلة'}</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>{addedToCart ? <><CheckCircle2 size={16} /> تمت الإضافة للسلة</> : 'أضيفي للسلة'}</span>
             </button>
-            <p className={styles.shippingNote}>✦ شحن مجاني خلال 24 ساعة</p>
+            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> شحن مجاني خلال 24 ساعة</p>
           </div>
         </div>
       </div>

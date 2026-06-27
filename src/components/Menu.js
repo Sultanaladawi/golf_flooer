@@ -5,7 +5,12 @@ import {
   Search, 
   XCircle, 
   Plus, 
-  Shirt
+  Shirt,
+  Crown,
+  Gem,
+  Snowflake,
+  Sparkles,
+  Flower2
 } from 'lucide-react';
 import { featuredItems } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
@@ -16,13 +21,14 @@ import ProductModal from './ProductModal';
 
 const renderCategoryIcon = (iconName) => {
   const name = String(iconName || '').toLowerCase();
-  const style = { fontSize: '1.2rem', display: 'inline-block', lineHeight: 1 };
-  if (name.includes('classic') || name.includes('star') || name.includes('كلاسيك')) return <span className="emojiIcon" style={style}>👑</span>;
-  if (name.includes('gem') || name.includes('occassion') || name.includes('مناسبات')) return <span className="emojiIcon" style={style}>💎</span>;
-  if (name.includes('snowflake') || name.includes('winter') || name.includes('شتوية')) return <span className="emojiIcon" style={style}>❄️</span>;
-  if (name.includes('bullhorn') || name.includes('new') || name.includes('حديث')) return <span className="emojiIcon" style={style}>✨</span>;
-  if (name.includes('sun') || name.includes('daily') || name.includes('يومية')) return <span className="emojiIcon" style={style}>🌸</span>;
-  return <span className="emojiIcon" style={style}>👗</span>;
+  const style = { display: 'inline-flex', alignItems: 'center', justifyContent: 'center' };
+  const size = 18;
+  if (name.includes('classic') || name.includes('star') || name.includes('كلاسيك')) return <Crown size={size} style={style} />;
+  if (name.includes('gem') || name.includes('occassion') || name.includes('مناسبات')) return <Gem size={size} style={style} />;
+  if (name.includes('snowflake') || name.includes('winter') || name.includes('شتوية')) return <Snowflake size={size} style={style} />;
+  if (name.includes('bullhorn') || name.includes('new') || name.includes('حديث')) return <Sparkles size={size} style={style} />;
+  if (name.includes('sun') || name.includes('daily') || name.includes('يومية')) return <Flower2 size={size} style={style} />;
+  return <Shirt size={size} style={style} />;
 };
 
 function parsePrice(val) {
@@ -401,6 +407,26 @@ export default function Menu() {
                   <div className={styles.itemDetails}>
                     <div className={styles.itemName}>{item.name}</div>
                     <div className={styles.itemDesc}>{item.subtitle || item.description}</div>
+                    {item.variants && item.variants.length > 0 && (
+                      <div className={styles.itemSwatches} onClick={(e) => e.stopPropagation()}>
+                        {item.variants.map(v => {
+                          const list = v.colors || [];
+                          let bg = '';
+                          if (list.length === 1) bg = list[0];
+                          else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+                          else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+                          else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+                          return (
+                            <div 
+                              key={v.id} 
+                              title={v.color_name} 
+                              className={styles.swatchBall} 
+                              style={{ background: bg || '#333' }} 
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   <div className={styles.itemFooter}>
                     <div className={styles.itemPrice}>{item.displayPrice || item.price}</div>
@@ -474,6 +500,26 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
       </div>
       <div className={styles.featBody} style={{ textAlign: 'right' }}>
         <h3 className={styles.featName} style={{ color: '#fff' }}>{item.name}</h3>
+        {item.variants && item.variants.length > 0 && (
+          <div className={styles.itemSwatches} style={{ justifyContent: 'flex-start', margin: '5px 0 10px 0' }} onClick={(e) => e.stopPropagation()}>
+            {item.variants.map(v => {
+              const list = v.colors || [];
+              let bg = '';
+              if (list.length === 1) bg = list[0];
+              else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
+              else if (list.length === 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;
+              else if (list.length === 4) bg = `conic-gradient(${list[0]} 0deg 90deg, ${list[1]} 90deg 180deg, ${list[2]} 180deg 270deg, ${list[3]} 270deg 360deg)`;
+              return (
+                <div 
+                  key={v.id} 
+                  title={v.color_name} 
+                  className={styles.swatchBall} 
+                  style={{ background: bg || '#333' }} 
+                />
+              );
+            })}
+          </div>
+        )}
         <div className={styles.featFooter}>
           <span className={styles.featPrice} style={{ color: 'var(--gold)' }}>{item.displayPrice || item.price}</span>
           <button 

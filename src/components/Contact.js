@@ -74,7 +74,7 @@ export default function Contact() {
             <div className="divider" style={{ background: 'var(--gold)' }} />
             <h2 className="h2" style={{ color: 'var(--espresso)' }}>يسعدنا تواصلكِ معنا</h2>
             <p className={styles.infoDesc} style={{ color: 'var(--espresso-mid)' }}>
-              زهرة بيسان اونلاين — متجر عالمي يصل إلى جميع دول العالم. تواصلي معنا عبر البريد الإلكتروني وسنرد عليكِ في أقرب وقت.
+              زهرة بيسان — متجر عالمي يصل إلى جميع دول العالم. تواصلي معنا عبر البريد الإلكتروني وسنرد عليكِ في أقرب وقت.
             </p>
 
             <div className={styles.contactDetails} style={{ display: 'flex', flexDirection: 'column', gap: '20px', margin: '30px 0' }}>

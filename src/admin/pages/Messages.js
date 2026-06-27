@@ -3,15 +3,17 @@ import axios from 'axios';
 import { Mail, Trash2, Reply, CheckCircle2, User, Clock, Inbox, MailOpen, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const Messages = () => {
+  const { t } = useAdminLang();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const exportPDF = async () => {
     try {
       if (messages.length === 0) {
-        alert("No messages available to export.");
+        alert(t("No messages available to export."));
         return;
       }
       
@@ -26,19 +28,19 @@ const Messages = () => {
       // Header
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Zahrat Beesan Online - Customer Inquiries', 14, 22);
+      doc.text(t('Zahrat Beesan - Customer Inquiries'), 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
-      doc.text('Full log of messages received via the contact form.', 14, 38);
+      doc.text(`${t('Generated on:')} ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
+      doc.text(t('Full log of messages received via the contact form.'), 14, 38);
       
       // Table
-      const tableColumn = ["Date", "Customer Name", "Email", "Message Content"];
+      const tableColumn = [t("Date"), t("Customer Name"), t("Email"), t("Message Content")];
       const tableRows = messages.map(msg => [
         new Date(msg.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }),
-        msg.name || 'Anonymous',
-        msg.email || 'N/A',
+        msg.name || t('Anonymous'),
+        msg.email || t('N/A'),
         msg.message ? (msg.message.length > 80 ? msg.message.substring(0, 80) + '...' : msg.message) : ''
       ]);
 
@@ -62,10 +64,10 @@ const Messages = () => {
         }
       });
 
-      doc.save(`Zahrat Beesan_Online_Messages_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Messages_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
-      alert("Error generating PDF: " + error.message);
+      alert(t("Error generating PDF: ") + error.message);
     }
   };
 
@@ -94,12 +96,12 @@ const Messages = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this message?")) {
+    if (window.confirm(t("Are you sure you want to delete this message?"))) {
       try {
         await axios.delete(`/api/contact/${id}`);
         setMessages(messages.filter(m => m.id !== id));
       } catch (err) {
-        alert("Failed to delete message");
+        alert(t("Failed to delete message"));
       }
     }
   };
@@ -114,8 +116,8 @@ const Messages = () => {
   };
 
   const handleReply = (email, name) => {
-    const subject = encodeURIComponent("Re: Your message to Zahrat Beesan Online");
-    const body = encodeURIComponent(`Hi ${name},\n\nThank you for reaching out to us.\n\n`);
+    const subject = encodeURIComponent(t("Re: Your message to Zahrat Beesan"));
+    const body = encodeURIComponent(`${t('Hi')} ${name},\n\n${t('Thank you for reaching out to us.')}\n\n`);
     window.location.href = `mailto:${email}?subject=${subject}&body=${body}`;
   };
 
@@ -136,18 +138,18 @@ const Messages = () => {
       position: 'relative'
     }}>
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)` }} />
+      <div style={{ position: 'fixed', top: 0, insetInlineStart: 0, insetInlineEnd: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        
         <div className="orb orb-1" />
         <div className="orb orb-2" />
       </div>
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${colors.crema}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
         /* Premium Row Hover Animation */
         .premium-row {
           transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
@@ -174,16 +176,16 @@ const Messages = () => {
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-              Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+              <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div className="page-badge">
             <Mail size={28} color={colors.crema} />
-            <span>Customer Messages</span>
+            <span>{t("Customer Messages")}</span>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            Zahrat Beesan Online | Customer Support & Feedback Inquiries
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t("Zahrat Beesan | Customer Support & Feedback Inquiries")}
           </p>
         </div>
         <button 
@@ -196,14 +198,14 @@ const Messages = () => {
             display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
             transition: '0.3s'
           }}>
-          <Download size={18} /> Export PDF
+          <Download size={18} /> {t("Export PDF")}
         </button>
       </div>
 
       {loading ? (
         <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', color: colors.crema, padding: '100px' }}>
           <div className="loader-spinner"></div>
-          <p>Loading messages...</p>
+          <p>{t("Loading messages...")}</p>
         </div>
       ) : (
         <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -227,8 +229,8 @@ const Messages = () => {
                     <User size={24} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      {msg.name} {!msg.is_read && <span style={{ fontSize: '0.7rem', backgroundColor: colors.crema, color: colors.espresso, padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>NEW</span>}
+                    <h3 style={{ margin: 0, color: 'var(--admin-text)', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      {msg.name} {!msg.is_read && <span style={{ fontSize: '0.7rem', backgroundColor: colors.crema, color: colors.espresso, padding: '2px 8px', borderRadius: '10px', fontWeight: 'bold' }}>{t("NEW")}</span>}
                     </h3>
                     <a href={`mailto:${msg.email}`} style={{ color: colors.crema, textDecoration: 'none', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '5px', marginTop: '5px' }}>
                       <Mail size={14} /> {msg.email}
@@ -250,18 +252,18 @@ const Messages = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '15px', paddingTop: '15px', borderTop: `1px dashed ${colors.border}` }}>
                 <button 
                   onClick={() => handleToggleRead(msg.id, msg.is_read)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>
-                  {msg.is_read ? <><Mail size={16} /> Mark as Unread</> : <><MailOpen size={16} /> Mark as Read</>}
+                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', backgroundColor: 'transparent', border: `1px solid ${colors.border}`, color: 'var(--admin-text)', cursor: 'pointer', fontWeight: 'bold' }}>
+                  {msg.is_read ? <><Mail size={16} /> {t("Mark as Unread")}</> : <><MailOpen size={16} /> {t("Mark as Read")}</>}
                 </button>
                 <button 
                   onClick={() => handleDelete(msg.id)}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '10px', backgroundColor: 'transparent', border: `1px solid #ff4444`, color: '#ff4444', cursor: 'pointer', fontWeight: 'bold' }}>
-                  <Trash2 size={16} /> Delete
+                  <Trash2 size={16} /> {t("Delete")}
                 </button>
                 <button 
                   onClick={() => handleReply(msg.email, msg.name)}
                   style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 24px', borderRadius: '10px', backgroundColor: colors.crema, border: 'none', color: colors.espresso, cursor: 'pointer', fontWeight: 'bold' }}>
-                  <Reply size={16} /> Reply via Email
+                  <Reply size={16} /> {t("Reply via Email")}
                 </button>
               </div>
 
@@ -269,8 +271,8 @@ const Messages = () => {
           )) : (
             <div style={{ textAlign: 'center', padding: '100px', backgroundColor: colors.bean, borderRadius: '24px', border: `1px dashed ${colors.border}` }}>
               <CheckCircle2 size={48} color={colors.crema} style={{ marginBottom: '20px' }} />
-              <h3 style={{ color: '#fff' }}>Inbox is empty!</h3>
-              <p style={{ color: '#777' }}>All customer messages have been read and replied to.</p>
+              <h3 style={{ color: 'var(--admin-text)' }}>{t("Inbox is empty!")}</h3>
+              <p style={{ color: '#777' }}>{t("All customer messages have been read and replied to.")}</p>
             </div>
           )}
         </div>

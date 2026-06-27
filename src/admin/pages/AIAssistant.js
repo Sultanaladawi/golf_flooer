@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { BsSendFill, BsTrash, BsCpu, BsPerson, BsMicFill } from 'react-icons/bs';
 import { BrainCircuit, Volume2, Square } from 'lucide-react';
+import { useAdminLang } from '../AdminLangContext';
 
 const AIAssistant = () => {
+  const { t } = useAdminLang();
   const [messages, setMessages] = useState([
     { 
       id: 1, type: 'bot', 
-      text: "Welcome back, Admin. I'm your Zahrat Beesan Online AI assistant, now synced with your live data. How can I help you analyze the business today?",
+      text: t("Welcome back, Admin. I'm your Zahrat Beesan AI assistant, now synced with your live data. How can I help you analyze the business today?"),
       metrics: { status: "Active", db: "Connected" }
     }
   ]);
@@ -135,9 +137,9 @@ const AIAssistant = () => {
     } catch (error) {
       setMessages(prev => prev.filter(m => m.id !== typingId));
       if (error.code === 'ECONNABORTED') {
-        setMessages(prev => [...prev, { id: Date.now()+1, type: 'bot', text: "عذراً، السيرفر مشغول حالياً بتحليل كمية بيانات ضخمة، يرجى المحاولة بعد قليل." }]);
+        setMessages(prev => [...prev, { id: Date.now()+1, type: 'bot', text: t("عذراً، السيرفر مشغول حالياً بتحليل كمية بيانات ضخمة، يرجى المحاولة بعد قليل.") }]);
       } else {
-        setMessages(prev => [...prev, { id: Date.now()+1, type: 'bot', text: "Connection error. Please check that the server and database are running." }]);
+        setMessages(prev => [...prev, { id: Date.now()+1, type: 'bot', text: t("Connection error. Please check that the server and database are running.") }]);
       }
     }
   };
@@ -147,7 +149,7 @@ const AIAssistant = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
-      alert("Your browser does not support speech recognition. Please use Google Chrome or Edge.");
+      alert(t("Your browser does not support speech recognition. Please use Google Chrome or Edge."));
       return;
     }
 
@@ -187,18 +189,17 @@ const AIAssistant = () => {
       display: 'flex', gap: '25px'
     }}>
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)` }} />
+      <div style={{ position: 'fixed', top: 0, insetInlineStart: 0, insetInlineEnd: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
         <div className="orb orb-1" />
         <div className="orb orb-2" />
       </div>
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${theme.crema}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${theme.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${theme.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
         .premium-row {
           transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
           cursor: pointer;
@@ -236,27 +237,27 @@ const AIAssistant = () => {
         <header style={{ borderBottom: `1px dashed ${theme.border}`, paddingBottom: '20px', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.crema, lineHeight: 1 }}>
-              Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+              <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
             </div>
             <div className="page-badge">
               <BrainCircuit size={28} color={theme.crema} />
-              <span>AI Intelligence</span>
+              <span>{t("AI Intelligence")}</span>
             </div>
             
             {/* Real-time Summary Cards */}
             <div style={{ display: 'flex', gap: '15px', marginTop: '15px' }}>
-              <div style={{ background: 'rgba(56, 239, 125, 0.05)', border: '1px solid rgba(56, 239, 125, 0.15)', padding: '10px 20px', borderRadius: '14px' }}>
-                <div style={{ fontSize: '0.6rem', color: '#38ef7d', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Today's Revenue</div>
-                <div style={{ fontSize: '1.2rem', color: '#fff', fontWeight: '900' }}>JOD {parseFloat(liveStats.todaySales || 0).toFixed(2)}</div>
+              <div style={{ background: 'rgba(16, 185, 129, 0.05)', border: '1px solid rgba(16, 185, 129, 0.15)', padding: '10px 20px', borderRadius: '14px' }}>
+                <div style={{ fontSize: '0.6rem', color: '#10b981', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>{t("Today's Revenue")}</div>
+                <div style={{ fontSize: '1.2rem', color: 'var(--admin-text)', fontWeight: '900' }}>JOD {parseFloat(liveStats.todaySales || 0).toFixed(2)}</div>
               </div>
-              <div style={{ background: 'rgba(79, 172, 254, 0.05)', border: '1px solid rgba(79, 172, 254, 0.15)', padding: '10px 20px', borderRadius: '14px' }}>
-                <div style={{ fontSize: '0.6rem', color: '#4facfe', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>Today's Orders</div>
-                <div style={{ fontSize: '1.2rem', color: '#fff', fontWeight: '900' }}>{liveStats.todayOrders || 0}</div>
+              <div style={{ background: 'rgba(59, 130, 246, 0.05)', border: '1px solid rgba(59, 130, 246, 0.15)', padding: '10px 20px', borderRadius: '14px' }}>
+                <div style={{ fontSize: '0.6rem', color: '#3b82f6', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>{t("Today's Orders")}</div>
+                <div style={{ fontSize: '1.2rem', color: 'var(--admin-text)', fontWeight: '900' }}>{liveStats.todayOrders || 0}</div>
               </div>
             </div>
           </div>
           <button onClick={() => setMessages([])} style={{ background: 'transparent', border: `1px solid ${theme.border}`, color: '#666', padding: '8px 18px', borderRadius: '10px', cursor: 'pointer' }}>
-            <BsTrash /> Clear Logs
+            <BsTrash /> {t("Clear Logs")}
           </button>
         </header>
 
@@ -279,10 +280,10 @@ const AIAssistant = () => {
                       fontSize: '0.8rem', padding: '4px 8px', borderRadius: '8px',
                       transition: '0.3s', backgroundColor: 'rgba(255,255,255,0.05)'
                     }}
-                    title={speakingId === msg.id ? "Stop reading" : "Listen to response"}
+                    title={speakingId === msg.id ? t("Stop reading") : t("Listen to response")}
                   >
                     {speakingId === msg.id ? <Square size={14} /> : <Volume2 size={14} />}
-                    {speakingId === msg.id ? 'Stop' : 'Listen'}
+                    {speakingId === msg.id ? t('Stop') : t('Listen')}
                   </button>
                 )}
 
@@ -311,7 +312,7 @@ const AIAssistant = () => {
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               fontSize: '1rem', fontWeight: '900', transition: 'all 0.3s'
             }}
-            title="Toggle Mic Language"
+            title={t("Toggle Mic Language")}
           >
             {micLang === 'ar-SA' ? 'AR' : 'EN'}
           </button>
@@ -324,11 +325,11 @@ const AIAssistant = () => {
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
               transition: 'all 0.3s'
             }}
-            title={isListening ? "Listening... Click to stop" : "Use Voice Typing"}
+            title={isListening ? t("Listening... Click to stop") : t("Use Voice Typing")}
           >
             <BsMicFill color={isListening ? "#e74a3b" : theme.crema} size={20} className={isListening ? "animate-pulse" : ""} />
           </button>
-          <textarea dir="auto" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())} style={{ flex: 1, background: 'transparent', border: 'none', color: '#fff', outline: 'none', padding: '10px', resize: 'none', fontSize: '0.95rem' }} placeholder="Ask about sales, stock or trends..." />
+          <textarea dir="auto" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSend())} style={{ flex: 1, background: 'transparent', border: 'none', color: 'var(--admin-text)', outline: 'none', padding: '10px', resize: 'none', fontSize: '0.95rem' }} placeholder={t("Ask about sales, stock or trends...")} />
           <button onClick={handleSend} style={{ background: theme.crema, border: 'none', width: '50px', height: '50px', borderRadius: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <BsSendFill color={theme.espresso} size={20} />
           </button>
@@ -350,8 +351,8 @@ const AIAssistant = () => {
           .animate-pulse { animation: pulse-mic 1.5s infinite; }
         `}</style>
         <div style={{ padding: '20px', borderBottom: `1px solid ${theme.border}`, background: 'rgba(255,255,255,0.02)' }}>
-          <h3 style={{ color: theme.crema, margin: 0, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Customer Queries</h3>
-          <p style={{ color: theme.latte, fontSize: '0.7rem', margin: '5px 0 0', opacity: 0.7 }}>Live logs from Client Chatbot</p>
+          <h3 style={{ color: theme.crema, margin: 0, fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '1px' }}>{t("Customer Queries")}</h3>
+          <p style={{ color: theme.latte, fontSize: '0.7rem', margin: '5px 0 0', opacity: 0.7 }}>{t("Live logs from Client Chatbot")}</p>
         </div>
         <div className="custom-scrollbar" style={{ flex: 1, overflowY: 'auto', padding: '15px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
           <style>{`
@@ -361,7 +362,7 @@ const AIAssistant = () => {
             .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: ${theme.crema}; }
           `}</style>
           {customerQueries.length === 0 ? (
-            <div style={{ color: '#444', textAlign: 'center', marginTop: '50px', fontSize: '0.9rem' }}>No recent inquiries</div>
+            <div style={{ color: '#444', textAlign: 'center', marginTop: '50px', fontSize: '0.9rem' }}>{t("No recent inquiries")}</div>
           ) : (
             customerQueries.map(q => (
               <div key={q.id} className="premium-row" style={{ padding: '15px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: `1px solid ${theme.border}` }}>
@@ -369,18 +370,18 @@ const AIAssistant = () => {
                   <div style={{ background: theme.border, width: '24px', height: '24px', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <BsPerson size={14} color={theme.crema} />
                   </div>
-                  <span style={{ color: theme.crema, fontSize: '0.85rem', fontWeight: 'bold' }}>Customer</span>
+                  <span style={{ color: theme.crema, fontSize: '0.85rem', fontWeight: 'bold' }}>{t("Customer")}</span>
                 </div>
-                <p dir="auto" style={{ color: theme.latte, fontSize: '0.85rem', margin: '0 0 10px 0', paddingLeft: '34px' }}>{q.user_msg}</p>
+                <p dir="auto" style={{ color: theme.latte, fontSize: '0.85rem', margin: '0 0 10px 0', paddingInlineStart: '34px' }}>{q.user_msg}</p>
                 
                 <div style={{ display: 'flex', gap: '10px', marginTop: '12px', borderTop: `1px dotted ${theme.border}`, paddingTop: '10px' }}>
                   <div style={{ background: theme.crema, width: '24px', height: '24px', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <BsCpu size={14} color={theme.espresso} />
                   </div>
-                  <span style={{ color: theme.latte, fontSize: '0.75rem', fontStyle: 'italic' }}>Yasmin's Reply:</span>
+                  <span style={{ color: theme.latte, fontSize: '0.75rem', fontStyle: 'italic' }}>{t("Yafa's Reply:")}</span>
                 </div>
-                <p dir="auto" style={{ color: theme.latte, fontSize: '0.8rem', margin: '5px 0 0', paddingLeft: '34px', opacity: 0.8 }}>{q.ai_msg}</p>
-                <div style={{ fontSize: '0.6rem', color: '#444', textAlign: 'right', marginTop: '8px' }}>
+                <p dir="auto" style={{ color: theme.latte, fontSize: '0.8rem', margin: '5px 0 0', paddingInlineStart: '34px', opacity: 0.8 }}>{q.ai_msg}</p>
+                <div style={{ fontSize: '0.6rem', color: '#444', textAlign: 'end', marginTop: '8px' }}>
                   {new Date(q.created_at).toLocaleString()}
                 </div>
               </div>

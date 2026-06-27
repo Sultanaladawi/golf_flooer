@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BsEye, BsClockHistory, BsCheckCircle } from 'react-icons/bs';
-import { Download, X, CheckCircle2, ShoppingBag } from 'lucide-react';
+import { Download, X, CheckCircle2, ShoppingBag, Phone, MapPin } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 // Helper to format/parse delivery addresses nicely
 const formatAddress = (addressStr) => {
@@ -36,18 +37,19 @@ const parseItemNameAndSize = (fullName) => {
 };
 
 const Orders = () => {
+  const { t } = useAdminLang();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notification, setNotification] = useState(null);
 
   const theme = {
-    bg: '#070504',
-    card: 'rgba(255, 255, 255, 0.02)',
-    primary: '#c4a484',
-    border: 'rgba(196, 164, 132, 0.15)',
-    text: '#e6d5c3',
-    success: '#38ef7d',
-    info: '#4facfe'
+    bg: 'var(--admin-bg)',
+    card: 'var(--admin-card)',
+    primary: 'var(--admin-accent)',
+    border: 'var(--admin-border)',
+    text: 'var(--admin-text)',
+    success: '#10b981',
+    info: '#3b82f6'
   };
 
   const showToast = (message, type = 'success') => {
@@ -94,7 +96,7 @@ const Orders = () => {
       
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Zahrat Beesan Online - Sales Report', 14, 22);
+      doc.text('Zahrat Beesan - Sales Report', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -132,7 +134,7 @@ const Orders = () => {
       });
 
       const today = new Date().toISOString().split('T')[0];
-      doc.save(`Zahrat Beesan_Online_Orders_${today}.pdf`);
+      doc.save(`Zahrat Beesan_Orders_${today}.pdf`);
     } catch (error) {
       alert("Error generating PDF: " + error.message);
     }
@@ -204,16 +206,15 @@ const Orders = () => {
     <div className="orders-container" style={{ backgroundColor: theme.bg, minHeight: '100vh', padding: '30px', position: 'relative', overflow: 'hidden' }}>
       
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)`, zIndex: 0 }} />
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
-        .orb-1 { width: 600px; height: 600px; background: ${theme.primary}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
+        .orb-1 { width: 600px; height: 600px; background: var(--admin-accent); top: -200px; right: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: #e8e2d4; bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${theme.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--bg-surface); border: 1px solid ${theme.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: ${theme.text}; letter-spacing: -0.5px; }
         
         @media (max-width: 768px) {
           .orders-container { padding: 15px !important; }
@@ -239,15 +240,15 @@ const Orders = () => {
       {selectedOrder && (() => {
         const addressDetails = formatAddress(selectedOrder.delivery_address);
         return (
-          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
-            <div className="modal-content" style={{ backgroundColor: '#0d0806', width: '100%', maxWidth: '520px', maxHeight: '90vh', borderRadius: '30px', border: `1px solid ${theme.border}`, position: 'relative', boxShadow: '0 25px 50px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(8px)' }}>
+            <div className="modal-content" style={{ backgroundColor: 'var(--admin-card)', width: '100%', maxWidth: '520px', maxHeight: '90vh', borderRadius: '30px', border: `1px solid ${theme.border}`, position: 'relative', boxShadow: '0 25px 50px rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               
               {/* Fixed Header */}
               <div style={{ padding: '30px 40px 20px', borderBottom: `1px solid ${theme.border}`, flexShrink: 0 }}>
-                <button onClick={closeDetails} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.5rem' }}>×</button>
+                <button onClick={closeDetails} style={{ position: 'absolute', top: '20px', insetInlineEnd: '20px', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.5rem' }}>×</button>
                 <h3 style={{ color: theme.primary, margin: '0 0 5px 0', fontSize: '2rem', fontFamily: "'DM Serif Display', serif", fontWeight: 700 }}>
-                  Order Details{' '}
-                  <span style={{ display: 'inline-block', padding: '6px 12px', borderRadius: '10px', background: 'linear-gradient(90deg, #c7a57a, #a47c4f)', color: '#000', fontWeight: 800, letterSpacing: '1px', fontSize: '1.1rem' }}>{`ORD-${String(selectedOrder.id).padStart(3, '0')}`}</span>
+                  {t('Order Details')}{' '}
+                  <span style={{ display: 'inline-block', padding: '6px 12px', borderRadius: '10px', background: 'var(--admin-accent)', color: 'var(--admin-text)', fontWeight: 800, letterSpacing: '1px', fontSize: '1.1rem' }}>{`ORD-${String(selectedOrder.id).padStart(3, '0')}`}</span>
                 </h3>
               </div>
 
@@ -255,51 +256,51 @@ const Orders = () => {
               <div style={{ overflowY: 'auto', flex: 1, padding: '20px 40px' }}>
 
                 {/* Customer Contact & Logistics Info */}
-                <div style={{ background: 'rgba(196,164,132,0.05)', padding: '20px', borderRadius: '15px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
+                <div style={{ background: 'rgba(166,134,93,0.05)', padding: '20px', borderRadius: '15px', marginBottom: '20px', border: `1px solid ${theme.border}` }}>
                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 600 }}>Customer Name:</span>
-                     <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1rem' }}>{selectedOrder.customer_name || 'Guest'}</span>
+                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{t('Customer Name:')}</span>
+                     <span style={{ color: theme.text, fontWeight: 'bold', fontSize: '1rem' }}>{selectedOrder.customer_name || 'Guest'}</span>
                    </div>
                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 600 }}>Contact Phone:</span>
+                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{t('Contact Phone:')}</span>
                      {selectedOrder.phone ? (
-                       <a href={`tel:${selectedOrder.phone}`} style={{ color: theme.primary, fontWeight: 'bold', fontSize: '1rem', letterSpacing: '1px', textDecoration: 'none', background: 'rgba(196,164,132,0.1)', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', transition: '0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px', border: `1px solid rgba(196,164,132,0.2)` }} onMouseOver={e => e.currentTarget.style.background = 'rgba(196,164,132,0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(196,164,132,0.1)'}>
-                         📞 {selectedOrder.phone}
+                       <a href={`tel:${selectedOrder.phone}`} style={{ color: theme.primary, fontWeight: 'bold', fontSize: '1rem', letterSpacing: '1px', textDecoration: 'none', background: 'rgba(166,134,93,0.1)', padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', transition: '0.2s', display: 'inline-flex', alignItems: 'center', gap: '6px', border: `1px solid rgba(166,134,93,0.2)` }}>
+                         <span style={{ display: 'flex', alignItems: 'center' }}><Phone size={14} /></span> {selectedOrder.phone}
                        </a>
                      ) : (
                        <span style={{ color: '#888', fontWeight: 'bold', fontSize: '1rem', letterSpacing: '1px' }}>N/A</span>
                      )}
                    </div>
                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', alignItems: 'center' }}>
-                     <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 600 }}>Fulfillment Type:</span>
-                     <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase', background: 'rgba(255,255,255,0.1)', padding: '4px 10px', borderRadius: '6px' }}>{selectedOrder.order_type || 'Walk-in'}</span>
+                     <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{t('Fulfillment Type:')}</span>
+                     <span style={{ color: theme.text, fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase', background: 'rgba(166,134,93,0.1)', padding: '4px 10px', borderRadius: '6px' }}>{selectedOrder.order_type || 'Walk-in'}</span>
                    </div>
                    
                    {/* Structured Delivery Address Display */}
                    {selectedOrder.order_type?.toLowerCase() === 'delivery' ? (
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '15px', paddingTop: '15px', borderTop: `1px dashed ${theme.border}` }}>
-                       <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.95rem', fontWeight: 600 }}>Delivery Address:</span>
+                       <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: 600 }}>Delivery Address:</span>
                        
-                       <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '10px', paddingLeft: '10px', fontSize: '0.9rem' }}>
+                       <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: '10px', paddingInlineStart: '10px', fontSize: '0.9rem' }}>
                          <span style={{ color: theme.primary, fontWeight: 'bold' }}>المدينة:</span>
-                         <span style={{ color: '#fff' }}>{addressDetails.city || 'غير محددة'}</span>
+                         <span style={{ color: theme.text }}>{addressDetails.city || 'غير محددة'}</span>
 
                          <span style={{ color: theme.primary, fontWeight: 'bold' }}>المنطقة:</span>
-                         <span style={{ color: '#fff' }}>{addressDetails.area || 'غير محددة'}</span>
+                         <span style={{ color: theme.text }}>{addressDetails.area || 'غير محددة'}</span>
 
                          <span style={{ color: theme.primary, fontWeight: 'bold' }}>تفاصيل:</span>
-                         <span style={{ color: '#fff', fontSize: '0.85rem', lineHeight: '1.4' }}>{addressDetails.details}</span>
+                         <span style={{ color: theme.text, fontSize: '0.85rem', lineHeight: '1.4' }}>{addressDetails.details}</span>
                        </div>
 
                        {selectedOrder.delivery_address && (
                          <a href={`https://maps.google.com/?q=${encodeURIComponent(selectedOrder.delivery_address)}`} target="_blank" rel="noopener noreferrer" style={{ alignSelf: 'flex-start', color: theme.success, fontWeight: 'bold', fontSize: '0.85rem', textDecoration: 'none', background: 'rgba(56,239,125,0.1)', padding: '6px 12px', borderRadius: '8px', border: '1px solid rgba(56,239,125,0.3)', cursor: 'pointer', transition: '0.2s', marginTop: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(56,239,125,0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(56,239,125,0.1)'}>
-                           <span>📍</span> <span>عرض الموقع على الخريطة</span>
+                           <span style={{ display: 'flex', alignItems: 'center' }}><MapPin size={14} /></span> <span>{t('View Location on Map')}</span>
                          </a>
                        )}
                      </div>
                    ) : (
                      <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: `1px dashed ${theme.border}`, display: 'flex', justifyContent: 'space-between' }}>
-                       <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.9rem', fontWeight: 600 }}>Staging / Location:</span>
+                       <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{t('Staging / Location:')}</span>
                        <span style={{ color: theme.primary, fontWeight: 'bold' }}>معرض شارع الجاردنز (استلام)</span>
                      </div>
                    )}
@@ -310,10 +311,10 @@ const Orders = () => {
                   <table width="100%" style={{ borderCollapse: 'collapse', color: theme.text }}>
                     <thead>
                       <tr style={{ color: theme.primary, borderBottom: `1px solid ${theme.border}` }}>
-                        <th style={{ padding: '10px', textAlign: 'left' }}>Item</th>
-                        <th style={{ padding: '10px', textAlign: 'center' }}>Size</th>
-                        <th style={{ padding: '10px', textAlign: 'center' }}>Qty</th>
-                        <th style={{ padding: '10px', textAlign: 'right' }}>Price</th>
+                        <th style={{ padding: '10px', textAlign: 'start' }}>{t('Item')}</th>
+                        <th style={{ padding: '10px', textAlign: 'center' }}>{t('Size')}</th>
+                        <th style={{ padding: '10px', textAlign: 'center' }}>{t('Qty')}</th>
+                        <th style={{ padding: '10px', textAlign: 'end' }}>{t('Price')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -334,13 +335,13 @@ const Orders = () => {
                               )}
                             </td>
                             <td style={{ padding: '12px 10px', textAlign: 'center', fontFamily: cellTextStyle.fontFamily }}>{item.quantity}</td>
-                            <td style={{ padding: '12px 10px', textAlign: 'right', color: theme.primary, fontFamily: cellTextStyle.fontFamily }}>JOD {(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
+                            <td style={{ padding: '12px 10px', textAlign: 'end', color: theme.primary, fontFamily: cellTextStyle.fontFamily }}>JOD {(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
                           </tr>
                         );
                       }) : (
                         <tr>
                           <td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
-                            {loading ? 'Fetching details...' : 'No items found for this order.'}
+                            {loading ? t('Fetching details...') : t('No items found for this order.')}
                           </td>
                         </tr>
                       )}
@@ -348,12 +349,12 @@ const Orders = () => {
                   </table>
                   {selectedOrder.order_type?.toLowerCase() === 'delivery' && (
                     <div style={{ marginTop: '15px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold', fontSize: '0.95rem', borderTop: `1px dashed ${theme.border}`, paddingTop: '10px' }}>
-                      <span>Delivery Service Fee:</span>
+                      <span>{t('Delivery Service Fee:')}</span>
                       <span style={{ color: theme.success }}>JOD 3.00</span>
                     </div>
                   )}
                   <div style={{ marginTop: selectedOrder.order_type?.toLowerCase() === 'delivery' ? '5px' : '20px', display: 'flex', justifyContent: 'space-between', color: theme.text, fontWeight: 'bold', fontSize: '1.2rem', borderTop: selectedOrder.order_type?.toLowerCase() === 'delivery' ? 'none' : `1px solid ${theme.border}`, paddingTop: selectedOrder.order_type?.toLowerCase() === 'delivery' ? '0' : '15px' }}>
-                    <span>Total Amount:</span>
+                    <span>{t('Total Amount:')}</span>
                     <span style={{ color: theme.primary, fontSize: '1.4rem' }}>JOD {parseFloat(selectedOrder.total_amount).toFixed(2)}</span>
                   </div>
                 </div>
@@ -361,7 +362,7 @@ const Orders = () => {
 
               {/* Fixed Footer */}
               <div style={{ padding: '20px 40px', borderTop: `1px solid ${theme.border}`, flexShrink: 0 }}>
-                <button onClick={closeDetails} style={{ width: '100%', padding: '14px', backgroundColor: theme.primary, color: '#000', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer' }}>Close Details</button>
+                <button onClick={closeDetails} style={{ width: '100%', padding: '14px', backgroundColor: theme.primary, color: '#000', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer' }}>{t('Close Details')}</button>
               </div>
             </div>
           </div>
@@ -372,16 +373,16 @@ const Orders = () => {
       <div className="header-section" style={{ position: 'relative', zIndex: 1, marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.primary, lineHeight: 1 }}>
-            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div className="page-badge">
             <ShoppingBag size={28} color={theme.primary} />
-            <span>Live Order Command</span>
+            <span>{t('Live Order Command')}</span>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            Real-time fulfillment tracking and logistics management.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t('Real-time fulfillment tracking and logistics management.')}
           </p>
         </div>
         <div className="header-btns" style={{ display: 'flex', gap: '15px' }}>
@@ -398,7 +399,7 @@ const Orders = () => {
               transition: '0.3s'
             }}
           >
-            Pull Orders (Refresh)
+            {t('Pull Orders (Refresh)')}
           </button>
           <button 
             onClick={exportPDF}
@@ -408,7 +409,7 @@ const Orders = () => {
               display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
               transition: '0.3s', boxShadow: '0 10px 20px rgba(196, 164, 132, 0.2)'
             }}>
-            <Download size={20} /> Export PDF Report
+            <Download size={20} /> {t('Export PDF Report')}
           </button>
         </div>
       </div>
@@ -424,18 +425,18 @@ const Orders = () => {
       }}>
         {loading ? (
           <div style={{ padding: '100px', textAlign: 'center', color: theme.primary, fontWeight: 900 }}>
-            RETRIEVING TRANSACTIONS...
+            {t('RETRIEVING TRANSACTIONS...')}
           </div>
         ) : (
           <table width="100%" style={{ borderCollapse: 'collapse', color: theme.text }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)' }}>
-                <th style={{ padding: '20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>ORDER NO.</th>
-                <th style={{ padding: '20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>CUSTOMER</th>
-                <th className="mobile-hide-col" style={{ padding: '20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>DATE & TIME</th>
-                <th style={{ padding: '20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>TOTAL AMOUNT</th>
-                <th style={{ padding: '20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>STATUS</th>
-                <th style={{ padding: '20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>ACTIONS</th>
+              <tr style={{ backgroundColor: 'var(--cream-dark)' }}>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>{t('ORDER NO.')}</th>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>{t('CUSTOMER')}</th>
+                <th className="mobile-hide-col" style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>{t('DATE & TIME')}</th>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>{t('TOTAL AMOUNT')}</th>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>{t('STATUS')}</th>
+                <th style={{ padding: '20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: cellTextStyle.color }}>{t('ACTIONS')}</th>
               </tr>
             </thead>
             <tbody>
@@ -447,7 +448,7 @@ const Orders = () => {
                       <span style={{ display: 'inline-block', padding: '6px 14px', borderRadius: '8px', background: 'linear-gradient(135deg, #c7a57a 0%, #a47c4f 100%)', color: theme.bg, fontWeight: 900, letterSpacing: '1px', boxShadow: '0 4px 10px rgba(196, 164, 132, 0.3)' }}>{orderNo}</span>
                     </td>
                     <td style={{ padding: '20px' }}>
-                      <div style={{ color: '#fff', fontWeight: 'bold', fontSize: '0.95rem' }}>{order.customer_name}</div>
+                      <div style={{ color: theme.text, fontWeight: 'bold', fontSize: '0.95rem' }}>{order.customer_name}</div>
                       <div style={{ color: theme.primary, fontSize: '0.85rem', marginTop: '4px', fontWeight: 'bold' }}>{order.phone || 'N/A'}</div>
                     </td>
                     <td className="mobile-hide-col" style={{ padding: '20px', color: cellTextStyle.color, fontSize: cellTextStyle.fontSize }}>
@@ -527,7 +528,7 @@ const Orders = () => {
               }) : (
                 <tr>
                   <td colSpan="6" style={{ padding: '100px', textAlign: 'center', color: '#555', letterSpacing: '1px' }}>
-                    NO TRANSACTIONS FOUND IN DATABASE.
+                    {t('NO TRANSACTIONS FOUND IN DATABASE.')}
                   </td>
                 </tr>
               )}

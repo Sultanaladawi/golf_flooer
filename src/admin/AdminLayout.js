@@ -2,12 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAdminContext } from './AdminContext';
+import { useAdminLang } from './AdminLangContext';
 import { useStore } from '../context/StoreContext';
 import {
   LayoutGrid, ShoppingBag, ShoppingCart, Box,
   BarChart3, MessageSquare, BotMessageSquare, LogOut, User, Coffee, Sparkles,
   FileText, MessagesSquare, Volume2, VolumeX, Briefcase, BellRing,
-  Power, Store, Mail, Activity, Menu, X, Ticket
+  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe
 } from 'lucide-react';
 
 // Setup global axios interceptor to attach admin identity for Audit Logs
@@ -25,6 +26,7 @@ axios.interceptors.request.use(config => {
 
 const AdminLayout = () => {
   const { admin, loading, logout } = useAdminContext();
+  const { t, toggleLang, lang } = useAdminLang();
   const navigate = useNavigate();
   const location = useLocation();
   const [showAudioBtn, setShowAudioBtn] = useState(false);
@@ -72,7 +74,7 @@ const AdminLayout = () => {
       newLink.href = '/favicon.ico';
       document.head.appendChild(newLink);
     }
-      document.title = "Zahrat Beesan Online | Admin Dashboard";
+      document.title = "Zahrat Beesan | Admin Dashboard";
   }, []);
 
   useEffect(() => {
@@ -203,20 +205,22 @@ const AdminLayout = () => {
   if (!admin && location.pathname.startsWith('/admin')) return null;
 
   let menuItems = [
-    { path: '/admin/dashboard', name: 'Dashboard', icon: <LayoutGrid size={18} /> },
-    { path: '/admin/orders', name: 'Orders', icon: <ShoppingCart size={18} />, badge: newOrderCount },
-    { path: '/admin/products', name: 'Products', icon: <ShoppingBag size={18} /> },
-    { path: '/admin/inventory', name: 'Inventory', icon: <Box size={18} /> },
-    { path: '/admin/analytics', name: 'Analytics', icon: <BarChart3 size={18} /> },
-    { path: '/admin/offers', name: 'Offers', icon: <ShoppingCart size={18} /> },
-    { path: '/admin/coupons', name: 'Coupons & Codes', icon: <Ticket size={18} /> },
-    { path: '/admin/newsletter', name: 'Newsletter Subscribers', icon: <Mail size={18} /> },
-    { path: '/admin/jobs', name: 'Manage Jobs', icon: <Briefcase size={18} /> },
-    { path: '/admin/applications', name: 'Job Requests', icon: <FileText size={18} /> },
-    { path: '/admin/messages', name: 'Inbox Messages', icon: <Mail size={18} /> },
-    { path: '/admin/feedback', name: 'Feedback & Reviews', icon: <MessageSquare size={18} /> },
-    { path: '/admin/ai-assistant', name: 'AI Assistant', icon: <BotMessageSquare size={18} /> },
-    { path: '/admin/leader', name: 'Team Activity', icon: <Activity size={18} /> },
+    { path: '/admin/dashboard', name: t('Dashboard'), icon: <LayoutGrid size={18} /> },
+    { path: '/admin/orders', name: t('Orders'), icon: <ShoppingCart size={18} />, badge: newOrderCount },
+    { path: '/admin/products', name: t('Products'), icon: <ShoppingBag size={18} /> },
+    { path: '/admin/inventory', name: t('Inventory'), icon: <Box size={18} /> },
+    { path: '/admin/analytics', name: t('Analytics'), icon: <BarChart3 size={18} /> },
+    { path: '/admin/offers', name: t('Offers'), icon: <ShoppingCart size={18} /> },
+    { path: '/admin/coupons', name: t('Coupons & Codes'), icon: <Ticket size={18} /> },
+    { path: '/admin/newsletter', name: t('Newsletter Subscribers'), icon: <Mail size={18} /> },
+    { path: '/admin/jobs', name: t('Manage Jobs'), icon: <Briefcase size={18} /> },
+    { path: '/admin/applications', name: t('Job Requests'), icon: <FileText size={18} /> },
+    { path: '/admin/messages', name: t('Inbox Messages'), icon: <Mail size={18} /> },
+    { path: '/admin/feedback', name: t('Feedback & Reviews'), icon: <MessageSquare size={18} /> },
+    { path: '/admin/ai-assistant', name: t('AI Assistant'), icon: <BotMessageSquare size={18} /> },
+    { path: '/admin/leader', name: t('Team Activity'), icon: <Activity size={18} /> },
+    { path: '/admin/settings', name: t('Store Settings'), icon: <Settings size={18} /> },
+    { path: '/admin/social', name: 'القسم الإعلامي', icon: <Share2 size={18} /> },
   ];
 
   return (
@@ -242,19 +246,23 @@ const AdminLayout = () => {
       )}
       <div className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`} style={{
         width: '260px', backgroundColor: 'var(--admin-card)', position: 'fixed',
-        height: '100vh', borderRight: '1px solid var(--admin-border)', zIndex: 1000,
+        height: '100vh', 
+        [lang === 'ar' ? 'borderLeft' : 'borderRight']: '1px solid var(--admin-border)', 
+        zIndex: 1000,
         display: 'flex', flexDirection: 'column', boxShadow: '4px 0 15px rgba(0,0,0,0.4)',
-        transition: 'all 0.3s ease'
+        transition: '0.4s cubic-bezier(0.19, 1, 0.22, 1)',
+        overflowY: 'auto',
+        [lang === 'ar' ? 'right' : 'left']: 0,
       }}>
         <div style={{ padding: '30px 20px', textAlign: 'center' }}>
-          <div style={{ color: 'var(--admin-accent)', marginBottom: '12px', display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
-            <Sparkles size={30} style={{ filter: 'drop-shadow(0 0 8px rgba(196,164,132,0.6))' }} />
+          <div style={{ marginBottom: '15px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+            <img src="/logo.png" alt="Zahrat Beesan Logo" style={{ width: '80px', height: '80px', objectFit: 'contain', borderRadius: '50%', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }} />
           </div>
           <h1 style={{
-            margin: 0, fontSize: '1.05rem', color: '#fff', fontWeight: '900',
+            margin: 0, fontSize: '1.05rem', color: 'var(--admin-text)', fontWeight: '900',
             letterSpacing: '2px', textTransform: 'uppercase', fontFamily: "'DM Serif Display', serif"
           }}>
-            Zahrat Beesan Online <span style={{ color: 'var(--admin-accent)' }}>Embroidery</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </h1>
           <div style={{ fontSize: '0.7rem', color: 'var(--admin-accent)', letterSpacing: '3px', marginTop: '4px', opacity: 0.8 }}>EMBROIDERY</div>
         </div>
@@ -268,14 +276,15 @@ const AdminLayout = () => {
                 to={item.path}
                 onClick={() => { if (item.badge) setNewOrderCount(0); }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: '14px', padding: '15px 25px',
-                  color: isActive ? '#fff' : 'var(--admin-text)',
+                  display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 20px',
+                  color: isActive ? 'var(--admin-accent)' : 'var(--admin-text)',
                   textDecoration: 'none',
                   backgroundColor: isActive ? 'rgba(196, 164, 132, 0.12)' : 'transparent',
-                  borderLeft: isActive ? '4px solid var(--admin-accent)' : '4px solid transparent',
-                  fontSize: '0.9rem',
+                  [lang === 'ar' ? 'borderRight' : 'borderLeft']: isActive ? '4px solid var(--admin-accent)' : '4px solid transparent',
+                  [lang === 'ar' ? 'borderLeft' : 'borderRight']: '4px solid transparent',
+                  fontSize: '0.85rem',
                   fontWeight: isActive ? '700' : '500',
-                  margin: '2px 0',
+                  margin: '1px 0',
                   transition: 'all 0.3s ease',
                   position: 'relative'
                 }}
@@ -283,9 +292,10 @@ const AdminLayout = () => {
                 {item.icon} <span>{item.name}</span>
                 {item.badge > 0 && (
                   <span style={{
-                    position: 'absolute', right: '18px',
+                    position: 'absolute', 
+                    [lang === 'ar' ? 'left' : 'right']: '18px',
                     backgroundColor: '#ff4d4d',
-                    color: '#fff', borderRadius: '50%',
+                    color: 'var(--admin-text)', borderRadius: '50%',
                     width: '20px', height: '20px',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     fontSize: '0.7rem', fontWeight: '900',
@@ -304,13 +314,15 @@ const AdminLayout = () => {
             cursor: 'pointer', border: 'none', backgroundColor: 'transparent',
             fontSize: '0.9rem', fontWeight: '700', width: '100%', transition: '0.3s'
           }}>
-            <LogOut size={18} /> Logout Session
+            <LogOut size={18} /> {t('Log Out')}
           </button>
         </div>
       </div>
 
       <div className="admin-main" style={{
-        marginLeft: sidebarOpen ? '0' : '260px', flex: 1, display: 'flex', flexDirection: 'column',
+        marginLeft: lang === 'ar' ? '0' : (sidebarOpen ? '0' : '260px'),
+        marginRight: lang === 'ar' ? (sidebarOpen ? '0' : '260px') : '0',
+        flex: 1, display: 'flex', flexDirection: 'column',
         minHeight: '100vh', backgroundColor: 'var(--admin-bg)',
         transition: 'all 0.3s ease'
       }}>
@@ -331,6 +343,17 @@ const AdminLayout = () => {
           </button>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+          
+            <button 
+              onClick={toggleLang}
+              style={{
+                backgroundColor: 'rgba(196,164,132,0.15)', border: '1px solid var(--admin-accent)',
+                color: 'var(--admin-accent)', padding: '6px 12px', borderRadius: '20px',
+                cursor: 'pointer', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px'
+              }}
+            >
+              <Globe size={16} /> {t('Switch Lang')}
+            </button>
           <audio ref={undefined} style={{display:'none'}} />
 
             {/* New Order Alert Banner */}
@@ -347,7 +370,7 @@ const AdminLayout = () => {
               >
                 <BellRing size={16} color="#c4a484" style={{ animation: 'bellRing 0.5s infinite alternate' }} />
                 <span style={{ color: '#c4a484', fontWeight: '900', fontSize: '0.8rem', letterSpacing: '0.5px' }}>
-                  {newOrderCount} NEW ORDER{newOrderCount > 1 ? 'S' : ''}!
+                  {newOrderCount} {t('NEW ORDER(S)')}!
                 </span>
               </div>
             )}
@@ -356,13 +379,13 @@ const AdminLayout = () => {
               <button
                 onClick={handleStopAudio}
                 style={{
-                  backgroundColor: '#ff4d4d', color: '#fff', border: '1px solid rgba(255, 77, 77, 0.5)',
+                  backgroundColor: '#ff4d4d', color: 'var(--admin-text)', border: '1px solid rgba(255, 77, 77, 0.5)',
                   padding: '6px 14px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '8px',
                   cursor: 'pointer', boxShadow: '0 0 15px rgba(255, 77, 77, 0.4)', animation: 'alarmPulse 1s infinite',
                   fontWeight: '800', fontSize: '0.75rem', letterSpacing: '0.5px', zIndex: 9999, position: 'relative'
                 }}
               >
-                <BellRing size={16} /> STOP ALARM
+                <BellRing size={16} /> {t('STOP ALARM')}
               </button>
             )}
 
@@ -410,9 +433,9 @@ const AdminLayout = () => {
                 textTransform: 'uppercase',
                 display: 'flex', alignItems: 'center', gap: '6px'
               }}>
-                {manualStatus === 'auto' ? <><Store size={14} /> Auto Mode</> :
-                  manualStatus === 'manual_open' ? <><Coffee size={14} /> Manual Open</> :
-                    <><Power size={14} /> Manual Closed</>}
+                {manualStatus === 'auto' ? <><Store size={14} /> {t('Auto Mode')}</> :
+                  manualStatus === 'manual_open' ? <><Coffee size={14} /> {t('Manual Open')}</> :
+                    <><Power size={14} /> {t('Manual Closed')}</>}
               </span>
             </button>
 
@@ -424,7 +447,7 @@ const AdminLayout = () => {
               boxShadow: '0 4px 15px rgba(0,0,0,0.2)'
             }}>
               <div style={{ textAlign: 'right' }}>
-                <p style={{ margin: 0, color: '#fff', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>{admin?.name || 'Administrator'}</p>
+                <p style={{ margin: 0, color: 'var(--admin-text)', fontSize: '0.9rem', fontWeight: '700', letterSpacing: '0.5px' }}>{admin?.name || 'Administrator'}</p>
                 <p style={{ margin: 0, color: 'var(--admin-accent)', fontSize: '0.65rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
                   {admin?.role || 'System Admin'}
                 </p>

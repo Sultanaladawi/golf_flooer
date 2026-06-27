@@ -533,3 +533,59 @@
     height: 36px;
   }
 }
+
+/* Color Variants Section */
+.variantsSection {
+  margin-top: 5px;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.variantsTitle {
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.variantsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.swatchBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  padding: 0;
+}
+
+.swatchBtn:hover {
+  transform: scale(1.15);
+  border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(197, 168, 128, 0.3);
+}
+
+.swatchActive {
+  transform: scale(1.15);
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 2.5px #0f0f0f, 0 0 0 4px var(--gold), 0 4px 12px rgba(197, 168, 128, 0.4);
+}
+
+.variantName {
+  font-size: 0.8rem;
+  color: var(--gold);
+  font-weight: 500;
+  margin-inline-start: 6px;
+}

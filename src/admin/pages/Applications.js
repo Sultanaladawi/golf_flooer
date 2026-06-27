@@ -3,8 +3,10 @@ import axios from 'axios';
 import { User, Mail, Phone, Briefcase, Trash2, CheckCircle, XCircle, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const Applications = () => {
+  const { t } = useAdminLang();
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +32,7 @@ const Applications = () => {
   const exportPDF = async () => {
     try {
       if (apps.length === 0) {
-        alert("No applications to export.");
+        alert(t("No applications to export."));
         return;
       }
 
@@ -43,13 +45,13 @@ const Applications = () => {
       const doc = new jsPDF();
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Zahrat Beesan Online - Candidate Submissions', 14, 22);
+      doc.text(t('Zahrat Beesan - Candidate Submissions'), 14, 22);
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
-      doc.text('Full list of applicants and their current status.', 14, 38);
+      doc.text(`${t('Generated on:')} ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
+      doc.text(t('Full list of applicants and their current status.'), 14, 38);
 
-      const tableColumn = ["Name", "Position", "Email", "Phone", "Status"];
+      const tableColumn = [t("Name"), t("Position"), t("Email"), t("Phone"), t("Status")];
       const tableRows = apps.map(app => [
         app.name || 'Anonymous',
         app.position || 'N/A',
@@ -65,10 +67,10 @@ const Applications = () => {
         theme: 'grid',
         headStyles: { fillColor: [196, 164, 132], textColor: [255, 255, 255] }
       });
-      doc.save(`Zahrat Beesan_Online_Applicants_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Applicants_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
-      alert("Error generating PDF: " + error.message);
+      alert(t("Error generating PDF: ") + error.message);
     }
   };
 
@@ -81,17 +83,17 @@ const Applications = () => {
       await axios.put(`/api/applications/${id}/status`, { status });
       fetchApps();
     } catch (err) {
-      alert("Failed to update status");
+      alert(t("Failed to update status"));
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Delete this application?")) {
+    if (window.confirm(t("Delete this application?"))) {
       try {
         await axios.delete(`/api/applications/${id}`);
         fetchApps();
       } catch (err) {
-        alert("Failed to delete");
+        alert(t("Failed to delete"));
       }
     }
   };
@@ -113,18 +115,18 @@ const Applications = () => {
       position: 'relative'
     }}>
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)` }} />
+      <div style={{ position: 'fixed', top: 0, insetInlineStart: 0, insetInlineEnd: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        
         <div className="orb orb-1" />
         <div className="orb orb-2" />
       </div>
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${colors.crema}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
         /* Premium Row Hover Animation */
         .premium-row {
           transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
@@ -150,16 +152,16 @@ const Applications = () => {
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-              Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+              <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div className="page-badge">
             <User size={28} color={colors.crema} />
-            <span>Candidate Applications</span>
+            <span>{t('Candidate Applications')}</span>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            Zahrat Beesan Online | Reviewing & Managing Potential Talent
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t('Zahrat Beesan | Reviewing & Managing Potential Talent')}
           </p>
         </div>
         <button 
@@ -172,12 +174,12 @@ const Applications = () => {
             display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
             transition: '0.3s'
           }}>
-          <Download size={20} /> Export PDF
+          <Download size={20} /> {t('Export PDF')}
         </button>
       </div>
 
       {loading ? (
-        <div style={{ position: 'relative', zIndex: 1, color: colors.crema, padding: '0 20px' }}>Loading applications...</div>
+        <div style={{ position: 'relative', zIndex: 1, color: colors.crema, padding: '0 20px' }}>{t('Loading applications...')}</div>
       ) : (
         <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: '30px' }}>
           {apps.length > 0 ? apps.map(app => (
@@ -195,7 +197,7 @@ const Applications = () => {
                     <User color={colors.crema} size={28} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, color: '#fff', fontSize: '1.3rem', fontFamily: 'serif' }}>{app.name}</h3>
+                    <h3 style={{ margin: 0, color: 'var(--admin-text)', fontSize: '1.3rem', fontFamily: 'serif' }}>{app.name}</h3>
                     <div style={{ 
                       color: getStatusColor(app.status), 
                       fontSize: '0.75rem', 
@@ -219,7 +221,7 @@ const Applications = () => {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', color: '#ccc', fontSize: '0.95rem', marginBottom: '30px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  <Briefcase size={18} color={colors.crema} /> <span>Applied for: <b style={{ color: '#fff' }}>{app.position}</b></span>
+                  <Briefcase size={18} color={colors.crema} /> <span>{t('Applied for:')} <b style={{ color: 'var(--admin-text)' }}>{app.position}</b></span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Mail size={18} color={colors.crema} /> <span>{app.email}</span>
@@ -230,7 +232,7 @@ const Applications = () => {
               </div>
 
               <div style={{ backgroundColor: 'rgba(0,0,0,0.25)', padding: '20px', borderRadius: '18px', marginBottom: '30px', borderLeft: `4px solid ${colors.crema}` }}>
-                <label style={{ display: 'block', color: colors.crema, fontSize: '0.8rem', fontWeight: '900', marginBottom: '10px', letterSpacing: '1px' }}>CANDIDATE NOTE</label>
+                <label style={{ display: 'block', color: colors.crema, fontSize: '0.8rem', fontWeight: '900', marginBottom: '10px', letterSpacing: '1px' }}>{t('CANDIDATE NOTE')}</label>
                 <p style={{ margin: 0, color: '#ddd', fontSize: '0.9rem', lineHeight: '1.7', fontStyle: 'italic' }}>
                   "{app.cover_letter}"
                 </p>
@@ -243,7 +245,7 @@ const Applications = () => {
                   onMouseOver={(e) => e.currentTarget.style.backgroundColor='rgba(40, 167, 69, 0.2)'}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor='rgba(40, 167, 69, 0.1)'}
                 >
-                  <CheckCircle size={16} /> Shortlist
+                  <CheckCircle size={16} /> {t('Shortlist')}
                 </button>
                 <button 
                   onClick={() => updateStatus(app.id, 'rejected')}
@@ -251,15 +253,15 @@ const Applications = () => {
                   onMouseOver={(e) => e.currentTarget.style.backgroundColor='rgba(220, 53, 69, 0.2)'}
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor='rgba(220, 53, 69, 0.1)'}
                 >
-                  <XCircle size={16} /> Reject
+                  <XCircle size={16} /> {t('Reject')}
                 </button>
               </div>
             </div>
           )) : (
             <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '100px', backgroundColor: colors.bean, borderRadius: '30px', border: `1px dashed ${colors.border}` }}>
               <User size={48} color={colors.border} style={{ marginBottom: '20px' }} />
-              <h3 style={{ color: colors.crema }}>No applications received yet</h3>
-              <p style={{ color: '#777' }}>Keep an eye on this space for future team members!</p>
+              <h3 style={{ color: colors.crema }}>{t('No applications received yet')}</h3>
+              <p style={{ color: '#777' }}>{t('Keep an eye on this space for future team members!')}</p>
             </div>
           )}
         </div>

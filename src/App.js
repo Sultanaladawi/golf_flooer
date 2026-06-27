@@ -20,6 +20,7 @@ import Checkout           from './components/Checkout';
 import LoadingScreen      from './components/LoadingScreen';
 
 import { AdminProvider }  from './admin/AdminContext';
+import { AdminLangProvider } from './admin/AdminLangContext';
 import AdminRoute         from './admin/AdminRoute';
 import AdminLogin         from './admin/AdminLogin';
 import AdminLayout        from './admin/AdminLayout';
@@ -37,6 +38,8 @@ import Jobs               from './admin/pages/Jobs';
 import Feedback           from './admin/pages/Feedback';
 import Messages           from './admin/pages/Messages';
 import LeaderDashboard    from './admin/pages/LeaderDashboard';
+import Settings           from './admin/pages/Settings';
+import SocialMedia        from './admin/pages/SocialMedia';
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
@@ -160,37 +163,37 @@ export default function App() {
               <Routes>
               <Route path="/" element={<PublicSite />} />
               <Route path="/checkout" element={<Checkout />} />
-
-
-              <Route path="/admin/login" element={<AdminLogin />} />
-              <Route
-                path="/admin"
-                element={
-                  <AdminRoute>
-                    <AdminLayout />
-                  </AdminRoute>
-                }
-              >
-                <Route index element={<Navigate to="dashboard" replace />} />
-                <Route path="dashboard"    element={<Dashboard />} />
-                <Route path="orders"       element={<Orders />} />
-                <Route path="products"     element={<Products />} />
-                <Route path="analytics"    element={<Analytics />} />
-                <Route path="inventory"    element={<Inventory />} />
-                <Route path="offers"       element={<Offers />} />
-                <Route path="coupons"      element={<Coupons />} />
-                <Route path="newsletter"   element={<Newsletter />} />
-                <Route path="applications" element={<Applications />} />
-                <Route path="jobs"         element={<Jobs />} />
-                <Route path="messages"     element={<Messages />} />
-                <Route path="feedback"     element={<Feedback />} />
-                <Route path="ai-assistant" element={<AIAssistant />} />
-                <Route path="leader"       element={<LeaderDashboard />} />
-              </Route>
-
+              <Route path="/admin/*" element={
+                <AdminProvider>
+                  <AdminLangProvider>
+                    <Routes>
+                      <Route path="login" element={<AdminLogin />} />
+                      <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="orders" element={<Orders />} />
+                        <Route path="products" element={<Products />} />
+                        <Route path="inventory" element={<Inventory />} />
+                        <Route path="analytics" element={<Analytics />} />
+                        <Route path="offers" element={<Offers />} />
+                        <Route path="coupons" element={<Coupons />} />
+                        <Route path="newsletter" element={<Newsletter />} />
+                        <Route path="ai-assistant" element={<AIAssistant />} />
+                        <Route path="applications" element={<Applications />} />
+                        <Route path="jobs" element={<Jobs />} />
+                        <Route path="feedback" element={<Feedback />} />
+                        <Route path="messages" element={<Messages />} />
+                        <Route path="leader" element={<LeaderDashboard />} />
+                        <Route path="settings" element={<Settings />} />
+                        <Route path="social" element={<SocialMedia />} />
+                        <Route index element={<Navigate to="dashboard" replace />} />
+                      </Route>
+                    </Routes>
+                  </AdminLangProvider>
+                </AdminProvider>
+              } />
               <Route path="*" element={<Navigate to="/" replace />} />
-              </Routes>
-            </CartProvider>
+            </Routes>
+          </CartProvider>
           </AdminProvider>
         </CurrencyProvider>
       </StoreProvider>

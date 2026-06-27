@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { useAdminLang } from '../AdminLangContext';
 import axios from 'axios';
 import { Mail, Search, Trash2, Calendar, Download, CheckCircle2, X, Globe, User } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 const Newsletter = () => {
+  const { t } = useAdminLang();
   const [subscribers, setSubscribers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [notification, setNotification] = useState(null);
 
   const colors = {
-    bg: '#070504',
-    card: 'rgba(255, 255, 255, 0.02)',
-    primary: '#c4a484',
-    border: 'rgba(196, 164, 132, 0.15)',
-    text: '#e6d5c3',
+    bg: 'var(--admin-bg)',
+    card: 'var(--admin-card)',
+    primary: 'var(--admin-accent)',
+    border: 'var(--admin-border)',
+    text: 'var(--admin-text)',
     inputBg: 'rgba(255, 255, 255, 0.04)',
     success: '#38ef7d',
     danger: '#ff4d4d'
@@ -33,7 +35,7 @@ const Newsletter = () => {
       setSubscribers(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error("API Error fetching newsletter subs:", err);
-      showToast("Failed to fetch subscribers", "error");
+      showToast(t("Failed to fetch subscribers"), "error");
     } finally {
       setLoading(false);
     }
@@ -44,14 +46,14 @@ const Newsletter = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to remove this subscriber?")) {
+    if (window.confirm(t("Are you sure you want to remove this subscriber?"))) {
       try {
         await axios.delete(`/api/newsletter/${id}`);
-        showToast("Subscriber removed", "success");
+        showToast(t("Subscriber removed"), "success");
         fetchSubscribers();
       } catch (err) {
         console.error("Delete subscriber error:", err);
-        showToast("Failed to remove subscriber", "error");
+        showToast(t("Failed to remove subscriber"), "error");
       }
     }
   };
@@ -59,7 +61,7 @@ const Newsletter = () => {
   const exportPDF = async () => {
     try {
       if (subscribers.length === 0) {
-        alert("No subscribers to export.");
+        alert(t("No subscribers to export."));
         return;
       }
 
@@ -71,7 +73,7 @@ const Newsletter = () => {
       const doc = new jsPDF();
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Zahrat Beesan Online - Newsletter Subscribers', 14, 22);
+      doc.text('Zahrat Beesan - Newsletter Subscribers', 14, 22);
       doc.setFontSize(10);
       doc.setTextColor(100);
       doc.text(`Generated on: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
@@ -93,10 +95,10 @@ const Newsletter = () => {
         theme: 'grid',
         headStyles: { fillColor: [196, 164, 132], textColor: [255, 255, 255] }
       });
-      doc.save(`Zahrat Beesan_Online_Subscribers_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Subscribers_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
-      alert("Error generating PDF: " + error.message);
+      alert(t("Error generating PDF: ") + error.message);
     }
   };
 
@@ -114,16 +116,16 @@ const Newsletter = () => {
     <div style={{ color: colors.text, backgroundColor: colors.bg, minHeight: '100vh', padding: '30px', position: 'relative' }}>
       
       {/* Background Orbs */}
-      <div style={{ position: 'fixed', inset: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)`, zIndex: 0, pointerEvents: 'none' }} />
+      
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${colors.primary}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
         .search-container {
           position: relative;
           width: 320px;
@@ -170,19 +172,19 @@ const Newsletter = () => {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.primary, lineHeight: 1 }}>
-            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
           <div className="page-badge">
             <Mail size={28} color={colors.primary} />
-            <span>Newsletter Subscribers</span>
+            <span>{t("Newsletter Subscribers")}</span>
           </div>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            Audience database subscribing to updates, coupon distributions, and collection releases.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t("Audience database subscribing to updates, coupon distributions, and collection releases.")}
           </p>
         </div>
         <div>
           <button onClick={exportPDF} style={{ backgroundColor: colors.primary, color: '#000', border: 'none', padding: '14px 28px', borderRadius: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', transition: '0.3s', boxShadow: '0 10px 20px rgba(196, 164, 132, 0.2)' }}>
-            <Download size={20} /> Export Subscribers List
+            <Download size={20} /> {t("Export Subscribers List")}
           </button>
         </div>
       </div>
@@ -190,11 +192,11 @@ const Newsletter = () => {
       {/* Search Bar */}
       <div style={{ position: 'relative', zIndex: 1, marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="search-container">
-          <Search size={18} color="rgba(255,255,255,0.4)" style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)' }} />
-          <input type="text" className="search-input" placeholder="Search by email, name or country..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+          <Search size={18} color="rgba(255,255,255,0.4)" style={{ position: 'absolute', insetInlineStart: '15px', top: '50%', transform: 'translateY(-50%)' }} />
+          <input type="text" className="search-input" placeholder={t("Search by email, name or country...")} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
-        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)' }}>
-          Showing <b>{filteredSubscribers.length}</b> of <b>{subscribers.length}</b> subscribers
+        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+          {t("Showing")} <b>{filteredSubscribers.length}</b> {t("of")} <b>{subscribers.length}</b> {t("subscribers")}
         </div>
       </div>
 
@@ -202,24 +204,24 @@ const Newsletter = () => {
       <div className="table-wrapper" style={{ position: 'relative', zIndex: 1 }}>
         {loading ? (
           <div style={{ padding: '80px', textAlign: 'center', color: colors.primary }}>
-            Loading subscriber data...
+            {t("Loading subscriber data...")}
           </div>
         ) : (
           <table width="100%" style={{ borderCollapse: 'collapse', color: colors.text }}>
             <thead>
               <tr style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)', borderBottom: `1px solid ${colors.border}` }}>
-                <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>EMAIL ADDRESS</th>
-                <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>SUBSCRIBER NAME</th>
-                <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>LOCATION (COUNTRY)</th>
-                <th style={{ padding: '16px 20px', textAlign: 'left', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>DATE & TIME</th>
-                <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>STATUS</th>
-                <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>ACTIONS</th>
+                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("EMAIL ADDRESS")}</th>
+                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("SUBSCRIBER NAME")}</th>
+                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("LOCATION (COUNTRY)")}</th>
+                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("DATE & TIME")}</th>
+                <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("STATUS")}</th>
+                <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("ACTIONS")}</th>
               </tr>
             </thead>
             <tbody>
               {filteredSubscribers.length > 0 ? filteredSubscribers.map((sub) => (
                 <tr key={sub.id} className="premium-row" style={{ borderBottom: `1px solid ${colors.border}` }}>
-                  <td style={{ padding: '18px 20px', fontWeight: 'bold', color: '#fff' }}>
+                  <td style={{ padding: '18px 20px', fontWeight: 'bold', color: 'var(--admin-text)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Mail size={14} color={colors.primary} />
                       {sub.email}
@@ -228,7 +230,7 @@ const Newsletter = () => {
                   <td style={{ padding: '18px 20px', color: colors.text }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <User size={14} color="rgba(255,255,255,0.4)" />
-                      {sub.name || <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>Anonymous</span>}
+                      {sub.name || <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>{t("Anonymous")}</span>}
                     </div>
                   </td>
                   <td style={{ padding: '18px 20px' }}>
@@ -253,19 +255,19 @@ const Newsletter = () => {
                       color: sub.isActive ? colors.success : colors.danger,
                       border: `1px solid ${sub.isActive ? 'rgba(56, 239, 125, 0.3)' : 'rgba(255, 77, 77, 0.3)'}`
                     }}>
-                      {sub.isActive ? 'SUBSCRIBED' : 'UNSUBSCRIBED'}
+                      {sub.isActive ? t("SUBSCRIBED") : t("UNSUBSCRIBED")}
                     </span>
                   </td>
                   <td style={{ padding: '18px 20px', textAlign: 'center' }}>
-                    <button onClick={() => handleDelete(sub.id)} style={{ background: 'none', border: 'none', color: colors.danger, cursor: 'pointer', transition: '0.2s' }} title="Remove subscriber">
+                    <button onClick={() => handleDelete(sub.id)} style={{ background: 'none', border: 'none', color: colors.danger, cursor: 'pointer', transition: '0.2s' }} title={t("Remove subscriber")}>
                       <Trash2 size={18} />
                     </button>
                   </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan="6" style={{ padding: '60px', textAlign: 'center', color: 'rgba(255,255,255,0.4)' }}>
-                    No subscribers found matching search criteria.
+                  <td colSpan="6" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+                    {t("No subscribers found matching search criteria.")}
                   </td>
                 </tr>
               )}

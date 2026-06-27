@@ -5,10 +5,12 @@ import { useAdminContext } from '../AdminContext';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const LeaderDashboard = () => {
   const { admin } = useAdminContext();
   const navigate = useNavigate();
+  const { t } = useAdminLang();
   const [logs, setLogs] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
   const [messages, setMessages] = useState([]);
@@ -79,7 +81,7 @@ const LeaderDashboard = () => {
   const exportPDF = async () => {
     try {
       if (logs.length === 0) {
-        alert("No activity logs available to export.");
+        alert(t("No activity logs available to export."));
         return;
       }
 
@@ -93,7 +95,7 @@ const LeaderDashboard = () => {
       
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Zahrat Beesan Online - Team Activity Audit', 14, 22);
+      doc.text('Zahrat Beesan - Team Activity Audit', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -130,14 +132,14 @@ const LeaderDashboard = () => {
       });
 
       const today = new Date().toISOString().split('T')[0];
-      doc.save(`Zahrat Beesan_Online_AuditLog_${today}.pdf`);
+      doc.save(`Zahrat Beesan_AuditLog_${today}.pdf`);
     } catch (error) {
-      alert("Error generating PDF: " + error.message);
+      alert(t("Error generating PDF: ") + error.message);
     }
   };
 
   if (loading) {
-    return <div style={{ color: colors.latte, textAlign: 'center', marginTop: '100px', fontWeight: 'bold', letterSpacing: '2px' }}>PREPARING LEADERSHIP INTEL...</div>;
+    return <div style={{ color: colors.latte, textAlign: 'center', marginTop: '100px', fontWeight: 'bold', letterSpacing: '2px' }}>{t('PREPARING LEADERSHIP INTEL...')}</div>;
   }
 
   const headerTextStyle = { color: colors.latte, fontSize: '2.2rem', fontFamily: "'DM Serif Display', serif", fontWeight: 700 };
@@ -149,7 +151,7 @@ const LeaderDashboard = () => {
       <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1, marginBottom: '20px' }}>
-            Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>Embroidery</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div style={{ 
@@ -167,15 +169,15 @@ const LeaderDashboard = () => {
               fontFamily: "'Inter', sans-serif", 
               fontSize: '1.8rem', 
               fontWeight: '900', 
-              color: '#fff', 
+              color: 'var(--admin-text)', 
               letterSpacing: '-0.5px' 
             }}>
-              Leader Dashboard
+              {t('Leader Dashboard')}
             </span>
           </div>
 
-          <p style={{ margin: '5px 0 0 5px', color: 'rgba(255,255,255,0.4)', fontSize: '0.95rem', fontWeight: '500' }}>
-            Zahrat Beesan Online | <span style={{ color: 'rgba(255,255,255,0.3)' }}>Audit Logs & Critical Performance Oversight</span>
+          <p style={{ margin: '5px 0 0 5px', color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500' }}>
+            Zahrat Beesan | <span style={{ color: 'rgba(255,255,255,0.3)' }}>{t('Audit Logs & Critical Performance Oversight')}</span>
           </p>
         </div>
 
@@ -199,7 +201,7 @@ const LeaderDashboard = () => {
           onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'none'}
         >
-          <Download size={20} /> Export Audit PDF
+          <Download size={20} /> {t('Export Audit PDF')}
         </button>
       </div>
 
@@ -209,10 +211,10 @@ const LeaderDashboard = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
              <div style={{ width: '8px', height: '30px', backgroundColor: '#ff4d4d', borderRadius: '4px' }}></div>
              <h3 style={{
-               color: '#fff', fontSize: '1.4rem', fontFamily: "'DM Serif Display', serif", margin: 0,
+               color: 'var(--admin-text)', fontSize: '1.4rem', fontFamily: "'DM Serif Display', serif", margin: 0,
                display: 'flex', alignItems: 'center', gap: '10px'
              }}>
-               <AlertTriangle size={24} color="#ff4d4d" /> Critical Feedback & Complaints
+               <AlertTriangle size={24} color="#ff4d4d" /> {t('Critical Feedback & Complaints')}
              </h3>
           </div>
           
@@ -230,16 +232,16 @@ const LeaderDashboard = () => {
               onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.borderColor = 'rgba(255, 77, 77, 0.2)'; }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                  <span style={{ color: '#fff', fontWeight: 'bold', fontSize: '1.1rem' }}>{item.reviewer_name || 'Anonymous'}</span>
+                  <span style={{ color: 'var(--admin-text)', fontWeight: 'bold', fontSize: '1.1rem' }}>{item.reviewer_name || t('Anonymous')}</span>
                   <span style={{ color: '#ff4d4d', fontWeight: '900', fontSize: '1rem' }}>{item.rating} ⭐</span>
                 </div>
                 <div style={{ color: colors.crema, fontSize: '0.75rem', marginBottom: '12px', textTransform: 'uppercase', fontWeight: '800', letterSpacing: '1px' }}>
                   {item.type}
                 </div>
                 <p style={{ color: '#bbb', fontSize: '0.95rem', margin: 0, fontStyle: 'italic', lineHeight: '1.6' }}>
-                  "{item.comment || 'No comment provided'}"
+                  "{item.comment || t('No comment provided')}"
                 </p>
-                <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.75rem', color: '#666', textAlign: 'right' }}>
+                <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid rgba(255,255,255,0.05)', fontSize: '0.75rem', color: '#666', textAlign: 'end' }}>
                   {formatDate(item.created_at)}
                 </div>
               </div>
@@ -260,7 +262,7 @@ const LeaderDashboard = () => {
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px', padding: '15px' }}>
           <h3 style={{ margin: 0, color: colors.latte, fontSize: '1.6rem', fontFamily: "'DM Serif Display', serif", display: 'flex', alignItems: 'center', gap: '15px' }}>
-            <Activity size={24} color={colors.crema} /> Team Activity Log
+            <Activity size={24} color={colors.crema} /> {t('Team Activity Log')}
           </h3>
           <div style={{ 
             display: 'flex', alignItems: 'center', gap: '15px', 
@@ -271,28 +273,28 @@ const LeaderDashboard = () => {
             <Search size={20} color="#666" />
             <input
               type="text"
-              placeholder="Search team activity..."
+              placeholder={t("Search team activity...")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ background: 'none', border: 'none', color: '#fff', outline: 'none', width: '300px', fontSize: '0.95rem' }}
+              style={{ background: 'none', border: 'none', color: 'var(--admin-text)', outline: 'none', width: '300px', fontSize: '0.95rem' }}
             />
           </div>
         </div>
 
         <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', color: colors.latte, textAlign: 'left', tableLayout: 'fixed' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', color: colors.latte, textAlign: 'start', tableLayout: 'fixed' }}>
             <thead>
               <tr style={{ backgroundColor: 'rgba(45, 41, 38, 0.8)' }}>
                 <th style={{ padding: '25px', width: '18%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={16} /> Timestamp</div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={16} /> {t('Timestamp')}</div>
                 </th>
                 <th style={{ padding: '25px', width: '22%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><User size={16} /> Administrator</div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><User size={16} /> {t('Administrator')}</div>
                 </th>
                 <th style={{ padding: '25px', width: '25%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Activity size={16} /> Operation</div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Activity size={16} /> {t('Operation')}</div>
                 </th>
-                <th style={{ padding: '25px', width: '35%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>Transaction Details</th>
+                <th style={{ padding: '25px', width: '35%', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Transaction Details')}</th>
               </tr>
             </thead>
             <tbody>
@@ -329,7 +331,7 @@ const LeaderDashboard = () => {
                           {log.admin_name ? log.admin_name.charAt(0).toUpperCase() : 'A'}
                         </div>
                         <div>
-                          <div style={{ color: '#fff', fontWeight: '700', fontSize: '1rem' }}>{log.admin_name || 'System Admin'}</div>
+                          <div style={{ color: 'var(--admin-text)', fontWeight: '700', fontSize: '1rem' }}>{log.admin_name || t('System Admin')}</div>
                           <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '2px' }}>{log.admin_email}</div>
                         </div>
                       </div>
@@ -361,7 +363,7 @@ const LeaderDashboard = () => {
               ) : (
                 <tr>
                   <td colSpan="4" style={{ padding: '60px', textAlign: 'center', color: '#555', fontSize: '1.1rem', fontStyle: 'italic' }}>
-                    No synchronization logs identified.
+                    {t('No synchronization logs identified.')}
                   </td>
                 </tr>
               )}

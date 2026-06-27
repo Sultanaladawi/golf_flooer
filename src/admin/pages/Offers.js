@@ -3,8 +3,10 @@ import axios from 'axios';
 import { Tag, Plus, Trash2, Calendar, Sparkles, X, Edit2, Download } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const Offers = () => {
+  const { t } = useAdminLang();
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -21,31 +23,31 @@ const Offers = () => {
   const exportPDF = async () => {
     try {
       if (offers.length === 0) {
-        alert('لا توجد عروض للتصدير.');
+        alert(t('لا توجد عروض للتصدير.'));
         return;
       }
       await axios.post('/api/log-action', {
         action: 'Export PDF',
-        details: 'تم تصدير العروض التسويقية إلى PDF.'
+        details: t('تم تصدير العروض التسويقية إلى PDF.')
       });
 
       const doc = new jsPDF();
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('زهرة بيسان اونلاين - العروض التسويقية', 14, 22);
+      doc.text(t('زهرة بيسان - العروض التسويقية'), 14, 22);
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`تاريخ الإنشاء: ${new Date().toLocaleString('ar-JO', { timeZone: 'Asia/Amman' })}`, 14, 32);
-      doc.text('العروض النشطة حالياً والخصومات الموسمية.', 14, 38);
+      doc.text(`${t('تاريخ الإنشاء:')} ${new Date().toLocaleString('ar-JO', { timeZone: 'Asia/Amman' })}`, 14, 32);
+      doc.text(t('العروض النشطة حالياً والخصومات الموسمية.'), 14, 38);
 
-      const tableColumn = ['اسم المنتج', 'الخصم', 'الوصف', 'تاريخ الانتهاء'];
+      const tableColumn = [t('اسم المنتج'), t('الخصم'), t('الوصف'), t('تاريخ الانتهاء')];
       const tableRows = offers.map(offer => [
         offer.product_name || 'N/A',
         `${offer.discount_percent}%`,
-        offer.reason || 'لا يوجد وصف',
+        offer.reason || t('لا يوجد وصف'),
         offer.end_date
           ? new Date(offer.end_date).toLocaleDateString('ar-JO', { timeZone: 'Asia/Amman' })
-          : 'بدون تاريخ انتهاء'
+          : t('بدون تاريخ انتهاء')
       ]);
 
       autoTable(doc, {
@@ -58,7 +60,7 @@ const Offers = () => {
       doc.save(`Zahrat Beesan_Offers_${Date.now()}.pdf`);
     } catch (error) {
       console.error('PDF Export Error:', error);
-      alert('خطأ في إنشاء الملف: ' + error.message);
+      alert(t('خطأ في إنشاء الملف: ') + error.message);
     }
   };
 
@@ -106,41 +108,41 @@ const Offers = () => {
       fetchOffers();
     } catch (err) {
       console.error('Submit Error:', err);
-      alert('فشل الحفظ: ' + (err.response?.data?.error || err.message));
+      alert(t('فشل الحفظ: ') + (err.response?.data?.error || err.message));
     }
   };
 
   const handleDeleteAll = async () => {
-    if (window.confirm('هل أنتِ متأكدة من حذف جميع العروض؟ هذا الإجراء لا يمكن التراجع عنه.')) {
+    if (window.confirm(t('هل أنتِ متأكدة من حذف جميع العروض؟ هذا الإجراء لا يمكن التراجع عنه.'))) {
       try {
         // Delete one by one using existing API
         const deletePromises = offers.map(o => axios.delete(`/api/offers/${o.id}`));
         await Promise.all(deletePromises);
         fetchOffers();
-        alert('تم حذف جميع العروض بنجاح.');
+        alert(t('تم حذف جميع العروض بنجاح.'));
       } catch (err) {
         console.error('Delete All Error:', err);
-        alert('حدث خطأ أثناء الحذف');
+        alert(t('حدث خطأ أثناء الحذف'));
       }
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('هل أنتِ متأكدة من حذف هذا العرض؟')) {
+    if (window.confirm(t('هل أنتِ متأكدة من حذف هذا العرض؟'))) {
       try {
         await axios.delete(`/api/offers/${id}`);
         fetchOffers();
       } catch (err) {
         console.error('Delete Error:', err);
-        alert('فشل الحذف');
+        alert(t('فشل الحذف'));
       }
     }
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'بدون تاريخ انتهاء';
+    if (!dateString) return t('بدون تاريخ انتهاء');
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'تاريخ غير صالح';
+    if (isNaN(date.getTime())) return t('تاريخ غير صالح');
     return date.toLocaleDateString('ar-JO', { day: '2-digit', month: 'long', year: 'numeric' });
   };
 
@@ -187,7 +189,7 @@ const Offers = () => {
             <button
               onClick={() => setShowModal(false)}
               style={{
-                position: 'absolute', top: '20px', left: '20px',
+                position: 'absolute', top: '20px', insetInlineStart: '20px',
                 backgroundColor: 'var(--bg-elevated)',
                 border: 'none', color: 'var(--espresso)',
                 cursor: 'pointer', borderRadius: '50%',
@@ -202,22 +204,22 @@ const Offers = () => {
               color: 'var(--espresso)', margin: '0 0 8px 0',
               fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem'
             }}>
-              {modalMode === 'add' ? 'إضافة عرض جديد' : 'تعديل العرض'}
+              {modalMode === 'add' ? t('إضافة عرض جديد') : t('تعديل العرض')}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '30px' }}>
-              {modalMode === 'add' ? 'أضيفي عرضاً أو خصماً جديداً يظهر في شريط العروض' : 'عدّلي بيانات العرض'}
+              {modalMode === 'add' ? t('أضيفي عرضاً أو خصماً جديداً يظهر في شريط العروض') : t('عدّلي بيانات العرض')}
             </p>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
               <div>
                 <label style={{ display: 'block', color: 'var(--gold-dim)', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700' }}>
-                  اسم المنتج / التشكيلة
+                  {t('اسم المنتج / التشكيلة')}
                 </label>
                 <input
                   style={inputStyle}
                   value={formData.product_name}
                   onChange={e => setFormData({ ...formData, product_name: e.target.value })}
-                  placeholder="مثال: عباية مطرزة — أو 'All' لعرض عام"
+                  placeholder={t("مثال: عباية مطرزة — أو 'All' لعرض عام")}
                   required
                 />
               </div>
@@ -225,7 +227,7 @@ const Offers = () => {
               <div style={{ display: 'flex', gap: '15px' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', color: 'var(--gold-dim)', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700' }}>
-                    نسبة الخصم (%)
+                    {t('نسبة الخصم (%)')}
                   </label>
                   <input
                     type="number" style={inputStyle}
@@ -236,7 +238,7 @@ const Offers = () => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', color: 'var(--gold-dim)', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700' }}>
-                    تاريخ الانتهاء
+                    {t('تاريخ الانتهاء')}
                   </label>
                   <input
                     type="text"
@@ -251,13 +253,13 @@ const Offers = () => {
 
               <div>
                 <label style={{ display: 'block', color: 'var(--gold-dim)', marginBottom: '8px', fontSize: '0.85rem', fontWeight: '700' }}>
-                  وصف العرض
+                  {t('وصف العرض')}
                 </label>
                 <textarea
                   style={{ ...inputStyle, minHeight: '90px', resize: 'vertical' }}
                   value={formData.reason}
                   onChange={e => setFormData({ ...formData, reason: e.target.value })}
-                  placeholder="اكتبي وصفاً للعرض أو مناسبة الخصم..."
+                  placeholder={t("اكتبي وصفاً للعرض أو مناسبة الخصم...")}
                   required
                 />
               </div>
@@ -274,7 +276,7 @@ const Offers = () => {
                     boxShadow: 'var(--shadow-gold)'
                   }}
                 >
-                  {modalMode === 'add' ? '✦ إضافة العرض' : '✦ حفظ التعديلات'}
+                  {modalMode === 'add' ? t('✦ إضافة العرض') : t('✦ حفظ التعديلات')}
                 </button>
                 <button
                   type="button"
@@ -287,7 +289,7 @@ const Offers = () => {
                     borderRadius: '14px', cursor: 'pointer'
                   }}
                 >
-                  إلغاء
+                  {t('إلغاء')}
                 </button>
               </div>
             </form>
@@ -318,10 +320,10 @@ const Offers = () => {
                 fontSize: '2rem', color: 'var(--espresso)',
                 margin: 0, lineHeight: 1
               }}>
-                العروض والخصومات
+                {t('العروض والخصومات')}
               </h1>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: '4px 0 0' }}>
-                زهرة بيسان اونلاين — الحملات التسويقية والخصومات الموسمية
+                {t('زهرة بيسان — الحملات التسويقية والخصومات الموسمية')}
               </p>
             </div>
           </div>
@@ -341,7 +343,7 @@ const Offers = () => {
               fontSize: '0.9rem'
             }}
           >
-            <Download size={18} /> تصدير PDF
+            <Download size={18} /> {t('تصدير PDF')}
           </button>
           <button
             onClick={() => handleOpenModal('add')}
@@ -354,7 +356,7 @@ const Offers = () => {
               boxShadow: 'var(--shadow-gold)', fontSize: '0.9rem'
             }}
           >
-            <Plus size={18} /> إضافة عرض جديد
+            <Plus size={18} /> {t('إضافة عرض جديد')}
           </button>
         </div>
       </div>
@@ -363,7 +365,7 @@ const Offers = () => {
       {loading ? (
         <div style={{ textAlign: 'center', color: 'var(--gold-dim)', padding: '100px' }}>
           <Sparkles size={40} style={{ marginBottom: '16px', opacity: 0.5 }} />
-          <p style={{ fontSize: '1.1rem' }}>جاري تحميل العروض...</p>
+          <p style={{ fontSize: '1.1rem' }}>{t('جاري تحميل العروض...')}</p>
         </div>
       ) : (
         <div style={{
@@ -398,7 +400,7 @@ const Offers = () => {
               }}
             >
               {/* Action Buttons */}
-              <div style={{ position: 'absolute', top: '20px', left: '20px', display: 'flex', gap: '8px' }}>
+              <div style={{ position: 'absolute', top: '20px', insetInlineStart: '20px', display: 'flex', gap: '8px' }}>
                 <button
                   onClick={() => handleOpenModal('edit', offer)}
                   style={{
@@ -408,7 +410,7 @@ const Offers = () => {
                     display: 'flex', alignItems: 'center',
                     transition: '0.2s'
                   }}
-                  title="تعديل"
+                  title={t("تعديل")}
                 >
                   <Edit2 size={16} />
                 </button>
@@ -421,7 +423,7 @@ const Offers = () => {
                     display: 'flex', alignItems: 'center',
                     transition: '0.2s'
                   }}
-                  title="حذف"
+                  title={t("حذف")}
                 >
                   <Trash2 size={16} />
                 </button>
@@ -437,7 +439,7 @@ const Offers = () => {
                 marginBottom: '16px', boxShadow: 'var(--shadow-gold)'
               }}>
                 <Sparkles size={14} />
-                خصم {offer.discount_percent}%
+                {t('خصم')} {offer.discount_percent}%
               </div>
 
               {/* Product Name */}
@@ -445,9 +447,9 @@ const Offers = () => {
                 margin: '0 0 10px 0', color: 'var(--espresso)',
                 fontSize: '1.25rem', lineHeight: '1.3',
                 fontFamily: "'DM Serif Display', serif",
-                paddingLeft: '60px'
+                paddingInlineStart: '60px'
               }}>
-                {offer.product_name === 'All' ? 'خصم عام على جميع المنتجات' : offer.product_name}
+                {offer.product_name === 'All' ? t('خصم عام على جميع المنتجات') : offer.product_name}
               </h3>
 
               {/* Description */}
@@ -469,7 +471,7 @@ const Offers = () => {
               }}>
                 <Calendar size={15} color="var(--gold-dim)" />
                 <span>
-                  صالح حتى: <strong style={{ color: 'var(--gold-dim)' }}>{formatDate(offer.end_date)}</strong>
+                  {t('صالح حتى:')} <strong style={{ color: 'var(--gold-dim)' }}>{formatDate(offer.end_date)}</strong>
                 </span>
               </div>
             </div>
@@ -481,10 +483,10 @@ const Offers = () => {
             }}>
               <Tag size={48} color="var(--gold-light)" style={{ marginBottom: '20px', opacity: 0.5 }} />
               <h3 style={{ color: 'var(--espresso)', fontFamily: "'DM Serif Display', serif" }}>
-                لا توجد عروض نشطة
+                {t('لا توجد عروض نشطة')}
               </h3>
               <p style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
-                اضغطي على "إضافة عرض جديد" لإنشاء أول عرض تسويقي
+                {t('اضغطي على "إضافة عرض جديد" لإنشاء أول عرض تسويقي')}
               </p>
             </div>
           )}

@@ -4,8 +4,10 @@ import { Coffee, BellRing, X, Download } from 'lucide-react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const Inventory = () => {
+  const { t } = useAdminLang();
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -70,7 +72,7 @@ const Inventory = () => {
       // Header
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      doc.text('Zahrat Beesan Online - Abaya Inventory Report', 14, 22);
+      doc.text('Zahrat Beesan - Abaya Inventory Report', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
@@ -114,7 +116,7 @@ const Inventory = () => {
         }
       });
 
-      doc.save(`Zahrat Beesan_Online_Inventory_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Inventory_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
       alert("Error generating PDF: " + error.message);
@@ -212,16 +214,16 @@ const Inventory = () => {
       overflow: 'hidden'
     }}>
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)`, zIndex: 0 }} />
+      
       <div className="orb orb-1" />
       <div className="orb orb-2" />
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${colors.crema}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
         @media (max-width: 768px) {
           .inventory-container { padding: 20px !important; }
           .page-badge span { font-size: 1.4rem !important; }
@@ -257,11 +259,11 @@ const Inventory = () => {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(5px)' }}>
           <div style={{ backgroundColor: colors.bean, width: '100%', maxWidth: '500px', borderRadius: '30px', border: `1px solid ${colors.border}`, padding: '40px', position: 'relative', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }}>
-            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '25px', right: '25px', background: 'none', border: 'none', color: colors.latte, cursor: 'pointer', opacity: 0.6 }}>
+            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '25px', insetInlineEnd: '25px', background: 'none', border: 'none', color: colors.latte, cursor: 'pointer', opacity: 0.6 }}>
               <X size={24} />
             </button>
             <h3 style={{ color: colors.crema, margin: '0 0 30px 0', fontFamily: "'DM Serif Display', serif", fontSize: '2rem' }}>
-              {modalMode === 'add' ? 'Add Stock Item' : 'Edit Material'}
+              {modalMode === 'add' ? t('Add Stock Item') : t('Edit Material')}
             </h3>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
               <div>
@@ -276,7 +278,7 @@ const Inventory = () => {
 
               <div style={{ display: 'flex', gap: '20px' }}>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>Current Quantity</label>
+                  <label style={labelStyle}>{t('Current Quantity')}</label>
                   <input 
                     type="text" value={formData.quantity} 
                     onChange={(e) => setFormData({...formData, quantity: e.target.value})}
@@ -285,7 +287,7 @@ const Inventory = () => {
                   />
                 </div>
                 <div style={{ width: '150px' }}>
-                  <label style={labelStyle}>Unit</label>
+                  <label style={labelStyle}>{t('Unit')}</label>
                   <input 
                     type="text" value={formData.unit} 
                     onChange={(e) => setFormData({...formData, unit: e.target.value})}
@@ -296,7 +298,7 @@ const Inventory = () => {
               </div>
 
               <div>
-                <label style={labelStyle}>Minimum Alert Threshold</label>
+                <label style={labelStyle}>{t('Minimum Alert Threshold')}</label>
                 <input 
                   type="text" value={formData.min_threshold} 
                   onChange={(e) => setFormData({...formData, min_threshold: e.target.value})}
@@ -307,9 +309,9 @@ const Inventory = () => {
 
               <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
                 <button type="submit" style={{ flex: 2, padding: '16px', backgroundColor: colors.crema, color: colors.espresso, border: 'none', borderRadius: '15px', fontWeight: 'bold', cursor: 'pointer', fontSize: '1rem' }}>
-                  {modalMode === 'add' ? 'Register Item' : 'Save Changes'}
+                  {modalMode === 'add' ? t('Register Item') : t('Save Changes')}
                 </button>
-                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', backgroundColor: 'transparent', color: colors.latte, border: `1px solid ${colors.border}`, borderRadius: '15px', cursor: 'pointer', fontWeight: '600' }}>Cancel</button>
+                <button type="button" onClick={() => setShowModal(false)} style={{ flex: 1, padding: '16px', backgroundColor: 'transparent', color: colors.latte, border: `1px solid ${colors.border}`, borderRadius: '15px', cursor: 'pointer', fontWeight: '600' }}>{t('Cancel')}</button>
               </div>
             </form>
           </div>
@@ -323,16 +325,16 @@ const Inventory = () => {
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-            Zahrat Beesan <span style={{ color: '#fff', fontStyle: 'italic' }}>Online</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div className="page-badge">
             <Coffee size={28} color={colors.crema} />
-            <span>Inventory Management</span>
+            <span>{t('Inventory Management')}</span>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            Zahrat Beesan Online | Abaya Inventory & Stock Levels
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t('Zahrat Beesan | Abaya Inventory & Stock Levels')}
           </p>
         </div>
         <div className="inventory-buttons">
@@ -346,7 +348,7 @@ const Inventory = () => {
               display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
               transition: '0.3s'
             }}>
-            <Download size={18} /> Export PDF
+            <Download size={18} /> {t('Export PDF')}
           </button>
           <button onClick={openAddModal} style={{ 
             backgroundColor: colors.crema, 
@@ -362,7 +364,7 @@ const Inventory = () => {
             boxShadow: '0 10px 20px rgba(196, 164, 132, 0.2)',
             transition: '0.3s'
           }}>
-            <BsPlusLg /> Add Stock Item
+            <BsPlusLg /> {t('Add Stock Item')}
           </button>
         </div>
       </div>
@@ -383,8 +385,8 @@ const Inventory = () => {
         }}>
           <BellRing className="animate-bounce" size={28} />
           <div>
-            <strong style={{ display: 'block', fontSize: '1.1rem' }}>Attention: Low Stock Detected</strong>
-            <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>Several items are below the safety threshold. Action required.</span>
+            <strong style={{ display: 'block', fontSize: '1.1rem' }}>{t('Attention: Low Stock Detected')}</strong>
+            <span style={{ fontSize: '0.9rem', opacity: 0.9 }}>{t('Several items are below the safety threshold. Action required.')}</span>
           </div>
         </div>
       )}
@@ -403,11 +405,11 @@ const Inventory = () => {
       }}>
         {loading ? (
           <div style={{ padding: '100px', textAlign: 'center', color: colors.crema }}>
-            <p style={{ letterSpacing: '2px', fontWeight: 'bold' }}>AUDITING RESOURCES...</p>
+            <p style={{ letterSpacing: '2px', fontWeight: 'bold' }}>{t('AUDITING RESOURCES...')}</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table width="100%" style={{ borderCollapse: 'separate', borderSpacing: '0 10px', textAlign: 'left', tableLayout: 'fixed', minWidth: '850px' }}>
+            <table width="100%" style={{ borderCollapse: 'separate', borderSpacing: '0 10px', textAlign: 'start', tableLayout: 'fixed', minWidth: '850px' }}>
               <colgroup>
                 <col style={{ width: '15%' }} />
                 <col style={{ width: '25%' }} />
@@ -419,13 +421,13 @@ const Inventory = () => {
               </colgroup>
               <thead style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)' }}>
                 <tr>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>رقم المخزون</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>اسم الموديل</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>الكمية</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>الوحدة</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>الحد الأدنى</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>الحالة</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>خيارات</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Inventory No.')}</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Model Name')}</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Quantity')}</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Unit')}</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Min Threshold')}</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Status')}</th>
+                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Options')}</th>
                   </tr>
               </thead>
               <tbody>
@@ -464,17 +466,17 @@ const Inventory = () => {
                           <span style={{ 
                             color: '#ff4d4d', background: 'linear-gradient(135deg, rgba(255, 77, 77, 0.15), rgba(255, 77, 77, 0.05))', border: '1px solid rgba(255, 77, 77, 0.3)',
                             padding: '6px 14px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.5px' 
-                          }}>OUT OF STOCK</span>
+                          }}>{t('OUT OF STOCK')}</span>
                         ) : isLow ? (
                           <span style={{ 
                             color: '#f59e0b', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05))', border: '1px solid rgba(245, 158, 11, 0.3)',
                             padding: '6px 14px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.5px', whiteSpace: 'nowrap'
-                          }}>LOW STOCK</span>
+                          }}>{t('LOW STOCK')}</span>
                         ) : (
                           <span style={{ 
                             color: '#38ef7d', background: 'linear-gradient(135deg, rgba(56, 239, 125, 0.15), rgba(56, 239, 125, 0.05))', border: '1px solid rgba(56, 239, 125, 0.3)',
                             padding: '6px 14px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.5px' 
-                          }}>ADEQUATE</span>
+                          }}>{t('ADEQUATE')}</span>
                         )}
                       </td>
                       <td style={{ padding: '18px 25px' }}>

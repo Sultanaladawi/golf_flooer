@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { shopInfo } from '../data/shopData';
 import styles from './Footer.module.css';
+import { Globe, Lock, RefreshCcw, CheckCircle2 } from 'lucide-react';
 
 const QUICK = [
   { label: 'الرئيسية',    href: '#home' },
@@ -57,7 +58,7 @@ export default function Footer() {
       });
       const data = await res.json();
       if (res.ok) {
-        setSubMsg('✓ تم الاشتراك في النشرة البريدية بنجاح!');
+        setSubMsg('تم الاشتراك في النشرة البريدية بنجاح!');
         setEmail('');
       } else {
         setSubMsg(data.error || 'عذراً، فشل الاشتراك.');
@@ -85,14 +86,19 @@ export default function Footer() {
 
           {/* Shipping badges */}
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-            {['🌍 توصيل دولي', '🔒 دفع آمن', '🔄 تبديل داخل الأردن فقط'].map(b => (
-              <span key={b} style={{
+            {[
+              { text: 'توصيل دولي', icon: <Globe size={12} /> },
+              { text: 'دفع آمن', icon: <Lock size={12} /> },
+              { text: 'تبديل داخل الأردن فقط', icon: <RefreshCcw size={12} /> }
+            ].map(b => (
+              <span key={b.text} style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
                 fontSize: '0.75rem', fontWeight: '700',
                 padding: '4px 10px', borderRadius: '20px',
                 background: 'var(--gold-glow)',
                 border: '1px solid var(--border)',
                 color: 'var(--espresso)'
-              }}>{b}</span>
+              }}>{b.icon} {b.text}</span>
             ))}
           </div>
 
@@ -132,7 +138,7 @@ export default function Footer() {
                 {subscribing ? '...' : 'اشتراك'}
               </button>
             </form>
-            {subMsg && <p style={{ color: subMsg.startsWith('✓') ? '#27ae60' : '#dc3545', fontSize: '0.8rem', marginTop: '5px', fontWeight: 'bold' }}>{subMsg}</p>}
+            {subMsg && <p style={{ display: 'flex', alignItems: 'center', gap: '4px', color: subMsg.includes('تم') ? '#27ae60' : '#dc3545', fontSize: '0.8rem', marginTop: '5px', fontWeight: 'bold' }}>{subMsg.includes('تم') && <CheckCircle2 size={14} />}{subMsg}</p>}
           </div>
         </div>
 
@@ -184,8 +190,8 @@ export default function Footer() {
           </a>
 
           <div style={{ marginTop: '20px', padding: '16px', borderRadius: '14px', background: 'var(--gold-glow)', border: '1px solid var(--border)' }}>
-            <div style={{ fontWeight: '800', color: 'var(--espresso)', marginBottom: '6px', fontSize: '0.9rem' }}>
-              🌍 نوصّل لجميع دول العالم
+            <div style={{ fontWeight: '800', color: 'var(--espresso)', marginBottom: '6px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Globe size={16} /> نوصّل لجميع دول العالم
             </div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.6' }}>
               الأردن • السعودية • الإمارات • الكويت<br />
@@ -194,7 +200,7 @@ export default function Footer() {
           </div>
 
           <div style={{ marginTop: '14px', padding: '12px 16px', borderRadius: '12px', background: 'var(--white)', border: '1px solid var(--border)', display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <span style={{ fontSize: '1.4rem' }}>🔒</span>
+            <span style={{ fontSize: '1.4rem', display: 'flex' }}><Lock size={24} /></span>
             <div>
               <div style={{ fontWeight: '700', color: 'var(--espresso)', fontSize: '0.85rem' }}>دفع آمن ومشفّر</div>
               <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Visa · Mastercard · Paypal · COD</div>

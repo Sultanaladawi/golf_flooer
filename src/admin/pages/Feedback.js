@@ -3,8 +3,10 @@ import axios from 'axios';
 import { MessageSquare, Star, Coffee, Store, Clock, Download, CheckCircle2, X, Check, Trash } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAdminLang } from '../AdminLangContext';
 
 const Feedback = () => {
+  const { t } = useAdminLang();
   const [data, setData] = useState({ general: [], store: [], products: [] });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('general');
@@ -34,7 +36,7 @@ const Feedback = () => {
       setData(res.data);
     } catch (err) {
       console.error("Fetch feedback error:", err);
-      showToast("Failed to fetch feedback", "error");
+      showToast(t("Failed to fetch feedback"), "error");
     } finally {
       setLoading(false);
     }
@@ -47,23 +49,23 @@ const Feedback = () => {
   const handleApprove = async (id, approve = true) => {
     try {
       await axios.put(`/api/reviews/${id}`, { isApproved: approve ? 1 : 0 });
-      showToast(approve ? "Review approved and published!" : "Review status updated", "success");
+      showToast(approve ? t("Review approved and published!") : t("Review status updated"), "success");
       fetchFeedback();
     } catch (err) {
       console.error("Approve error:", err);
-      showToast("Failed to update review status", "error");
+      showToast(t("Failed to update review status"), "error");
     }
   };
 
   const handleDeleteReview = async (id) => {
-    if (window.confirm("Are you sure you want to delete this product review?")) {
+    if (window.confirm(t("Are you sure you want to delete this product review?"))) {
       try {
         await axios.delete(`/api/reviews/${id}`);
-        showToast("Review deleted successfully", "success");
+        showToast(t("Review deleted successfully"), "success");
         fetchFeedback();
       } catch (err) {
         console.error("Delete review error:", err);
-        showToast("Failed to delete review", "error");
+        showToast(t("Failed to delete review"), "error");
       }
     }
   };
@@ -72,7 +74,7 @@ const Feedback = () => {
     try {
       const currentList = activeTab === 'general' ? data.general : data.products;
       if (currentList.length === 0) {
-        alert("No feedback available in this category to export.");
+        alert(t("No feedback available in this category to export."));
         return;
       }
 
@@ -87,33 +89,33 @@ const Feedback = () => {
       // Header
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38);
-      const title = activeTab === 'general' ? 'General Store Feedback' : 'Product Reviews';
-      doc.text(`Zahrat Beesan Online - ${title}`, 14, 22);
+      const title = activeTab === 'general' ? t('General Store Feedback') : t('Product Reviews');
+      doc.text(`Zahrat Beesan - ${title}`, 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(100);
-      doc.text(`Generated on: ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
-      doc.text(`A complete record of customer ratings and comments for ${activeTab}.`, 14, 38);
+      doc.text(`${t('Generated on:')} ${new Date().toLocaleString('en-GB', { timeZone: 'Asia/Amman' })}`, 14, 32);
+      doc.text(`${t('A complete record of customer ratings and comments for')} ${activeTab === 'general' ? t('General Store Feedback') : t('Product Reviews')}.`, 14, 38);
       
       // Table
       let tableColumn, tableRows;
       if (activeTab === 'general') {
-        tableColumn = ["Date", "Customer Name", "Rating", "Comment"];
+        tableColumn = [t("Date"), t("Customer Name"), t("Rating"), t("Comment")];
         tableRows = data.general.map(f => [
           new Date(f.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }),
-          f.reviewer_name || 'Anonymous',
+          f.reviewer_name || t('Anonymous'),
           `${f.rating}/5`,
           f.comment || ''
         ]);
       } else {
-        tableColumn = ["Date", "Product", "Reviewer", "Rating", "Comment", "Status"];
+        tableColumn = [t("Date"), t("Product"), t("Reviewer"), t("Rating"), t("Comment"), t("Status")];
         tableRows = data.products.map(f => [
-          f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }) : 'N/A',
-          f.product_name || 'N/A',
-          f.customerName || 'Anonymous',
+          f.createdAt ? new Date(f.createdAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }) : t('N/A'),
+          f.product_name || t('N/A'),
+          f.customerName || t('Anonymous'),
           `${f.rating}/5`,
           f.comment || '',
-          f.isApproved ? 'Approved' : 'Pending'
+          f.isApproved ? t('Approved') : t('Pending')
         ]);
       }
 
@@ -137,10 +139,10 @@ const Feedback = () => {
         }
       });
 
-      doc.save(`Zahrat Beesan_Online_Feedback_${activeTab}_${Date.now()}.pdf`);
+      doc.save(`Zahrat Beesan_Feedback_${activeTab}_${Date.now()}.pdf`);
     } catch (error) {
       console.error("PDF Export Error:", error);
-      alert("Error generating PDF: " + error.message);
+      alert(t("Error generating PDF: ") + error.message);
     }
   };
 
@@ -185,18 +187,18 @@ const Feedback = () => {
       position: 'relative'
     }}>
       {/* Premium Background Elements */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `radial-gradient(circle at 50% -20%, #2a1b10 0%, #070504 70%)` }} />
+      <div style={{ position: 'fixed', top: 0, insetInlineStart: 0, insetInlineEnd: 0, bottom: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+        
         <div className="orb orb-1" />
         <div className="orb orb-2" />
       </div>
       <style>{`
-        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.05; animation: float 25s infinite alternate ease-in-out; }
+        .orb { position: absolute; border-radius: 50%; filter: blur(100px); z-index: 0; opacity: 0.15; animation: float 25s infinite alternate ease-in-out; }
         .orb-1 { width: 600px; height: 600px; background: ${colors.crema}; top: -200px; right: -100px; }
-        .orb-2 { width: 500px; height: 500px; background: #2a1b10; bottom: -100px; left: -100px; }
+        .orb-2 { width: 500px; height: 500px; background: var(--admin-border); bottom: -100px; left: -100px; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-        .page-badge { background: #1b130e; border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
-        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+        .page-badge { background: var(--admin-card); border: 1px solid ${colors.border}; padding: 12px 25px; border-radius: 18px; display: inline-flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .page-badge span { font-family: 'Inter', sans-serif; font-size: 2rem; font-weight: 900; color: var(--admin-text); letter-spacing: -0.5px; }
         /* Premium Row Hover Animation */
         .premium-row {
           transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
@@ -231,16 +233,16 @@ const Feedback = () => {
       }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-              Zahrat Beesan Online <span style={{ color: '#fff', fontStyle: 'italic' }}>زهرة بيسان اونلاين</span>
+              <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
           </div>
 
           <div className="page-badge">
             <MessageSquare size={28} color={colors.crema} />
-            <span>Feedback & Reviews</span>
+            <span>{t("Feedback & Reviews")}</span>
           </div>
 
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
-            Monitor general visitor satisfaction and approve or moderate individual product reviews.
+          <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', fontWeight: 500, marginTop: '5px' }}>
+            {t("Monitor general visitor satisfaction and approve or moderate individual product reviews.")}
           </p>
           <button 
             onClick={exportPDF}
@@ -253,23 +255,23 @@ const Feedback = () => {
               display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
               transition: '0.3s'
             }}>
-            <Download size={18} /> Export {activeTab === 'general' ? 'General' : 'Product'} PDF
+            <Download size={18} /> {t("Export")} {activeTab === 'general' ? t('General') : t('Product')} PDF
           </button>
         </div>
         
         <div style={{ display: 'flex', gap: '15px' }}>
-          <TabButton id="general" icon={Store} label="Store Feedback" />
-          <TabButton id="products" icon={Coffee} label="Product Reviews" />
+          <TabButton id="general" icon={Store} label={t("Store Feedback")} />
+          <TabButton id="products" icon={Coffee} label={t("Product Reviews")} />
         </div>
       </div>
 
       {loading ? (
-        <div style={{ position: 'relative', zIndex: 1, color: colors.crema, textAlign: 'center', padding: '50px' }}>Loading feedback...</div>
+        <div style={{ position: 'relative', zIndex: 1, color: colors.crema, textAlign: 'center', padding: '50px' }}>{t("Loading feedback...")}</div>
       ) : (
         <div style={{ position: 'relative', zIndex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))', gap: '25px' }}>
           
           {activeTab === 'general' && data.general.length === 0 && (
-            <div style={{ color: colors.muted, gridColumn: '1 / -1' }}>No store feedback received yet.</div>
+            <div style={{ color: colors.muted, gridColumn: '1 / -1' }}>{t("No store feedback received yet.")}</div>
           )}
           
           {activeTab === 'general' && data.general.map(item => (
@@ -288,13 +290,13 @@ const Feedback = () => {
                 {renderStars(item.rating)}
               </div>
               <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', margin: 0, padding: '20px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '15px', fontStyle: 'italic' }}>
-                "{item.comment || 'No comment provided.'}"
+                "{item.comment || t('No comment provided.')}"
               </p>
             </div>
           ))}
 
           {activeTab === 'products' && data.products.length === 0 && (
-            <div style={{ color: colors.muted, gridColumn: '1 / -1' }}>No product reviews received yet.</div>
+            <div style={{ color: colors.muted, gridColumn: '1 / -1' }}>{t("No product reviews received yet.")}</div>
           )}
 
           {activeTab === 'products' && data.products.map(item => (
@@ -319,22 +321,22 @@ const Feedback = () => {
                     borderRadius: '8px',
                     border: `1px solid ${item.isApproved ? 'rgba(56, 239, 125, 0.3)' : 'rgba(255, 179, 0, 0.3)'}`
                   }}>
-                    {item.isApproved ? 'Approved & Live' : 'Pending Review'}
+                    {item.isApproved ? t('Approved & Live') : t('Pending Review')}
                   </span>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', marginTop: '10px' }}>
                   <div>
-                    <h3 style={{ margin: 0, color: '#fff', fontSize: '1.2rem' }}>{item.customerName || 'Anonymous'}</h3>
+                    <h3 style={{ margin: 0, color: 'var(--admin-text)', fontSize: '1.2rem' }}>{item.customerName || t('Anonymous')}</h3>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.muted, fontSize: '0.85rem', marginTop: '5px' }}>
-                      <Clock size={14} /> {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }) : 'N/A'}
+                      <Clock size={14} /> {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }) : t('N/A')}
                     </div>
                   </div>
                   {renderStars(item.rating)}
                 </div>
                 
                 <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', margin: '0 0 20px 0', padding: '20px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '15px', fontStyle: 'italic' }}>
-                  "{item.comment || 'No comment provided.'}"
+                  "{item.comment || t('No comment provided.')}"
                 </p>
               </div>
 
@@ -344,20 +346,20 @@ const Feedback = () => {
                   <button 
                     onClick={() => handleApprove(item.id, true)} 
                     style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: colors.success, color: '#000', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}>
-                    <Check size={14} /> Approve & Publish
+                    <Check size={14} /> {t("Approve & Publish")}
                   </button>
                 ) : (
                   <button 
                     onClick={() => handleApprove(item.id, false)} 
                     style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px', borderRadius: '10px', border: `1px solid ${colors.border}`, backgroundColor: 'transparent', color: colors.warning, fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}>
-                    Unapprove
+                    {t("Unapprove")}
                   </button>
                 )}
                 
                 <button 
                   onClick={() => handleDeleteReview(item.id)} 
                   style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 16px', borderRadius: '10px', border: 'none', backgroundColor: 'rgba(255, 77, 77, 0.1)', color: colors.danger, border: `1px solid ${colors.danger}`, fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}>
-                  <Trash size={14} /> Delete
+                  <Trash size={14} /> {t("Delete")}
                 </button>
               </div>
             </div>

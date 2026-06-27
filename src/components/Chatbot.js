@@ -6,9 +6,9 @@ const GITHUB_API_KEY = process.env.REACT_APP_GITHUB_AI_KEY;
 const GITHUB_URL     = 'https://models.inference.ai.azure.com/chat/completions';
 
 const SYSTEM_PROMPT = `
-You are Yasmin (ياسمين), the elegant and friendly fashion consultant for Zahrat Beesan Online (زهرة بيسان اونلاين) — a global online boutique specializing in luxury abayas and oriental embroideries, shipping worldwide.
+You are Yafa (يافا), the elegant and friendly fashion consultant for Zahrat Beesan (زهرة بيسان) — a global online boutique specializing in luxury abayas and oriental embroideries, shipping worldwide.
 You help customers from all over the world select abayas, choose sizes, learn about fabrics, and complete their purchase. You speak any language the customer uses.
-Personality: Professional, warm, and sophisticated. Use ✨ ⚜️ 👑.
+Personality: Professional, warm, and sophisticated. Use ✦.
 Key info: We ship internationally to all countries. Payment methods include cash on delivery (local) and credit/debit cards worldwide. No physical store — online only.
 `;
 
@@ -26,11 +26,11 @@ async function callAI(userMsg) {
 
     if (!res.ok) throw new Error('AI service error');
     const data = await res.json();
-    return data.reply || "عذراً، لم أستطع فهم ذلك جيداً. يمكنكِ الاتصال بنا مباشرة ✨";
+    return data.reply || "عذراً، لم أستطع فهم ذلك جيداً. يمكنكِ الاتصال بنا مباشرة ✦";
   } catch (err) {
     if (err.name === 'AbortError') {
       console.warn("[Chatbot] Request timed out");
-      return "لقد استغرق الرد وقتاً أطول من المعتاد. يرجى المحاولة مرة أخرى ✨";
+      return "لقد استغرق الرد وقتاً أطول من المعتاد. يرجى المحاولة مرة أخرى ✦";
     }
     console.error("[Chatbot] AI Call Failed:", err);
     throw err;
@@ -156,7 +156,7 @@ export default function Chatbot() {
       .catch(err => console.error("[Chatbot] Sync Error:", err));
 
     } catch {
-      setMsgs(p => [...p, { id: Date.now() + 1, role: 'sophie', text: `عذراً، تواصلوا معنا مباشرة عبر البريد ${shopInfo.email} ✨` }]);
+      setMsgs(p => [...p, { id: Date.now() + 1, role: 'sophie', text: `عذراً، تواصلوا معنا مباشرة عبر البريد ${shopInfo.email} ✦` }]);
     } finally {
       setTyping(false);
     }
@@ -174,8 +174,8 @@ export default function Chatbot() {
               <span className={styles.dot} />
             </div>
             <div>
-              <div className={styles.name} style={{ color: 'var(--espresso)' }}>ياسمين</div>
-              <div className={styles.status} style={{ color: 'var(--espresso)', opacity: 0.8 }}>زهرة بيسان اونلاين · مستشارة الأناقة</div>
+              <div className={styles.name} style={{ color: 'var(--espresso)' }}>يافا</div>
+              <div className={styles.status} style={{ color: 'var(--espresso)', opacity: 0.8 }}>زهرة بيسان · مستشارة الأناقة</div>
             </div>
           </div>
           <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق" style={{ color: 'var(--espresso)' }}>
@@ -226,7 +226,7 @@ export default function Chatbot() {
           <input
             ref={inputRef}
             type="text"
-            placeholder={listening ? '🎙️ جاري الاستماع...' : 'اسألي ياسمين عن العبايات والمقاسات...'}
+            placeholder={listening ? 'جاري الاستماع...' : 'اسألي يافا عن العبايات والمقاسات...'}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={onKey}
@@ -250,7 +250,7 @@ export default function Chatbot() {
               className={styles.micBtn}
               onClick={startVoice}
               disabled={typing}
-              title={listening ? 'إيقاف التسجيل' : 'تحدثي مع ياسمين'}
+              title={listening ? 'إيقاف التسجيل' : 'تحدثي مع يافا'}
               style={{
                 background: listening
                   ? 'linear-gradient(135deg, #ff4d4d, #cc0000)'

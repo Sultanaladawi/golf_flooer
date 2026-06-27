@@ -1,0 +1,18 @@
+const fs = require('fs');
+const lines = fs.readFileSync('src/App.js', 'utf8').split('\n');
+const newLines = lines.slice(0, 186);
+newLines.push('                      </Route>');
+newLines.push('                    </Routes>');
+newLines.push('                  </AdminLangProvider>');
+newLines.push('                </AdminProvider>');
+newLines.push('              } />');
+newLines.push('              <Route path="*" element={<Navigate to="/" replace />} />');
+newLines.push('            </Routes>');
+newLines.push('          </CartProvider>');
+newLines.push('          </AdminProvider>');
+newLines.push('        </CurrencyProvider>');
+newLines.push('      </StoreProvider>');
+newLines.push('    </BrowserRouter>');
+newLines.push('  );');
+newLines.push('}');
+fs.writeFileSync('src/App.js', newLines.join('\n'));

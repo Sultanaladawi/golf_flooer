@@ -263,6 +263,22 @@ db.getConnection((err, connection) => {
         console.log(`[Migration] Updated ${migrationResult.affectedRows} legacy price formats to JOD in menu_items.`);
       }
 
+      // Create product_variants table if not exists
+      await promiseDb.query(`
+        CREATE TABLE IF NOT EXISTS product_variants (
+          id          INT AUTO_INCREMENT PRIMARY KEY,
+          product_id  INT NOT NULL,
+          color_name  VARCHAR(200) NOT NULL,
+          colors      LONGTEXT NOT NULL DEFAULT '[]',
+          images      LONGTEXT DEFAULT '[]',
+          video_url   VARCHAR(500) DEFAULT NULL,
+          sizes       LONGTEXT DEFAULT '[]',
+          sort_order  INT DEFAULT 0,
+          created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (product_id) REFERENCES menu_items(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `);
+
       console.log('[Migration] Schema verification complete.');
     } catch (dbErr) {
       console.error('[Migration] Schema check failed:', dbErr.message);
@@ -340,27 +356,32 @@ app.post('/api/orders', async (req, res) => {
       const quantity = parseFloat(item.qty);
       let price = parseFloat(item.priceNum);
 
-      if (isNaN(price) || price === 0) {
+      let itemCost = 0;
+      let itemTax = 0;
+
+      if (!isNaN(productId)) {
+        const [productRows] = await conn.query("SELECT price_num, cost_price, tax_amount FROM menu_items WHERE id = ?", [productId]);
+        if (productRows && productRows.length > 0) {
+          if (isNaN(price) || price === 0) price = parseFloat(productRows[0].price_num) || 0;
+          itemCost = parseFloat(productRows[0].cost_price) || 0;
+          itemTax = parseFloat(productRows[0].tax_amount) || 0;
+        } else {
+          if (isNaN(price)) price = 0;
+        }
+      } else {
         const [addonRows] = await conn.query("SELECT price FROM addons WHERE name = ?", [item.name]);
         if (addonRows && addonRows.length > 0) {
-          price = parseFloat(addonRows[0].price) || 0;
-        } else if (!isNaN(productId)) {
-          const [productRows] = await conn.query("SELECT price_num FROM menu_items WHERE id = ?", [productId]);
-          if (productRows && productRows.length > 0) {
-            price = parseFloat(productRows[0].price_num) || 0;
-          } else {
-            price = 0;
-          }
+          if (isNaN(price) || price === 0) price = parseFloat(addonRows[0].price) || 0;
         } else {
-          price = 0;
+          if (isNaN(price)) price = 0;
         }
       }
 
       calculatedTotal += price * quantity;
 
       await conn.query(
-        "INSERT INTO order_items (order_id, product_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)",
-        [orderId, isNaN(productId) ? null : productId, item.name, quantity, price]
+        "INSERT INTO order_items (order_id, product_id, item_name, quantity, price, cost_price, tax_amount) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        [orderId, isNaN(productId) ? null : productId, item.name, quantity, price, itemCost, itemTax]
       );
 
       if (!isNaN(productId)) {
@@ -389,8 +410,8 @@ app.post('/api/orders', async (req, res) => {
 
           // Record addon as an order item for accurate revenue/sales tracking
           await conn.query(
-            "INSERT INTO order_items (order_id, product_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)",
-            [orderId, null, `+ ${addon.name}`, quantity, addonPrice]
+            "INSERT INTO order_items (order_id, product_id, item_name, quantity, price, cost_price, tax_amount) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [orderId, null, `+ ${addon.name}`, quantity, addonPrice, 0, 0]
           );
         }
       }
@@ -713,6 +734,17 @@ app.get('/api/dashboard-stats', async (req, res) => {
       LIMIT 6
     `);
 
+    // Profit: sum(price_num - cost_price - tax_amount) for all products that have been sold
+    const [[profitStats]] = await promiseDb.query(`
+      SELECT
+        COALESCE(SUM(oi.quantity * (mi.price_num - COALESCE(mi.cost_price,0) - COALESCE(mi.tax_amount,0))), 0) as totalProfit,
+        COALESCE(SUM(CASE WHEN DATE(o.created_at) = CURDATE() THEN oi.quantity * (mi.price_num - COALESCE(mi.cost_price,0) - COALESCE(mi.tax_amount,0)) ELSE 0 END), 0) as todayProfit
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      ${MENU_ITEM_JOIN_CONDITION}
+      WHERE mi.cost_price > 0
+    `).catch(() => [[{ totalProfit: 0, todayProfit: 0 }]]);
+
     res.json({ 
       totalProducts: products.count, 
       totalOrders: orders.count, 
@@ -727,7 +759,9 @@ app.get('/api/dashboard-stats', async (req, res) => {
       lowStockItems, 
       dailySales, 
       categoryStats,
-      topProducts: topProducts || []
+      topProducts: topProducts || [],
+      totalProfit: parseFloat(profitStats?.totalProfit || 0),
+      todayProfit: parseFloat(profitStats?.todayProfit || 0)
     });
   } catch (err) {
     console.error('Dashboard Stats Error:', err);
@@ -747,6 +781,13 @@ app.get('/api/analytics-monthly', async (req, res) => {
     const [[monthStats]] = await promiseDb.query(
       `SELECT COUNT(*) as totalOrders, COALESCE(SUM(total_amount),0) as totalSales
        FROM orders WHERE YEAR(created_at)=? AND MONTH(created_at)=?`,
+      [year, month]
+    );
+
+    const [[costStats]] = await promiseDb.query(
+      `SELECT COALESCE(SUM(oi.quantity * oi.cost_price), 0) as totalCost, COALESCE(SUM(oi.quantity * oi.tax_amount), 0) as totalTax
+       FROM order_items oi JOIN orders o ON oi.order_id = o.id
+       WHERE YEAR(o.created_at)=? AND MONTH(o.created_at)=?`,
       [year, month]
     );
 
@@ -799,6 +840,9 @@ app.get('/api/analytics-monthly', async (req, res) => {
     res.json({
       totalOrders,
       totalSales,
+      totalCost: costStats.totalCost || 0,
+      totalTax: costStats.totalTax || 0,
+      totalProfit: totalSales - (costStats.totalCost || 0) - (costStats.totalTax || 0),
       totalProducts: products.count,
       avgOrderValue: totalOrders > 0 ? (totalSales / totalOrders) : 0,
       topProducts: topProducts || [],
@@ -822,6 +866,13 @@ app.get('/api/analytics-range', async (req, res) => {
     const [[rangeStats]] = await promiseDb.query(
       `SELECT COUNT(*) as totalOrders, COALESCE(SUM(total_amount),0) as totalSales
        FROM orders WHERE DATE(created_at) BETWEEN ? AND ?`,
+      [from, to]
+    );
+
+    const [[costStats]] = await promiseDb.query(
+      `SELECT COALESCE(SUM(oi.quantity * oi.cost_price), 0) as totalCost, COALESCE(SUM(oi.quantity * oi.tax_amount), 0) as totalTax
+       FROM order_items oi JOIN orders o ON oi.order_id = o.id
+       WHERE DATE(o.created_at) BETWEEN ? AND ?`,
       [from, to]
     );
 
@@ -865,6 +916,9 @@ app.get('/api/analytics-range', async (req, res) => {
     res.json({
       totalOrders,
       totalSales,
+      totalCost: costStats.totalCost || 0,
+      totalTax: costStats.totalTax || 0,
+      totalProfit: totalSales - (costStats.totalCost || 0) - (costStats.totalTax || 0),
       avgOrderValue: totalOrders > 0 ? (totalSales / totalOrders) : 0,
       topProducts: topProducts || [],
       dailySales: dailySales || [],
@@ -1424,6 +1478,20 @@ app.get('/api/products', async (req, res) => {
     const addonPriceMap = {};
     allAddons.forEach(a => { addonPriceMap[a.name.toLowerCase().trim()] = parseFloat(a.price); });
 
+    // Fetch and parse all variants
+    let variants = [];
+    try {
+      const [vRows] = await promiseDb.query('SELECT * FROM product_variants ORDER BY sort_order ASC, id ASC');
+      variants = vRows.map(v => {
+        try { v.colors = JSON.parse(v.colors || '[]'); } catch(e){ v.colors = []; }
+        try { v.images = JSON.parse(v.images || '[]'); } catch(e){ v.images = []; }
+        try { v.sizes = JSON.parse(v.sizes || '[]'); } catch(e){ v.sizes = []; }
+        return v;
+      });
+    } catch(e) {
+      console.error('Error fetching variants in products list:', e.message);
+    }
+
     const [results] = await promiseDb.query(`
       SELECT m.*, 
         CASE WHEN m.available = 0 THEN 1 WHEN EXISTS (SELECT 1 FROM recipes r JOIN inventory i ON r.inventory_id = i.id WHERE r.menu_item_id = m.id AND i.quantity < r.quantity_required) THEN 1 ELSE 0 END as isOutOfStock,
@@ -1446,7 +1514,8 @@ app.get('/api/products', async (req, res) => {
         addonsArray = p.addons.split(',').map((name, idx) => { const cleanName = name.trim(); return { id: `legacy-${idx}-${cleanName.replace(/\s+/g, '-')}`, name: cleanName, price: addonPriceMap[cleanName.toLowerCase()] || 0.50 }; });
       }
       const tagsArray = p.linked_tags ? p.linked_tags.split(',').map(pair => { const [id, name] = pair.split('|'); return { id, name }; }) : [];
-      return { ...p, isOutOfStock: !!p.isOutOfStock, linkedAddons: addonsArray, linkedTags: tagsArray, discounted_price: discountedPrice };
+      const prodVariants = variants.filter(v => v.product_id === p.id);
+      return { ...p, isOutOfStock: !!p.isOutOfStock, linkedAddons: addonsArray, linkedTags: tagsArray, discounted_price: discountedPrice, variants: prodVariants };
     });
 
     res.status(200).json(products);
@@ -1556,6 +1625,76 @@ app.get('/api/products/:id/recipe', async (req, res) => {
   }
 });
 
+// ── Product Variants (Color Variants) ──────────────────────────────────────
+app.get('/api/products/:id/variants', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(
+      'SELECT * FROM product_variants WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+      [req.params.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/products/:id/variants', async (req, res) => {
+  try {
+    const { color_name, colors, images, video_url, sizes, sort_order } = req.body;
+    if (!color_name) return res.status(400).json({ error: 'color_name is required' });
+    const [result] = await db.promise().query(
+      'INSERT INTO product_variants (product_id, color_name, colors, images, video_url, sizes, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        req.params.id,
+        color_name,
+        JSON.stringify(colors || []),
+        JSON.stringify(images || []),
+        video_url || null,
+        JSON.stringify(sizes || []),
+        sort_order || 0
+      ]
+    );
+    if (req.logAdminAction) req.logAdminAction('Add Variant', `Added color variant "${color_name}" to product #${req.params.id}`);
+    res.status(201).json({ id: result.insertId, message: 'Variant created' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/products/variants/:variantId', async (req, res) => {
+  try {
+    const { color_name, colors, images, video_url, sizes, sort_order } = req.body;
+    await db.promise().query(
+      'UPDATE product_variants SET color_name=?, colors=?, images=?, video_url=?, sizes=?, sort_order=? WHERE id=?',
+      [
+        color_name,
+        JSON.stringify(colors || []),
+        JSON.stringify(images || []),
+        video_url || null,
+        JSON.stringify(sizes || []),
+        sort_order || 0,
+        req.params.variantId
+      ]
+    );
+    if (req.logAdminAction) req.logAdminAction('Update Variant', `Updated color variant #${req.params.variantId}`);
+    res.json({ message: 'Variant updated' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/products/variants/:variantId', async (req, res) => {
+  try {
+    await db.promise().query('DELETE FROM product_variants WHERE id=?', [req.params.variantId]);
+    if (req.logAdminAction) req.logAdminAction('Delete Variant', `Deleted color variant #${req.params.variantId}`);
+    res.json({ message: 'Variant deleted' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// ───────────────────────────────────────────────────────────────────────────
+
+
 app.post('/api/products/:id/recipe', async (req, res) => {
   const { id } = req.params;
   const { ingredients } = req.body;
@@ -1591,7 +1730,7 @@ app.post('/api/ai', async (req, res) => {
 
     const menuItems = menuRes.map(m => `${m.name} (${m.price_display})`).join(', ');
 
-    let context = `You are Yasmin (ياسمين), the friendly and professional abaya fashion consultant for Zahrat Beesan Online (زهرة بيسان اونلاين) — a global online boutique for luxury abayas and oriental embroideries, shipping worldwide. We are an online-only store with no physical location. Current time: ${currentDateTime}.
+    let context = `You are Yafa (يافا), the friendly and professional abaya fashion consultant for Zahrat Beesan (زهرة بيسان) — a global online boutique for luxury abayas and oriental embroideries, shipping worldwide. We are an online-only store with no physical location. Current time: ${currentDateTime}.
 Focus on helping customers choose abayas, match colors, select sizes (S, M, L, XL, XXL, 3XL), and answer questions about international shipping and payment methods (COD for local, card worldwide).
 Menu: ${menuItems}
 CRITICAL RULES:
@@ -1905,7 +2044,7 @@ app.put('/api/products/reorder', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-  let { name, price_num, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care } = req.body;
+  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care } = req.body;
   if (category_id === 'espresso') category_id = '2';
   if (category_id === 'tea') category_id = '6';
   if (category_id === 'cold') category_id = '1';
@@ -1922,8 +2061,10 @@ app.post('/api/products', async (req, res) => {
     const nextOrder = (rows[0].maxOrder || 0) + 1;
     const rawPrice = price_num ? convertNumerals(price_num.toString()).replace(/[^0-9.]/g, '') : null;
     const cleanPrice = (rawPrice && rawPrice.trim() !== '') ? rawPrice : null;
+    const cleanCost = cost_price ? parseFloat(cost_price) || 0 : 0;
+    const cleanTax = tax_amount ? parseFloat(tax_amount) || 0 : 0;
     const price_display = cleanPrice ? `JOD ${parseFloat(cleanPrice).toFixed(2)}` : null;
-    const [result] = await conn.query('INSERT INTO menu_items (category_id, name, price_num, price_display, description, tags, available, image_url, addons, sort_order, sku, subtitle, badge, images, fabric, sizes, care) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [category_id || null, name, cleanPrice, price_display, description || null, tags || null, available ?? 1, image_url || null, addons || null, nextOrder, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null]);
+    const [result] = await conn.query('INSERT INTO menu_items (category_id, name, price_num, cost_price, tax_amount, price_display, description, tags, available, image_url, addons, sort_order, sku, subtitle, badge, images, fabric, sizes, care) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [category_id || null, name, cleanPrice, cleanCost, cleanTax, price_display, description || null, tags || null, available ?? 1, image_url || null, addons || null, nextOrder, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null]);
     const productId = result.insertId;
     if (Array.isArray(addon_ids)) for (const aid of addon_ids) if (aid) await conn.query('INSERT IGNORE INTO menu_item_addons (menu_item_id, addon_id) VALUES (?, ?)', [productId, aid]);
     if (Array.isArray(tag_ids)) for (const tid of tag_ids) if (tid) await conn.query('INSERT IGNORE INTO menu_item_tags (menu_item_id, tag_id) VALUES (?, ?)', [productId, tid]);
@@ -1940,15 +2081,17 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
-  let { name, price_num, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care } = req.body;
+  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care } = req.body;
   let conn;
   try {
     conn = await db.promise().getConnection();
     await conn.beginTransaction();
     let cleanPrice = null;
     if (price_num !== undefined && price_num !== null) cleanPrice = convertNumerals(price_num.toString()).replace(/[^0-9.]/g, '');
+    const cleanCost = cost_price ? parseFloat(cost_price) || 0 : 0;
+    const cleanTax = tax_amount ? parseFloat(tax_amount) || 0 : 0;
     const price_display = cleanPrice ? `JOD ${parseFloat(cleanPrice).toFixed(2)}` : null;
-    await conn.query("UPDATE menu_items SET name = ?, price_num = ?, price_display = ?, description = ?, available = ?, category_id = ?, image_url = ?, tags = ?, addons = ?, sku = ?, subtitle = ?, badge = ?, images = ?, fabric = ?, sizes = ?, care = ? WHERE id = ?", [name, cleanPrice, price_display, description, available, category_id || null, image_url || null, tags || null, addons || null, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, id]);
+    await conn.query("UPDATE menu_items SET name = ?, price_num = ?, cost_price = ?, tax_amount = ?, price_display = ?, description = ?, available = ?, category_id = ?, image_url = ?, tags = ?, addons = ?, sku = ?, subtitle = ?, badge = ?, images = ?, fabric = ?, sizes = ?, care = ? WHERE id = ?", [name, cleanPrice, cleanCost, cleanTax, price_display, description, available, category_id || null, image_url || null, tags || null, addons || null, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, id]);
     if (Array.isArray(addon_ids)) {
       await conn.query('DELETE FROM menu_item_addons WHERE menu_item_id = ?', [id]);
       for (const aid of addon_ids) if (aid) await conn.query('INSERT INTO menu_item_addons (menu_item_id, addon_id) VALUES (?, ?)', [id, aid]);
@@ -1987,8 +2130,8 @@ app.post('/api/ai-chat', async (req, res) => {
   const now = new Date();
   const currentDateTime = now.toLocaleString('en-GB', { timeZone: 'Asia/Amman' });
   let businessContext = isAdmin
-    ? `You are the Zahrat Beesan Online Internal Business Intelligence AI. Current time is ${currentDateTime}.`
-    : `You are Yasmin (ياسمين), the friendly and professional abaya fashion consultant for Zahrat Beesan Online (زهرة بيسان اونلاين) — a global online store shipping worldwide. No physical location. Current time: ${currentDateTime}.
+    ? `You are the Zahrat Beesan Internal Business Intelligence AI. Current time is ${currentDateTime}.`
+    : `You are Yafa (يافا), the friendly and professional abaya fashion consultant for Zahrat Beesan (زهرة بيسان) — a global online store shipping worldwide. No physical location. Current time: ${currentDateTime}.
 You help customers select abayas, match designs, choose sizes (S, M, L, XL, XXL, 3XL), and answer questions about international shipping and payment. Respond in the customer's language.`;
 
   try {
@@ -2066,7 +2209,7 @@ You help customers select abayas, match designs, choose sizes (S, M, L, XL, XXL,
         const lowStock = inventory.filter(i => i.stock_status === 'LOW');
         const okStock  = inventory.filter(i => i.stock_status === 'OK');
 
-        businessContext = `You are the Zahrat Beesan Online Business Intelligence Expert for Zahrat Beesan Online — a global online abaya boutique.
+        businessContext = `You are the Zahrat Beesan Business Intelligence Expert for Zahrat Beesan — a global online abaya boutique.
 Current Jordan Date/Time: ${currentDateTime}
 
 === TODAY ===
@@ -2200,10 +2343,224 @@ app.get('/api/debug-images', (req, res) => {
 });
 
 
+// --- SETTINGS ENDPOINTS ---
+const settingsPath = path.join(__dirname, 'store_settings.json');
+
+app.get('/api/settings', (req, res) => {
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, 'utf8');
+      res.json(JSON.parse(data));
+    } else {
+      res.json({ iban: '', wallet: '', cliqAlias: '' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read settings' });
+  }
+});
+
+app.post('/api/settings', (req, res) => {
+  try {
+    const { iban, wallet, cliqAlias, fb_page_id, fb_access_token, ig_user_id, wa_phone_number_id, wa_access_token } = req.body;
+    // Merge with existing settings to preserve fields not sent
+    let existing = {};
+    if (fs.existsSync(settingsPath)) { try { existing = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (e) {} }
+    const newSettings = { ...existing, iban, wallet, cliqAlias, fb_page_id, fb_access_token, ig_user_id, wa_phone_number_id, wa_access_token };
+    fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2));
+    if (req.logAdminAction) {
+      req.logAdminAction('Update Settings', 'Updated IBAN and/or Wallet information');
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save settings' });
+  }
+});
+
+
+// --- SOCIAL MEDIA POSTS ---
+
+// Auto-create social_posts table if it doesn't exist
+db.getConnection((err, conn) => {
+  if (err) return;
+  conn.query(`
+    CREATE TABLE IF NOT EXISTS social_posts (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      content TEXT NOT NULL,
+      image_url VARCHAR(500) DEFAULT NULL,
+      platforms JSON NOT NULL,
+      status VARCHAR(50) DEFAULT 'draft',
+      published_at DATETIME DEFAULT NULL,
+      scheduled_at DATETIME DEFAULT NULL,
+      results JSON DEFAULT NULL,
+      admin_name VARCHAR(100) DEFAULT NULL,
+      created_at DATETIME DEFAULT NOW()
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `, (err2) => {
+    if (err2) console.error('[Social] Table creation error:', err2.message);
+    else console.log('[Social] social_posts table ready.');
+    conn.release();
+  });
+});
+
+// GET all posts history
+app.get('/api/social/posts', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query('SELECT * FROM social_posts ORDER BY created_at DESC LIMIT 100');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE a post
+app.delete('/api/social/posts/:id', async (req, res) => {
+  try {
+    await db.promise().query('DELETE FROM social_posts WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST — publish a new post
+app.post('/api/social/post', async (req, res) => {
+  const { content, image_url, platforms, scheduled_at } = req.body;
+  const adminName = req.headers['x-admin-name'] || 'Admin';
+
+  if (!content || !content.trim()) return res.status(400).json({ error: 'Post content is required' });
+  if (!platforms || !platforms.length) return res.status(400).json({ error: 'Select at least one platform' });
+
+  // Load settings for API tokens
+  let settings = {};
+  try {
+    const settingsPath = path.join(__dirname, 'store_settings.json');
+    if (fs.existsSync(settingsPath)) settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch (e) {}
+
+  const results = {};
+  const isScheduled = !!scheduled_at;
+
+  if (!isScheduled) {
+    // Attempt real publishing for each platform
+    for (const platform of platforms) {
+      try {
+        if (platform === 'facebook' && settings.fb_page_id && settings.fb_access_token) {
+          const fbRes = await fetch(
+            `https://graph.facebook.com/v19.0/${settings.fb_page_id}/feed`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                message: content,
+                ...(image_url ? { link: image_url } : {}),
+                access_token: settings.fb_access_token
+              })
+            }
+          );
+          const fbData = await fbRes.json();
+          results[platform] = fbData.id ? { success: true, id: fbData.id } : { success: false, error: fbData.error?.message };
+        } else if (platform === 'instagram' && settings.ig_user_id && settings.fb_access_token && image_url) {
+          // Step 1: Create media container
+          const containerRes = await fetch(
+            `https://graph.facebook.com/v19.0/${settings.ig_user_id}/media`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_url,
+                caption: content,
+                access_token: settings.fb_access_token
+              })
+            }
+          );
+          const containerData = await containerRes.json();
+          if (containerData.id) {
+            // Step 2: Publish
+            const pubRes = await fetch(
+              `https://graph.facebook.com/v19.0/${settings.ig_user_id}/media_publish`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ creation_id: containerData.id, access_token: settings.fb_access_token })
+              }
+            );
+            const pubData = await pubRes.json();
+            results[platform] = pubData.id ? { success: true, id: pubData.id } : { success: false, error: 'Publish step failed' };
+          } else {
+            results[platform] = { success: false, error: containerData.error?.message || 'Container creation failed' };
+          }
+        } else if (platform === 'whatsapp') {
+          // WhatsApp Business API (Cloud API)
+          if (settings.wa_phone_number_id && settings.wa_access_token) {
+            const waRes = await fetch(
+              `https://graph.facebook.com/v19.0/${settings.wa_phone_number_id}/messages`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${settings.wa_access_token}` },
+                body: JSON.stringify({
+                  messaging_product: 'whatsapp',
+                  to: settings.wa_broadcast_number || settings.wa_phone_number_id,
+                  type: 'text',
+                  text: { body: content }
+                })
+              }
+            );
+            const waData = await waRes.json();
+            results[platform] = waData.messages ? { success: true } : { success: false, error: JSON.stringify(waData.error) };
+          } else {
+            results[platform] = { success: false, error: 'WhatsApp API not configured', manual: true };
+          }
+        } else {
+          // Platform not API-configured — mark as manual
+          results[platform] = { success: false, error: 'API not configured', manual: true };
+        }
+      } catch (platformErr) {
+        results[platform] = { success: false, error: platformErr.message };
+      }
+    }
+  }
+
+  // Save to DB
+  try {
+    const [insertResult] = await db.promise().query(
+      'INSERT INTO social_posts (content, image_url, platforms, status, published_at, scheduled_at, results, admin_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        content,
+        image_url || null,
+        JSON.stringify(platforms),
+        isScheduled ? 'scheduled' : 'published',
+        isScheduled ? null : new Date(),
+        isScheduled ? new Date(scheduled_at) : null,
+        JSON.stringify(results),
+        adminName
+      ]
+    );
+    if (req.logAdminAction) req.logAdminAction('Social Post', `Published to: ${platforms.join(', ')}`);
+    res.json({ success: true, id: insertResult.insertId, results });
+  } catch (dbErr) {
+    res.status(500).json({ error: dbErr.message });
+  }
+});
+
 // Production static files already served at top
 
-// âœ… Catch-all for React Router
-app.get(/.*/, (req, res) => {
+// Clean DB Endpoint (Temporary)
+app.get('/api/clean-db', async (req, res) => {
+  try {
+    const promiseDb = db.promise ? db.promise() : db;
+    await promiseDb.query('DELETE FROM order_items');
+    await promiseDb.query('DELETE FROM orders');
+    await promiseDb.query('DELETE FROM admin_logs');
+    await promiseDb.query('DELETE FROM contact_messages');
+    try { await promiseDb.query('DELETE FROM reviews'); } catch(e){}
+    res.json({ success: true, message: 'Database cleaned' });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Default fallback for React router
+app.get('/*splat', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
