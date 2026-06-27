@@ -8,7 +8,7 @@ import {
   LayoutGrid, ShoppingBag, ShoppingCart, Box,
   BarChart3, MessageSquare, BotMessageSquare, LogOut, User, Coffee, Sparkles,
   FileText, MessagesSquare, Volume2, VolumeX, Briefcase, BellRing,
-  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe
+  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe, Truck
 } from 'lucide-react';
 
 // Setup global axios interceptor to attach admin identity for Audit Logs
@@ -209,6 +209,7 @@ const AdminLayout = () => {
     { path: '/admin/orders', name: t('Orders'), icon: <ShoppingCart size={18} />, badge: newOrderCount },
     { path: '/admin/products', name: t('Products'), icon: <ShoppingBag size={18} /> },
     { path: '/admin/inventory', name: t('Inventory'), icon: <Box size={18} /> },
+    { path: '/admin/delivery', name: t('Delivery & Shipping'), icon: <Truck size={18} /> },
     { path: '/admin/analytics', name: t('Analytics'), icon: <BarChart3 size={18} /> },
     { path: '/admin/offers', name: t('Offers'), icon: <ShoppingCart size={18} /> },
     { path: '/admin/coupons', name: t('Coupons & Codes'), icon: <Ticket size={18} /> },

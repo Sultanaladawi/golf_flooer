@@ -38,6 +38,7 @@ import Messages           from './admin/pages/Messages';
 import LeaderDashboard    from './admin/pages/LeaderDashboard';
 import Settings           from './admin/pages/Settings';
 import SocialMedia        from './admin/pages/SocialMedia';
+import Delivery           from './admin/pages/Delivery';
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
@@ -171,6 +172,7 @@ export default function App() {
                         <Route path="orders" element={<Orders />} />
                         <Route path="products" element={<Products />} />
                         <Route path="inventory" element={<Inventory />} />
+                        <Route path="delivery" element={<Delivery />} />
                         <Route path="analytics" element={<Analytics />} />
                         <Route path="offers" element={<Offers />} />
                         <Route path="coupons" element={<Coupons />} />
