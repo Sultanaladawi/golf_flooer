@@ -209,43 +209,43 @@ const Newsletter = () => {
         ) : (
           <table width="100%" style={{ borderCollapse: 'collapse', color: colors.text }}>
             <thead>
-              <tr style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)', borderBottom: `1px solid ${colors.border}` }}>
-                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("EMAIL ADDRESS")}</th>
-                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("SUBSCRIBER NAME")}</th>
-                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("LOCATION (COUNTRY)")}</th>
-                <th style={{ padding: '16px 20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("DATE & TIME")}</th>
-                <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("STATUS")}</th>
-                <th style={{ padding: '16px 20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.primary }}>{t("ACTIONS")}</th>
+              <tr style={{ backgroundColor: 'var(--cream-dark)', borderBottom: `1px solid ${colors.border}` }}>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.text, fontWeight: '700' }}>{t("Email Address")}</th>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.text, fontWeight: '700' }}>{t("Subscriber Name")}</th>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.text, fontWeight: '700' }}>{t("Country")}</th>
+                <th style={{ padding: '20px', textAlign: 'start', fontSize: '0.8rem', letterSpacing: '1px', color: colors.text, fontWeight: '700' }}>{t("Date & Time")}</th>
+                <th style={{ padding: '20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.text, fontWeight: '700' }}>{t("Status")}</th>
+                <th style={{ padding: '20px', textAlign: 'center', fontSize: '0.8rem', letterSpacing: '1px', color: colors.text, fontWeight: '700' }}>{t("Actions")}</th>
               </tr>
             </thead>
             <tbody>
               {filteredSubscribers.length > 0 ? filteredSubscribers.map((sub) => (
                 <tr key={sub.id} className="premium-row" style={{ borderBottom: `1px solid ${colors.border}` }}>
-                  <td style={{ padding: '18px 20px', fontWeight: 'bold', color: 'var(--admin-text)' }}>
+                  <td style={{ padding: '20px', fontWeight: 'bold', color: 'var(--admin-text)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <Mail size={14} color={colors.primary} />
                       {sub.email}
                     </div>
                   </td>
-                  <td style={{ padding: '18px 20px', color: colors.text }}>
+                  <td style={{ padding: '20px', color: colors.text }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <User size={14} color="rgba(255,255,255,0.4)" />
-                      {sub.name || <span style={{ color: 'rgba(255,255,255,0.3)', fontStyle: 'italic' }}>{t("Anonymous")}</span>}
+                      <User size={14} color="rgba(100,100,100,0.6)" />
+                      {sub.name || <span style={{ color: 'rgba(100,100,100,0.4)', fontStyle: 'italic' }}>{t("Anonymous")}</span>}
                     </div>
                   </td>
-                  <td style={{ padding: '18px 20px' }}>
+                  <td style={{ padding: '20px', color: colors.text }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Globe size={14} color="rgba(255,255,255,0.4)" />
+                      <Globe size={14} color="rgba(100,100,100,0.6)" />
                       {sub.country || 'Jordan'}
                     </div>
                   </td>
-                  <td style={{ padding: '18px 20px', color: 'rgba(255,255,255,0.6)' }}>
+                  <td style={{ padding: '20px', color: 'var(--text-secondary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Calendar size={14} color="rgba(255,255,255,0.4)" />
+                      <Calendar size={14} color="rgba(100,100,100,0.6)" />
                       {sub.subscribedAt ? new Date(sub.subscribedAt).toLocaleString('en-GB', { timeZone: 'Asia/Amman' }) : 'N/A'}
                     </div>
                   </td>
-                  <td style={{ padding: '18px 20px', textAlign: 'center' }}>
+                  <td style={{ padding: '20px', textAlign: 'center' }}>
                     <span style={{
                       fontSize: '0.75rem',
                       fontWeight: 'bold',
@@ -258,7 +258,7 @@ const Newsletter = () => {
                       {sub.isActive ? t("SUBSCRIBED") : t("UNSUBSCRIBED")}
                     </span>
                   </td>
-                  <td style={{ padding: '18px 20px', textAlign: 'center' }}>
+                  <td style={{ padding: '20px', textAlign: 'center' }}>
                     <button onClick={() => handleDelete(sub.id)} style={{ background: 'none', border: 'none', color: colors.danger, cursor: 'pointer', transition: '0.2s' }} title={t("Remove subscriber")}>
                       <Trash2 size={18} />
                     </button>
