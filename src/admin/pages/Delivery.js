@@ -19,11 +19,17 @@ const Delivery = () => {
   const headerTextStyle = { color: colors.latte, fontSize: '2.2rem', fontFamily: "'DM Serif Display', serif", fontWeight: 700 };
 
   // Mock data for demonstration purposes
-  const pendingShipments = [
-    { id: '#ORD-9912', customer: 'Sarah Ahmed', destination: 'Dubai, UAE', items: 2, amount: 'JOD 150.00', date: '2026-06-25', status: 'Ready to Ship' },
-    { id: '#ORD-9915', customer: 'John Smith', destination: 'London, UK', items: 1, amount: 'JOD 85.00', date: '2026-06-26', status: 'Ready to Ship' },
-    { id: '#ORD-9920', customer: 'Ali Hassan', destination: 'Amman, JO', items: 3, amount: 'JOD 210.00', date: '2026-06-27', status: 'Processing' },
+  const allPendingShipments = [
+    { id: '#ORD-9912', customer: 'Sarah Ahmed', destination: 'Dubai, UAE', items: 2, amount: 'JOD 150.00', date: '2026-06-25', isLocal: false },
+    { id: '#ORD-9915', customer: 'John Smith', destination: 'London, UK', items: 1, amount: 'JOD 85.00', date: '2026-06-26', isLocal: false },
+    { id: '#ORD-9918', customer: 'Fahad Al-Saud', destination: 'Riyadh, KSA', items: 4, amount: 'JOD 320.00', date: '2026-06-27', isLocal: false },
+    { id: '#ORD-9920', customer: 'Ali Hassan', destination: 'Amman, JO', items: 3, amount: 'JOD 210.00', date: '2026-06-27', isLocal: true },
+    { id: '#ORD-9922', customer: 'Omar Zaid', destination: 'Irbid, JO', items: 1, amount: 'JOD 45.00', date: '2026-06-27', isLocal: true },
   ];
+
+  const pendingShipments = allPendingShipments.filter(shipment => 
+    activeTab === 'local' ? shipment.isLocal : !shipment.isLocal
+  );
 
   const activeTrackings = [
     { id: 'FDX-77492011', orderId: '#ORD-9880', company: 'FedEx', status: 'In Transit', expected: '2026-06-30' },
