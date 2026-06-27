@@ -134,9 +134,9 @@ const Newsletter = () => {
           width: 100%;
           padding: 12px 16px 12px 42px;
           border-radius: 12px;
-          background-color: ${colors.inputBg};
+          background-color: var(--admin-input, rgba(0,0,0,0.06));
           border: 1px solid ${colors.border};
-          color: #fff;
+          color: var(--admin-text);
           font-size: 0.9rem;
           outline: none;
           transition: 0.3s;
@@ -192,7 +192,7 @@ const Newsletter = () => {
       {/* Search Bar */}
       <div style={{ position: 'relative', zIndex: 1, marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div className="search-container">
-          <Search size={18} color="rgba(255,255,255,0.4)" style={{ position: 'absolute', insetInlineStart: '15px', top: '50%', transform: 'translateY(-50%)' }} />
+          <Search size={18} color="var(--text-secondary)" style={{ position: 'absolute', insetInlineStart: '15px', top: '50%', transform: 'translateY(-50%)' }} />
           <input type="text" className="search-input" placeholder={t("Search by email, name or country...")} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
