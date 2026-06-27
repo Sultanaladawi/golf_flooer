@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Truck, Globe, MapPin, Package, Clock, ExternalLink, Search, CheckCircle, PackageSearch } from 'lucide-react';
+import { Truck, Globe, MapPin, Package, Clock, ExternalLink, Search, CheckCircle, PackageSearch, Loader2 } from 'lucide-react';
 import { useAdminLang } from '../AdminLangContext';
 
 const Delivery = () => {
   const { t, adminLang } = useAdminLang();
   const [activeTab, setActiveTab] = useState('international');
   const [searchTerm, setSearchTerm] = useState('');
+  const [loadingWaybill, setLoadingWaybill] = useState(null);
+  const [processedOrders, setProcessedOrders] = useState([]);
 
   const colors = {
     espresso: 'var(--admin-bg)',
@@ -35,6 +37,15 @@ const Delivery = () => {
     { id: 'FDX-77492011', orderId: '#ORD-9880', company: 'FedEx', status: 'In Transit', expected: '2026-06-30' },
     { id: 'LCL-002194', orderId: '#ORD-9892', company: 'Local Express', status: 'Out for Delivery', expected: '2026-06-27' },
   ];
+
+  const handleCreateWaybill = (id) => {
+    setLoadingWaybill(id);
+    // Simulate API call delay
+    setTimeout(() => {
+      setLoadingWaybill(null);
+      setProcessedOrders([...processedOrders, id]);
+    }, 1500);
+  };
 
   const renderTab = (id, icon, label) => (
     <button
@@ -173,17 +184,30 @@ const Delivery = () => {
                         </td>
                         <td style={{ padding: '20px 25px', color: 'var(--text-secondary)', fontSize: '0.9rem', direction: 'ltr', textAlign: adminLang === 'ar' ? 'right' : 'left' }}>{shipment.date}</td>
                         <td style={{ padding: '20px 25px', textAlign: 'center' }}>
-                          <button style={{
-                            background: colors.crema,
-                            color: '#111',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '8px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            fontSize: '0.85rem'
-                          }}>
-                            {t('Create Waybill')}
+                          <button 
+                            onClick={() => handleCreateWaybill(shipment.id)}
+                            disabled={processedOrders.includes(shipment.id) || loadingWaybill === shipment.id}
+                            style={{
+                              background: processedOrders.includes(shipment.id) ? 'rgba(16, 185, 129, 0.1)' : colors.crema,
+                              color: processedOrders.includes(shipment.id) ? '#10b981' : '#111',
+                              border: 'none',
+                              padding: '8px 16px',
+                              borderRadius: '8px',
+                              fontWeight: 'bold',
+                              cursor: (processedOrders.includes(shipment.id) || loadingWaybill === shipment.id) ? 'not-allowed' : 'pointer',
+                              fontSize: '0.85rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              transition: 'all 0.3s ease'
+                            }}
+                          >
+                            {loadingWaybill === shipment.id ? (
+                              <Loader2 size={16} className="spin-animation" />
+                            ) : processedOrders.includes(shipment.id) ? (
+                              <CheckCircle size={16} />
+                            ) : null}
+                            {processedOrders.includes(shipment.id) ? t('Created') : t('Create Waybill')}
                           </button>
                         </td>
                       </tr>
@@ -255,6 +279,13 @@ const Delivery = () => {
         .premium-row:hover {
           background-color: var(--cream-dark) !important;
           transform: translateY(-1px);
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spin-animation {
+          animation: spin 1s linear infinite;
         }
       `}</style>
     </div>
