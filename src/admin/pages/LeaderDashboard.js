@@ -318,7 +318,9 @@ const LeaderDashboard = () => {
                       padding: '20px 25px', 
                       color: hoveredRow === log.id ? colors.crema : 'var(--text-secondary)', 
                       fontSize: '0.85rem', fontWeight: '600',
-                      transition: '0.3s'
+                      transition: '0.3s',
+                      textAlign: 'left',
+                      direction: 'ltr'
                     }}>
                       {formatDate(log.created_at)}
                     </td>
@@ -334,11 +336,11 @@ const LeaderDashboard = () => {
                         </div>
                         <div>
                           <div style={{ color: 'var(--admin-text)', fontWeight: '700', fontSize: '1rem' }}>{log.admin_name || t('System Admin')}</div>
-                          <div style={{ color: '#666', fontSize: '0.75rem', marginTop: '2px' }}>{log.admin_email}</div>
+                          <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '2px', textAlign: 'left', direction: 'ltr' }}>{log.admin_email}</div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '20px 25px' }}>
+                    <td style={{ padding: '20px 25px', textAlign: 'left', direction: 'ltr' }}>
                       <span style={{ 
                         backgroundColor: 'rgba(196, 164, 132, 0.1)', 
                         border: `1px solid ${hoveredRow === log.id ? colors.crema : 'rgba(196, 164, 132, 0.2)'}`,
@@ -356,7 +358,9 @@ const LeaderDashboard = () => {
                       padding: '20px 25px', 
                       color: hoveredRow === log.id ? 'var(--admin-accent)' : 'var(--admin-text)', 
                       fontSize: '0.95rem', lineHeight: '1.5',
-                      transition: '0.3s'
+                      transition: '0.3s',
+                      textAlign: 'left',
+                      direction: 'ltr'
                     }}>
                       {log.details}
                     </td>
