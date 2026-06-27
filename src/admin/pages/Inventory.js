@@ -19,7 +19,7 @@ const Inventory = () => {
     crema: 'var(--admin-accent)',
     latte: 'var(--admin-text)',
     border: 'var(--admin-border)',
-    input: '#2D2926'
+    input: 'var(--admin-input, rgba(0,0,0,0.06))'
   };
 
   const cellTextStyle = { color: colors.latte, fontSize: '1rem', fontWeight: 600, fontFamily: "'DM Serif Display', serif" };

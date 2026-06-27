@@ -57,7 +57,7 @@ const Products = () => {
     crema: 'var(--admin-accent)',
     latte: 'var(--admin-text)',
     border: 'var(--admin-border)',
-    input: '#2D2926',
+    input: 'var(--admin-input, rgba(0,0,0,0.06))',
     gold: 'var(--admin-accent)'
   };
 
