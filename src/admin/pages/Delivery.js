@@ -80,7 +80,7 @@ const Delivery = () => {
             </span>
           </div>
           
-          <p style={{ margin: '5px 0 0 5px', color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500' }}>
+          <p style={{ margin: '5px 0 0 5px', color: 'var(--text-secondary)', fontSize: '0.95rem', fontWeight: '500', direction: 'auto' }}>
             {t('Manage API integrations, track active shipments, and process orders for delivery.')}
           </p>
         </div>
