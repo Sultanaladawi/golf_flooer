@@ -17,8 +17,8 @@ const Feedback = () => {
     bean: 'var(--admin-card)',
     crema: 'var(--admin-accent)',
     border: 'var(--admin-border)',
-    text: '#ffffff',
-    muted: '#aaaaaa',
+    text: 'var(--admin-text)',
+    muted: 'var(--text-secondary)',
     success: '#38ef7d',
     warning: '#ffb300',
     danger: '#ff4d4d'
@@ -166,12 +166,12 @@ const Feedback = () => {
       onClick={() => setActiveTab(id)}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
-        padding: '15px 30px', border: 'none', borderRadius: '15px',
-        backgroundColor: activeTab === id ? colors.crema : 'transparent',
-        color: activeTab === id ? colors.espresso : colors.text,
+        padding: '15px 30px', borderRadius: '15px',
+        backgroundColor: activeTab === id ? 'var(--admin-accent)' : 'var(--admin-card)',
+        color: activeTab === id ? '#fff' : 'var(--admin-text)',
         fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer',
         transition: 'all 0.3s ease',
-        border: activeTab !== id ? `1px solid ${colors.border}` : '1px solid transparent'
+        border: `1px solid ${activeTab === id ? 'transparent' : 'var(--admin-border)'}`
       }}
     >
       <Icon size={20} /> {label}
@@ -276,20 +276,19 @@ const Feedback = () => {
           
           {activeTab === 'general' && data.general.map(item => (
             <div key={`gen-${item.id}`} className="premium-row" style={{ 
-              background: 'rgba(255,255,255,0.02)', padding: '35px', borderRadius: '28px', 
-              border: `1px solid rgba(255,255,255,0.06)`, position: 'relative',
-              backdropFilter: 'blur(10px)'
+              backgroundColor: 'var(--admin-card)', padding: '35px', borderRadius: '20px', 
+              border: `1px solid var(--admin-border)`, position: 'relative'
             }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '25px' }}>
                 <div>
-                  <h3 style={{ margin: 0, color: colors.crema, fontSize: '1.3rem', fontWeight: '700' }}>{item.reviewer_name}</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.muted, fontSize: '0.85rem', marginTop: '5px' }}>
+                  <h3 style={{ margin: 0, color: 'var(--admin-accent)', fontSize: '1.3rem', fontWeight: '700' }}>{item.reviewer_name}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '5px' }}>
                     <Clock size={14} /> {new Date(item.created_at).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' })}
                   </div>
                 </div>
                 {renderStars(item.rating)}
               </div>
-              <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', margin: 0, padding: '20px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '15px', fontStyle: 'italic' }}>
+              <p style={{ color: 'var(--admin-text)', lineHeight: '1.6', fontSize: '0.95rem', margin: 0, padding: '20px', backgroundColor: 'var(--cream-dark)', borderRadius: '15px', fontStyle: 'italic', border: '1px solid var(--admin-border)' }}>
                 "{item.comment || t('No comment provided.')}"
               </p>
             </div>
@@ -328,14 +327,14 @@ const Feedback = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', marginTop: '10px' }}>
                   <div>
                     <h3 style={{ margin: 0, color: 'var(--admin-text)', fontSize: '1.2rem' }}>{item.customerName || t('Anonymous')}</h3>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: colors.muted, fontSize: '0.85rem', marginTop: '5px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '5px' }}>
                       <Clock size={14} /> {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-GB', { timeZone: 'Asia/Amman' }) : t('N/A')}
                     </div>
                   </div>
                   {renderStars(item.rating)}
                 </div>
                 
-                <p style={{ color: '#ccc', lineHeight: '1.6', fontSize: '0.95rem', margin: '0 0 20px 0', padding: '20px', backgroundColor: 'rgba(0,0,0,0.2)', borderRadius: '15px', fontStyle: 'italic' }}>
+                <p style={{ color: 'var(--admin-text)', lineHeight: '1.6', fontSize: '0.95rem', margin: '0 0 20px 0', padding: '20px', backgroundColor: 'var(--cream-dark)', borderRadius: '15px', fontStyle: 'italic', border: '1px solid var(--admin-border)' }}>
                   "{item.comment || t('No comment provided.')}"
                 </p>
               </div>
