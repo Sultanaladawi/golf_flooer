@@ -599,7 +599,7 @@ const Products = () => {
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(5px)' }}>
           <div className="product-modal" style={{ backgroundColor: colors.bean, width: '100%', maxWidth: '700px', borderRadius: '30px', border: `1px solid ${colors.border}`, padding: '40px', position: 'relative', boxShadow: '0 20px 50px rgba(0,0,0,0.5)', overflowY: 'auto', maxHeight: '90vh' }}>
-            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '25px', right: '25px', backgroundColor: 'transparent', border: 'none', color: colors.latte, cursor: 'pointer', opacity: 0.6 }}>
+            <button onClick={() => setShowModal(false)} style={{ position: 'absolute', top: '25px', insetInlineEnd: '25px', backgroundColor: 'transparent', border: 'none', color: colors.latte, cursor: 'pointer', opacity: 0.6 }}>
               <X size={24} />
             </button>
           
@@ -614,7 +614,7 @@ const Products = () => {
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                   <div style={{ 
                     width: '60px', height: '60px', borderRadius: '10px', overflow: 'hidden',
-                    border: `1px solid ${colors.border}`, backgroundColor: colors.input,
+                    border: `1px solid ${colors.border}`, backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }}>
                     {formData.image_url ? 
@@ -627,7 +627,7 @@ const Products = () => {
                       : <Image size={24} color="#888" />}
                   </div>
                   <button type="button" onClick={() => setShowImagePicker(true)} style={{
-                    flex: 1, padding: '14px', borderRadius: '12px', backgroundColor: colors.input,
+                    flex: 1, padding: '14px', borderRadius: '12px', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
                     border: `1px solid ${colors.border}`, color: formData.image_url ? colors.latte : '#888',
                     cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem'
                   }}>
@@ -861,7 +861,7 @@ const Products = () => {
                   )}
 
                   {/* All tags with inline edit/delete */}
-                  <div style={{ padding: '6px', backgroundColor: colors.input, borderRadius: '14px', border: `1px solid ${colors.border}`, maxHeight: '155px', overflowY: 'auto' }}>
+                  <div style={{ padding: '6px', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))', borderRadius: '14px', border: `1px solid ${colors.border}`, maxHeight: '155px', overflowY: 'auto' }}>
                     {allTags.map(tag => {
                       const isSelected = formData.tag_ids.includes(tag.id);
                       const isEditing = tagEditId === tag.id;
@@ -924,7 +924,7 @@ const Products = () => {
                   )}
 
                   {/* All addons with inline edit/delete */}
-                  <div style={{ padding: '6px', backgroundColor: colors.input, borderRadius: '14px', border: `1px solid ${colors.border}`, maxHeight: '155px', overflowY: 'auto' }}>
+                  <div style={{ padding: '6px', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))', borderRadius: '14px', border: `1px solid ${colors.border}`, maxHeight: '155px', overflowY: 'auto' }}>
                     {allAddons.map(addon => {
                       const isSelected = formData.addon_ids.includes(addon.id);
                       const isEditing = addonEditId === addon.id;
@@ -1466,7 +1466,7 @@ const Products = () => {
                       </div>
                       <div style={{ 
                         padding: '10px', fontSize: '0.7rem', color: colors.latte, 
-                        textAlign: 'center', backgroundColor: colors.input,
+                        textAlign: 'center', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                       }}>
                         {img}
@@ -1570,7 +1570,7 @@ const Products = () => {
                       </div>
                       <div style={{ 
                         padding: '10px', fontSize: '0.7rem', color: colors.latte, 
-                        textAlign: 'center', backgroundColor: colors.input,
+                        textAlign: 'center', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
                         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
                       }}>
                         {img}
@@ -1648,17 +1648,16 @@ const Products = () => {
         </div>
       </div>
 
-      <div style={{ 
+      <div className="table-wrapper" style={{ 
         position: 'relative',
         zIndex: 1,
         width: '100%',
         maxWidth: '1500px', 
-        backgroundColor: 'rgba(255, 255, 255, 0.01)', 
-        borderRadius: '32px', 
-        border: `1px solid rgba(255, 255, 255, 0.06)`, 
+        backgroundColor: colors.bean, 
+        borderRadius: '20px', 
+        border: `1px solid ${colors.border}`, 
         overflow: 'hidden', 
-        boxShadow: '0 30px 70px rgba(0,0,0,0.5)',
-        padding: '10px'
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
       }}>
         {loading ? (
           <div style={{ padding: '100px', textAlign: 'center', color: colors.latte, letterSpacing: '3px', fontWeight: 'bold', opacity: 0.6 }}>
@@ -1668,7 +1667,7 @@ const Products = () => {
           <>
             {/* Desktop View Table */}
             <div className="desktop-table" style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 10px', color: colors.latte, textAlign: 'start', tableLayout: 'fixed' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', color: colors.latte, textAlign: 'start', tableLayout: 'fixed' }}>
                 <colgroup>
                   <col style={{ width: '10%' }} />
                   <col style={{ width: '22%' }} />
@@ -1680,17 +1679,17 @@ const Products = () => {
                   <col style={{ width: '8%' }} />
                   <col style={{ width: '8%' }} />
                 </colgroup>
-                <thead style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)' }}>
-                  <tr>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('ID')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Product')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Category')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Price')}</th>
-                    <th style={{ padding: '20px 12px', color: '#4ade80', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Net Profit')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Tags')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Add-ons')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700' }}>{t('Status')}</th>
-                    <th style={{ padding: '20px 12px', color: colors.crema, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', fontWeight: '700', textAlign: 'center' }}>{t('Actions')}</th>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--cream-dark)', borderBottom: `1px solid ${colors.border}` }}>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('ID')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Product')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Category')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Price')}</th>
+                    <th style={{ padding: '20px 10px', color: '#4ade80', fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Net Profit')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Tags')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Add-ons')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Status')}</th>
+                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700', textAlign: 'center' }}>{t('Actions')}</th>
                   </tr>
                 </thead>
               <tbody>
@@ -1702,11 +1701,11 @@ const Products = () => {
                     onDragEnd={handleDragEnd}
                     onDragOver={(e) => e.preventDefault()}
                     style={{
-                      background: 'rgba(255, 255, 255, 0.03)',
-                      borderRadius: '12px',
+                      background: item.available === 0 ? 'rgba(231, 74, 59, 0.05)' : 'transparent',
+                      borderBottom: `1px solid ${colors.border}`,
                       transition: 'all 0.3s ease'
                     }}>
-                    <td style={{ padding: '16px 6px' }}>
+                    <td style={{ padding: '20px 10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <div style={{ cursor: 'grab', opacity: 0.3, flexShrink: 0 }}><GripVertical size={14} /></div>
                         <span style={{ display: 'inline-block', whiteSpace: 'nowrap', padding: '6px 10px', borderRadius: '8px', background: 'linear-gradient(135deg, #c7a57a 0%, #a47c4f 100%)', color: colors.espresso, fontWeight: 900, letterSpacing: '0.5px', boxShadow: '0 4px 10px rgba(196, 164, 132, 0.3)', flexShrink: 0 }}>
@@ -1714,7 +1713,7 @@ const Products = () => {
                         </span>
                       </div>
                     </td>
-                    <td style={{ padding: '12px' }}>
+                    <td style={{ padding: '20px 10px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{ 
                           width: '52px', height: '52px', minWidth: '52px', backgroundColor: 'transparent', 
@@ -1758,10 +1757,10 @@ const Products = () => {
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '16px 12px', fontSize: '0.8rem', color: colors.latte, opacity: 0.7 }}>
+                    <td style={{ padding: '20px 10px', fontSize: '0.82rem', color: colors.latte, opacity: 0.7 }}>
                       {dbCategories.find(c => String(c.id) === String(item.category_id))?.name || dbCategories.find(c => String(c.id) === String(item.category_id))?.label || <span style={{color: '#ff4d4d'}}>Unlinked</span>}
                     </td>
-                    <td style={{ padding: '16px 12px', fontWeight: 'bold', color: colors.crema, fontSize: '0.95rem' }}>
+                    <td style={{ padding: '20px 10px', fontWeight: 'bold', color: colors.crema, fontSize: '0.95rem' }}>
                       <div style={{ display: 'flex', flexDirection: 'column' }}>
                         <span style={{ 
                           textDecoration: item.discounted_price ? 'line-through' : 'none', 
@@ -1778,7 +1777,7 @@ const Products = () => {
                         )}
                       </div>
                     </td>
-                    <td style={{ padding: '12px', fontSize: '0.85rem', fontWeight: '700' }}>
+                    <td style={{ padding: '20px 10px', fontSize: '0.85rem', fontWeight: '700' }}>
                       {(() => {
                         const s = parseFloat(item.price_num || 0);
                         const c = parseFloat(item.cost_price || 0);
@@ -1792,7 +1791,7 @@ const Products = () => {
                         );
                       })()}
                     </td>
-                    <td style={{ padding: '12px' }}>
+                    <td style={{ padding: '20px 10px' }}>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                         {item.linkedTags && item.linkedTags.length > 0 ? item.linkedTags.map((tag, i) => (
                           <span key={i} style={{ 
@@ -1821,7 +1820,7 @@ const Products = () => {
                         )) : <span style={{ color: '#444', fontSize: '0.7rem', fontStyle: 'italic' }}>—</span>}
                       </div>
                     </td>
-                    <td style={{ padding: '12px' }}>
+                    <td style={{ padding: '20px 10px' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                         {item.linkedAddons && item.linkedAddons.length > 0 ? item.linkedAddons.slice(0, 3).map((addon, i) => (
                           <span key={i} style={{ 
@@ -1845,7 +1844,7 @@ const Products = () => {
                         )}
                       </div>
                     </td>
-                    <td style={{ padding: '16px 12px' }}>
+                    <td style={{ padding: '20px 10px' }}>
                       <span style={{ 
                         backgroundColor: item.available === 0 ? 'rgba(231, 74, 59, 0.1)' : 'rgba(40, 167, 69, 0.1)', 
                         color: item.available === 0 ? '#e74a3b' : '#28a745',
@@ -1855,7 +1854,7 @@ const Products = () => {
                         {item.available === 0 ? 'OUT OF STOCK' : 'AVAILABLE'}
                       </span>
                     </td>
-                    <td style={{ padding: '16px 12px', textAlign: 'center' }}>
+                    <td style={{ padding: '20px 10px', textAlign: 'center' }}>
                       <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                         <Edit onClick={() => openEditModal(item)} size={16} style={{ cursor: 'pointer', color: '#888', transition: 'color 0.2s' }} title="Edit" />
                         <Trash2 onClick={() => handleDelete(item.id)} size={16} style={{ cursor: 'pointer', color: '#e74a3b', transition: 'color 0.2s' }} title="Delete" />

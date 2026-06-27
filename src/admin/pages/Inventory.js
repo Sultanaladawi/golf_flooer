@@ -391,17 +391,16 @@ const Inventory = () => {
         </div>
       )}
 
-      <div style={{ 
+      <div className="table-wrapper" style={{ 
         position: 'relative',
         zIndex: 1,
         width: '100%',
         maxWidth: '1500px',
-        backgroundColor: 'rgba(255, 255, 255, 0.01)', 
-        borderRadius: '32px', 
-        border: `1px solid rgba(255, 255, 255, 0.06)`, 
+        backgroundColor: colors.bean, 
+        borderRadius: '20px', 
+        border: `1px solid ${colors.border}`, 
         overflow: 'hidden',
-        boxShadow: '0 30px 70px rgba(0,0,0,0.5)',
-        padding: '10px'
+        boxShadow: '0 10px 30px rgba(0,0,0,0.3)'
       }}>
         {loading ? (
           <div style={{ padding: '100px', textAlign: 'center', color: colors.crema }}>
@@ -409,7 +408,7 @@ const Inventory = () => {
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>
-            <table width="100%" style={{ borderCollapse: 'separate', borderSpacing: '0 10px', textAlign: 'start', tableLayout: 'fixed', minWidth: '850px' }}>
+            <table width="100%" style={{ borderCollapse: 'collapse', textAlign: 'start', tableLayout: 'fixed', minWidth: '850px', color: colors.latte }}>
               <colgroup>
                 <col style={{ width: '15%' }} />
                 <col style={{ width: '25%' }} />
@@ -419,15 +418,15 @@ const Inventory = () => {
                 <col style={{ width: '15%' }} />
                 <col style={{ width: '10%' }} />
               </colgroup>
-              <thead style={{ backgroundColor: 'rgba(45, 41, 38, 0.7)' }}>
-                <tr>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Inventory No.')}</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Model Name')}</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Quantity')}</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Unit')}</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Min Threshold')}</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Status')}</th>
-                    <th style={{ padding: '20px 25px', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '1.5px', color: colors.crema, fontWeight: '700' }}>{t('Options')}</th>
+              <thead>
+                <tr style={{ backgroundColor: 'var(--cream-dark)', borderBottom: `1px solid ${colors.border}` }}>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Inventory No.')}</th>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Model Name')}</th>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Quantity')}</th>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Unit')}</th>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Min Threshold')}</th>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Status')}</th>
+                    <th style={{ padding: '20px', fontSize: '0.8rem', letterSpacing: '1px', color: colors.latte, fontWeight: '700' }}>{t('Options')}</th>
                   </tr>
               </thead>
               <tbody>
@@ -436,20 +435,20 @@ const Inventory = () => {
                   const inventoryNo = `INV-${String(item.id).padStart(3, '0')}`;
                   return (
                     <tr key={item.id} className="premium-row" style={{ 
-                      background: isLow ? 'rgba(231, 74, 59, 0.05)' : 'rgba(255, 255, 255, 0.03)',
-                      borderRadius: '12px',
+                      background: isLow ? 'rgba(231, 74, 59, 0.05)' : 'transparent',
+                      borderBottom: `1px solid ${colors.border}`,
                       transition: 'all 0.3s ease'
                     }}>
-                      <td style={{ padding: '18px 25px' }}>
+                      <td style={{ padding: '20px' }}>
                         <span title={inventoryNo} style={{ display: 'inline-block', padding: '6px 14px', borderRadius: '8px', background: 'linear-gradient(135deg, #c7a57a 0%, #a47c4f 100%)', color: colors.espresso, fontWeight: 900, letterSpacing: '1px', boxShadow: '0 4px 10px rgba(196, 164, 132, 0.3)', whiteSpace: 'nowrap' }}>{inventoryNo}</span>
                       </td>
-                      <td style={{ padding: '18px 25px' }}>
+                      <td style={{ padding: '20px' }}>
                         <strong style={cellTextStyle}>{item.item_name}</strong>
                       </td>
-                      <td style={{ padding: '18px 25px', color: isLow ? '#ff4d4d' : cellTextStyle.color, fontWeight: cellTextStyle.fontWeight, fontSize: cellTextStyle.fontSize }}>
+                      <td style={{ padding: '20px', color: isLow ? '#ff4d4d' : cellTextStyle.color, fontWeight: cellTextStyle.fontWeight, fontSize: cellTextStyle.fontSize }}>
                         {item.quantity}
                       </td>
-                      <td style={{ padding: '18px 25px' }}>
+                      <td style={{ padding: '20px' }}>
                         <span style={{ 
                           fontSize: '0.75rem', color: colors.latte, 
                           backgroundColor: 'rgba(255, 255, 255, 0.05)', 
@@ -460,8 +459,8 @@ const Inventory = () => {
                           {item.unit || '-'}
                         </span>
                       </td>
-                      <td style={{ padding: '18px 25px', color: cellTextStyle.color, fontSize: cellTextStyle.fontSize }}>{item.min_threshold}</td>
-                      <td style={{ padding: '18px 25px' }}>
+                      <td style={{ padding: '20px', color: cellTextStyle.color, fontSize: cellTextStyle.fontSize }}>{item.min_threshold}</td>
+                      <td style={{ padding: '20px' }}>
                         {item.quantity <= 0 ? (
                           <span style={{ 
                             color: '#ff4d4d', background: 'linear-gradient(135deg, rgba(255, 77, 77, 0.15), rgba(255, 77, 77, 0.05))', border: '1px solid rgba(255, 77, 77, 0.3)',
@@ -479,7 +478,7 @@ const Inventory = () => {
                           }}>{t('ADEQUATE')}</span>
                         )}
                       </td>
-                      <td style={{ padding: '18px 25px' }}>
+                      <td style={{ padding: '20px' }}>
                         <div style={{ display: 'flex', gap: '20px' }}>
                           <BsPencilSquare size={20} style={{ cursor: 'pointer', color: '#888', transition: '0.3s' }} onClick={() => openEditModal(item)} title="Edit" />
                           <BsTrash size={20} style={{ cursor: 'pointer', color: '#e74a3b', transition: '0.3s' }} onClick={() => handleDelete(item.id)} title="Delete" />
