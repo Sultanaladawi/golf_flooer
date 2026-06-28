@@ -1,0 +1,183 @@
+.section {
+  padding: 100px 20px;
+  background: var(--cream);
+  overflow: hidden;
+  direction: rtl;
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.inner.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  border-radius: 50px;
+  background: var(--gold-glow);
+  border: 1px solid var(--border);
+  color: var(--gold-dim);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+.title {
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  color: var(--espresso);
+  margin-bottom: 16px;
+}
+
+.title em {
+  font-style: italic;
+  color: var(--gold-dim);
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+/* ── Masonry Grid ── */
+.grid {
+  columns: 3;
+  column-gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    columns: 2;
+  }
+}
+
+@media (max-width: 580px) {
+  .grid {
+    columns: 1;
+  }
+}
+
+/* ── Card ── */
+.card {
+  break-inside: avoid;
+  margin-bottom: 24px;
+  padding: 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow-gold);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  animation: fadeUp 0.6s ease both;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(197,168,128,0.03) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(166,134,93,0.18);
+  border-color: var(--border-hover);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Quote Icon ── */
+.quoteIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--gold-glow);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-dim);
+  margin-bottom: 16px;
+}
+
+/* ── Stars ── */
+.stars {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 16px;
+}
+
+/* ── Comment ── */
+.comment {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.8;
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+/* ── Reviewer ── */
+.reviewer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid var(--divider);
+}
+
+.avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.reviewerName {
+  font-weight: 700;
+  color: var(--espresso);
+  font-size: 0.9rem;
+}
+
+.productTag {
+  font-size: 0.75rem;
+  color: var(--gold-dim);
+  margin-top: 3px;
+}

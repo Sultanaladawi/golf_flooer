@@ -11,7 +11,7 @@ import Menu               from './components/Menu';
 
 import Gallery            from './components/Gallery';
 import About              from './components/About';
-
+import WallOfLove         from './components/WallOfLove';
 import Contact            from './components/Contact';
 import Footer             from './components/Footer';
 import Chatbot            from './components/Chatbot';
@@ -23,6 +23,7 @@ import OrderTracking      from './components/OrderTracking';
 import LoadingScreen      from './components/LoadingScreen';
 
 import { WishlistProvider } from './context/WishlistContext';
+import { DarkModeProvider } from './context/DarkModeContext';
 
 import { AdminProvider }  from './admin/AdminContext';
 import { AdminLangProvider } from './admin/AdminLangContext';
@@ -130,6 +131,7 @@ function PublicSite() {
         <Menu />
         <Gallery />
         <About />
+        <WallOfLove />
         <Contact />
       </main>
 
@@ -173,6 +175,7 @@ export default function App() {
         <CurrencyProvider>
           <AdminProvider>
             <CartProvider>
+              <DarkModeProvider>
               <WishlistProvider>
               <Routes>
               <Route path="/" element={<PublicSite />} />
@@ -207,6 +210,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
               </WishlistProvider>
+              </DarkModeProvider>
             </CartProvider>
           </AdminProvider>
         </CurrencyProvider>
