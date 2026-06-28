@@ -66,7 +66,7 @@ const LANGUAGES = [
 ];
 
 
-export default function Navbar({ onCartOpen, onWishlistOpen }) {
+export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen }) {
   const [scrolled, setScrolled]   = useState(false);
   const [open, setOpen]           = useState(false);
   const [offers, setOffers]       = useState([]);
@@ -286,6 +286,20 @@ export default function Navbar({ onCartOpen, onWishlistOpen }) {
                   </a>
                 </li>
               ))}
+              <li>
+                <button
+                  onClick={onTrackOrderOpen}
+                  className={styles.navLink}
+                  style={{
+                    color: textColor, transition: 'color 0.3s',
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit',
+                    padding: 0
+                  }}
+                >
+                  تتبع الطلب
+                </button>
+              </li>
             </ul>
           </nav>
 
@@ -552,6 +566,13 @@ export default function Navbar({ onCartOpen, onWishlistOpen }) {
               {label}
             </a>
           ))}
+          <button
+            className={styles.mobileLink}
+            onClick={() => { setOpen(false); onTrackOrderOpen(); }}
+            style={{ background: 'none', border: 'none', width: '100%', textAlign: 'right', cursor: 'pointer', font: 'inherit' }}
+          >
+            تتبع الطلب
+          </button>
           <button className={styles.mobileCartLink} onClick={() => { setOpen(false); onCartOpen(); }}>
             <BagIcon />
             <span>سلتي</span>

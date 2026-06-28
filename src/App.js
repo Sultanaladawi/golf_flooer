@@ -18,6 +18,7 @@ import Chatbot            from './components/Chatbot';
 import Cart               from './components/Cart';
 import Checkout           from './components/Checkout';
 import Wishlist           from './components/Wishlist';
+import OrderTracking      from './components/OrderTracking';
 
 import LoadingScreen      from './components/LoadingScreen';
 
@@ -50,6 +51,7 @@ try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
 function PublicSite() {
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
+  const [trackingOpen, setTrackingOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [stripeStatus, setStripeStatus] = useState(null);
@@ -120,6 +122,7 @@ function PublicSite() {
       <Navbar 
         onCartOpen={() => { setCartOpen(true); setCheckoutOpen(false); }}
         onWishlistOpen={() => setWishlistOpen(true)}
+        onTrackOrderOpen={() => setTrackingOpen(true)}
       />
       
       <main>
@@ -134,6 +137,7 @@ function PublicSite() {
       <Chatbot />
 
       <Wishlist isOpen={wishlistOpen} onClose={() => setWishlistOpen(false)} />
+      <OrderTracking isOpen={trackingOpen} onClose={() => setTrackingOpen(false)} />
 
       {cartOpen && (
         <Cart 
