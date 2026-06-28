@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { shopInfo } from '../data/shopData';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Navbar.module.css';
 
@@ -65,7 +66,7 @@ const LANGUAGES = [
 ];
 
 
-export default function Navbar({ onCartOpen }) {
+export default function Navbar({ onCartOpen, onWishlistOpen }) {
   const [scrolled, setScrolled]   = useState(false);
   const [open, setOpen]           = useState(false);
   const [offers, setOffers]       = useState([]);
@@ -73,6 +74,8 @@ export default function Navbar({ onCartOpen }) {
   const [showCurrency, setShowCurrency] = useState(false);
   const currencyRef               = useRef(null);
   const { totalItems }            = useCart();
+  const { wishlist }               = useWishlist();
+  const wishlistCount              = wishlist.length;
   const { currency, setCurrency, currencies } = useCurrency();
 
   const [showLanguage, setShowLanguage] = useState(false);
@@ -478,6 +481,28 @@ export default function Navbar({ onCartOpen }) {
                 </div>
               )}
             </div>
+
+            {/* Wishlist Button */}
+            <button
+              onClick={onWishlistOpen}
+              aria-label={`قائمة الأمنيات — ${wishlistCount} منتج`}
+              style={{ color: scrolled ? 'var(--gold-dim)' : '#fff', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '8px' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              {wishlistCount > 0 && (
+                <span style={{
+                  position: 'absolute', top: '-2px', right: '-2px',
+                  background: '#ef4444', color: '#fff',
+                  fontSize: '0.65rem', fontWeight: 'bold',
+                  padding: '1px 5px', borderRadius: '50%',
+                  minWidth: '16px', textAlign: 'center', lineHeight: '16px', height: '16px'
+                }}>
+                  {wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
+            </button>
 
             {/* Cart Button */}
             <button

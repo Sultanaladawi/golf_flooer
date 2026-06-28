@@ -8,6 +8,7 @@ import { CurrencyProvider } from './context/CurrencyContext';
 import Navbar             from './components/Navbar';
 import Hero               from './components/Hero';
 import Menu               from './components/Menu';
+
 import Gallery            from './components/Gallery';
 import About              from './components/About';
 
@@ -16,8 +17,11 @@ import Footer             from './components/Footer';
 import Chatbot            from './components/Chatbot';
 import Cart               from './components/Cart';
 import Checkout           from './components/Checkout';
+import Wishlist           from './components/Wishlist';
 
 import LoadingScreen      from './components/LoadingScreen';
+
+import { WishlistProvider } from './context/WishlistContext';
 
 import { AdminProvider }  from './admin/AdminContext';
 import { AdminLangProvider } from './admin/AdminLangContext';
@@ -45,6 +49,7 @@ try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
 
 function PublicSite() {
   const [cartOpen, setCartOpen] = useState(false);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [stripeStatus, setStripeStatus] = useState(null);
@@ -112,7 +117,10 @@ function PublicSite() {
       <div id="cursor-dot" ref={dotRef} />
       <div id="cursor-ring" ref={ringRef} />
       
-      <Navbar onCartOpen={() => { setCartOpen(true); setCheckoutOpen(false); }} />
+      <Navbar 
+        onCartOpen={() => { setCartOpen(true); setCheckoutOpen(false); }}
+        onWishlistOpen={() => setWishlistOpen(true)}
+      />
       
       <main>
         <Hero />
@@ -124,6 +132,8 @@ function PublicSite() {
 
       <Footer />
       <Chatbot />
+
+      <Wishlist isOpen={wishlistOpen} onClose={() => setWishlistOpen(false)} />
 
       {cartOpen && (
         <Cart 
@@ -159,6 +169,7 @@ export default function App() {
         <CurrencyProvider>
           <AdminProvider>
             <CartProvider>
+              <WishlistProvider>
               <Routes>
               <Route path="/" element={<PublicSite />} />
               <Route path="/checkout" element={<Checkout />} />
@@ -191,7 +202,8 @@ export default function App() {
               } />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </CartProvider>
+              </WishlistProvider>
+            </CartProvider>
           </AdminProvider>
         </CurrencyProvider>
       </StoreProvider>

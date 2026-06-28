@@ -15,6 +15,7 @@ import {
 import { featuredItems } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { useCurrency } from '../context/CurrencyContext';
 import styles from './Menu.module.css';
 import ProductModal from './ProductModal';
@@ -42,6 +43,7 @@ export default function Menu() {
   const [featRef, featVis] = useReveal();
   const [fullRef, fullVis] = useReveal();
   const { items } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
 
   const [dbItems, setDbItems] = useState([]);
@@ -396,8 +398,30 @@ export default function Menu() {
                     direction: 'rtl'
                   }}
                 >
-                  <div className={styles.itemImageContainer}>
+                  <div className={styles.itemImageContainer} style={{ position: 'relative' }}>
                     <img src={getImageUrl(item)} alt={item.name} onError={handleImageError} />
+                    {/* Wishlist Heart Button */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleWishlist({ id: item.id, name: item.name, image_url: getImageUrl(item), priceNum: item.priceNum || item.price, category: item.category }); }}
+                      style={{
+                        position: 'absolute', top: '8px', left: '8px',
+                        width: '34px', height: '34px', borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.45)',
+                        backdropFilter: 'blur(6px)',
+                        border: '1px solid rgba(255,255,255,0.15)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        cursor: 'pointer', transition: 'all 0.25s ease',
+                        zIndex: 2,
+                      }}
+                      aria-label={isWishlisted(item.id) ? 'إزالة من الأمنيات' : 'إضافة للأمنيات'}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                        fill={isWishlisted(item.id) ? '#ef4444' : 'none'}
+                        stroke={isWishlisted(item.id) ? '#ef4444' : '#fff'}
+                        strokeWidth="2">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                      </svg>
+                    </button>
                     {isOutOfStock && (
                       <div className={styles.outOfStockOverlay}>
                         <span>نفذت الكمية</span>
