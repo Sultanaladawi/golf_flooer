@@ -43,6 +43,8 @@ export const translations = {
     'Date': 'Date',
     'In Transit': 'In Transit',
     'Out for Delivery': 'Out for Delivery',
+    'print_invoice': 'Download Invoice (PDF)',
+    'send_whatsapp': 'WhatsApp Notify',
     'Log Out': 'Log Out',
     
     // Header
@@ -133,6 +135,8 @@ export const translations = {
     'Date': 'التاريخ',
     'In Transit': 'في الطريق',
     'Out for Delivery': 'خرجت للتوصيل',
+    'print_invoice': 'تحميل الفاتورة (PDF)',
+    'send_whatsapp': 'إشعار واتساب',
     'Log Out': 'تسجيل الخروج',
     
     // Dashboard

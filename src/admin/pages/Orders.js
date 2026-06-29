@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { BsEye, BsClockHistory, BsCheckCircle } from 'react-icons/bs';
-import { Download, X, CheckCircle2, ShoppingBag, Phone, MapPin } from 'lucide-react';
+import { Download, X, CheckCircle2, ShoppingBag, Phone, MapPin, Printer, Send } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { useAdminLang } from '../AdminLangContext';
@@ -153,6 +153,135 @@ const Orders = () => {
   };
 
   const closeDetails = () => setSelectedOrder(null);
+
+  const printSingleInvoice = (order, items) => {
+    try {
+      const doc = new jsPDF();
+      
+      // Header branding
+      doc.setFontSize(22);
+      doc.setTextColor(45, 41, 38); // Espresso
+      doc.text('Zahrat Beesan Embroidery', 14, 22);
+      
+      doc.setFontSize(10);
+      doc.setTextColor(120);
+      doc.text('Zahrat Beesan East Embroidery & Coutures', 14, 28);
+      doc.text('Amman, Jordan - Phone: +962 7 9000 0000', 14, 34);
+      
+      // Divider line
+      doc.setDrawColor(196, 164, 132);
+      doc.setLineWidth(0.5);
+      doc.line(14, 38, 196, 38);
+      
+      // Customer & Order Info
+      doc.setFontSize(11);
+      doc.setTextColor(45, 41, 38);
+      doc.text(`Order ID: ORD-${String(order.id).padStart(3, '0')}`, 14, 46);
+      doc.text(`Date: ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')}`, 14, 52);
+      doc.text(`Customer Name: ${order.customer_name || 'Guest'}`, 14, 58);
+      doc.text(`Phone: ${order.phone || 'N/A'}`, 14, 64);
+      doc.text(`Fulfillment: ${String(order.order_type || 'Walk-in').toUpperCase()}`, 14, 70);
+      
+      let tableStartY = 78;
+      if (order.order_type?.toLowerCase() === 'delivery') {
+        const address = order.delivery_address || 'N/A';
+        doc.text(`Address: ${address}`, 14, 76);
+        tableStartY = 84;
+      }
+      
+      // Items table columns & data
+      const tableColumn = ["Item Description", "Quantity", "Unit Price", "Subtotal"];
+      const tableRows = items.map(item => {
+        const { name } = parseItemNameAndSize(item.item_name);
+        return [
+          name,
+          String(item.quantity),
+          `JOD ${parseFloat(item.price || 0).toFixed(2)}`,
+          `JOD ${(parseFloat(item.price || 0) * item.quantity).toFixed(2)}`
+        ];
+      });
+      
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: tableStartY,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [196, 164, 132], 
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        styles: { 
+          fontSize: 9,
+          cellPadding: 4
+        }
+      });
+      
+      // Display totals below table
+      const finalY = doc.lastAutoTable.finalY + 15;
+      
+      if (order.order_type?.toLowerCase() === 'delivery') {
+        doc.setFontSize(10);
+        doc.text('Delivery Fee: JOD 3.00', 14, finalY);
+        doc.setFontSize(13);
+        doc.setFont('Helvetica', 'bold');
+        doc.text(`Total Amount: JOD ${parseFloat(order.total_amount || 0).toFixed(2)}`, 14, finalY + 8);
+      } else {
+        doc.setFontSize(13);
+        doc.setFont('Helvetica', 'bold');
+        doc.text(`Total Amount: JOD ${parseFloat(order.total_amount || 0).toFixed(2)}`, 14, finalY);
+      }
+      
+      // Footer text
+      const textY = order.order_type?.toLowerCase() === 'delivery' ? finalY + 20 : finalY + 12;
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(140);
+      doc.text('Thank you for shopping with Zahrat Beesan! - شكراً لتسوقكم معنا', 14, textY);
+      
+      doc.save(`Zahrat_Beesan_Invoice_ORD_${order.id}.pdf`);
+      
+      // Log Action
+      axios.post('/api/log-action', { 
+        action: 'Print Single Invoice', 
+        details: `Administrator downloaded PDF Invoice for Order ID: ${order.id}` 
+      }).catch(() => {});
+      
+    } catch (error) {
+      alert("Error printing invoice: " + error.message);
+    }
+  };
+
+  const sendWhatsAppNotification = (order) => {
+    if (!order.phone) {
+      alert("No phone number available for this customer.");
+      return;
+    }
+    
+    // Clean phone number: remove non-digits
+    let cleanPhone = order.phone.replace(/\D/g, '');
+    
+    // Prefix Jordan code if starting with local mobile digits
+    if (cleanPhone.startsWith('07')) {
+      cleanPhone = '962' + cleanPhone.substring(1);
+    } else if (!cleanPhone.startsWith('962') && cleanPhone.length === 9) {
+      cleanPhone = '962' + cleanPhone;
+    }
+
+    const orderIdStr = `ORD-${String(order.id).padStart(3, '0')}`;
+    const orderAmount = parseFloat(order.total_amount).toFixed(2);
+    
+    const messageText = `مرحباً ${order.customer_name || 'عميلتنا العزيزة'}،%0A%0Aيسعدنا إبلاغكِ بأن طلبكِ رقم ${orderIdStr} بقيمة ${orderAmount} JOD قيد المتابعة حالياً في زهرة بيسان للمطرزات الشرقية.%0A%0Aيمكنكِ تتبع حالة طلبكِ مباشرة عبر موقعنا باستخدام رقم طلبكِ: ${orderIdStr}%0A%0Aشكراً لثقتكِ بنا وبصناعتنا اليدوية الراقية! 🌸`;
+    
+    const url = `https://wa.me/${cleanPhone}?text=${messageText}`;
+    window.open(url, '_blank');
+    
+    // Log Action
+    axios.post('/api/log-action', { 
+      action: 'Send WhatsApp Alert', 
+      details: `WhatsApp notification link opened for Order ID: ${order.id}` 
+    }).catch(() => {});
+  };
 
   const extendTime = async (e, id) => {
     if (e) e.stopPropagation();
@@ -360,8 +489,28 @@ const Orders = () => {
                 </div>
               </div>
 
-              {/* Fixed Footer */}
-              <div style={{ padding: '20px 40px', borderTop: `1px solid ${theme.border}`, flexShrink: 0 }}>
+              {/* Fixed Footer with Actions */}
+              <div style={{ padding: '20px 40px', borderTop: `1px solid ${theme.border}`, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <button 
+                    onClick={() => printSingleInvoice(selectedOrder, orderItems)} 
+                    style={{ flex: 1, padding: '12px', backgroundColor: 'rgba(196,164,132,0.12)', color: 'var(--admin-accent)', border: '1px solid var(--admin-accent)', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '8px', transition: '0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(196,164,132,0.2)'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(196,164,132,0.12)'}
+                  >
+                    <Printer size={16} /> {t('print_invoice')}
+                  </button>
+                  {selectedOrder.phone && (
+                    <button 
+                      onClick={() => sendWhatsAppNotification(selectedOrder)} 
+                      style={{ flex: 1, padding: '12px', backgroundColor: 'rgba(37,211,102,0.1)', color: '#25D366', border: '1px solid rgba(37,211,102,0.3)', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifycontent: 'center', gap: '8px', transition: '0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(37,211,102,0.18)'}
+                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(37,211,102,0.1)'}
+                    >
+                      <Send size={16} /> {t('send_whatsapp')}
+                    </button>
+                  )}
+                </div>
                 <button onClick={closeDetails} style={{ width: '100%', padding: '14px', backgroundColor: theme.primary, color: '#000', border: 'none', borderRadius: '15px', fontWeight: '900', cursor: 'pointer' }}>{t('Close Details')}</button>
               </div>
             </div>
