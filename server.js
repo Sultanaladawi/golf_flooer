@@ -564,7 +564,7 @@ db.query(`CREATE TABLE IF NOT EXISTS store_reviews (id INT AUTO_INCREMENT PRIMAR
 db.query(`CREATE TABLE IF NOT EXISTS ai_insights_cache (id INT AUTO_INCREMENT PRIMARY KEY, topic VARCHAR(100) UNIQUE, content TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_insights_cache table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS admin_logs (id INT AUTO_INCREMENT PRIMARY KEY, admin_email VARCHAR(255) NOT NULL, admin_name VARCHAR(255) DEFAULT NULL, action VARCHAR(255) NOT NULL, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure admin_logs table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS ai_assistant_logs (id INT AUTO_INCREMENT PRIMARY KEY, admin_query TEXT, ai_response TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_assistant_logs table error:', err); });
-db.query("UPDATE addons SET price = 0.50 WHERE price = 0", (err) => { if (err) console.error('Update addon prices error:', err); });
+// Addons not used in Zahrat Beesan abaya store
 
 // --- Calorie Migration: add calories_per_unit to inventory if missing ---
 db.query("SHOW COLUMNS FROM inventory LIKE 'calories_per_unit'", (err, results) => {
@@ -1263,49 +1263,11 @@ app.get('/api/categories', (req, res) => {
   });
 });
 
-app.get('/api/addons', (req, res) => {
-  db.query('SELECT * FROM addons ORDER BY name ASC', (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-});
-
-app.post('/api/addons', async (req, res) => {
-  const { name, price, inventory_id } = req.body;
-  if (!name) return res.status(400).json({ error: 'Missing name' });
-  const promiseDb = db.promise();
-  try {
-    const [existing] = await promiseDb.query('SELECT * FROM addons WHERE name = ?', [name]);
-    if (existing.length > 0) return res.json(existing[0]);
-    const [result] = await promiseDb.query('INSERT INTO addons (name, price, inventory_id) VALUES (?, ?, ?)', [name, price || 0, inventory_id || null]);
-    res.status(201).json({ id: result.insertId, name, price, inventory_id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put('/api/addons/:id', async (req, res) => {
-  const { id } = req.params;
-  const { name, price, inventory_id } = req.body;
-  if (!name) return res.status(400).json({ error: 'Missing name' });
-  try {
-    await db.promise().query('UPDATE addons SET name = ?, price = ?, inventory_id = ? WHERE id = ?', [name.trim(), price || 0, inventory_id || null, id]);
-    res.json({ success: true, id, name: name.trim(), price, inventory_id });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/addons/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await db.promise().query('DELETE FROM menu_item_addons WHERE addon_id = ?', [id]);
-    await db.promise().query('DELETE FROM addons WHERE id = ?', [id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+// Addons API — not used in Zahrat Beesan abaya store
+app.get('/api/addons',       (req, res) => res.json([]));
+app.post('/api/addons',      (req, res) => res.status(404).json({ error: 'Not used' }));
+app.put('/api/addons/:id',   (req, res) => res.status(404).json({ error: 'Not used' }));
+app.delete('/api/addons/:id',(req, res) => res.status(404).json({ error: 'Not used' }));
 
 app.get('/api/tags', (req, res) => {
   db.query('SELECT * FROM tags ORDER BY name ASC', (err, results) => {
