@@ -176,6 +176,16 @@ export const translations = {
     'Monitoring system health...': 'جاري مراقبة صحة النظام...',
     '[SYSTEM] REPOSITORY_CONNECTED': '[النظام] تم الاتصال بقاعدة البيانات',
     '[STATUS] CORE_RESOURCES_OPTIMAL...': '[الحالة] الموارد تعمل بأفضل أداء...',
+    'Refresh': 'تحديث',
+    'Last update': 'آخر تحديث',
+    'Weekly': 'أسبوعي',
+    'View All': 'عرض الكل',
+    'Recent Orders': 'آخر الطلبات',
+    'Yesterday': 'أمس',
+    'Loading...': 'جاري التحميل...',
+    'No orders yet.': 'لا توجد طلبات بعد.',
+    'All inventory levels are healthy.': 'جميع مستويات المخزون بوضع جيد.',
+    'No data yet': 'لا توجد بيانات بعد',
 
     // Header
     'Switch Lang': 'English',
