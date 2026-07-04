@@ -1,6 +1,6 @@
 .careers {
   padding: 100px 0;
-  background-color: #f5f1ed;
+  background-color: var(--cream);
   min-height: 800px;
 }
 
@@ -12,7 +12,7 @@
 .mainTitle {
   font-size: 5rem;
   font-family: serif;
-  color: #2c1810;
+  color: var(--espresso);
   margin: 0;
 }
 
@@ -31,12 +31,12 @@
 .applyingFor {
   font-size: 1.8rem;
   font-family: serif;
-  color: #2c1810;
+  color: var(--espresso);
   margin-bottom: 2rem;
 }
 
 .applyingFor span {
-  color: #2c1810;
+  color: var(--espresso-mid);
   opacity: 0.8;
 }
 
@@ -50,22 +50,24 @@
   width: 100%;
   padding: 20px 25px;
   border-radius: 15px;
-  border: 1px solid transparent;
-  background-color: rgba(255,255,255,0.4);
+  border: 1px solid var(--border);
+  background-color: var(--bg-card);
   font-family: inherit;
   font-size: 1.1rem;
   outline: none;
   transition: all 0.3s;
-  color: #2c1810;
+  color: var(--espresso);
 }
 
 .inputField::placeholder, .textAreaField::placeholder {
-  color: #aaa;
+  color: var(--espresso-dim);
+  opacity: 0.7;
 }
 
 .inputField:focus, .textAreaField:focus {
-  background-color: rgba(255,255,255,0.8);
-  border-color: #c4a484;
+  background-color: var(--bg-card);
+  border-color: var(--gold);
+  box-shadow: 0 0 0 4px var(--gold-glow);
 }
 
 .textAreaField {
@@ -81,8 +83,8 @@
 
 .submitBtn {
   flex: 1.5;
-  background-color: #61493c;
-  color: #fff;
+  background-color: var(--burgundy);
+  color: var(--cream);
   border: none;
   padding: 20px 30px;
   border-radius: 50px;
@@ -94,13 +96,13 @@
 }
 
 .submitBtn:hover {
-  background-color: #2c1810;
+  background-color: var(--burgundy-light);
 }
 
 .cancelBtn {
   flex: 1;
-  background-color: #f1ede8;
-  color: #2c1810;
+  background-color: var(--bg-elevated);
+  color: var(--espresso);
   border: none;
   padding: 20px 30px;
   border-radius: 50px;
@@ -112,7 +114,7 @@
 }
 
 .cancelBtn:hover {
-  background-color: #e8e2db;
+  background-color: var(--border);
 }
 
 .errorMsg {
@@ -133,7 +135,7 @@
 .rolesLabel {
   font-weight: 800;
   font-size: 1rem;
-  color: #c4a484;
+  color: var(--gold-dim);
   letter-spacing: 2px;
   margin-bottom: 30px;
 }
@@ -142,34 +144,37 @@
   display: flex;
   align-items: center;
   gap: 20px;
-  background: #fff;
+  background: var(--bg-card);
   padding: 25px 35px;
   border-radius: 25px;
   margin-bottom: 20px;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
 }
 
 .roleCard:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-md);
+  border-color: var(--gold);
 }
 
 .activeCard {
-  background-color: #fff;
-  border: 1px solid #c4a484;
+  background-color: var(--bg-card);
+  border: 1px solid var(--gold);
+  box-shadow: var(--shadow-md);
 }
 
 .roleIcon {
   width: 60px;
   height: 60px;
-  background-color: #f5f1ed;
+  background-color: var(--bg-elevated);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #61493c;
+  color: var(--gold-dim);
   font-size: 1.4rem;
 }
 
@@ -180,24 +185,24 @@
 .roleTitle {
   font-weight: 800;
   font-size: 1.4rem;
-  color: #2c1810;
+  color: var(--espresso);
   margin-bottom: 5px;
 }
 
 .roleType {
-  color: #888;
+  color: var(--espresso-mid);
   font-weight: 600;
   font-size: 1rem;
 }
 
 .roleArrow {
-  color: #ccc;
+  color: var(--espresso-dim);
   font-size: 1.2rem;
   transition: color 0.3s;
 }
 
 .roleCard:hover .roleArrow {
-  color: #61493c;
+  color: var(--gold);
 }
 
 /* Intro Text */
@@ -208,7 +213,7 @@
 .intro {
   font-size: 1.6rem;
   line-height: 1.6;
-  color: #2c1810;
+  color: var(--espresso-mid);
   margin-bottom: 40px;
   opacity: 0.9;
 }
