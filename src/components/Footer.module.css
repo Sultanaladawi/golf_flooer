@@ -1,5 +1,5 @@
 .footer {
-  background: var(--cream-dark);
+  background: linear-gradient(180deg, var(--cream-dark) 0%, rgba(197, 168, 128, 0.12) 100%);
   color: var(--espresso);
   padding: 100px 0 40px;
   position: relative;
@@ -108,8 +108,8 @@
   content: '';
   position: absolute;
   bottom: -10px;
-  left: 0;
-  width: 30px;
+  right: 0;
+  width: 35px;
   height: 2px;
   background: var(--gold);
 }
@@ -131,7 +131,7 @@
 
 .col ul li a:hover {
   color: var(--gold);
-  padding-left: 5px;
+  padding-right: 8px;
 }
 
 .hoursRow {

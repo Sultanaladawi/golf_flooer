@@ -506,3 +506,50 @@ p {
   filter: none !important;
 }
 
+
+/* Animated luxury background glows */
+.bg-glow-1 {
+  position: fixed;
+  top: -15%;
+  left: -15%;
+  width: 55vw;
+  height: 55vw;
+  background: radial-gradient(circle, rgba(197, 168, 128, 0.12) 0%, transparent 70%);
+  filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
+  animation: floatGlow1 25s ease-in-out infinite alternate;
+}
+
+.bg-glow-2 {
+  position: fixed;
+  bottom: -15%;
+  right: -15%;
+  width: 65vw;
+  height: 65vw;
+  background: radial-gradient(circle, rgba(166, 134, 93, 0.08) 0%, transparent 70%);
+  filter: blur(120px);
+  z-index: -1;
+  pointer-events: none;
+  animation: floatGlow2 30s ease-in-out infinite alternate;
+}
+
+@keyframes floatGlow1 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(10%, 8%) scale(1.15); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes floatGlow2 {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-8%, -10%) scale(0.85); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+[data-theme="dark"] .bg-glow-1 {
+  background: radial-gradient(circle, rgba(197, 168, 128, 0.18) 0%, transparent 75%);
+}
+
+[data-theme="dark"] .bg-glow-2 {
+  background: radial-gradient(circle, rgba(166, 134, 93, 0.14) 0%, transparent 75%);
+}

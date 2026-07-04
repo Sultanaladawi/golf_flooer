@@ -123,6 +123,10 @@ function PublicSite() {
       <div id="cursor-dot" ref={dotRef} />
       <div id="cursor-ring" ref={ringRef} />
       
+      {/* Animated luxury background glows */}
+      <div className="bg-glow-1" />
+      <div className="bg-glow-2" />
+      
       <Navbar 
         onCartOpen={() => { setCartOpen(true); setCheckoutOpen(false); }}
         onWishlistOpen={() => setWishlistOpen(true)}
