@@ -2,27 +2,27 @@
 
 :root {
   /* ── Customer Site: Luxury Golden-Beige & Espresso Palette ── */
-  --coffee:           #a6865d;
-  --coffee-light:     #8a6d48;
-  --coffee-dark:      #695133;
+  --coffee:           #800c20;  /* Royal Crimson from logo accent */
+  --coffee-light:     #9c1f38;  /* Vivid Crimson */
+  --coffee-dark:      #5c0614;  /* Deep Maroon */
   --cappuccino:       #bfa27a;
   --cappuccino-light: #e5cda8;
   --latte:            #ffffff;
   --latte-soft:       #fbf9f4;
-  --tea:              #a6865d;
-  --tea-light:        #c5a880;
-  --cafe:             #a6865d;
-  --cream:            #f3ebd9;  /* Luxury warm golden-beige background */
-  --cream-dark:       #ebdcb9;  /* Slightly deeper golden-beige */
-  --brown:            #a6865d;
-  --brown-light:      #8a6d48;
-  --olive:            #a6865d;
-  --olive-light:      #c5a880;
-  --espresso:         #2a1b0c;  /* Luxury dark cocoa / espresso text */
+  --tea:              #c5a880;
+  --tea-light:        #e5cda8;
+  --cafe:             #c5a880;
+  --cream:            #f4f0e6;  /* Matching Logo exact warm off-white linen background */
+  --cream-dark:       #e8e1cf;  /* Slightly deeper golden-beige */
+  --brown:            #c5a880;
+  --brown-light:      #e5cda8;
+  --olive:            #c5a880;
+  --olive-light:      #e5cda8;
+  --espresso:         #2a1b0c;  /* Royal dark espresso text */
   --espresso-mid:     #5c4731;
   --espresso-dim:     #8c735a;
   --white:            #ffffff;
-  --gold:             #c5a880;
+  --gold:             #c5a880;  /* Official Gold from logo */
   --gold-dim:         #a6865d;
   --gold-light:       #e5cda8;
   --gold-glow:        rgba(197,168,128,0.08);
@@ -33,11 +33,11 @@
   --tr:               .3s cubic-bezier(.4, 0, .2, 1);
 
   /* ── Compatibility aliases ── */
-  --bg-base:          #f3ebd9;
-  --bg-surface:       #fcfaf4;
-  --bg-elevated:      #ebdcb9;
+  --bg-base:          #f4f0e6;
+  --bg-surface:       #fcfbf9;
+  --bg-elevated:      #e8e1cf;
   --bg-card:          #ffffff;
-  --bg-card-hover:    #fdfcf7;
+  --bg-card-hover:    #faf8f4;
   --text-primary:     #2a1b0c;
   --text-secondary:   #5c4731;
   --text-muted:       #8c735a;
@@ -46,12 +46,12 @@
   --divider:          rgba(166, 134, 93, 0.12);
 
   /* ── Admin Panel (premium light theme) ── */
-  --admin-bg:     #f3ebd9;
+  --admin-bg:     #f4f0e6;
   --admin-card:   #ffffff;
-  --admin-accent: #a6865d;
+  --admin-accent: #800c20;  /* Crimson highlight in Admin */
   --admin-text:   #2a1b0c;
-  --admin-border: #ebdcb9;
-  --admin-input:  #f0ebe1;
+  --admin-border: #e8e1cf;
+  --admin-input:  #f3ebd9;
 }
 
 /* ── Dark Mode Theme (toggled by data-theme="dark" on body) ── */
