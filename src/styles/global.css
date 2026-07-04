@@ -1,10 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Lora:ital@1&family=Caveat:wght@500;700&display=swap');
 
 :root {
-  /* ── Customer Site: Luxury Golden-Beige & Espresso Palette ── */
-  --coffee:           #800c20;  /* Royal Crimson from logo accent */
-  --coffee-light:     #9c1f38;  /* Vivid Crimson */
-  --coffee-dark:      #5c0614;  /* Deep Maroon */
+  /* ── Customer Site: Beige, Cappuccino & Gold Palette ── */
+  --coffee:           #a6865d;  /* Rich Cappuccino Gold Accent */
+  --coffee-light:     #bfa27a;  /* Warm Cappuccino */
+  --coffee-dark:      #8a6c46;  /* Deep Cappuccino */
   --cappuccino:       #bfa27a;
   --cappuccino-light: #e5cda8;
   --latte:            #ffffff;
@@ -18,9 +18,9 @@
   --brown-light:      #e5cda8;
   --olive:            #c5a880;
   --olive-light:      #e5cda8;
-  --espresso:         #3d020d;  /* Deep dark burgundy-black text matching the logo crimson */
-  --espresso-mid:     #721422;  /* Medium dark crimson text */
-  --espresso-dim:     #a65d68;  /* Muted soft crimson text */
+  --espresso:         #2c1c0f;  /* Deep dark espresso/cappuccino roast text */
+  --espresso-mid:     #5c4731;  /* Cappuccino brown text */
+  --espresso-dim:     #8c735a;  /* Warm latte/beige-brown text */
   --white:            #ffffff;
   --gold:             #c5a880;  /* Official Gold from logo */
   --gold-dim:         #a6865d;
@@ -38,9 +38,9 @@
   --bg-elevated:      #e8e1cf;
   --bg-card:          #ffffff;
   --bg-card-hover:    #faf8f4;
-  --text-primary:     #3d020d;
-  --text-secondary:   #721422;
-  --text-muted:       #a65d68;
+  --text-primary:     #2c1c0f;
+  --text-secondary:   #5c4731;
+  --text-muted:       #8c735a;
   --border:           rgba(166, 134, 93, 0.25);
   --border-hover:     rgba(166, 134, 93, 0.45);
   --divider:          rgba(166, 134, 93, 0.12);
@@ -48,31 +48,31 @@
   /* ── Admin Panel (premium light theme) ── */
   --admin-bg:     #f4f0e6;
   --admin-card:   #ffffff;
-  --admin-accent: #800c20;  /* Crimson highlight in Admin */
-  --admin-text:   #3d020d;
+  --admin-accent: #a6865d;  /* Cappuccino Gold highlight in Admin */
+  --admin-text:   #2c1c0f;
   --admin-border: #e8e1cf;
   --admin-input:  #f3ebd9;
 }
 
 /* ── Dark Mode Theme (toggled by data-theme="dark" on body) ── */
 [data-theme="dark"] {
-  --cream:            #160104;  /* Deep elegant burgundy-black */
-  --cream-dark:       #2d0309;  /* Deep burgundy-maroon */
+  --cream:            #120b07;  /* Deep elegant cappuccino-black */
+  --cream-dark:       #1d120c;  /* Deep cappuccino-espresso */
   --latte:            #e5cda8;
   --latte-soft:       #c5a880;
   --espresso:         #fbf9f4;  /* Light warm cream text */
   --espresso-mid:     #e5cda8;  /* Soft gold text */
   --espresso-dim:     #c5a880;  /* Muted gold text */
-  --white:            #1a0205;
+  --white:            #150d08;
   --gold:             #c5a880;
   --gold-dim:         #a6865d;
-  --gold-light:       #5c0614;
+  --gold-light:       #3a2a14;
   --gold-glow:        rgba(197,168,128,0.08);
-  --bg-base:          #160104;
-  --bg-surface:       #230206;
-  --bg-elevated:      #2d0309;
-  --bg-card:          #230206;
-  --bg-card-hover:    #2d0309;
+  --bg-base:          #120b07;
+  --bg-surface:       #1d120c;
+  --bg-elevated:      #241810;
+  --bg-card:          #1d120c;
+  --bg-card-hover:    #241810;
   --text-primary:     #fbf9f4;
   --text-secondary:   #e5cda8;
   --text-muted:       #c5a880;
@@ -83,8 +83,8 @@
   --shadow-md:        rgba(0,0,0,0.5);
   --shadow-lg:        rgba(0,0,0,0.7);
   --shadow-gold:      0 8px 28px rgba(0,0,0,0.4);
-  --admin-bg:         #160104;
-  --admin-card:       #230206;
+  --admin-bg:         #120b07;
+  --admin-card:       #1d120c;
   --admin-accent:     #c5a880;
   --admin-text:       #fbf9f4;
   --admin-border:     rgba(197,168,128,0.2);
