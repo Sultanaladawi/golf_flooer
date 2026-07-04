@@ -305,6 +305,9 @@ const Offers = () => {
         marginBottom: '40px', flexWrap: 'wrap', gap: '20px'
       }}>
         <div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', lineHeight: 1, marginBottom: '15px' }}>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
             <div style={{
               width: '48px', height: '48px', borderRadius: '14px',
@@ -317,7 +320,7 @@ const Offers = () => {
             <div>
               <h1 style={{
                 fontFamily: "'DM Serif Display', serif",
-                fontSize: '2rem', color: 'var(--espresso)',
+                fontSize: '1.8rem', color: 'var(--espresso)',
                 margin: 0, lineHeight: 1
               }}>
                 {t('العروض والخصومات')}

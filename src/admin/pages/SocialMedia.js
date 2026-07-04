@@ -186,7 +186,10 @@ export default function SocialMedia() {
           <Share2 size={24} color="#fff" />
         </div>
         <div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: 'var(--admin-accent)', margin: 0, lineHeight: 1 }}>القسم الإعلامي</h1>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', lineHeight: 1, marginBottom: '8px' }}>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
+          </div>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem', color: 'var(--admin-accent)', margin: 0, lineHeight: 1 }}>القسم الإعلامي</h1>
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '1rem', margin: 0 }}>نشر المحتوى وإدارة وسائل التواصل الاجتماعي</p>
         </div>
       </div>

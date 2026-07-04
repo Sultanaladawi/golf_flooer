@@ -55,7 +55,10 @@ const Settings = () => {
   return (
     <div className="dashboard-fade-in" style={{ padding: '40px', minHeight: '100vh' }}>
       <div style={{ marginBottom: '40px' }}>
-        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: 'var(--admin-accent)', margin: 0, lineHeight: 1 }}>
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', lineHeight: 1, marginBottom: '8px' }}>
+          <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
+        </div>
+        <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem', color: 'var(--admin-accent)', margin: '0 0 8px', lineHeight: 1 }}>
           {t('Store Settings')}
         </h1>
         <p style={{ color: 'var(--text-secondary)', marginTop: '8px', fontSize: '1.1rem' }}>

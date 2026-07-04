@@ -174,7 +174,10 @@ const Loyalty = () => {
       {/* Header */}
       <div style={{ marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
         <div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.primary, margin: '0 0 8px', lineHeight: 1 }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', lineHeight: 1, marginBottom: '8px' }}>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
+          </div>
+          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem', color: colors.primary, margin: '0 0 8px', lineHeight: 1 }}>
             {t('Loyalty Program')}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', margin: 0 }}>
