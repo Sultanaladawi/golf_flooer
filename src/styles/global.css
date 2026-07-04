@@ -2,135 +2,142 @@
 
 :root {
   /* ══════════════════════════════════════
-     🌾 Light Mode — Beige · Caramel · Gold
+     🌾 Light Mode — Ivory · Gold · Burgundy
+     مستوحى من ألوان الشعار: ذهبي + عنابي + كريمي (بدون أي درجات بني)
      ══════════════════════════════════════ */
 
-  /* Primary caramel accent */
-  --caramel:          #c8843a;  /* Main caramel */
-  --caramel-light:    #e8a444;  /* Bright caramel */
-  --caramel-dark:     #a06828;  /* Deep caramel */
+  /* Burgundy / عنابي (لون الهوية الأساسي) */
+  --burgundy:         #9c1f35;  /* عنابي فاخر */
+  --burgundy-light:   #b8324a;  /* عنابي فاتح */
+  --burgundy-dark:    #7a1327;  /* عنابي عميق */
 
-  /* Cappuccino / warm-neutral */
-  --cappuccino:       #bfa27a;
-  --cappuccino-light: #e5cda8;
+  /* Gold / ذهبي */
+  --gold:             #c5a880;  /* ذهبي الشعار الرسمي */
+  --gold-dim:         #a6865d;  /* ذهبي مطفأ */
+  --gold-light:       #e5cda8;  /* ذهبي فاتح */
+  --gold-glow:        rgba(197,168,128,0.12);
 
-  /* Legacy aliases → caramel */
-  --coffee:           #c8843a;
-  --coffee-light:     #e8a444;
-  --coffee-dark:      #a06828;
-
-  /* Latte / whites */
-  --latte:            #ffffff;
-  --latte-soft:       #fbf9f4;
+  /* Clean background colors (NO muddy yellows/browns) */
+  --cream:            #fcfbf9;  /* كريمي عاجي فاتح ونظيف جداً */
+  --cream-dark:       #f2efe9;  /* أوف وايت كتاني ناعم */
   --white:            #ffffff;
+  --latte:            #fcfbf9;
+  --latte-soft:       #f2efe9;
 
-  /* Beige backgrounds */
-  --cream:            #f4f0e6;  /* Warm off-white linen */
-  --cream-dark:       #ede6d4;
-
-  /* Gold */
-  --gold:             #d4a84b;  /* Richer, warmer gold */
-  --gold-dim:         #b88b32;
-  --gold-light:       #f0cc80;
-  --gold-glow:        rgba(212,168,75,0.10);
-
-  /* Legacy */
-  --tea:              #d4a84b;
-  --tea-light:        #f0cc80;
-  --cafe:             #c8843a;
-  --brown:            #bfa27a;
-  --brown-light:      #e5cda8;
-  --olive:            #c8843a;
+  /* Legacy variable mappings (to prevent broken styles) */
+  --caramel:          #c5a880;
+  --caramel-light:    #e5cda8;
+  --caramel-dark:     #a6865d;
+  --cappuccino:       #e5cda8;
+  --cappuccino-light: #fcfbf9;
+  --coffee:           #8b1a2e;
+  --coffee-light:     #a82d42;
+  --coffee-dark:      #661120;
+  --tea:              #c5a880;
+  --tea-light:        #e5cda8;
+  --cafe:             #8b1a2e;
+  --brown:            #8b1a2e;  /* عنابي بدل البني */
+  --brown-light:      #a82d42;
+  --olive:            #c5a880;  /* ذهبي بدل الزيتي */
   --olive-light:      #e5cda8;
+  --olive-dim:        #a6865d;
 
-  /* Text — deep warm caramel (NO grey, NO brown) */
-  --espresso:         #1e0e00;  /* Very dark caramel-black for text */
-  --espresso-mid:     #4d2e0a;  /* Medium caramel for secondary text */
-  --espresso-dim:     #8a6030;  /* Muted caramel for hints */
+  /* Clean High-Contrast Text (NO brown!) */
+  --espresso:         #1a1a1a;  /* أسود فحم نقي لنصوص فائقة الوضوح */
+  --espresso-mid:     #4a4a4a;  /* رمادي غامق للنصوص الثانوية */
+  --espresso-dim:     #7a7a7a;  /* رمادي متوسط للتلميحات */
 
   /* Shadows */
-  --shadow-sm:        rgba(0, 0, 0, .05);
-  --shadow-md:        rgba(0, 0, 0, .10);
-  --shadow-lg:        rgba(0, 0, 0, .15);
-  --shadow-gold:      0 8px 28px rgba(200,132,58,0.14);
+  --shadow-sm:        rgba(0, 0, 0, .03);
+  --shadow-md:        rgba(0, 0, 0, .08);
+  --shadow-lg:        rgba(0, 0, 0, .12);
+  --shadow-gold:      0 8px 28px rgba(197,168,128,0.14);
   --tr:               .3s cubic-bezier(.4, 0, .2, 1);
 
   /* ── Compatibility aliases ── */
-  --bg-base:          #f4f0e6;
-  --bg-surface:       #fcfbf7;
-  --bg-elevated:      #ede6d4;
+  --bg-base:          #fcfbf9;
+  --bg-surface:       #ffffff;
+  --bg-elevated:      #f2efe9;
   --bg-card:          #ffffff;
-  --bg-card-hover:    #fdf8f0;
-  --text-primary:     #1e0e00;
-  --text-secondary:   #4d2e0a;
-  --text-muted:       #8a6030;
-  --border:           rgba(200,132,58,0.22);
-  --border-hover:     rgba(200,132,58,0.45);
-  --divider:          rgba(200,132,58,0.12);
+  --bg-card-hover:    #fdfdfc;
+  --text-primary:     #1a1a1a;
+  --text-secondary:   #4a4a4a;
+  --text-muted:       #7a7a7a;
+  --border:           rgba(197,168,128,0.25);
+  --border-hover:     rgba(197,168,128,0.45);
+  --divider:          rgba(197,168,128,0.15);
 
   /* ── Admin Panel ── */
-  --admin-bg:         #f4f0e6;
+  --admin-bg:         #fcfbf9;
   --admin-card:       #ffffff;
-  --admin-accent:     #c8843a;  /* Caramel highlight */
-  --admin-text:       #1e0e00;
-  --admin-border:     #ede6d4;
-  --admin-input:      #fdf5e8;
+  --admin-accent:     #8b1a2e;  /* عنابي كلكنة الأدمن */
+  --admin-text:       #1a1a1a;
+  --admin-border:     #f2efe9;
+  --admin-input:      #ffffff;
 }
 
 /* ══════════════════════════════════════
-   🌑 Dark Mode — Caramel-Black · Beige · Gold
+   🌑 Dark Mode — عنابي غامق · ذهبي · كريمي
    ══════════════════════════════════════ */
 [data-theme="dark"] {
-  --cream:            #0d0005;  /* Very deep crimson-black */
-  --cream-dark:       #1a000c;
-  --latte:            #f0e8d4;
-  --latte-soft:       #d4a84b;
-  --espresso:         #f4f0e6;  /* Beige text on crimson bg */
-  --espresso-mid:     #e5cda8;  /* Light cappuccino text */
-  --espresso-dim:     #d4a84b;  /* Gold muted text */
-  --white:            #160008;
-  --gold:             #d4a84b;
-  --gold-dim:         #b88b32;
-  --gold-light:       #3a1020;
-  --gold-glow:        rgba(212,168,75,0.10);
-  --caramel:          #e8a444;
-  --caramel-light:    #f0b858;
-  --caramel-dark:     #c8843a;
-  --coffee:           #e8a444;
-  --coffee-light:     #f0b858;
-  --coffee-dark:      #c8843a;
-  --bg-base:          #0d0005;
-  --bg-surface:       #1a000c;
-  --bg-elevated:      #280014;
-  --bg-card:          #1a000c;
-  --bg-card-hover:    #280014;
-  --text-primary:     #f4f0e6;
-  --text-secondary:   #e5cda8;
-  --text-muted:       #d4a84b;
-  --border:           rgba(200,30,60,0.25);
-  --border-hover:     rgba(200,30,60,0.45);
-  --divider:          rgba(200,30,60,0.12);
+  --cream:            #0a0506;  /* أسود عنابي عميق جداً */
+  --cream-dark:       #1a0c10;
+  --latte:            #f2efe9;
+  --latte-soft:       #d4b46a;
+  --espresso:         #f2efe9;  /* نص كريمي عاجي على خلفية داكنة */
+  --espresso-mid:     #d4b46a;  /* نص ذهبي فاتح */
+  --espresso-dim:     #a88d4d;  /* نص ذهبي باهت */
+  --white:            #12080a;
+  --gold:             #d4b46a;
+  --gold-dim:         #a88d4d;
+  --gold-light:       #3d1822;
+  --gold-glow:        rgba(212,180,106,0.12);
+  --caramel:          #d4b46a;
+  --caramel-light:    #e8d19a;
+  --caramel-dark:     #a88d4d;
+  --coffee:           #d4b46a;
+  --coffee-light:     #e8d19a;
+  --coffee-dark:      #a88d4d;
+  --burgundy:         #8b1a2e;
+  --burgundy-light:   #a82d42;
+  --burgundy-dark:    #4a0d18;
+  --brown:            #8b1a2e;
+  --brown-light:      #a82d42;
+  --olive:            #d4b46a;
+  --olive-light:      #e8d19a;
+  --olive-dim:        #a88d4d;
+  --bg-base:          #0a0506;
+  --bg-surface:       #1a0c10;
+  --bg-elevated:      #2b121a;
+  --bg-card:          #1a0c10;
+  --bg-card-hover:    #2b121a;
+  --text-primary:     #f2efe9;
+  --text-secondary:   #d4b46a;
+  --text-muted:       #a88d4d;
+  --border:           rgba(139,26,46,0.35);
+  --border-hover:     rgba(139,26,46,0.55);
+  --divider:          rgba(139,26,46,0.18);
   --shadow-sm:        rgba(0,0,0,0.30);
   --shadow-md:        rgba(0,0,0,0.50);
   --shadow-lg:        rgba(0,0,0,0.70);
   --shadow-gold:      0 8px 28px rgba(0,0,0,0.50);
-  --admin-bg:         #0d0005;
-  --admin-card:       #1a000c;
-  --admin-accent:     #d4a84b;
-  --admin-text:       #f4f0e6;
-  --admin-border:     rgba(200,30,60,0.20);
-  --admin-input:      rgba(200,30,60,0.08);
+  --admin-bg:         #0a0506;
+  --admin-card:       #1a0c10;
+  --admin-accent:     #d4b46a;
+  --admin-text:       #f2efe9;
+  --admin-border:     rgba(139,26,46,0.20);
+  --admin-input:      rgba(139,26,46,0.08);
 }
 
 [data-theme="dark"] body {
-  /* Deep crimson (كرميدي) animated gradient */
+  /* تدرج عنابي-أسود فاخر متحرك، متناسق مع الشعار */
   background: linear-gradient(
     135deg,
-    #0d0005 0%,
-    #2d0012 25%,
-    #160008 50%,
-    #3a001a 75%,
-    #0d0005 100%
+    #0a0506 0%,
+    #2b121a 25%,
+    #12080a 50%,
+    #3d1822 75%,
+    #0a0506 100%
   );
   background-size: 300% 300%;
   animation: crimsonShift 18s ease-in-out infinite;
@@ -138,16 +145,16 @@
   overflow-x: hidden;
 }
 
-/* Crimson glow blobs — GPU transform only */
+/* توهجات عنابية-ذهبية — GPU transform only */
 [data-theme="dark"] body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(ellipse 65% 55% at 15% 15%, rgba(160,20,50,0.32) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 50% at 85% 85%, rgba(200,30,70,0.22) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 40% at 55% 45%, rgba(100,10,30,0.16) 0%, transparent 55%);
+    radial-gradient(ellipse 65% 55% at 15% 15%, rgba(139,26,46,0.32) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 50% at 85% 85%, rgba(212,180,106,0.16) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 55% 45%, rgba(74,13,24,0.20) 0%, transparent 55%);
   will-change: transform;
   animation: bgOrbit 24s ease-in-out infinite alternate;
   pointer-events: none;
@@ -201,13 +208,24 @@ body {
   font-family: 'DM Sans', sans-serif;
   background-color: var(--cream);
   background-image:
-    radial-gradient(ellipse 70% 50% at 10% 0%,   rgba(74,155,168,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(107,79,58,0.04)  0%, transparent 60%);
+    linear-gradient(135deg, var(--cream) 0%, var(--cream-dark) 40%, var(--cream) 70%, var(--cream-dark) 100%),
+    radial-gradient(ellipse 70% 50% at 10% 0%,   rgba(197,168,128,0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(156,31,53,0.03)  0%, transparent 60%);
+  background-size: 260% 260%, 100% 100%, 100% 100%;
+  animation: goldShift 26s ease-in-out infinite;
   color: var(--espresso);
   overflow-x: hidden;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   cursor: auto !important;
+}
+
+@keyframes goldShift {
+  0%   { background-position: 0% 50%, 0 0, 0 0; }
+  25%  { background-position: 50% 0%, 0 0, 0 0; }
+  50%  { background-position: 100% 50%, 0 0, 0 0; }
+  75%  { background-position: 50% 100%, 0 0, 0 0; }
+  100% { background-position: 0% 50%, 0 0, 0 0; }
 }
 
 img {
@@ -333,7 +351,7 @@ p {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
   transform: translateX(-100%);
   transition: transform 0.5s ease;
 }
@@ -343,16 +361,16 @@ p {
 }
 
 .btn-primary {
-  background: var(--brown);
+  background: linear-gradient(135deg, var(--burgundy) 0%, var(--burgundy-dark) 100%);
   color: var(--cream);
   font-weight: 700;
-  box-shadow: 0 8px 24px rgba(107,79,58,0.20);
+  box-shadow: 0 8px 24px rgba(122,19,39,0.28);
 }
 
 .btn-primary:hover {
-  background: var(--brown-light);
+  background: linear-gradient(135deg, var(--burgundy-light) 0%, var(--burgundy) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(107,79,58,0.28);
+  box-shadow: 0 12px 32px rgba(122,19,39,0.38);
 }
 
 .btn-outline {
@@ -369,14 +387,14 @@ p {
 }
 
 .btn-olive {
-  background: var(--olive);
+  background: linear-gradient(135deg, var(--gold) 0%, var(--caramel-dark) 100%);
   color: var(--white);
 }
 
 .btn-olive:hover {
-  background: var(--olive-dim);
+  background: linear-gradient(135deg, var(--olive-dim) 0%, var(--gold) 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 28px rgba(74,155,168,.35);
+  box-shadow: 0 8px 28px rgba(201,162,39,.35);
 }
 
 .section-wrap {
@@ -430,9 +448,9 @@ p {
   text-transform: uppercase;
   padding: .18rem .55rem;
   border-radius: 100px;
-  background: rgba(107, 79, 58, .1);
-  color: var(--brown);
-  border: 1px solid rgba(107, 79, 58, .2);
+  background: rgba(122, 19, 39, .08);
+  color: var(--burgundy);
+  border: 1px solid rgba(122, 19, 39, .22);
 }
 
 .tag-veg {
@@ -445,9 +463,9 @@ p {
   text-transform: uppercase;
   padding: .18rem .55rem;
   border-radius: 100px;
-  background: rgba(138, 102, 80, .1);
-  color: var(--brown-light);
-  border: 1px solid rgba(138, 102, 80, .2);
+  background: rgba(201, 162, 39, .10);
+  color: var(--caramel-dark);
+  border: 1px solid rgba(201, 162, 39, .22);
 }
 
 @keyframes fadeSlideDown {
@@ -576,7 +594,7 @@ p {
   left: -10%;
   width: 40vw;
   height: 40vw;
-  background: radial-gradient(circle, rgba(197, 168, 128, 0.10) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(201, 162, 39, 0.12) 0%, transparent 70%);
   filter: blur(60px);
   z-index: -1;
   pointer-events: none;
@@ -590,7 +608,7 @@ p {
   right: -10%;
   width: 45vw;
   height: 45vw;
-  background: radial-gradient(circle, rgba(166, 134, 93, 0.07) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(122, 19, 39, 0.08) 0%, transparent 70%);
   filter: blur(70px);
   z-index: -1;
   pointer-events: none;
@@ -610,16 +628,84 @@ p {
   100% { transform: translate(0, 0) scale(1); }
 }
 
+/* توهج ثالث في المنتصف — يدور ببطء ويعطي عمق إضافي */
+.bg-glow-3 {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  width: 32vw;
+  height: 32vw;
+  background: radial-gradient(circle, rgba(122, 19, 39, 0.06) 0%, transparent 70%);
+  filter: blur(80px);
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+  animation: floatGlow3 40s linear infinite;
+}
+
+@keyframes floatGlow3 {
+  0%   { transform: translate(-50%, -50%) rotate(0deg) translateX(6vw) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(6vw) rotate(-360deg); }
+}
+
+/* جزيئات ذهبية عائمة — لمسة فخامة خفيفة بدون تشتيت */
+.bg-sparkles {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bg-sparkles::before,
+.bg-sparkles::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image:
+    radial-gradient(2px 2px at 12% 22%, rgba(201,162,39,0.55) 0%, transparent 60%),
+    radial-gradient(2px 2px at 32% 68%, rgba(201,162,39,0.45) 0%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 58% 15%, rgba(122,19,39,0.35) 0%, transparent 60%),
+    radial-gradient(2px 2px at 74% 82%, rgba(201,162,39,0.5) 0%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 88% 38%, rgba(201,162,39,0.4) 0%, transparent 60%),
+    radial-gradient(2px 2px at 45% 48%, rgba(122,19,39,0.3) 0%, transparent 60%);
+  background-repeat: no-repeat;
+  animation: sparkleDrift 22s ease-in-out infinite alternate;
+}
+
+.bg-sparkles::after {
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 80%, rgba(201,162,39,0.4) 0%, transparent 60%),
+    radial-gradient(2px 2px at 65% 30%, rgba(122,19,39,0.3) 0%, transparent 60%),
+    radial-gradient(1.5px 1.5px at 82% 62%, rgba(201,162,39,0.45) 0%, transparent 60%),
+    radial-gradient(2px 2px at 6% 50%, rgba(201,162,39,0.35) 0%, transparent 60%);
+  animation-duration: 30s;
+  animation-direction: alternate-reverse;
+}
+
+@keyframes sparkleDrift {
+  0%   { transform: translate(0, 0) scale(1); opacity: .7; }
+  50%  { transform: translate(1.5%, -2%) scale(1.03); opacity: 1; }
+  100% { transform: translate(-1%, 1.5%) scale(0.98); opacity: .8; }
+}
+
 [data-theme="dark"] .bg-glow-1 {
-  background: radial-gradient(circle, rgba(197, 168, 128, 0.14) 0%, transparent 75%);
+  background: radial-gradient(circle, rgba(201, 162, 39, 0.16) 0%, transparent 75%);
   width: 42vw;
   height: 42vw;
 }
 
 [data-theme="dark"] .bg-glow-2 {
-  background: radial-gradient(circle, rgba(166, 134, 93, 0.10) 0%, transparent 75%);
+  background: radial-gradient(circle, rgba(122, 19, 39, 0.14) 0%, transparent 75%);
   width: 48vw;
   height: 48vw;
+}
+
+[data-theme="dark"] .bg-glow-3 {
+  background: radial-gradient(circle, rgba(201, 162, 39, 0.10) 0%, transparent 75%);
+  width: 36vw;
+  height: 36vw;
 }
 
 @keyframes bgOrbit {
