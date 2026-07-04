@@ -99,10 +99,7 @@ export default function LoadingScreen({ onComplete }) {
         {/* Decorative line bottom */}
         <div className={`${styles.decoLine} ${phase === 'reveal' ? styles.decoLineVisible : ''}`} />
 
-        {/* Year */}
-        <span className={`${styles.yearTag} ${phase === 'reveal' ? styles.yearTagVisible : ''}`}>
-          منذ ٢٠٠٤
-        </span>
+
 
         {/* Progress */}
         <div className={`${styles.progressBar} ${phase === 'reveal' ? styles.progressBarVisible : ''}`}>

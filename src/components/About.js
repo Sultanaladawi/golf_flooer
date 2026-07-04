@@ -59,7 +59,7 @@ export default function About() {
             </div>
             <div className={styles.badge} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--gold)' }}>
               <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>مطرزات شرقية</span>
-              <span className={styles.badgeMain} style={{ color: 'var(--gold)' }}>منذ 2004</span>
+              <span className={styles.badgeMain} style={{ color: 'var(--gold)' }}>تصاميم حصرية</span>
               <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>صناعة يدوية فاخرة</span>
             </div>
           </div>
