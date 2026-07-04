@@ -288,8 +288,22 @@ export default function Footer() {
             }}>
               <span style={{ fontSize: '1.3rem' }}>🏛️</span>
               <div>
-                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: '600', lineHeight: 1 }}>الرقم الوطني</div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: '600', lineHeight: 1 }}>الرقم الوطني للمنشأة</div>
                 <div style={{ fontSize: '0.82rem', color: 'var(--espresso)', fontWeight: '800', letterSpacing: '0.5px' }}>101071079</div>
+              </div>
+            </div>
+
+            {/* Tax Number */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '6px 14px', borderRadius: '8px',
+              background: 'rgba(166, 134, 93, 0.07)',
+              border: '1px solid rgba(166, 134, 93, 0.2)',
+            }}>
+              <span style={{ fontSize: '1.3rem' }}>💼</span>
+              <div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: '600', lineHeight: 1 }}>الرقم الضريبي</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--espresso)', fontWeight: '800', letterSpacing: '0.5px' }}>81492545</div>
               </div>
             </div>
           </div>
