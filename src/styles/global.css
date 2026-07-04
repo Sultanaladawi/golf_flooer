@@ -2,60 +2,60 @@
 
 :root {
   /* ══════════════════════════════════════
-     🌾 Light Mode — Ivory · Gold · Burgundy
-     مستوحى من ألوان الشعار: ذهبي + عنابي + كريمي (بدون أي درجات بني)
+     🌾 Light Mode — Ivory & Brushed Gold
+     تصميم فاخر متناسق مع الشعار: عاجي ناصع + ذهبي + أسود ملكي
      ══════════════════════════════════════ */
 
-  /* Burgundy / عنابي (لون الهوية الأساسي) */
-  --burgundy:         #9c1f35;  /* عنابي فاخر */
-  --burgundy-light:   #b8324a;  /* عنابي فاتح */
-  --burgundy-dark:    #7a1327;  /* عنابي عميق */
-
-  /* Gold / ذهبي */
-  --gold:             #c5a880;  /* ذهبي الشعار الرسمي */
+  /* Gold / ذهبي الشعار */
+  --gold:             #c5a880;  /* ذهبي رسمي */
   --gold-dim:         #a6865d;  /* ذهبي مطفأ */
   --gold-light:       #e5cda8;  /* ذهبي فاتح */
-  --gold-glow:        rgba(197,168,128,0.12);
+  --gold-glow:        rgba(197,168,128,0.10);
+
+  /* Primary accent mapped to Gold/Burgundy combo for abaya brand */
+  --burgundy:         #c5a880;  /* ذهبي للأزرار الأساسية */
+  --burgundy-light:   #e5cda8;
+  --burgundy-dark:    #a6865d;
 
   /* Clean background colors (NO muddy yellows/browns) */
-  --cream:            #fcfbf9;  /* كريمي عاجي فاتح ونظيف جداً */
+  --cream:            #faf9f6;  /* كريمي عاجي فاتح ونظيف جداً */
   --cream-dark:       #f2efe9;  /* أوف وايت كتاني ناعم */
   --white:            #ffffff;
-  --latte:            #fcfbf9;
-  --latte-soft:       #f2efe9;
+  --latte:            #ffffff;
+  --latte-soft:       #faf9f6;
 
-  /* Legacy variable mappings (to prevent broken styles) */
+  /* Legacy mappings */
   --caramel:          #c5a880;
   --caramel-light:    #e5cda8;
   --caramel-dark:     #a6865d;
   --cappuccino:       #e5cda8;
-  --cappuccino-light: #fcfbf9;
-  --coffee:           #8b1a2e;
-  --coffee-light:     #a82d42;
-  --coffee-dark:      #661120;
+  --cappuccino-light: #faf9f6;
+  --coffee:           #c5a880;
+  --coffee-light:     #e5cda8;
+  --coffee-dark:      #a6865d;
   --tea:              #c5a880;
   --tea-light:        #e5cda8;
-  --cafe:             #8b1a2e;
-  --brown:            #8b1a2e;  /* عنابي بدل البني */
-  --brown-light:      #a82d42;
-  --olive:            #c5a880;  /* ذهبي بدل الزيتي */
+  --cafe:             #c5a880;
+  --brown:            #c5a880;
+  --brown-light:      #e5cda8;
+  --olive:            #c5a880;
   --olive-light:      #e5cda8;
   --olive-dim:        #a6865d;
 
-  /* Clean High-Contrast Text (NO brown!) */
-  --espresso:         #1a1a1a;  /* أسود فحم نقي لنصوص فائقة الوضوح */
+  /* High-Contrast Luxury Text */
+  --espresso:         #1a1a1a;  /* أسود ملكي فخم للنصوص الأساسية */
   --espresso-mid:     #4a4a4a;  /* رمادي غامق للنصوص الثانوية */
-  --espresso-dim:     #7a7a7a;  /* رمادي متوسط للتلميحات */
+  --espresso-dim:     #7a7a7a;  /* رمادي للتلميحات */
 
   /* Shadows */
-  --shadow-sm:        rgba(0, 0, 0, .03);
-  --shadow-md:        rgba(0, 0, 0, .08);
-  --shadow-lg:        rgba(0, 0, 0, .12);
-  --shadow-gold:      0 8px 28px rgba(197,168,128,0.14);
+  --shadow-sm:        rgba(0, 0, 0, .02);
+  --shadow-md:        rgba(0, 0, 0, .06);
+  --shadow-lg:        rgba(0, 0, 0, .10);
+  --shadow-gold:      0 8px 28px rgba(197,168,128,0.12);
   --tr:               .3s cubic-bezier(.4, 0, .2, 1);
 
   /* ── Compatibility aliases ── */
-  --bg-base:          #fcfbf9;
+  --bg-base:          #faf9f6;
   --bg-surface:       #ffffff;
   --bg-elevated:      #f2efe9;
   --bg-card:          #ffffff;
@@ -63,98 +63,89 @@
   --text-primary:     #1a1a1a;
   --text-secondary:   #4a4a4a;
   --text-muted:       #7a7a7a;
-  --border:           rgba(197,168,128,0.25);
-  --border-hover:     rgba(197,168,128,0.45);
-  --divider:          rgba(197,168,128,0.15);
+  --border:           rgba(197,168,128,0.22);
+  --border-hover:     rgba(197,168,128,0.42);
+  --divider:          rgba(197,168,128,0.12);
 
   /* ── Admin Panel ── */
-  --admin-bg:         #fcfbf9;
+  --admin-bg:         #faf9f6;
   --admin-card:       #ffffff;
-  --admin-accent:     #8b1a2e;  /* عنابي كلكنة الأدمن */
+  --admin-accent:     #c5a880;
   --admin-text:       #1a1a1a;
   --admin-border:     #f2efe9;
   --admin-input:      #ffffff;
 }
 
 /* ══════════════════════════════════════
-   🌑 Dark Mode — عنابي غامق · ذهبي · كريمي
+   🌑 Dark Mode — Obsidian Black & Glowing Gold
+   تصميم فاخر جداً: أسود ملكي فاحم + إضاءات ذهبية ناعمة (رولكس/شانيل)
    ══════════════════════════════════════ */
 [data-theme="dark"] {
-  --cream:            #0a0506;  /* أسود عنابي عميق جداً */
-  --cream-dark:       #1a0c10;
-  --latte:            #f2efe9;
-  --latte-soft:       #d4b46a;
-  --espresso:         #f2efe9;  /* نص كريمي عاجي على خلفية داكنة */
-  --espresso-mid:     #d4b46a;  /* نص ذهبي فاتح */
-  --espresso-dim:     #a88d4d;  /* نص ذهبي باهت */
-  --white:            #12080a;
-  --gold:             #d4b46a;
-  --gold-dim:         #a88d4d;
-  --gold-light:       #3d1822;
-  --gold-glow:        rgba(212,180,106,0.12);
-  --caramel:          #d4b46a;
-  --caramel-light:    #e8d19a;
-  --caramel-dark:     #a88d4d;
-  --coffee:           #d4b46a;
-  --coffee-light:     #e8d19a;
-  --coffee-dark:      #a88d4d;
-  --burgundy:         #8b1a2e;
-  --burgundy-light:   #a82d42;
-  --burgundy-dark:    #4a0d18;
-  --brown:            #8b1a2e;
-  --brown-light:      #a82d42;
-  --olive:            #d4b46a;
-  --olive-light:      #e8d19a;
-  --olive-dim:        #a88d4d;
-  --bg-base:          #0a0506;
-  --bg-surface:       #1a0c10;
-  --bg-elevated:      #2b121a;
-  --bg-card:          #1a0c10;
-  --bg-card-hover:    #2b121a;
-  --text-primary:     #f2efe9;
-  --text-secondary:   #d4b46a;
-  --text-muted:       #a88d4d;
-  --border:           rgba(139,26,46,0.35);
-  --border-hover:     rgba(139,26,46,0.55);
-  --divider:          rgba(139,26,46,0.18);
-  --shadow-sm:        rgba(0,0,0,0.30);
-  --shadow-md:        rgba(0,0,0,0.50);
-  --shadow-lg:        rgba(0,0,0,0.70);
-  --shadow-gold:      0 8px 28px rgba(0,0,0,0.50);
-  --admin-bg:         #0a0506;
-  --admin-card:       #1a0c10;
-  --admin-accent:     #d4b46a;
-  --admin-text:       #f2efe9;
-  --admin-border:     rgba(139,26,46,0.20);
-  --admin-input:      rgba(139,26,46,0.08);
+  --cream:            #090909;  /* أسود فاحم ملكي */
+  --cream-dark:       #121212;  /* أسود أوبسيديان */
+  --latte:            #f5f5f5;
+  --latte-soft:       #c5a880;
+  --espresso:         #f5f5f5;  /* نص أبيض ناصع */
+  --espresso-mid:     #cccccc;  /* نص فضي فاتح */
+  --espresso-dim:     #888888;  /* نص رمادي */
+  --white:            #000000;
+  --gold:             #c5a880;
+  --gold-dim:         #a6865d;
+  --gold-light:       #2a1f14;
+  --gold-glow:        rgba(197,168,128,0.08);
+  --caramel:          #c5a880;
+  --caramel-light:    #e5cda8;
+  --caramel-dark:     #a6865d;
+  --coffee:           #c5a880;
+  --coffee-light:     #e5cda8;
+  --coffee-dark:      #a6865d;
+  --burgundy:         #c5a880;
+  --burgundy-light:   #e5cda8;
+  --burgundy-dark:    #a6865d;
+  --brown:            #c5a880;
+  --brown-light:      #e5cda8;
+  --olive:            #c5a880;
+  --olive-light:      #e5cda8;
+  --olive-dim:        #a6865d;
+  --bg-base:          #090909;
+  --bg-surface:       #121212;
+  --bg-elevated:      #1a1a1a;
+  --bg-card:          #121212;
+  --bg-card-hover:    #1a1a1a;
+  --text-primary:     #f5f5f5;
+  --text-secondary:   #cccccc;
+  --text-muted:       #888888;
+  --border:           rgba(197,168,128,0.2);
+  --border-hover:     rgba(197,168,128,0.4);
+  --divider:          rgba(197,168,128,0.1);
+  --shadow-sm:        rgba(0,0,0,0.5);
+  --shadow-md:        rgba(0,0,0,0.7);
+  --shadow-lg:        rgba(0,0,0,0.9);
+  --shadow-gold:      0 8px 28px rgba(197,168,128,0.08);
+  --admin-bg:         #090909;
+  --admin-card:       #121212;
+  --admin-accent:     #c5a880;
+  --admin-text:       #f5f5f5;
+  --admin-border:     rgba(197,168,128,0.2);
+  --admin-input:      rgba(197,168,128,0.08);
 }
 
 [data-theme="dark"] body {
-  /* تدرج عنابي-أسود فاخر متحرك، متناسق مع الشعار */
-  background: linear-gradient(
-    135deg,
-    #0a0506 0%,
-    #2b121a 25%,
-    #12080a 50%,
-    #3d1822 75%,
-    #0a0506 100%
-  );
-  background-size: 300% 300%;
-  animation: crimsonShift 18s ease-in-out infinite;
+  background: #090909;
   color: var(--espresso);
   overflow-x: hidden;
 }
 
-/* توهجات عنابية-ذهبية — GPU transform only */
+/* توهجات ذهبية خافتة وفخمة تطفو في الخلفية */
 [data-theme="dark"] body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(ellipse 65% 55% at 15% 15%, rgba(139,26,46,0.32) 0%, transparent 60%),
-    radial-gradient(ellipse 55% 50% at 85% 85%, rgba(212,180,106,0.16) 0%, transparent 60%),
-    radial-gradient(ellipse 45% 40% at 55% 45%, rgba(74,13,24,0.20) 0%, transparent 55%);
+    radial-gradient(ellipse 65% 55% at 15% 15%, rgba(197,168,128,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 50% at 85% 85%, rgba(197,168,128,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 55% 45%, rgba(197,168,128,0.06) 0%, transparent 55%);
   will-change: transform;
   animation: bgOrbit 24s ease-in-out infinite alternate;
   pointer-events: none;
