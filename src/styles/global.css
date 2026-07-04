@@ -18,9 +18,9 @@
   --brown-light:      #e5cda8;
   --olive:            #c5a880;
   --olive-light:      #e5cda8;
-  --espresso:         #2a1b0c;  /* Royal dark espresso text */
-  --espresso-mid:     #5c4731;
-  --espresso-dim:     #8c735a;
+  --espresso:         #3d020d;  /* Deep dark burgundy-black text matching the logo crimson */
+  --espresso-mid:     #721422;  /* Medium dark crimson text */
+  --espresso-dim:     #a65d68;  /* Muted soft crimson text */
   --white:            #ffffff;
   --gold:             #c5a880;  /* Official Gold from logo */
   --gold-dim:         #a6865d;
@@ -38,9 +38,9 @@
   --bg-elevated:      #e8e1cf;
   --bg-card:          #ffffff;
   --bg-card-hover:    #faf8f4;
-  --text-primary:     #2a1b0c;
-  --text-secondary:   #5c4731;
-  --text-muted:       #8c735a;
+  --text-primary:     #3d020d;
+  --text-secondary:   #721422;
+  --text-muted:       #a65d68;
   --border:           rgba(166, 134, 93, 0.25);
   --border-hover:     rgba(166, 134, 93, 0.45);
   --divider:          rgba(166, 134, 93, 0.12);
@@ -49,46 +49,46 @@
   --admin-bg:     #f4f0e6;
   --admin-card:   #ffffff;
   --admin-accent: #800c20;  /* Crimson highlight in Admin */
-  --admin-text:   #2a1b0c;
+  --admin-text:   #3d020d;
   --admin-border: #e8e1cf;
   --admin-input:  #f3ebd9;
 }
 
 /* ── Dark Mode Theme (toggled by data-theme="dark" on body) ── */
 [data-theme="dark"] {
-  --cream:            #0f0a04;
-  --cream-dark:       #1a1007;
-  --latte:            #f5ede0;
-  --latte-soft:       #e8ddd0;
-  --espresso:         #f5ede0;
-  --espresso-mid:     #c8b99a;
-  --espresso-dim:     #9a8570;
-  --white:            #1e1306;
+  --cream:            #160104;  /* Deep elegant burgundy-black */
+  --cream-dark:       #2d0309;  /* Deep burgundy-maroon */
+  --latte:            #e5cda8;
+  --latte-soft:       #c5a880;
+  --espresso:         #fbf9f4;  /* Light warm cream text */
+  --espresso-mid:     #e5cda8;  /* Soft gold text */
+  --espresso-dim:     #c5a880;  /* Muted gold text */
+  --white:            #1a0205;
   --gold:             #c5a880;
   --gold-dim:         #a6865d;
-  --gold-light:       #3a2a14;
+  --gold-light:       #5c0614;
   --gold-glow:        rgba(197,168,128,0.08);
-  --bg-base:          #0f0a04;
-  --bg-surface:       #140d05;
-  --bg-elevated:      #1e1306;
-  --bg-card:          #1e1306;
-  --bg-card-hover:    #261a09;
-  --text-primary:     #f5ede0;
-  --text-secondary:   #c8b99a;
-  --text-muted:       #9a8570;
-  --border:           rgba(196,164,132,0.2);
-  --border-hover:     rgba(196,164,132,0.4);
-  --divider:          rgba(196,164,132,0.1);
+  --bg-base:          #160104;
+  --bg-surface:       #230206;
+  --bg-elevated:      #2d0309;
+  --bg-card:          #230206;
+  --bg-card-hover:    #2d0309;
+  --text-primary:     #fbf9f4;
+  --text-secondary:   #e5cda8;
+  --text-muted:       #c5a880;
+  --border:           rgba(197,168,128,0.2);
+  --border-hover:     rgba(197,168,128,0.4);
+  --divider:          rgba(197,168,128,0.1);
   --shadow-sm:        rgba(0,0,0,0.3);
   --shadow-md:        rgba(0,0,0,0.5);
   --shadow-lg:        rgba(0,0,0,0.7);
   --shadow-gold:      0 8px 28px rgba(0,0,0,0.4);
-  --admin-bg:         #0f0a04;
-  --admin-card:       #1e1306;
+  --admin-bg:         #160104;
+  --admin-card:       #230206;
   --admin-accent:     #c5a880;
-  --admin-text:       #f5ede0;
-  --admin-border:     rgba(196,164,132,0.2);
-  --admin-input:      rgba(196,164,132,0.08);
+  --admin-text:       #fbf9f4;
+  --admin-border:     rgba(197,168,128,0.2);
+  --admin-input:      rgba(197,168,128,0.08);
 }
 
 [data-theme="dark"] body {

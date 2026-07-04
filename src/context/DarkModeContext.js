@@ -14,7 +14,7 @@ export function DarkModeProvider({ children }) {
   useEffect(() => {
     // Apply theme attribute to the html element (works with [data-theme="dark"] in CSS)
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    document.body.style.backgroundColor = isDark ? '#0f0a04' : '';
+    document.body.style.backgroundColor = isDark ? '#160104' : '';
     try {
       localStorage.setItem('zahrat_theme', isDark ? 'dark' : 'light');
     } catch {}
