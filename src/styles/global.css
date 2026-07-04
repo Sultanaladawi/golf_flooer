@@ -1,114 +1,164 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Lora:ital@1&family=Caveat:wght@500;700&display=swap');
 
 :root {
-  /* ── Customer Site: Beige, Cappuccino & Gold Palette ── */
-  --coffee:           #a6865d;  /* Rich Cappuccino Gold Accent */
-  --coffee-light:     #bfa27a;  /* Warm Cappuccino */
-  --coffee-dark:      #8a6c46;  /* Deep Cappuccino */
+  /* ══════════════════════════════════════
+     🌾 Light Mode — Beige · Caramel · Gold
+     ══════════════════════════════════════ */
+
+  /* Primary caramel accent */
+  --caramel:          #c8843a;  /* Main caramel */
+  --caramel-light:    #e8a444;  /* Bright caramel */
+  --caramel-dark:     #a06828;  /* Deep caramel */
+
+  /* Cappuccino / warm-neutral */
   --cappuccino:       #bfa27a;
   --cappuccino-light: #e5cda8;
+
+  /* Legacy aliases → caramel */
+  --coffee:           #c8843a;
+  --coffee-light:     #e8a444;
+  --coffee-dark:      #a06828;
+
+  /* Latte / whites */
   --latte:            #ffffff;
   --latte-soft:       #fbf9f4;
-  --tea:              #c5a880;
-  --tea-light:        #e5cda8;
-  --cafe:             #c5a880;
-  --cream:            #f4f0e6;  /* Matching Logo exact warm off-white linen background */
-  --cream-dark:       #e8e1cf;  /* Slightly deeper golden-beige */
-  --brown:            #c5a880;
-  --brown-light:      #e5cda8;
-  --olive:            #c5a880;
-  --olive-light:      #e5cda8;
-  --espresso:         #2c1c0f;  /* Deep dark espresso/cappuccino roast text */
-  --espresso-mid:     #5c4731;  /* Cappuccino brown text */
-  --espresso-dim:     #8c735a;  /* Warm latte/beige-brown text */
   --white:            #ffffff;
-  --gold:             #c5a880;  /* Official Gold from logo */
-  --gold-dim:         #a6865d;
-  --gold-light:       #e5cda8;
-  --gold-glow:        rgba(197,168,128,0.08);
+
+  /* Beige backgrounds */
+  --cream:            #f4f0e6;  /* Warm off-white linen */
+  --cream-dark:       #ede6d4;
+
+  /* Gold */
+  --gold:             #d4a84b;  /* Richer, warmer gold */
+  --gold-dim:         #b88b32;
+  --gold-light:       #f0cc80;
+  --gold-glow:        rgba(212,168,75,0.10);
+
+  /* Legacy */
+  --tea:              #d4a84b;
+  --tea-light:        #f0cc80;
+  --cafe:             #c8843a;
+  --brown:            #bfa27a;
+  --brown-light:      #e5cda8;
+  --olive:            #c8843a;
+  --olive-light:      #e5cda8;
+
+  /* Text — deep warm caramel (NO grey, NO brown) */
+  --espresso:         #1e0e00;  /* Very dark caramel-black for text */
+  --espresso-mid:     #4d2e0a;  /* Medium caramel for secondary text */
+  --espresso-dim:     #8a6030;  /* Muted caramel for hints */
+
+  /* Shadows */
   --shadow-sm:        rgba(0, 0, 0, .05);
-  --shadow-md:        rgba(0, 0, 0, .1);
+  --shadow-md:        rgba(0, 0, 0, .10);
   --shadow-lg:        rgba(0, 0, 0, .15);
-  --shadow-gold:      0 8px 28px rgba(166,134,93,0.12);
+  --shadow-gold:      0 8px 28px rgba(200,132,58,0.14);
   --tr:               .3s cubic-bezier(.4, 0, .2, 1);
 
   /* ── Compatibility aliases ── */
   --bg-base:          #f4f0e6;
-  --bg-surface:       #fcfbf9;
-  --bg-elevated:      #e8e1cf;
+  --bg-surface:       #fcfbf7;
+  --bg-elevated:      #ede6d4;
   --bg-card:          #ffffff;
-  --bg-card-hover:    #faf8f4;
-  --text-primary:     #2c1c0f;
-  --text-secondary:   #5c4731;
-  --text-muted:       #8c735a;
-  --border:           rgba(166, 134, 93, 0.25);
-  --border-hover:     rgba(166, 134, 93, 0.45);
-  --divider:          rgba(166, 134, 93, 0.12);
+  --bg-card-hover:    #fdf8f0;
+  --text-primary:     #1e0e00;
+  --text-secondary:   #4d2e0a;
+  --text-muted:       #8a6030;
+  --border:           rgba(200,132,58,0.22);
+  --border-hover:     rgba(200,132,58,0.45);
+  --divider:          rgba(200,132,58,0.12);
 
-  /* ── Admin Panel (premium light theme) ── */
-  --admin-bg:     #f4f0e6;
-  --admin-card:   #ffffff;
-  --admin-accent: #a6865d;  /* Cappuccino Gold highlight in Admin */
-  --admin-text:   #2c1c0f;
-  --admin-border: #e8e1cf;
-  --admin-input:  #f3ebd9;
+  /* ── Admin Panel ── */
+  --admin-bg:         #f4f0e6;
+  --admin-card:       #ffffff;
+  --admin-accent:     #c8843a;  /* Caramel highlight */
+  --admin-text:       #1e0e00;
+  --admin-border:     #ede6d4;
+  --admin-input:      #fdf5e8;
 }
 
-/* ── Dark Mode Theme (toggled by data-theme="dark" on body) ── */
+/* ══════════════════════════════════════
+   🌑 Dark Mode — Caramel-Black · Beige · Gold
+   ══════════════════════════════════════ */
 [data-theme="dark"] {
-  --cream:            #120b07;  /* Deep elegant cappuccino-black */
-  --cream-dark:       #1d120c;  /* Deep cappuccino-espresso */
-  --latte:            #e5cda8;
-  --latte-soft:       #c5a880;
-  --espresso:         #fbf9f4;  /* Light warm cream text */
-  --espresso-mid:     #e5cda8;  /* Soft gold text */
-  --espresso-dim:     #c5a880;  /* Muted gold text */
-  --white:            #150d08;
-  --gold:             #c5a880;
-  --gold-dim:         #a6865d;
-  --gold-light:       #3a2a14;
-  --gold-glow:        rgba(197,168,128,0.08);
-  --bg-base:          #120b07;
-  --bg-surface:       #1d120c;
-  --bg-elevated:      #241810;
-  --bg-card:          #1d120c;
-  --bg-card-hover:    #241810;
-  --text-primary:     #fbf9f4;
+  --cream:            #0d0005;  /* Very deep crimson-black */
+  --cream-dark:       #1a000c;
+  --latte:            #f0e8d4;
+  --latte-soft:       #d4a84b;
+  --espresso:         #f4f0e6;  /* Beige text on crimson bg */
+  --espresso-mid:     #e5cda8;  /* Light cappuccino text */
+  --espresso-dim:     #d4a84b;  /* Gold muted text */
+  --white:            #160008;
+  --gold:             #d4a84b;
+  --gold-dim:         #b88b32;
+  --gold-light:       #3a1020;
+  --gold-glow:        rgba(212,168,75,0.10);
+  --caramel:          #e8a444;
+  --caramel-light:    #f0b858;
+  --caramel-dark:     #c8843a;
+  --coffee:           #e8a444;
+  --coffee-light:     #f0b858;
+  --coffee-dark:      #c8843a;
+  --bg-base:          #0d0005;
+  --bg-surface:       #1a000c;
+  --bg-elevated:      #280014;
+  --bg-card:          #1a000c;
+  --bg-card-hover:    #280014;
+  --text-primary:     #f4f0e6;
   --text-secondary:   #e5cda8;
-  --text-muted:       #c5a880;
-  --border:           rgba(197,168,128,0.2);
-  --border-hover:     rgba(197,168,128,0.4);
-  --divider:          rgba(197,168,128,0.1);
-  --shadow-sm:        rgba(0,0,0,0.3);
-  --shadow-md:        rgba(0,0,0,0.5);
-  --shadow-lg:        rgba(0,0,0,0.7);
-  --shadow-gold:      0 8px 28px rgba(0,0,0,0.4);
-  --admin-bg:         #120b07;
-  --admin-card:       #1d120c;
-  --admin-accent:     #c5a880;
-  --admin-text:       #fbf9f4;
-  --admin-border:     rgba(197,168,128,0.2);
-  --admin-input:      rgba(197,168,128,0.08);
+  --text-muted:       #d4a84b;
+  --border:           rgba(200,30,60,0.25);
+  --border-hover:     rgba(200,30,60,0.45);
+  --divider:          rgba(200,30,60,0.12);
+  --shadow-sm:        rgba(0,0,0,0.30);
+  --shadow-md:        rgba(0,0,0,0.50);
+  --shadow-lg:        rgba(0,0,0,0.70);
+  --shadow-gold:      0 8px 28px rgba(0,0,0,0.50);
+  --admin-bg:         #0d0005;
+  --admin-card:       #1a000c;
+  --admin-accent:     #d4a84b;
+  --admin-text:       #f4f0e6;
+  --admin-border:     rgba(200,30,60,0.20);
+  --admin-input:      rgba(200,30,60,0.08);
 }
 
 [data-theme="dark"] body {
-  background-color: #120b07;
+  /* Deep crimson (كرميدي) animated gradient */
+  background: linear-gradient(
+    135deg,
+    #0d0005 0%,
+    #2d0012 25%,
+    #160008 50%,
+    #3a001a 75%,
+    #0d0005 100%
+  );
+  background-size: 300% 300%;
+  animation: crimsonShift 18s ease-in-out infinite;
   color: var(--espresso);
   overflow-x: hidden;
 }
 
-/* GPU-accelerated animated glow overlay — no background-size trick */
+/* Crimson glow blobs — GPU transform only */
 [data-theme="dark"] body::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: -2;
+  z-index: -1;
   background:
-    radial-gradient(ellipse 60% 45% at 20% 20%, rgba(197,168,128,0.10) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(166,134,93,0.07) 0%, transparent 65%);
+    radial-gradient(ellipse 65% 55% at 15% 15%, rgba(160,20,50,0.32) 0%, transparent 60%),
+    radial-gradient(ellipse 55% 50% at 85% 85%, rgba(200,30,70,0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 55% 45%, rgba(100,10,30,0.16) 0%, transparent 55%);
   will-change: transform;
-  animation: bgOrbit 20s ease-in-out infinite alternate;
+  animation: bgOrbit 24s ease-in-out infinite alternate;
   pointer-events: none;
+}
+
+@keyframes crimsonShift {
+  0%   { background-position: 0% 50%; }
+  25%  { background-position: 50% 0%; }
+  50%  { background-position: 100% 50%; }
+  75%  { background-position: 50% 100%; }
+  100% { background-position: 0% 50%; }
 }
 
 
