@@ -191,7 +191,7 @@ const Dashboard = () => {
       <div style={{ position: 'relative', zIndex: 1, marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.6rem', color: theme.accent, lineHeight: 1, marginBottom: '8px' }}>
-            Zahrat Beesan <span style={{ color: theme.text, fontStyle: 'italic' }}>Embroidery</span>
+            Zahrat Beesan <span style={{ color: theme.text, fontStyle: 'italic' }}>Luxury</span>
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', background: 'var(--bg-surface)', border: `1px solid ${theme.border}`, padding: '10px 20px', borderRadius: '14px', marginBottom: '10px' }}>
             <Activity size={22} color={theme.accent} />
@@ -435,3 +435,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

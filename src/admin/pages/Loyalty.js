@@ -481,3 +481,5 @@ const Loyalty = () => {
 };
 
 export default Loyalty;
+
+

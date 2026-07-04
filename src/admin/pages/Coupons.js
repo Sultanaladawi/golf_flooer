@@ -265,7 +265,7 @@ const Coupons = () => {
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.primary, lineHeight: 1 }}>
-            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
           </div>
           <div className="page-badge">
             <Ticket size={28} color={colors.primary} />
@@ -461,3 +461,5 @@ const Coupons = () => {
 };
 
 export default Coupons;
+
+

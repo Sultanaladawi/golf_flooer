@@ -237,7 +237,7 @@ const AIAssistant = () => {
         <header style={{ borderBottom: `1px dashed ${theme.border}`, paddingBottom: '20px', marginBottom: '25px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <div>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.crema, lineHeight: 1 }}>
-              <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
+              <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
             </div>
             <div className="page-badge">
               <BrainCircuit size={28} color={theme.crema} />
@@ -393,3 +393,5 @@ const AIAssistant = () => {
 };
 
 export default AIAssistant;
+
+

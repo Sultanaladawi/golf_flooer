@@ -161,11 +161,11 @@ const Orders = () => {
       // Header branding
       doc.setFontSize(22);
       doc.setTextColor(45, 41, 38); // Espresso
-      doc.text('Zahrat Beesan Embroidery', 14, 22);
+      doc.text('Zahrat Beesan Luxury', 14, 22);
       
       doc.setFontSize(10);
       doc.setTextColor(120);
-      doc.text('Zahrat Beesan East Embroidery & Coutures', 14, 28);
+      doc.text('Zahrat Beesan Luxury Abayas & Fashion', 14, 28);
       doc.text('Amman, Jordan - Phone: +962 7 9000 0000', 14, 34);
       
       // Divider line
@@ -545,7 +545,7 @@ const Orders = () => {
       <div className="header-section" style={{ position: 'relative', zIndex: 1, marginBottom: '40px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: theme.primary, lineHeight: 1 }}>
-            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
           </div>
 
           <div className="page-badge">
@@ -730,3 +730,4 @@ const Orders = () => {
 };
 
 export default Orders;
+

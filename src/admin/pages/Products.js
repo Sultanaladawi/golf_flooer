@@ -1531,7 +1531,7 @@ const Products = () => {
       }}>
         <div>
           <div className="header-title" style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', color: colors.crema, lineHeight: 1 }}>
-            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Embroidery</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
           </div>
 
           <div className="page-badge">
@@ -1886,3 +1886,5 @@ const Products = () => {
 };
 
 export default Products;
+
+
