@@ -95,6 +95,7 @@ export const translations = {
     // Sidebar
     'Dashboard': 'الرئيسية',
     'Orders': 'الطلبات',
+    'Loyalty Program': 'برنامج الولاء',
     'Products': 'المنتجات',
     'Inventory': 'المخزون',
     'Analytics': 'الإحصائيات',
@@ -626,6 +627,27 @@ export const translations = {
     'Sizes & Quantities': 'المقاسات والكميات المتوفرة',
     'Size (e.g. S, M)': 'المقاس (مثال: S, M)',
     'Add Size': 'إضافة مقاس',
-    'Out of Stock': 'نفدت الكمية'
+    'Out of Stock': 'نفدت الكمية',
+    'Manage loyalty members, points balances, and settings.': 'إدارة عملاء الولاء ورصيد النقاط والإعدادات.',
+    'Loyalty Members': 'عملاء برنامج الولاء',
+    'Search by phone or name': 'البحث بالهاتف أو الاسم',
+    'Customer Name': 'اسم العميل',
+    'Phone Number': 'رقم الهاتف',
+    'Points Balance': 'رصيد النقاط',
+    'Joined Date': 'تاريخ الانضمام',
+    'Actions': 'الإجراءات',
+    'Adjust Points': 'تعديل النقاط',
+    'View History': 'عرض السجل',
+    'Earn Ratio (Points per JOD)': 'معدل الكسب (نقطة لكل دينار)',
+    'Redeem Ratio (JOD discount per point)': 'معدل الاستبدال (دينار خصم لكل نقطة)',
+    'Min Points to Redeem': 'الحد الأدنى للنقاط للاستبدال',
+    'Save Rules': 'حفظ الإعدادات',
+    'Transaction History': 'سجل الحركات للعميل',
+    'Change': 'التغيير',
+    'Reason': 'السبب',
+    'Points Adjustment': 'تعديل رصيد النقاط',
+    'New Points Balance': 'الرصيد الجديد',
+    'Adjust': 'تعديل',
+    'Cancel': 'إلغاء'
   }
 };

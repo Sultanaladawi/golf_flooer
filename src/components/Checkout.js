@@ -88,6 +88,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
   // Store Settings
   const [storeSettings, setStoreSettings] = useState(null);
+  const [loyaltyInfo, setLoyaltyInfo] = useState({ points: 0 });
+  const [usePoints, setUsePoints] = useState(false);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -95,6 +97,25 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       .then(data => setStoreSettings(data))
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    const phoneClean = (form.phone || '').trim();
+    if (phoneClean.length >= 7) {
+      const delayDebounce = setTimeout(() => {
+        fetch(`/api/loyalty/member/${encodeURIComponent(phoneClean)}`)
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (data) setLoyaltyInfo(data);
+            else setLoyaltyInfo({ points: 0 });
+          })
+          .catch(() => setLoyaltyInfo({ points: 0 }));
+      }, 500);
+      return () => clearTimeout(delayDebounce);
+    } else {
+      setLoyaltyInfo({ points: 0 });
+      setUsePoints(false);
+    }
+  }, [form.phone]);
 
   // Coupon State
   const [couponCode, setCouponCode] = useState('');
@@ -141,7 +162,15 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
         : couponApplied.discountValue)
     : 0;
 
-  const subtotalAfterDiscount = Math.max(0, totalPrice - discountAmount);
+  const loyalty_redeem_ratio = parseFloat(storeSettings?.loyalty_redeem_ratio) || 0.01;
+  const loyalty_min_points = parseInt(storeSettings?.loyalty_min_points, 10) || 100;
+  
+  const canRedeem = loyaltyInfo.points >= loyalty_min_points;
+  const maxPossibleDiscount = Math.max(0, totalPrice - discountAmount);
+  const pointsToRedeem = Math.min(loyaltyInfo.points, Math.floor(maxPossibleDiscount / loyalty_redeem_ratio));
+  const pointsDiscountAmount = (usePoints && canRedeem) ? (pointsToRedeem * loyalty_redeem_ratio) : 0;
+
+  const subtotalAfterDiscount = Math.max(0, totalPrice - discountAmount - pointsDiscountAmount);
   // Free delivery in Jordan!
   const finalPrice = subtotalAfterDiscount;
 
@@ -264,7 +293,9 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
             ('محفظة إلكترونية/تحويل بنكي - رقم الحوالة: ' + form.transferReceipt)
           }`,
           phone: form.phone.trim(),
-          coupon_code: couponApplied ? couponApplied.code : null
+          coupon_code: couponApplied ? couponApplied.code : null,
+          redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
+          points_discount: pointsDiscountAmount
         }),
       });
 
@@ -357,7 +388,9 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
             delivery_address: `الدولة: ${form.country} - المدينة: ${form.city}${form.state ? ' / ' + form.state : ''} - المنطقة: ${form.area} - تفاصيل: ${form.address}`,
             phone: form.phone.trim(),
             coupon_code: couponApplied ? couponApplied.code : null,
-            currency: currency.code
+            currency: currency.code,
+            redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
+            points_discount: pointsDiscountAmount
           }),
         });
 
@@ -598,6 +631,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               <div className={styles.sumItem} style={{ color: '#27ae60', fontWeight: 'bold', marginTop: '10px' }}>
                 <span>خصم الكوبون ({couponApplied.code})</span>
                 <span>-{formatPrice(discountAmount)}</span>
+              </div>
+            )}
+
+            {pointsDiscountAmount > 0 && (
+              <div className={styles.sumItem} style={{ color: '#c5a880', fontWeight: 'bold', marginTop: '5px' }}>
+                <span>خصم نقاط الولاء ({pointsToRedeem} نقطة)</span>
+                <span>-{formatPrice(pointsDiscountAmount)}</span>
               </div>
             )}
 
@@ -882,6 +922,40 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 />
                 {errors.phone && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.phone}</p>}
               </div>
+
+              {loyaltyInfo.points > 0 && (
+                <div style={{
+                  padding: '16px',
+                  borderRadius: '16px',
+                  background: 'linear-gradient(135deg, rgba(197,168,128,0.1) 0%, rgba(197,168,128,0.02) 100%)',
+                  border: '1px solid rgba(197,168,128,0.3)',
+                  marginBottom: '20px',
+                  animation: 'fadeIn 0.4s ease'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 'bold', color: 'var(--gold-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      ✨ {loyaltyInfo.customer_name ? `مرحباً بكِ ${loyaltyInfo.customer_name}` : 'رصيد نقاط الولاء'}
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#fff', background: 'rgba(197,168,128,0.2)', padding: '2px 8px', borderRadius: '10px', fontWeight: '700' }}>
+                      {loyaltyInfo.points} نقطة
+                    </span>
+                  </div>
+                  
+                  {canRedeem ? (
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, fontSize: '0.82rem', color: 'var(--espresso)' }}>
+                      <input 
+                        type="checkbox" checked={usePoints} onChange={e => setUsePoints(e.target.checked)}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--gold-dim)' }}
+                      />
+                      استبدال {pointsToRedeem} نقطة للحصول على خصم بقيمة <strong>{formatPrice(pointsDiscountAmount)}</strong>
+                    </label>
+                  ) : (
+                    <div style={{ fontSize: '0.75rem', color: '#c5a880', opacity: 0.8 }}>
+                      الحد الأدنى لاستبدال النقاط هو {loyalty_min_points} نقطة. اجمعي المزيد من النقاط مع كل طلب!
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className={styles.field}>
                 <label className={styles.label} style={{ color: 'var(--espresso)' }}>البريد الإلكتروني <span style={{ color: '#888', fontSize: '0.75rem' }}>(اختياري)</span></label>

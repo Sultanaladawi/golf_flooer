@@ -291,7 +291,7 @@ db.getConnection((err, connection) => {
 
 app.post('/api/orders', async (req, res) => {
   console.log('[Server] Body:', JSON.stringify(req.body, null, 2));
-  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code } = req.body;
+  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, redeem_points, points_discount } = req.body;
 
   if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
     return res.status(400).json({ error: 'Missing required contact information' });
@@ -421,6 +421,35 @@ app.post('/api/orders', async (req, res) => {
       await conn.query("UPDATE orders SET total_amount = ? WHERE id = ?", [calculatedTotal, orderId]);
     }
 
+    // ── Loyalty Points Processing ──
+    const redeemed = parseInt(redeem_points) || 0;
+    if (redeemed > 0) {
+      const [memberRows] = await conn.query("SELECT points FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
+      const currentPoints = (memberRows && memberRows.length > 0) ? memberRows[0].points : 0;
+      if (currentPoints < redeemed) {
+        throw new Error("Insufficient loyalty points for redemption");
+      }
+      // Deduct redeemed points
+      await conn.query("UPDATE loyalty_members SET points = GREATEST(points - ?, 0) WHERE phone_number = ?", [redeemed, phone.trim()]);
+      // Log redemption
+      await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'redeemed', ?)", [phone.trim(), -redeemed, orderId]);
+    }
+
+    // Earn points (1 JOD = 1 Point on actual paid amount)
+    const pointsEarned = Math.floor(totalAmount);
+    if (pointsEarned > 0) {
+      const [memberCheck] = await conn.query("SELECT * FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
+      if (memberCheck.length === 0) {
+        // Create new loyalty account
+        await conn.query("INSERT INTO loyalty_members (phone_number, customer_name, points) VALUES (?, ?, ?)", [phone.trim(), customer_name.trim(), pointsEarned]);
+      } else {
+        // Update existing point balance
+        await conn.query("UPDATE loyalty_members SET points = points + ?, customer_name = ? WHERE phone_number = ?", [pointsEarned, customer_name.trim(), phone.trim()]);
+      }
+      // Log earned points
+      await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'earned', ?)", [phone.trim(), pointsEarned, 'earned', orderId]);
+    }
+
     await conn.commit();
     res.status(201).json({ success: true, orderId });
 
@@ -490,6 +519,21 @@ db.query(`CREATE TABLE IF NOT EXISTS site_settings (\`key\` VARCHAR(255) PRIMARY
 db.query(`CREATE TABLE IF NOT EXISTS offers (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, description TEXT, discount_percent DECIMAL(5,2), active TINYINT(1) DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure offers table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS chat_messages (id INT AUTO_INCREMENT PRIMARY KEY, user_msg TEXT, ai_msg TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure chat_messages table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS ai_assistant_messages (id INT AUTO_INCREMENT PRIMARY KEY, admin_query TEXT, ai_response TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_assistant_messages table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS loyalty_members (
+  phone_number VARCHAR(60) PRIMARY KEY,
+  customer_name VARCHAR(255) NOT NULL,
+  points INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure loyalty_members table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS loyalty_points_history (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  phone_number VARCHAR(60) NOT NULL,
+  points_change INT NOT NULL,
+  action_type VARCHAR(50) NOT NULL,
+  order_id INT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure loyalty_points_history table error:', err); });
 
 let categoryNameColumn = 'name';
 
@@ -1028,7 +1072,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.json({ mock: true });
   }
 
-  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, currency = 'USD' } = req.body;
+  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, currency = 'USD', redeem_points, points_discount } = req.body;
 
   if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
     return res.status(400).json({ error: 'Missing required checkout information' });
@@ -1101,7 +1145,9 @@ app.post('/api/create-checkout-session', async (req, res) => {
         coupon_code: coupon_code || '',
         cartItems: JSON.stringify(cartItems),
         total_amount: String(total_amount),
-        currency: currencyCode
+        currency: currencyCode,
+        redeem_points: String(redeem_points || 0),
+        points_discount: String(points_discount || 0)
       },
       success_url: `${req.headers.origin || 'http://localhost:3000'}/?stripe_status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin || 'http://localhost:3000'}/?stripe_status=cancel`,
@@ -1137,7 +1183,7 @@ app.get('/api/verify-checkout-session', async (req, res) => {
       return res.json({ success: true, orderId: existingOrders[0].id });
     }
 
-    const { customer_name, email, phone, delivery_address, coupon_code, cartItems: cartItemsStr, total_amount } = session.metadata;
+    const { customer_name, email, phone, delivery_address, coupon_code, cartItems: cartItemsStr, total_amount, redeem_points, points_discount } = session.metadata;
     const cartItems = JSON.parse(cartItemsStr);
     const totalAmount = parseFloat(total_amount);
 
@@ -1215,6 +1261,30 @@ app.get('/api/verify-checkout-session', async (req, res) => {
             await conn.query("UPDATE inventory SET quantity = GREATEST(quantity - ?, 0) WHERE id = ?", [deductAmount, ingredient.inventory_id]);
           }
         }
+      }
+
+      // ── Loyalty Points Processing ──
+      const redeemed = parseInt(redeem_points) || 0;
+      if (redeemed > 0) {
+        const [memberRows] = await conn.query("SELECT points FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
+        const currentPoints = (memberRows && memberRows.length > 0) ? memberRows[0].points : 0;
+        if (currentPoints < redeemed) {
+          throw new Error("Insufficient loyalty points for redemption");
+        }
+        await conn.query("UPDATE loyalty_members SET points = GREATEST(points - ?, 0) WHERE phone_number = ?", [redeemed, phone.trim()]);
+        await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'redeemed', ?)", [phone.trim(), -redeemed, orderId]);
+      }
+
+      // Earn points (1 JOD = 1 Point)
+      const pointsEarned = Math.floor(totalAmount);
+      if (pointsEarned > 0) {
+        const [memberCheck] = await conn.query("SELECT * FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
+        if (memberCheck.length === 0) {
+          await conn.query("INSERT INTO loyalty_members (phone_number, customer_name, points) VALUES (?, ?, ?)", [phone.trim(), customer_name.trim(), pointsEarned]);
+        } else {
+          await conn.query("UPDATE loyalty_members SET points = points + ?, customer_name = ? WHERE phone_number = ?", [pointsEarned, customer_name.trim(), phone.trim()]);
+        }
+        await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'earned', ?)", [phone.trim(), pointsEarned, 'earned', orderId]);
       }
 
       await conn.commit();
@@ -1306,6 +1376,61 @@ app.delete('/api/tags/:id', async (req, res) => {
   try {
     await db.promise().query('DELETE FROM menu_item_tags WHERE tag_id = ?', [id]);
     await db.promise().query('DELETE FROM tags WHERE id = ?', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ── Loyalty Program APIs ──────────────────────────────────────────
+app.get('/api/loyalty/members', async (req, res) => {
+  try {
+    const [members] = await db.promise().query('SELECT * FROM loyalty_members ORDER BY points DESC, created_at DESC');
+    res.json(members);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/loyalty/member/:phone', async (req, res) => {
+  const { phone } = req.params;
+  const cleanPhone = phone.trim();
+  try {
+    const [members] = await db.promise().query('SELECT * FROM loyalty_members WHERE phone_number = ?', [cleanPhone]);
+    const [history] = await db.promise().query('SELECT * FROM loyalty_points_history WHERE phone_number = ? ORDER BY created_at DESC', [cleanPhone]);
+    
+    if (members.length === 0) {
+      return res.json({ phone_number: cleanPhone, customer_name: '', points: 0, history: [] });
+    }
+    res.json({ ...members[0], history });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/loyalty/adjust', async (req, res) => {
+  const { phone_number, customer_name, points_change, action_type } = req.body;
+  if (!phone_number) return res.status(400).json({ error: 'Phone number is required' });
+  const cleanPhone = phone_number.trim();
+  const change = parseInt(points_change) || 0;
+  const action = action_type || 'admin_adjustment';
+  const name = (customer_name || 'عميلة مميزة').trim();
+
+  const promiseDb = db.promise();
+  try {
+    const [members] = await promiseDb.query('SELECT * FROM loyalty_members WHERE phone_number = ?', [cleanPhone]);
+    if (members.length === 0) {
+      const startingPoints = Math.max(0, change);
+      await promiseDb.query('INSERT INTO loyalty_members (phone_number, customer_name, points) VALUES (?, ?, ?)', [cleanPhone, name, startingPoints]);
+      if (startingPoints > 0) {
+        await promiseDb.query('INSERT INTO loyalty_points_history (phone_number, points_change, action_type) VALUES (?, ?, ?)', [cleanPhone, startingPoints, action]);
+      }
+    } else {
+      const newPoints = Math.max(0, members[0].points + change);
+      await promiseDb.query('UPDATE loyalty_members SET points = ?, customer_name = ? WHERE phone_number = ?', [newPoints, name, cleanPhone]);
+      await promiseDb.query('INSERT INTO loyalty_points_history (phone_number, points_change, action_type) VALUES (?, ?, ?)', [cleanPhone, change, action]);
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2323,11 +2448,9 @@ app.get('/api/settings', (req, res) => {
 
 app.post('/api/settings', (req, res) => {
   try {
-    const { iban, wallet, cliqAlias, fb_page_id, fb_access_token, ig_user_id, wa_phone_number_id, wa_access_token } = req.body;
-    // Merge with existing settings to preserve fields not sent
     let existing = {};
     if (fs.existsSync(settingsPath)) { try { existing = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (e) {} }
-    const newSettings = { ...existing, iban, wallet, cliqAlias, fb_page_id, fb_access_token, ig_user_id, wa_phone_number_id, wa_access_token };
+    const newSettings = { ...existing, ...req.body };
     fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2));
     if (req.logAdminAction) {
       req.logAdminAction('Update Settings', 'Updated IBAN and/or Wallet information');

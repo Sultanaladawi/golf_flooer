@@ -44,6 +44,7 @@ import Messages           from './admin/pages/Messages';
 import LeaderDashboard    from './admin/pages/LeaderDashboard';
 import Settings           from './admin/pages/Settings';
 import SocialMedia        from './admin/pages/SocialMedia';
+import Loyalty            from './admin/pages/Loyalty';
 import Delivery           from './admin/pages/Delivery';
 
 let LenisClass = null;
@@ -194,6 +195,7 @@ export default function App() {
                         <Route path="analytics" element={<Analytics />} />
                         <Route path="offers" element={<Offers />} />
                         <Route path="coupons" element={<Coupons />} />
+                        <Route path="loyalty" element={<Loyalty />} />
                         <Route path="newsletter" element={<Newsletter />} />
                         <Route path="ai-assistant" element={<AIAssistant />} />
                         <Route path="feedback" element={<Feedback />} />
