@@ -81,7 +81,7 @@ export default function LoadingScreen({ onComplete }) {
         
         {/* Logo icon */}
         <div className={`${styles.logoIcon} ${phase === 'reveal' ? styles.logoIconVisible : ''}`}>
-          <img src="/logo.png" alt="" style={{ width: '70px', height: '70px', objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(197,168,128,0.3))' }} 
+          <img src="/logo.png" alt="" style={{ width: '160px', height: '160px', objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(197,168,128,0.35))' }} 
             onError={(e) => { e.target.style.display = 'none'; }}
           />
         </div>
@@ -93,7 +93,7 @@ export default function LoadingScreen({ onComplete }) {
         
         {/* Tagline */}
         <p className={`${styles.tagline} ${phase === 'reveal' ? styles.taglineVisible : ''}`}>
-          مطرزات شرقية فاخرة
+          متجر إلكتروني فاخر
         </p>
 
         {/* Decorative line bottom */}

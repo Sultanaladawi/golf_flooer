@@ -51,7 +51,7 @@
 }
 
 .decoLineVisible {
-  width: 140px;
+  width: 280px;
 }
 
 /* Logo icon */
@@ -71,7 +71,7 @@
 /* Brand name */
 .brandName {
   font-family: 'DM Serif Display', 'Cairo', serif;
-  font-size: 3.5rem;
+  font-size: 4.8rem;
   color: #2c1e10;
   letter-spacing: 4px;
   margin: 0;
@@ -90,7 +90,7 @@
 /* Tagline */
 .tagline {
   font-family: 'DM Sans', 'Cairo', sans-serif;
-  font-size: 1rem;
+  font-size: 1.5rem;
   color: #a6865d;
   letter-spacing: 6px;
   text-transform: uppercase;
@@ -110,8 +110,8 @@
 /* Year tag */
 .yearTag {
   font-family: 'DM Sans', sans-serif;
-  font-size: 0.65rem;
-  color: rgba(166, 134, 93, 0.5);
+  font-size: 1rem;
+  color: rgba(166, 134, 93, 0.6);
   letter-spacing: 4px;
   text-transform: uppercase;
   margin-top: 8px;
@@ -136,7 +136,7 @@
 }
 
 .progressBarVisible {
-  width: 160px;
+  width: 320px;
   transition-delay: 0.6s;
 }
 
@@ -157,11 +157,11 @@
 /* Responsive */
 @media (max-width: 600px) {
   .brandName {
-    font-size: 2.4rem;
+    font-size: 3.2rem;
     letter-spacing: 2px;
   }
   .tagline {
-    font-size: 0.75rem;
+    font-size: 1.1rem;
     letter-spacing: 3px;
   }
 }

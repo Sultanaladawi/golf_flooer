@@ -204,14 +204,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
 
   const textColor = scrolled ? 'var(--espresso)' : '#fff';
   const logoStyle = {
-    height: '52px',
+    height: '62px',
     width: 'auto',
     objectFit: 'contain',
     borderRadius: '10px',
     transition: 'all 0.4s ease',
-    ...(scrolled
-      ? { background: '#1a1a1a', padding: '2px 4px' }
-      : { mixBlendMode: 'lighten' }),
   };
 
   return (

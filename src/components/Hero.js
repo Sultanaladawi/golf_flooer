@@ -34,7 +34,7 @@ export default function Hero() {
         <span className="section-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sparkles size={14} /> التشكيلة الحصرية 2026 <Sparkles size={14} /></span>
         <h1 className={styles.heroTitle}>
           زهرة بيسان
-          <span className={styles.heroTitleAccent}>للمطرزات الشرقية</span>
+          <span className={styles.heroTitleAccent}>متجر إلكتروني فاخر</span>
         </h1>
         <p className={styles.heroSubtitle}>
           حيث تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا
