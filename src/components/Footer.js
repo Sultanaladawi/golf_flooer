@@ -5,9 +5,11 @@ import { Globe, Lock, RefreshCcw, CheckCircle2 } from 'lucide-react';
 
 const QUICK = [
   { label: 'الرئيسية',    href: '#home' },
-  { label: 'التشكيلة',    href: '#collection' },
-  { label: 'معرضنا',      href: '#gallery' },
-  { label: 'اتصلي بنا',   href: '#contact' },
+  { label: 'تشكيلة العبايات', href: '#collection' },
+  { label: 'معرض الصور',   href: '#gallery' },
+  { label: 'نبذة عنّا',     href: '#about' },
+  { label: 'الأسئلة الشائعة', href: '#faq' },
+  { label: 'تواصل معنا',   href: '#contact' },
 ];
 
 const InstagramIcon = () => (
@@ -92,14 +94,57 @@ export default function Footer() {
               { text: 'تبديل داخل الأردن فقط', icon: <RefreshCcw size={12} /> }
             ].map(b => (
               <span key={b.text} style={{
-                display: 'inline-flex', alignItems: 'center', gap: '4px',
-                fontSize: '0.75rem', fontWeight: '700',
-                padding: '4px 10px', borderRadius: '20px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                padding: '4px 10px',
+                borderRadius: '20px',
                 background: 'var(--gold-glow)',
                 border: '1px solid var(--border)',
                 color: 'var(--espresso)'
               }}>{b.icon} {b.text}</span>
             ))}
+          </div>
+
+          {/* Official Registry Badges */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: 'rgba(166, 134, 93, 0.05)',
+              border: '1px solid rgba(166, 134, 93, 0.2)',
+              fontSize: '0.78rem',
+              color: 'var(--espresso)'
+            }}>
+              <span style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>📜</span>
+              <div>
+                <span style={{ fontWeight: 'bold', display: 'block', fontSize: '0.68rem', color: 'var(--gold-dim)' }}>السجل التجاري</span>
+                <span style={{ fontWeight: 'bold', fontSize: '0.75rem' }}>617219</span>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              background: 'rgba(166, 134, 93, 0.05)',
+              border: '1px solid rgba(166, 134, 93, 0.2)',
+              fontSize: '0.78rem',
+              color: 'var(--espresso)'
+            }}>
+              <span style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>📈</span>
+              <div>
+                <span style={{ fontWeight: 'bold', display: 'block', fontSize: '0.68rem', color: 'var(--gold-dim)' }}>الرقم الضريبي</span>
+                <span style={{ fontWeight: 'bold', fontSize: '0.75rem' }}>81492545</span>
+              </div>
+            </div>
           </div>
 
           {/* Social */}
@@ -211,12 +256,63 @@ export default function Footer() {
       </div>
 
       <div className={styles.bottom} style={{
-        borderTop: '1px solid var(--divider)', color: 'var(--text-muted)',
-        paddingTop: '20px', display: 'flex', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: '10px'
+        borderTop: '1px solid var(--divider)',
+        paddingTop: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px'
       }}>
-        <span>© {new Date().getFullYear()} زهرة بيسان. جميع الحقوق محفوظة.</span>
-        <span>Zahrat Beesan — Worldwide Shipping</span>
+        {/* Registry & Legal row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+            {/* Commercial Registry */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '6px 14px', borderRadius: '8px',
+              background: 'rgba(166, 134, 93, 0.07)',
+              border: '1px solid rgba(166, 134, 93, 0.2)',
+            }}>
+              <span style={{ fontSize: '1.3rem' }}>🇯🇴</span>
+              <div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: '600', lineHeight: 1 }}>السجل التجاري</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--espresso)', fontWeight: '800', letterSpacing: '0.5px' }}>617219</div>
+              </div>
+            </div>
+
+            {/* National Number */}
+            <div style={{
+              display: 'inline-flex', alignItems: 'center', gap: '8px',
+              padding: '6px 14px', borderRadius: '8px',
+              background: 'rgba(166, 134, 93, 0.07)',
+              border: '1px solid rgba(166, 134, 93, 0.2)',
+            }}>
+              <span style={{ fontSize: '1.3rem' }}>🏛️</span>
+              <div>
+                <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', fontWeight: '600', lineHeight: 1 }}>الرقم الوطني</div>
+                <div style={{ fontSize: '0.82rem', color: 'var(--espresso)', fontWeight: '800', letterSpacing: '0.5px' }}>101071079</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Methods */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+            {['Visa', 'Mastercard', 'PayPal', 'COD'].map(pm => (
+              <span key={pm} style={{
+                padding: '3px 10px', borderRadius: '6px',
+                border: '1px solid var(--border)',
+                background: 'var(--white)',
+                color: 'var(--espresso)',
+                fontSize: '0.72rem', fontWeight: '700'
+              }}>{pm}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Copyright row */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+          <span>© {new Date().getFullYear()} زهرة بيسان. جميع الحقوق محفوظة.</span>
+          <span>Zahrat Beesan — Worldwide Shipping</span>
+        </div>
       </div>
     </footer>
   );
