@@ -92,10 +92,9 @@
 }
 
 [data-theme="dark"] body {
-  background-color: var(--cream);
-  background-image:
-    radial-gradient(ellipse 70% 50% at 10% 0%, rgba(196,164,132,0.04) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 90% 100%, rgba(107,79,58,0.06) 0%, transparent 60%);
+  background: linear-gradient(-45deg, #120b07, #2c1a0e, #1c110a, #20140c);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   color: var(--espresso);
 }
 
@@ -547,9 +546,19 @@ p {
 }
 
 [data-theme="dark"] .bg-glow-1 {
-  background: radial-gradient(circle, rgba(197, 168, 128, 0.18) 0%, transparent 75%);
+  background: radial-gradient(circle, rgba(197, 168, 128, 0.24) 0%, transparent 75%);
+  width: 70vw;
+  height: 70vw;
 }
 
 [data-theme="dark"] .bg-glow-2 {
-  background: radial-gradient(circle, rgba(166, 134, 93, 0.14) 0%, transparent 75%);
+  background: radial-gradient(circle, rgba(166, 134, 93, 0.18) 0%, transparent 75%);
+  width: 80vw;
+  height: 80vw;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
