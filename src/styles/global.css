@@ -1,26 +1,26 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=Lora:ital@1&family=Caveat:wght@500;700&display=swap');
 
 :root {
-  /* ── Customer Site: Luxury Alabaster & Gold Palette ── */
+  /* ── Customer Site: Luxury Golden-Beige & Espresso Palette ── */
   --coffee:           #a6865d;
   --coffee-light:     #8a6d48;
   --coffee-dark:      #695133;
   --cappuccino:       #bfa27a;
   --cappuccino-light: #e5cda8;
   --latte:            #ffffff;
-  --latte-soft:       #fcf9f2;
+  --latte-soft:       #fbf9f4;
   --tea:              #a6865d;
   --tea-light:        #c5a880;
   --cafe:             #a6865d;
-  --cream:            #faf8f5;  /* Warm light cream background */
-  --cream-dark:       #f1ebe0;  /* Slightly darker cream */
+  --cream:            #f3ebd9;  /* Luxury warm golden-beige background */
+  --cream-dark:       #ebdcb9;  /* Slightly deeper golden-beige */
   --brown:            #a6865d;
   --brown-light:      #8a6d48;
   --olive:            #a6865d;
   --olive-light:      #c5a880;
-  --espresso:         #1a1a1a;  /* Dark charcoal text */
-  --espresso-mid:     #444444;
-  --espresso-dim:     #777777;
+  --espresso:         #2a1b0c;  /* Luxury dark cocoa / espresso text */
+  --espresso-mid:     #5c4731;
+  --espresso-dim:     #8c735a;
   --white:            #ffffff;
   --gold:             #c5a880;
   --gold-dim:         #a6865d;
@@ -33,24 +33,24 @@
   --tr:               .3s cubic-bezier(.4, 0, .2, 1);
 
   /* ── Compatibility aliases ── */
-  --bg-base:          #faf8f5;
-  --bg-surface:       #fcf9f2;
-  --bg-elevated:      #f5f0e6;
+  --bg-base:          #f3ebd9;
+  --bg-surface:       #fcfaf4;
+  --bg-elevated:      #ebdcb9;
   --bg-card:          #ffffff;
   --bg-card-hover:    #fdfcf7;
-  --text-primary:     #1a1a1a;
-  --text-secondary:   #444444;
-  --text-muted:       #777777;
+  --text-primary:     #2a1b0c;
+  --text-secondary:   #5c4731;
+  --text-muted:       #8c735a;
   --border:           rgba(166, 134, 93, 0.25);
   --border-hover:     rgba(166, 134, 93, 0.45);
   --divider:          rgba(166, 134, 93, 0.12);
 
   /* ── Admin Panel (premium light theme) ── */
-  --admin-bg:     #faf8f5;
+  --admin-bg:     #f3ebd9;
   --admin-card:   #ffffff;
   --admin-accent: #a6865d;
-  --admin-text:   #1a1a1a;
-  --admin-border: #e8e2d4;
+  --admin-text:   #2a1b0c;
+  --admin-border: #ebdcb9;
   --admin-input:  #f0ebe1;
 }
 
