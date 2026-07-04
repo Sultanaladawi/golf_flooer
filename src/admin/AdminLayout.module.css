@@ -1,11 +1,11 @@
 :root {
-  --adm-bg:       #120a05;
-  --adm-surface:  #1c1917;
-  --adm-border:   #2d2926;
-  --adm-gold:     #c4a484;
-  --adm-gold-dim: rgba(196, 164, 132, 0.15);
-  --adm-text:     #e7d7c1;
-  --adm-muted:    #888888;
+  --adm-bg:       var(--admin-bg);
+  --adm-surface:  var(--admin-card);
+  --adm-border:   var(--admin-border);
+  --adm-gold:     var(--admin-accent);
+  --adm-gold-dim: rgba(197, 168, 128, 0.10);
+  --adm-text:     var(--admin-text);
+  --adm-muted:    var(--text-muted);
   --adm-sidebar-w: 260px;
   --adm-topbar-h:  80px;
 }

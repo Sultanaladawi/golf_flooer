@@ -66,7 +66,7 @@
 .brand {
   font-family: 'DM Serif Display', serif;
   font-size: 2.2rem;
-  color: #c4a484;
+  color: var(--gold);
   margin: 0;
   letter-spacing: -1px;
 }
@@ -95,7 +95,7 @@
 .label {
   font-size: 0.75rem;
   font-weight: 800;
-  color: #c4a484;
+  color: var(--gold-dim);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-left: 5px;
@@ -141,18 +141,18 @@
 
 .submitBtn {
   margin-top: 15px;
-  background: linear-gradient(135deg, #c4a484, #8c6a56);
+  background: linear-gradient(135deg, var(--gold), var(--gold-dim));
   border: none;
   border-radius: 16px;
   padding: 18px;
-  color: var(--espresso);
+  color: var(--white);
   font-weight: 900;
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 2px;
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 10px 30px rgba(196, 164, 132, 0.2);
+  box-shadow: 0 10px 30px rgba(197, 168, 128, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -161,7 +161,7 @@
 
 .submitBtn:hover {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: 0 15px 40px rgba(196, 164, 132, 0.4);
+  box-shadow: 0 15px 40px rgba(197, 168, 128, 0.4);
   filter: brightness(1.1);
 }
 
@@ -207,7 +207,7 @@
   width: 20px;
   height: 20px;
   border: 3px solid rgba(0,0,0,0.1);
-  border-top-color: #1b110a;
+  border-top-color: var(--espresso);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
