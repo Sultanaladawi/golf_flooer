@@ -377,6 +377,54 @@ export default function SocialMedia() {
         )}
       </div>
 
+      {/* ── VISUAL BRANDING KIT ── */}
+      <div style={{ backgroundColor: 'var(--admin-card)', border: '1px solid var(--admin-border)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
+        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.6rem', color: 'var(--admin-text)', margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Image size={22} color="var(--admin-accent)" /> حقيبة الهوية البصرية الرسمية (Social Media Kit)
+        </h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '-15px', marginBottom: '24px' }}>
+          استخدمي هذه القوالب والشعارات الرسمية الموحدة للمحافظة على هوية بصرية فاخرة ومتناسقة عبر جميع حسابات التواصل الاجتماعي لـ (زهرة بيسان).
+        </p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+          {/* Profile Photo */}
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--admin-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--admin-accent)', background: '#fff', marginBottom: '15px', boxShadow: '0 8px 24px rgba(166,134,93,0.15)' }}>
+              <img src="/logo.png" alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <span style={{ fontWeight: '700', color: 'var(--admin-text)', fontSize: '0.95rem', marginBottom: '4px' }}>صورة الملف الشخصي (Profile)</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>شعار زهرة بيسان الفاخر الدائري المعتمد (1:1)</span>
+            <a href="/logo.png" download="Zahrat_Beesan_Profile.png" style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'var(--admin-accent)', color: '#000', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              تحميل الشعار الرسمي
+            </a>
+          </div>
+
+          {/* Cover Banner */}
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--admin-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ width: '100%', height: '120px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--admin-border)', marginBottom: '15px' }}>
+              <img src="/cover_banner_exact.jpg" alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <span style={{ fontWeight: '700', color: 'var(--admin-text)', fontSize: '0.95rem', marginBottom: '4px' }}>غلاف الحسابات (Cover Banner)</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>غلاف عريض رسمي متناسق لجميع الصفحات (16:9)</span>
+            <a href="/cover_banner_exact.jpg" download="Zahrat_Beesan_Cover.jpg" style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-accent)', color: 'var(--admin-accent)', background: 'transparent', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              تحميل غلاف الحسابات
+            </a>
+          </div>
+
+          {/* Post Template */}
+          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--admin-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+            <div style={{ width: '120px', height: '120px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--admin-border)', marginBottom: '15px' }}>
+              <img src="/instagram_post_exact.jpg" alt="Post Template" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <span style={{ fontWeight: '700', color: 'var(--admin-text)', fontSize: '0.95rem', marginBottom: '4px' }}>قالب منشورات المنتجات (Grid Post)</span>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>قالب عرض العبايات والمنتجات الرسمي (1:1)</span>
+            <a href="/instagram_post_exact.jpg" download="Zahrat_Beesan_Post_Template.jpg" style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-accent)', color: 'var(--admin-accent)', background: 'transparent', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              تحميل قالب المنشور
+            </a>
+          </div>
+        </div>
+      </div>
+
       {/* ── POSTS HISTORY ── */}
       <div style={{ backgroundColor: 'var(--admin-card)', border: '1px solid var(--admin-border)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
