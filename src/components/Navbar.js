@@ -271,8 +271,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
         <div className={styles.inner}>
 
           {/* Logo */}
-          <a href="#home" aria-label="زهرة بيسان للمطرزات الشرقية" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
-            <img src="/logo.png" alt="زهرة بيسان للمطرزات الشرقية" style={logoStyle} />
+          <a href="#home" aria-label="زهرة بيسان للعبايات والأزياء الفاخرة" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
+            <img src="/logo.png" alt="زهرة بيسان" style={logoStyle} />
           </a>
 
           {/* Desktop Links */}

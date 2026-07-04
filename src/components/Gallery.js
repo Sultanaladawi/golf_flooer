@@ -54,7 +54,7 @@ export default function Gallery() {
           <div className="divider" />
           <h2 className="h2">معرض زهرة بيسان</h2>
           <p className={styles.headerSub}>
-            زهرة بيسان للمطرزات الشرقية والعبايات الفاخرة — حيث تلتقي الأصالة بالفخامة والجمال.
+            زهرة بيسان للعبايات والأزياء الفاخرة — حيث تلتقي الأصالة بالفخامة والجمال.
           </p>
         </div>
 

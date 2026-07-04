@@ -24,7 +24,7 @@ export default function About() {
             <h2 className="h2" style={{ color: 'var(--espresso)' }}>أصالة توارثناها</h2>
             
             <p className={styles.body} style={{ color: 'var(--espresso-mid)' }}>
-              منذ أكثر من عقدين، نُتقن في <strong>زهرة بيسان</strong> فن المطرزات الشرقية على أيدي حرفيين مهرة.
+              منذ أكثر من عقدين، نُتقن في <strong>زهرة بيسان</strong> فن تصميم العبايات والأزياء الفاخرة على أيدي حرفيين مهرة.
               كل خيط، كل غرزة، كل تفصيل — هو قصيدة نسجناها لكِ لتتوج إطلالتكِ بأرقى المعايير.
             </p>
             
@@ -58,7 +58,7 @@ export default function About() {
               />
             </div>
             <div className={styles.badge} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--gold)' }}>
-              <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>مطرزات شرقية</span>
+              <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>عبايات وأزياء فاخرة</span>
               <span className={styles.badgeMain} style={{ color: 'var(--gold)' }}>تصاميم حصرية</span>
               <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>صناعة يدوية فاخرة</span>
             </div>

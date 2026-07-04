@@ -77,7 +77,7 @@ export const featuredItems = [
 
 export const shopInfo = {
   name: "زهرة بيسان",
-  tagline: "للمطرزات الشرقية والعبايات الفاخرة",
+  tagline: "للعبايات والأزياء الفاخرة",
   // Online-only global store — no physical address
   email: "info@zahratbeesan.com",
   careersEmail: "careers@zahratbeesan.com",
@@ -90,7 +90,7 @@ export const shopInfo = {
 // Online-only global store — no opening hours
 
 export const sophieKnowledge = {
-  greeting: "أهلاً بكِ في زهرة بيسان للمطرزات الشرقية! ✨ أنا يافا، مساعدتكِ الافتراضية لعالم الموضة والعبايات الفاخرة. كيف يمكنني مساعدتكِ اليوم؟",
+  greeting: "أهلاً بكِ في زهرة بيسان للعبايات والأزياء الفاخرة! ✨ أنا يافا، مساعدتكِ الافتراضية لعالم الموضة والعبايات الفاخرة. كيف يمكنني مساعدتكِ اليوم؟",
   followUp: "يمكنني مساعدتكِ في التعرف على التشكيلة المتوفرة، اختيار المقاس المناسب، التوصيل الدولي، أو أي استفسار آخر!",
   quickReplies: [
     "ما هي أحدث تشكيلة عبايات؟",

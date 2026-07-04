@@ -81,17 +81,17 @@
    تصميم فاخر جداً: أسود ملكي فاحم + إضاءات ذهبية ناعمة (رولكس/شانيل)
    ══════════════════════════════════════ */
 [data-theme="dark"] {
-  --cream:            #090909;  /* أسود فاحم ملكي */
-  --cream-dark:       #121212;  /* أسود أوبسيديان */
+  --cream:            #1a130c;  /* كابتشينو غامق فاخر */
+  --cream-dark:       #221a12;  /* كابتشينو دافئ */
   --latte:            #f5f5f5;
   --latte-soft:       #c5a880;
   --espresso:         #f5f5f5;  /* نص أبيض ناصع */
   --espresso-mid:     #cccccc;  /* نص فضي فاتح */
   --espresso-dim:     #888888;  /* نص رمادي */
-  --white:            #000000;
+  --white:            #120a05;
   --gold:             #c5a880;
   --gold-dim:         #a6865d;
-  --gold-light:       #2a1f14;
+  --gold-light:       #37291d;
   --gold-glow:        rgba(197,168,128,0.08);
   --caramel:          #c5a880;
   --caramel-light:    #e5cda8;
@@ -107,11 +107,11 @@
   --olive:            #c5a880;
   --olive-light:      #e5cda8;
   --olive-dim:        #a6865d;
-  --bg-base:          #090909;
-  --bg-surface:       #121212;
-  --bg-elevated:      #1a1a1a;
-  --bg-card:          #121212;
-  --bg-card-hover:    #1a1a1a;
+  --bg-base:          #1a130c;
+  --bg-surface:       #221a12;
+  --bg-elevated:      #2c2219;
+  --bg-card:          #221a12;
+  --bg-card-hover:    #2c2219;
   --text-primary:     #f5f5f5;
   --text-secondary:   #cccccc;
   --text-muted:       #888888;
@@ -122,8 +122,8 @@
   --shadow-md:        rgba(0,0,0,0.7);
   --shadow-lg:        rgba(0,0,0,0.9);
   --shadow-gold:      0 8px 28px rgba(197,168,128,0.08);
-  --admin-bg:         #090909;
-  --admin-card:       #121212;
+  --admin-bg:         #1a130c;
+  --admin-card:       #221a12;
   --admin-accent:     #c5a880;
   --admin-text:       #f5f5f5;
   --admin-border:     rgba(197,168,128,0.2);
@@ -131,7 +131,7 @@
 }
 
 [data-theme="dark"] body {
-  background: #090909;
+  background: #1a130c;
   color: var(--espresso);
   overflow-x: hidden;
 }

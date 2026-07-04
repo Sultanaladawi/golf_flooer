@@ -271,7 +271,7 @@ const Orders = () => {
     const orderIdStr = `ORD-${String(order.id).padStart(3, '0')}`;
     const orderAmount = parseFloat(order.total_amount).toFixed(2);
     
-    const messageText = `مرحباً ${order.customer_name || 'عميلتنا العزيزة'}،%0A%0Aيسعدنا إبلاغكِ بأن طلبكِ رقم ${orderIdStr} بقيمة ${orderAmount} JOD قيد المتابعة حالياً في زهرة بيسان للمطرزات الشرقية.%0A%0Aيمكنكِ تتبع حالة طلبكِ مباشرة عبر موقعنا باستخدام رقم طلبكِ: ${orderIdStr}%0A%0Aشكراً لثقتكِ بنا وبصناعتنا اليدوية الراقية! 🌸`;
+    const messageText = `مرحباً ${order.customer_name || 'عميلتنا العزيزة'}،%0A%0Aيسعدنا إبلاغكِ بأن طلبكِ رقم ${orderIdStr} بقيمة ${orderAmount} JOD قيد المتابعة حالياً في زهرة بيسان.%0A%0Aيمكنكِ تتبع حالة طلبكِ مباشرة عبر موقعنا باستخدام رقم طلبكِ: ${orderIdStr}%0A%0Aشكراً لثقتكِ بنا وبمنتجاتنا الراقية! 🌸`;
     
     const url = `https://wa.me/${cleanPhone}?text=${messageText}`;
     window.open(url, '_blank');
