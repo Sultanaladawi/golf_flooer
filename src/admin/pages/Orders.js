@@ -404,6 +404,29 @@ const Orders = () => {
                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 600 }}>{t('Fulfillment Type:')}</span>
                      <span style={{ color: theme.text, fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase', background: 'rgba(166,134,93,0.1)', padding: '4px 10px', borderRadius: '6px' }}>{selectedOrder.order_type || 'Walk-in'}</span>
                    </div>
+
+                   {selectedOrder.is_gift === 1 && (
+                     <div style={{
+                       marginTop: '15px', padding: '15px', borderRadius: '12px',
+                       background: 'linear-gradient(135deg, rgba(197,168,128,0.12) 0%, rgba(197,168,128,0.02) 100%)',
+                       border: '1px solid rgba(197,168,128,0.3)',
+                       color: theme.text
+                     }}>
+                       <div style={{ fontWeight: 'bold', color: theme.primary, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.9rem', marginBottom: '8px' }}>
+                         🎁 {t('Gift Box Order')}
+                       </div>
+                       <div style={{ fontSize: '0.82rem', marginBottom: '6px' }}>
+                         <span style={{ color: 'var(--text-secondary)' }}>{t('Packaging')}: </span>
+                         <strong>{selectedOrder.gift_packaging === 'silk_wrap' ? t('Royal Silk Wrap') : t('Premium Box')} (+{parseFloat(selectedOrder.gift_fee || 0).toFixed(2)} JOD)</strong>
+                       </div>
+                       {selectedOrder.gift_message && (
+                         <div style={{ fontSize: '0.82rem', marginTop: '8px', background: 'rgba(255,255,255,0.02)', padding: '10px', borderRadius: '8px', border: `1px solid ${theme.border}` }}>
+                           <span style={{ color: 'var(--text-secondary)', display: 'block', marginBottom: '4px' }}>{t('Card Message')}:</span>
+                           <span style={{ fontStyle: 'italic', color: '#c5a880' }}>"{selectedOrder.gift_message}"</span>
+                         </div>
+                       )}
+                     </div>
+                   )}
                    
                    {/* Structured Delivery Address Display */}
                    {selectedOrder.order_type?.toLowerCase() === 'delivery' ? (

@@ -45,7 +45,9 @@ import LeaderDashboard    from './admin/pages/LeaderDashboard';
 import Settings           from './admin/pages/Settings';
 import SocialMedia        from './admin/pages/SocialMedia';
 import Loyalty            from './admin/pages/Loyalty';
+import PreOrderInterests  from './admin/pages/PreOrderInterests';
 import Delivery           from './admin/pages/Delivery';
+import { RamadanLanding, EidLanding, SummerLanding } from './components/LandingPages';
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
@@ -181,6 +183,9 @@ export default function App() {
               <Routes>
               <Route path="/" element={<PublicSite />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/ramadan" element={<RamadanLanding />} />
+              <Route path="/eid" element={<EidLanding />} />
+              <Route path="/summer" element={<SummerLanding />} />
               <Route path="/admin/*" element={
                 <AdminProvider>
                   <AdminLangProvider>
@@ -196,6 +201,7 @@ export default function App() {
                         <Route path="offers" element={<Offers />} />
                         <Route path="coupons" element={<Coupons />} />
                         <Route path="loyalty" element={<Loyalty />} />
+                        <Route path="pre-orders" element={<PreOrderInterests />} />
                         <Route path="newsletter" element={<Newsletter />} />
                         <Route path="ai-assistant" element={<AIAssistant />} />
                         <Route path="feedback" element={<Feedback />} />

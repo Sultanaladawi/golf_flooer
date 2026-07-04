@@ -214,6 +214,7 @@ const AdminLayout = () => {
     { path: '/admin/offers', name: t('Offers'), icon: <ShoppingCart size={18} /> },
     { path: '/admin/coupons', name: t('Coupons & Codes'), icon: <Ticket size={18} /> },
     { path: '/admin/loyalty', name: t('Loyalty Program'), icon: <Sparkles size={18} /> },
+    { path: '/admin/pre-orders', name: t('Pre-Order Interests'), icon: <Activity size={18} /> },
     { path: '/admin/newsletter', name: t('Newsletter Subscribers'), icon: <Mail size={18} /> },
     { path: '/admin/messages', name: t('Inbox Messages'), icon: <Mail size={18} /> },
     { path: '/admin/feedback', name: t('Feedback & Reviews'), icon: <MessageSquare size={18} /> },

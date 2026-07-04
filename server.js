@@ -291,7 +291,7 @@ db.getConnection((err, connection) => {
 
 app.post('/api/orders', async (req, res) => {
   console.log('[Server] Body:', JSON.stringify(req.body, null, 2));
-  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, redeem_points, points_discount } = req.body;
+  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee } = req.body;
 
   if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
     return res.status(400).json({ error: 'Missing required contact information' });
@@ -340,8 +340,8 @@ app.post('/api/orders', async (req, res) => {
     else if (activeCount > 12) prepMinutes = 12;
 
     const [orderInsertResult] = await conn.query(
-      `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), ?, ?, ?)`,
-      [customer_name, email, totalAmount, order_type || 'takeaway', delivery_address || null, phone || null]
+      `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone, is_gift, gift_message, gift_packaging, gift_fee) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), ?, ?, ?, ?, ?, ?, ?)`,
+      [customer_name, email, totalAmount, order_type || 'takeaway', delivery_address || null, phone || null, is_gift ? 1 : 0, gift_message || null, gift_packaging || null, parseFloat(gift_fee) || 0.00]
     );
     const orderId = orderInsertResult.insertId;
 
@@ -534,6 +534,29 @@ db.query(`CREATE TABLE IF NOT EXISTS loyalty_points_history (
   order_id INT DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure loyalty_points_history table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS pre_order_interests (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  customer_name VARCHAR(255) NOT NULL,
+  phone VARCHAR(60) NOT NULL,
+  email VARCHAR(255) DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES menu_items(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure pre_order_interests table error:', err); });
+db.query("SHOW COLUMNS FROM menu_items LIKE 'pre_order'", (err, results) => {
+  if (!err && results.length === 0) {
+    db.query("ALTER TABLE menu_items ADD COLUMN pre_order TINYINT(1) DEFAULT 0", (errAlter) => {
+      if (errAlter) console.error('Add pre_order column error:', errAlter);
+    });
+  }
+});
+db.query("SHOW COLUMNS FROM orders LIKE 'is_gift'", (err, results) => {
+  if (!err && results.length === 0) {
+    db.query("ALTER TABLE orders ADD COLUMN is_gift TINYINT(1) DEFAULT 0, ADD COLUMN gift_message TEXT DEFAULT NULL, ADD COLUMN gift_packaging VARCHAR(100) DEFAULT NULL, ADD COLUMN gift_fee DECIMAL(10,2) DEFAULT 0.00", (errAlter) => {
+      if (errAlter) console.error('Add gift columns error:', errAlter);
+    });
+  }
+});
 
 let categoryNameColumn = 'name';
 
@@ -1072,7 +1095,7 @@ app.post('/api/create-checkout-session', async (req, res) => {
     return res.json({ mock: true });
   }
 
-  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, currency = 'USD', redeem_points, points_discount } = req.body;
+  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, currency = 'USD', redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee } = req.body;
 
   if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
     return res.status(400).json({ error: 'Missing required checkout information' });
@@ -1147,7 +1170,11 @@ app.post('/api/create-checkout-session', async (req, res) => {
         total_amount: String(total_amount),
         currency: currencyCode,
         redeem_points: String(redeem_points || 0),
-        points_discount: String(points_discount || 0)
+        points_discount: String(points_discount || 0),
+        is_gift: String(is_gift ? 1 : 0),
+        gift_message: gift_message || '',
+        gift_packaging: gift_packaging || '',
+        gift_fee: String(gift_fee || 0.00)
       },
       success_url: `${req.headers.origin || 'http://localhost:3000'}/?stripe_status=success&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.origin || 'http://localhost:3000'}/?stripe_status=cancel`,
@@ -1183,7 +1210,7 @@ app.get('/api/verify-checkout-session', async (req, res) => {
       return res.json({ success: true, orderId: existingOrders[0].id });
     }
 
-    const { customer_name, email, phone, delivery_address, coupon_code, cartItems: cartItemsStr, total_amount, redeem_points, points_discount } = session.metadata;
+    const { customer_name, email, phone, delivery_address, coupon_code, cartItems: cartItemsStr, total_amount, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee } = session.metadata;
     const cartItems = JSON.parse(cartItemsStr);
     const totalAmount = parseFloat(total_amount);
 
@@ -1226,8 +1253,8 @@ app.get('/api/verify-checkout-session', async (req, res) => {
       else if (activeCount > 12) prepMinutes = 12;
 
       const [orderInsertResult] = await conn.query(
-        `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone, payment_status, stripe_session_id) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), 'delivery', ?, ?, 'paid', ?)`,
-        [customer_name, email || null, totalAmount, delivery_address || null, phone || null, session_id]
+        `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone, payment_status, stripe_session_id, is_gift, gift_message, gift_packaging, gift_fee) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), 'delivery', ?, ?, 'paid', ?, ?, ?, ?, ?)`,
+        [customer_name, email || null, totalAmount, delivery_address || null, phone || null, session_id, parseInt(is_gift) || 0, gift_message || null, gift_packaging || null, parseFloat(gift_fee) || 0.00]
       );
       const orderId = orderInsertResult.insertId;
 
@@ -1432,6 +1459,38 @@ app.post('/api/loyalty/adjust', async (req, res) => {
       await promiseDb.query('INSERT INTO loyalty_points_history (phone_number, points_change, action_type) VALUES (?, ?, ?)', [cleanPhone, change, action]);
     }
     res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// ── Pre-Order System APIs ──────────────────────────────────────────
+app.post('/api/pre-order/interest', async (req, res) => {
+  const { product_id, customer_name, phone, email } = req.body;
+  if (!product_id || !customer_name || !phone) {
+    return res.status(400).json({ error: 'Missing required interest information' });
+  }
+  try {
+    await db.promise().query(
+      'INSERT INTO pre_order_interests (product_id, customer_name, phone, email) VALUES (?, ?, ?, ?)',
+      [parseInt(product_id, 10), customer_name.trim(), phone.trim(), email ? email.trim() : null]
+    );
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/pre-order/interests', async (req, res) => {
+  try {
+    const [interests] = await db.promise().query(`
+      SELECT p.*, m.name as product_name, m.image_url 
+      FROM pre_order_interests p
+      JOIN menu_items m ON p.product_id = m.id
+      ORDER BY p.created_at DESC
+    `);
+    res.json(interests);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -2131,7 +2190,7 @@ app.put('/api/products/reorder', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care } = req.body;
+  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care, pre_order } = req.body;
   if (category_id === 'espresso') category_id = '2';
   if (category_id === 'tea') category_id = '6';
   if (category_id === 'cold') category_id = '1';
@@ -2151,7 +2210,7 @@ app.post('/api/products', async (req, res) => {
     const cleanCost = cost_price ? parseFloat(cost_price) || 0 : 0;
     const cleanTax = tax_amount ? parseFloat(tax_amount) || 0 : 0;
     const price_display = cleanPrice ? `JOD ${parseFloat(cleanPrice).toFixed(2)}` : null;
-    const [result] = await conn.query('INSERT INTO menu_items (category_id, name, price_num, cost_price, tax_amount, price_display, description, tags, available, image_url, addons, sort_order, sku, subtitle, badge, images, fabric, sizes, care) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [category_id || null, name, cleanPrice, cleanCost, cleanTax, price_display, description || null, tags || null, available ?? 1, image_url || null, addons || null, nextOrder, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null]);
+    const [result] = await conn.query('INSERT INTO menu_items (category_id, name, price_num, cost_price, tax_amount, price_display, description, tags, available, image_url, addons, sort_order, sku, subtitle, badge, images, fabric, sizes, care, pre_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [category_id || null, name, cleanPrice, cleanCost, cleanTax, price_display, description || null, tags || null, available ?? 1, image_url || null, addons || null, nextOrder, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, pre_order ? 1 : 0]);
     const productId = result.insertId;
     if (Array.isArray(addon_ids)) for (const aid of addon_ids) if (aid) await conn.query('INSERT IGNORE INTO menu_item_addons (menu_item_id, addon_id) VALUES (?, ?)', [productId, aid]);
     if (Array.isArray(tag_ids)) for (const tid of tag_ids) if (tid) await conn.query('INSERT IGNORE INTO menu_item_tags (menu_item_id, tag_id) VALUES (?, ?)', [productId, tid]);
@@ -2168,7 +2227,7 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
-  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care } = req.body;
+  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care, pre_order } = req.body;
   let conn;
   try {
     conn = await db.promise().getConnection();
@@ -2178,7 +2237,7 @@ app.put('/api/products/:id', async (req, res) => {
     const cleanCost = cost_price ? parseFloat(cost_price) || 0 : 0;
     const cleanTax = tax_amount ? parseFloat(tax_amount) || 0 : 0;
     const price_display = cleanPrice ? `JOD ${parseFloat(cleanPrice).toFixed(2)}` : null;
-    await conn.query("UPDATE menu_items SET name = ?, price_num = ?, cost_price = ?, tax_amount = ?, price_display = ?, description = ?, available = ?, category_id = ?, image_url = ?, tags = ?, addons = ?, sku = ?, subtitle = ?, badge = ?, images = ?, fabric = ?, sizes = ?, care = ? WHERE id = ?", [name, cleanPrice, cleanCost, cleanTax, price_display, description, available, category_id || null, image_url || null, tags || null, addons || null, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, id]);
+    await conn.query("UPDATE menu_items SET name = ?, price_num = ?, cost_price = ?, tax_amount = ?, price_display = ?, description = ?, available = ?, category_id = ?, image_url = ?, tags = ?, addons = ?, sku = ?, subtitle = ?, badge = ?, images = ?, fabric = ?, sizes = ?, care = ?, pre_order = ? WHERE id = ?", [name, cleanPrice, cleanCost, cleanTax, price_display, description, available, category_id || null, image_url || null, tags || null, addons || null, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, pre_order ? 1 : 0, id]);
     if (Array.isArray(addon_ids)) {
       await conn.query('DELETE FROM menu_item_addons WHERE menu_item_id = ?', [id]);
       for (const aid of addon_ids) if (aid) await conn.query('INSERT INTO menu_item_addons (menu_item_id, addon_id) VALUES (?, ?)', [id, aid]);

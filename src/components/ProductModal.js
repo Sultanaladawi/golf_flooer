@@ -155,6 +155,53 @@ export default function ProductModal({ model, onClose }) {
   const [visible, setVisible] = useState(false);
   const videoRef = useRef(null);
 
+  // Pre-Order / Express Interest states
+  const [showInterestModal, setShowInterestModal] = useState(false);
+  const [interestName, setInterestName] = useState('');
+  const [interestPhone, setInterestPhone] = useState('');
+  const [interestEmail, setInterestEmail] = useState('');
+  const [submittingInterest, setSubmittingInterest] = useState(false);
+  const [interestSubmitted, setInterestSubmitted] = useState(false);
+
+  const handleRegisterInterest = async (e) => {
+    e.preventDefault();
+    if (!interestName.trim() || !interestPhone.trim()) {
+      alert("الرجاء تعبئة الحقول المطلوبة");
+      return;
+    }
+    setSubmittingInterest(true);
+    try {
+      const res = await fetch('/api/pre-order/interest', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          product_id: model.id,
+          customer_name: interestName.trim(),
+          phone: interestPhone.trim(),
+          email: interestEmail.trim() || null
+        })
+      });
+      if (res.ok) {
+        setInterestSubmitted(true);
+        setInterestName('');
+        setInterestPhone('');
+        setInterestEmail('');
+        setTimeout(() => {
+          setInterestSubmitted(false);
+          setShowInterestModal(false);
+        }, 3000);
+      } else {
+        alert("حدث خطأ أثناء إرسال طلبكِ، يرجى المحاولة لاحقاً");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("حدث خطأ أثناء الاتصال بالخادم");
+    } finally {
+      setSubmittingInterest(false);
+    }
+  };
+
+
   // Reset image/video indices and switch tabs when variant changes
   useEffect(() => {
     setActiveImg(0);
@@ -519,22 +566,119 @@ export default function ProductModal({ model, onClose }) {
             </div>
           )}
 
-          {/* ===== ADD TO CART ===== */}
+          {/* ===== ADD TO CART / PRE-ORDER ===== */}
           <div className={styles.cartSection}>
-            {!selectedSize && (
-              <p className={styles.sizeWarning} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> يرجى اختيار المقاس أولاً</p>
+            {model.badge === 'Coming Soon' || model.badge === 'قريباً' ? (
+              <button
+                className={styles.addToCartBtn}
+                onClick={() => setShowInterestModal(true)}
+                style={{ background: 'linear-gradient(135deg, #c5a880 0%, #a3875e 100%)', color: '#1a0e05' }}
+              >
+                <Sparkles size={18} style={{ marginLeft: '6px' }} />
+                <span>سجلي اهتمامكِ بالعباءة</span>
+              </button>
+            ) : (
+              <>
+                {!selectedSize && (
+                  <p className={styles.sizeWarning} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> يرجى اختيار المقاس أولاً</p>
+                )}
+                <button
+                  className={`${styles.addToCartBtn} ${addedToCart ? styles.addedToCart : ''}`}
+                  onClick={handleAddCart}
+                >
+                  <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {addedToCart 
+                      ? <><CheckCircle2 size={16} /> {model.pre_order === 1 ? 'تم الحجز المسبق' : 'تمت الإضافة للسلة'}</> 
+                      : (model.pre_order === 1 ? 'طلب مسبق (Pre-Order)' : 'أضيفي للسلة')
+                    }
+                  </span>
+                </button>
+              </>
             )}
-            <button
-              className={`${styles.addToCartBtn} ${addedToCart ? styles.addedToCart : ''}`}
-              onClick={handleAddCart}
-            >
-              <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
-              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>{addedToCart ? <><CheckCircle2 size={16} /> تمت الإضافة للسلة</> : 'أضيفي للسلة'}</span>
-            </button>
-            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> شحن مجاني خلال 24 ساعة</p>
+            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {model.pre_order === 1 ? 'سيتوفر الطلب المسبق قريباً' : 'شحن مجاني خلال 24 ساعة'}</p>
           </div>
         </div>
       </div>
+
+      {/* Express Interest Modal */}
+      {showInterestModal && (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 10000,
+          background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: '#1a0e05',
+            border: '1px solid #c5a880',
+            borderRadius: '24px', width: '90%', maxWidth: '400px',
+            padding: '30px', position: 'relative',
+            boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+            direction: 'rtl'
+          }}>
+            <button 
+              onClick={() => setShowInterestModal(false)}
+              style={{
+                position: 'absolute', top: '16px', left: '16px',
+                background: 'none', border: 'none', color: '#888', cursor: 'pointer'
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            {interestSubmitted ? (
+              <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                <CheckCircle2 size={48} color="#c5a880" style={{ marginBottom: '16px', display: 'inline-block' }} />
+                <h3 style={{ color: '#fff', fontSize: '1.2rem', fontWeight: 'bold', margin: '0 0 8px' }}>تم تسجيل اهتمامكِ بنجاح!</h3>
+                <p style={{ color: '#aaa', fontSize: '0.85rem', margin: 0 }}>سنقوم بإشعاركِ فور توفر هذه العباءة الرائعة في المتجر.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleRegisterInterest}>
+                <h3 style={{ color: '#c5a880', fontSize: '1.2rem', fontWeight: '900', margin: '0 0 10px', fontFamily: 'var(--font-primary)' }}>سجلي اهتمامكِ بالعباءة</h3>
+                <p style={{ color: '#aaa', fontSize: '0.8rem', margin: '0 0 20px', lineHeight: '1.4' }}>
+                  كوني أول من يعلم عند توفر هذه القطعة الفاخرة! اتركي بياناتكِ وسنقوم بإشعاركِ فور صدورها.
+                </p>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#ccc', marginBottom: '6px' }}>الاسم الكامل *</label>
+                  <input 
+                    type="text" required placeholder="اكتبي اسمكِ الكريم" value={interestName} onChange={e => setInterestName(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', outline: 'none', fontSize: '0.85rem' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '15px' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#ccc', marginBottom: '6px' }}>رقم الهاتف *</label>
+                  <input 
+                    type="tel" required placeholder="مثال: 0791234567" value={interestPhone} onChange={e => setInterestPhone(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', outline: 'none', fontSize: '0.85rem', textAlign: 'left' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: '#ccc', marginBottom: '6px' }}>البريد الإلكتروني (اختياري)</label>
+                  <input 
+                    type="email" placeholder="example@domain.com" value={interestEmail} onChange={e => setInterestEmail(e.target.value)}
+                    style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)', color: '#fff', outline: 'none', fontSize: '0.85rem', textAlign: 'left' }}
+                  />
+                </div>
+
+                <button 
+                  type="submit" disabled={submittingInterest}
+                  style={{
+                    width: '100%', padding: '14px', borderRadius: '12px',
+                    background: '#c5a880', color: '#1a0e05',
+                    border: 'none', fontWeight: '900', fontSize: '0.88rem',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                  }}
+                >
+                  {submittingInterest ? 'جاري التسجيل...' : 'تسجيل الاهتمام'}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

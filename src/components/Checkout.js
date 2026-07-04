@@ -90,6 +90,10 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const [storeSettings, setStoreSettings] = useState(null);
   const [loyaltyInfo, setLoyaltyInfo] = useState({ points: 0 });
   const [usePoints, setUsePoints] = useState(false);
+  const [isGift, setIsGift] = useState(false);
+  const [giftPackaging, setGiftPackaging] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
+
 
   useEffect(() => {
     fetch('/api/settings')
@@ -170,9 +174,10 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const pointsToRedeem = Math.min(loyaltyInfo.points, Math.floor(maxPossibleDiscount / loyalty_redeem_ratio));
   const pointsDiscountAmount = (usePoints && canRedeem) ? (pointsToRedeem * loyalty_redeem_ratio) : 0;
 
+  const giftFee = isGift ? (giftPackaging === 'silk_wrap' ? 5 : (giftPackaging === 'premium_box' ? 3 : 0)) : 0;
   const subtotalAfterDiscount = Math.max(0, totalPrice - discountAmount - pointsDiscountAmount);
   // Free delivery in Jordan!
-  const finalPrice = subtotalAfterDiscount;
+  const finalPrice = subtotalAfterDiscount + giftFee;
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -295,7 +300,11 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
           phone: form.phone.trim(),
           coupon_code: couponApplied ? couponApplied.code : null,
           redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
-          points_discount: pointsDiscountAmount
+          points_discount: pointsDiscountAmount,
+          is_gift: isGift ? 1 : 0,
+          gift_message: giftMessage,
+          gift_packaging: giftPackaging,
+          gift_fee: giftFee
         }),
       });
 
@@ -390,7 +399,11 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
             coupon_code: couponApplied ? couponApplied.code : null,
             currency: currency.code,
             redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
-            points_discount: pointsDiscountAmount
+            points_discount: pointsDiscountAmount,
+            is_gift: isGift ? 1 : 0,
+            gift_message: giftMessage,
+            gift_packaging: giftPackaging,
+            gift_fee: giftFee
           }),
         });
 
@@ -645,6 +658,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               <span>رسوم الشحن والتوصيل</span>
               <span style={{ color: '#27ae60' }}>مجاني</span>
             </div>
+
+            {isGift && giftFee > 0 && (
+              <div className={styles.sumItem} style={{ color: '#c5a880', marginTop: '5px' }}>
+                <span>رسوم التغليف الفاخر ({giftPackaging === 'silk_wrap' ? 'تغليف حرير ملكي' : 'كرتونة فاخرة'})</span>
+                <span style={{ fontWeight: 'bold' }}>+{formatPrice(giftFee)}</span>
+              </div>
+            )}
 
             <div className={styles.sumTotal} style={{ marginTop: '15px', borderTop: '1px dashed var(--border-hover)', paddingTop: '15px' }}>
               <span style={{ fontWeight: 'bold', color: 'var(--espresso)' }}>المجموع الكلي</span>
@@ -970,6 +990,78 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 />
                 {errors.email && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.email}</p>}
               </div>
+            </div>
+
+            {/* Gift Options Section */}
+            <div style={{
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border)',
+              borderRadius: '20px',
+              padding: '24px',
+              marginBottom: '20px',
+              textAlign: 'right',
+              direction: 'rtl'
+            }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: '0 0 12px 0' }}>
+                <input 
+                  type="checkbox" checked={isGift} onChange={e => {
+                    setIsGift(e.target.checked);
+                    if (e.target.checked && !giftPackaging) {
+                      setGiftPackaging('premium_box');
+                    }
+                  }}
+                  style={{ width: '18px', height: '18px', accentColor: 'var(--gold-dim)' }}
+                />
+                <span style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--gold-dim)' }}>✨ هل ترغبين في إرسال الطلب كهدية؟</span>
+              </label>
+
+              {isGift && (
+                <div style={{ marginTop: '16px', animation: 'fadeIn 0.3s ease' }}>
+                  <div style={{ marginBottom: '15px' }}>
+                    <label className={styles.label} style={{ color: 'var(--espresso)', marginBottom: '8px', display: 'block', fontSize: '0.82rem' }}>نوع تغليف الهدية:</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => setGiftPackaging('premium_box')}
+                        style={{
+                          padding: '14px', borderRadius: '12px',
+                          border: `1px solid ${giftPackaging === 'premium_box' ? 'var(--gold-dim)' : 'var(--border)'}`,
+                          background: giftPackaging === 'premium_box' ? 'rgba(197,168,128,0.1)' : 'var(--white)',
+                          color: 'var(--espresso)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem', transition: '0.2s'
+                        }}
+                      >
+                        كرتونة فاخرة (+3 JOD)
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setGiftPackaging('silk_wrap')}
+                        style={{
+                          padding: '14px', borderRadius: '12px',
+                          border: `1px solid ${giftPackaging === 'silk_wrap' ? 'var(--gold-dim)' : 'var(--border)'}`,
+                          background: giftPackaging === 'silk_wrap' ? 'rgba(197,168,128,0.1)' : 'var(--white)',
+                          color: 'var(--espresso)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem', transition: '0.2s'
+                        }}
+                      >
+                        تغليف حرير ملكي (+5 JOD)
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className={styles.label} style={{ color: 'var(--espresso)', marginBottom: '8px', display: 'block', fontSize: '0.82rem' }}>رسالة بطاقة الإهداء:</label>
+                    <textarea 
+                      value={giftMessage}
+                      onChange={e => setGiftMessage(e.target.value)}
+                      placeholder="اكتبي رسالة الإهداء التي سيتم إرفاقها مع الهدية داخل العبوة..."
+                      style={{
+                        width: '100%', height: '80px', padding: '12px', borderRadius: '12px',
+                        border: '1px solid var(--border)', background: 'var(--white)',
+                        color: 'var(--espresso)', outline: 'none', resize: 'none', fontSize: '0.82rem'
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Policy Notice Box */}

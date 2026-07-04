@@ -90,6 +90,7 @@ const Products = () => {
     price_num: '', 
     description: '', 
     available: 1,
+    pre_order: 0,
     category_id: '',
     image_url: '',
     tags: '',
@@ -224,7 +225,7 @@ const Products = () => {
   const openAddModal = () => {
     setModalMode('add');
     setFormData({ 
-      id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, category_id: dbCategories[0]?.id || '', image_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
+      id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, pre_order: 0, category_id: dbCategories[0]?.id || '', image_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
       sku: '', subtitle: '', badge: '',
       sizes_json: '["S", "M", "L", "XL", "XXL", "3XL"]',
       fabric_json: '[{"label": "نوع القماش", "value": "كريب فاخر"}, {"label": "بلد المنشأ", "value": "الأردن"}]',
@@ -246,6 +247,7 @@ const Products = () => {
       tax_amount: product.tax_amount || '',
       description: product.description,
       available: product.available ?? 1,
+      pre_order: product.pre_order ?? 0,
       category_id: product.category_id || (dbCategories[0]?.id || ''),
       image_url: product.image_url || '',
       tags: product.tags || '',
@@ -766,6 +768,19 @@ const Products = () => {
                     <option value={1} style={{ backgroundColor: colors.espresso }}>{t('Available (Live)')}</option>
                     <option value={0} style={{ backgroundColor: colors.espresso }}>{t('Unavailable (Hidden)')}</option>
                   </select>
+
+                  <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <input 
+                      type="checkbox" 
+                      id="pre_order"
+                      checked={formData.pre_order === 1}
+                      onChange={(e) => setFormData({...formData, pre_order: e.target.checked ? 1 : 0})}
+                      style={{ width: '16px', height: '16px', accentColor: colors.primary, cursor: 'pointer' }}
+                    />
+                    <label htmlFor="pre_order" style={{ fontSize: '0.8rem', fontWeight: 'bold', color: colors.primary, cursor: 'pointer' }}>
+                      {t('Enable Pre-Order (طلب مسبق)')}
+                    </label>
+                  </div>
 
                   <div style={{ marginTop: '20px', padding: '15px', borderRadius: '15px', background: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}` }}>
                     <div style={{ fontSize: '0.75rem', color: '#888', marginBottom: '5px' }}>{t('Quick Tip:')}</div>
