@@ -36,25 +36,25 @@ const socialLinks = [
     label: 'Instagram',
     href: shopInfo.instagram || 'https://instagram.com/zahratbeesan',
     icon: <InstagramIcon />,
-    color: '#E1306C',
+    bg: '#E1306C',
   },
   {
     label: 'Facebook',
     href: 'https://facebook.com/zahratbeesan',
     icon: <FacebookIcon />,
-    color: '#1877F2',
+    bg: '#1877F2',
   },
   {
     label: 'TikTok',
     href: 'https://tiktok.com/@zahratbeesan',
     icon: <TikTokIcon />,
-    color: '#010101',
+    bg: '#010101',
   },
   {
     label: 'WhatsApp',
     href: `https://wa.me/962${shopInfo.phone?.replace(/\D/g, '').replace(/^0+/, '')}`,
     icon: <WhatsAppIcon />,
-    color: '#25D366',
+    bg: '#25D366',
   },
 ];
 
@@ -69,8 +69,7 @@ function SocialSidebar() {
       transform: 'translateY(-50%)',
       display: 'flex',
       flexDirection: 'column',
-      gap: '2px',
-      zIndex: 9000,
+      zIndex: 9999,
     }}>
       {socialLinks.map((s) => (
         <a
@@ -81,41 +80,26 @@ function SocialSidebar() {
           aria-label={s.label}
           onMouseEnter={() => setHovered(s.label)}
           onMouseLeave={() => setHovered(null)}
+          title={s.label}
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '10px',
-            paddingLeft: hovered === s.label ? '14px' : '10px',
-            paddingRight: '14px',
-            height: '44px',
-            background: hovered === s.label ? s.color : 'rgba(30,20,10,0.82)',
+            justifyContent: 'center',
+            width: '42px',
+            height: '42px',
+            background: s.bg,
             color: '#fff',
             textDecoration: 'none',
-            fontSize: '0.78rem',
-            fontWeight: '700',
-            letterSpacing: '0.5px',
-            borderRadius: '0 10px 10px 0',
-            transition: 'all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-            backdropFilter: 'blur(8px)',
-            borderRight: `2px solid ${s.color}`,
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            maxWidth: hovered === s.label ? '150px' : '46px',
+            transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+            transform: hovered === s.label ? 'translateX(6px)' : 'translateX(0)',
             boxShadow: hovered === s.label
-              ? `3px 3px 18px ${s.color}55`
-              : '2px 2px 10px rgba(0,0,0,0.25)',
+              ? `3px 3px 14px ${s.bg}88`
+              : '1px 1px 6px rgba(0,0,0,0.3)',
+            borderRadius: '0 8px 8px 0',
+            marginBottom: '2px',
           }}
         >
-          <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-            {s.icon}
-          </span>
-          <span style={{
-            opacity: hovered === s.label ? 1 : 0,
-            transition: 'opacity 0.25s ease',
-            fontSize: '0.75rem',
-          }}>
-            {s.label}
-          </span>
+          {s.icon}
         </a>
       ))}
     </div>
