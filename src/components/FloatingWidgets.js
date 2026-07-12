@@ -107,7 +107,7 @@ function SocialSidebar() {
 }
 
 /* ────────────────────────────────────────────────
-   WhatsApp floating button — bottom right
+   WhatsApp floating button — left side, below social icons
 ──────────────────────────────────────────────── */
 function WhatsAppButton() {
   const [hovered, setHovered] = useState(false);
@@ -121,49 +121,36 @@ function WhatsAppButton() {
       aria-label="واتساب"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title="WhatsApp"
       style={{
         position: 'fixed',
-        bottom: '90px',
-        right: '20px',
-        width: hovered ? '160px' : '52px',
-        height: '52px',
-        background: 'linear-gradient(135deg, #25D366, #128C7E)',
-        borderRadius: hovered ? '26px' : '50%',
+        left: 0,
+        bottom: 'calc(50% - 130px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px',
+        width: '42px',
+        height: '42px',
+        background: '#25D366',
         color: '#fff',
         textDecoration: 'none',
-        fontSize: '0.82rem',
-        fontWeight: '700',
+        borderRadius: '0 8px 8px 0',
         boxShadow: hovered
-          ? '0 6px 25px rgba(37,211,102,0.55)'
-          : '0 4px 15px rgba(37,211,102,0.4)',
-        zIndex: 9100,
-        transition: 'all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        paddingRight: hovered ? '16px' : 0,
-        paddingLeft: hovered ? '12px' : 0,
+          ? '3px 3px 14px rgba(37,211,102,0.6)'
+          : '1px 1px 6px rgba(0,0,0,0.3)',
+        zIndex: 9999,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: hovered ? 'translateX(6px)' : 'translateX(0)',
+        marginTop: '2px',
       }}
     >
-      <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <WhatsAppIcon />
-      </span>
-      <span style={{
-        opacity: hovered ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-        fontSize: '0.8rem',
-      }}>
-        واتساب
-      </span>
+      <WhatsAppIcon />
     </a>
   );
 }
 
 /* ────────────────────────────────────────────────
-   Contact Us floating button — bottom right above WhatsApp
+   Contact Us floating button — left side, below WhatsApp
 ──────────────────────────────────────────────── */
 function ContactButton() {
   const [hovered, setHovered] = useState(false);
@@ -181,45 +168,30 @@ function ContactButton() {
       aria-label="تواصل معنا"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title="تواصل معنا"
       style={{
         position: 'fixed',
-        bottom: '155px',
-        right: '20px',
-        width: hovered ? '160px' : '52px',
-        height: '52px',
-        background: hovered
-          ? 'linear-gradient(135deg, var(--gold, #c5a880), var(--espresso, #3b2515))'
-          : 'linear-gradient(135deg, rgba(197,168,128,0.95), rgba(166,134,93,0.95))',
-        borderRadius: hovered ? '26px' : '50%',
+        left: 0,
+        bottom: 'calc(50% - 176px)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px',
-        color: hovered ? '#fff' : '#3b2515',
+        width: '42px',
+        height: '42px',
+        background: 'linear-gradient(135deg, #c5a880, #9a7550)',
+        color: '#fff',
         textDecoration: 'none',
-        fontSize: '0.82rem',
-        fontWeight: '700',
+        borderRadius: '0 8px 8px 0',
         boxShadow: hovered
-          ? '0 6px 25px rgba(197,168,128,0.6)'
-          : '0 4px 15px rgba(197,168,128,0.4)',
-        zIndex: 9100,
-        transition: 'all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        paddingRight: hovered ? '16px' : 0,
-        paddingLeft: hovered ? '12px' : 0,
+          ? '3px 3px 14px rgba(197,168,128,0.6)'
+          : '1px 1px 6px rgba(0,0,0,0.3)',
+        zIndex: 9999,
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        transform: hovered ? 'translateX(6px)' : 'translateX(0)',
+        marginTop: '2px',
       }}
     >
-      <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-        <PhoneIcon />
-      </span>
-      <span style={{
-        opacity: hovered ? 1 : 0,
-        transition: 'opacity 0.2s ease',
-        fontSize: '0.8rem',
-      }}>
-        تواصل معنا
-      </span>
+      <PhoneIcon />
     </a>
   );
 }
