@@ -263,7 +263,7 @@ const AdminLayout = () => {
             margin: 0, fontSize: '1.05rem', color: 'var(--admin-text)', fontWeight: '900',
             letterSpacing: '2px', textTransform: 'uppercase', fontFamily: "'DM Serif Display', serif"
           }}>
-            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
+            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span>
           </h1>
           <div style={{ fontSize: '0.7rem', color: 'var(--admin-accent)', letterSpacing: '3px', marginTop: '4px', opacity: 0.8 }}>COUTURE</div>
         </div>
