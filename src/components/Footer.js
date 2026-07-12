@@ -86,67 +86,6 @@ export default function Footer() {
             زهرة بيسان — تصاميم حصرية وخامات فاخرة تعكس الأصالة والوقار. نوصّل لجميع دول العالم.
           </p>
 
-          {/* Shipping badges */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '12px' }}>
-            {[
-              { text: 'توصيل دولي', icon: <Globe size={12} /> },
-              { text: 'دفع آمن', icon: <Lock size={12} /> },
-              { text: 'تبديل داخل الأردن فقط', icon: <RefreshCcw size={12} /> }
-            ].map(b => (
-              <span key={b.text} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.75rem',
-                fontWeight: '700',
-                padding: '4px 10px',
-                borderRadius: '20px',
-                background: 'var(--gold-glow)',
-                border: '1px solid var(--border)',
-                color: 'var(--espresso)'
-              }}>{b.icon} {b.text}</span>
-            ))}
-          </div>
-
-          {/* Official Registry Badges */}
-          <div style={{ display: 'flex', gap: '10px', marginTop: '15px', flexWrap: 'wrap' }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              background: 'rgba(166, 134, 93, 0.05)',
-              border: '1px solid rgba(166, 134, 93, 0.2)',
-              fontSize: '0.78rem',
-              color: 'var(--espresso)'
-            }}>
-              <span style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>📜</span>
-              <div>
-                <span style={{ fontWeight: 'bold', display: 'block', fontSize: '0.68rem', color: 'var(--gold-dim)' }}>السجل التجاري</span>
-                <span style={{ fontWeight: 'bold', fontSize: '0.75rem' }}>617219</span>
-              </div>
-            </div>
-
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '6px 12px',
-              borderRadius: '8px',
-              background: 'rgba(166, 134, 93, 0.05)',
-              border: '1px solid rgba(166, 134, 93, 0.2)',
-              fontSize: '0.78rem',
-              color: 'var(--espresso)'
-            }}>
-              <span style={{ fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>📈</span>
-              <div>
-                <span style={{ fontWeight: 'bold', display: 'block', fontSize: '0.68rem', color: 'var(--gold-dim)' }}>الرقم الضريبي</span>
-                <span style={{ fontWeight: 'bold', fontSize: '0.75rem' }}>81492545</span>
-              </div>
-            </div>
-          </div>
-
           {/* Social */}
           <div className={styles.socialGroup} style={{ display: 'flex', gap: '10px', marginTop: '18px' }}>
             <a href={shopInfo.instagram} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Instagram">
@@ -158,32 +97,6 @@ export default function Footer() {
             <a href="#" className={styles.socialIcon} aria-label="TikTok">
               <TikTokIcon />
             </a>
-          </div>
-
-          {/* Newsletter */}
-          <div style={{ marginTop: '25px', maxWidth: '300px' }}>
-            <p style={{ color: 'var(--espresso)', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 'bold' }}>
-              اشتركي لتصلكِ العروض الحصرية:
-            </p>
-            <form onSubmit={handleSubscribe} style={{ display: 'flex', gap: '8px' }}>
-              <input
-                type="email" required
-                placeholder="بريدكِ الإلكتروني"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                style={{
-                  background: 'var(--white)', border: '1px solid var(--border)',
-                  color: 'var(--espresso)', padding: '8px 12px',
-                  borderRadius: '8px', fontSize: '0.85rem', flex: 1, outline: 'none'
-                }}
-              />
-              <button type="submit" disabled={subscribing}
-                style={{ background: 'var(--gold)', color: 'var(--espresso)', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem' }}
-              >
-                {subscribing ? '...' : 'اشتراك'}
-              </button>
-            </form>
-            {subMsg && <p style={{ display: 'flex', alignItems: 'center', gap: '4px', color: subMsg.includes('تم') ? '#27ae60' : '#dc3545', fontSize: '0.8rem', marginTop: '5px', fontWeight: 'bold' }}>{subMsg.includes('تم') && <CheckCircle2 size={14} />}{subMsg}</p>}
           </div>
         </div>
 
@@ -202,23 +115,11 @@ export default function Footer() {
               </li>
             ))}
           </ul>
-
-          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px', marginTop: '30px' }}>العملات المقبولة</h4>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-            {['JOD 🇯🇴', 'USD 🇺🇸', 'SAR 🇸🇦', 'AED 🇦🇪', 'EUR 🇪🇺', 'GBP 🇬🇧', 'KWD 🇰🇼'].map(c => (
-              <span key={c} style={{
-                fontSize: '0.75rem', padding: '3px 8px',
-                borderRadius: '6px', border: '1px solid var(--border)',
-                color: 'var(--espresso)', background: 'var(--white)',
-                fontWeight: '600'
-              }}>{c}</span>
-            ))}
-          </div>
         </div>
 
         {/* Contact */}
         <div className={styles.col} style={{ textAlign: 'right' }}>
-          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>تواصلي معنا</h4>
+          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>تواصل معنا</h4>
 
           <a href={`mailto:${shopInfo.email}`} className={styles.emailLink}
             style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '12px', textDecoration: 'none' }}
@@ -234,22 +135,64 @@ export default function Footer() {
             <WhatsAppIcon /> واتساب: {shopInfo.phone}
           </a>
 
-          <div style={{ marginTop: '20px', padding: '16px', borderRadius: '14px', background: 'var(--gold-glow)', border: '1px solid var(--border)' }}>
-            <div style={{ fontWeight: '800', color: 'var(--espresso)', marginBottom: '6px', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Globe size={16} /> نوصّل لجميع دول العالم
-            </div>
-            <div style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', lineHeight: '1.6' }}>
-              الأردن • السعودية • الإمارات • الكويت<br />
-              قطر • البحرين • مصر • وجميع دول العالم
-            </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '20px' }}>
+            {[
+              { text: 'توصيل دولي', icon: <Globe size={12} /> },
+              { text: 'دفع آمن', icon: <Lock size={12} /> },
+              { text: 'تبديل محلي', icon: <RefreshCcw size={12} /> }
+            ].map(b => (
+              <span key={b.text} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                padding: '4px 10px',
+                borderRadius: '20px',
+                background: 'var(--gold-glow)',
+                border: '1px solid var(--border)',
+                color: 'var(--espresso)'
+              }}>{b.icon} {b.text}</span>
+            ))}
           </div>
+        </div>
 
-          <div style={{ marginTop: '14px', padding: '12px 16px', borderRadius: '12px', background: 'var(--white)', border: '1px solid var(--border)', display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <span style={{ fontSize: '1.4rem', display: 'flex' }}><Lock size={24} /></span>
-            <div>
-              <div style={{ fontWeight: '700', color: 'var(--espresso)', fontSize: '0.85rem' }}>دفع آمن ومشفّر</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>Visa · Mastercard · Paypal · COD</div>
-            </div>
+        {/* Newsletter & Extra */}
+        <div className={styles.col} style={{ textAlign: 'right' }}>
+          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>النشرة البريدية</h4>
+          <p style={{ color: 'var(--espresso)', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 'bold' }}>
+            اشتركي لتصلكِ العروض الحصرية:
+          </p>
+          <form onSubmit={handleSubscribe} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
+            <input
+              type="email" required
+              placeholder="بريدكِ الإلكتروني"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={{
+                background: 'var(--white)', border: '1px solid var(--border)',
+                color: 'var(--espresso)', padding: '10px 12px',
+                borderRadius: '8px', fontSize: '0.85rem', width: '100%', outline: 'none'
+              }}
+            />
+            <button type="submit" disabled={subscribing}
+              style={{ background: 'var(--gold)', color: 'var(--espresso)', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', width: '100%' }}
+            >
+              {subscribing ? '...' : 'اشتراك'}
+            </button>
+          </form>
+          {subMsg && <p style={{ display: 'flex', alignItems: 'center', gap: '4px', color: subMsg.includes('تم') ? '#27ae60' : '#dc3545', fontSize: '0.8rem', marginTop: '-10px', marginBottom: '15px', fontWeight: 'bold' }}>{subMsg.includes('تم') && <CheckCircle2 size={14} />}{subMsg}</p>}
+
+          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '10px', fontSize: '1.1rem', marginTop: '10px' }}>العملات المقبولة</h4>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {['JOD', 'USD', 'SAR', 'AED', 'EUR', 'GBP', 'KWD'].map(c => (
+              <span key={c} style={{
+                fontSize: '0.75rem', padding: '3px 8px',
+                borderRadius: '6px', border: '1px solid var(--border)',
+                color: 'var(--espresso)', background: 'var(--white)',
+                fontWeight: '600'
+              }}>{c}</span>
+            ))}
           </div>
         </div>
 

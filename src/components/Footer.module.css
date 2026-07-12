@@ -1,7 +1,7 @@
 .footer {
   background: linear-gradient(180deg, var(--cream-dark) 0%, rgba(197, 168, 128, 0.12) 100%);
   color: var(--espresso);
-  padding: 100px 0 40px;
+  padding: 70px 0 40px;
   position: relative;
   overflow: hidden;
 }
@@ -21,8 +21,8 @@
   margin: 0 auto;
   padding: 0 40px;
   display: grid;
-  grid-template-columns: 2fr 1.5fr 1fr 1.5fr;
-  gap: 60px;
+  grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
+  gap: 40px;
 }
 
 .brand {
@@ -185,7 +185,7 @@
 
 .bottom {
   max-width: 1200px;
-  margin: 80px auto 0;
+  margin: 50px auto 0;
   padding: 40px;
   border-top: 1px solid var(--divider);
   display: flex;
