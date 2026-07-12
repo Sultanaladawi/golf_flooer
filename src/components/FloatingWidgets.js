@@ -71,7 +71,7 @@ function SocialSidebar() {
   );
 }
 
-/* ── WhatsApp: bottom-right, above the chatbot (chatbot is at bottom:32px) ── */
+/* ── WhatsApp: same size as chatbot (56px circle) ── */
 function WhatsAppButton() {
   const [hovered, setHovered] = useState(false);
   const waUrl = `https://wa.me/962${shopInfo.phone?.replace(/\D/g, '').replace(/^0+/, '')}?text=${encodeURIComponent('مرحباً، أودّ الاستفسار عن المنتجات 🌸')}`;
@@ -86,15 +86,15 @@ function WhatsAppButton() {
       onMouseLeave={() => setHovered(false)}
       style={{
         position: 'fixed', bottom: '100px', right: '2rem',
-        width: '48px', height: '48px',
+        width: '56px', height: '56px',
         background: '#25D366', color: '#fff',
         borderRadius: '50%',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         textDecoration: 'none',
-        boxShadow: hovered ? '0 6px 20px rgba(37,211,102,0.6)' : '0 3px 12px rgba(37,211,102,0.4)',
-        transform: hovered ? 'scale(1.12)' : 'scale(1)',
+        boxShadow: hovered ? '0 8px 24px rgba(37,211,102,0.6)' : '0 4px 16px rgba(37,211,102,0.4)',
+        transform: hovered ? 'scale(1.08)' : 'scale(1)',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        zIndex: 8999,
+        zIndex: 8998,
       }}
     >
       <WhatsAppIcon />
@@ -102,7 +102,7 @@ function WhatsAppButton() {
   );
 }
 
-/* ── Contact/Headset: bottom-right, above WhatsApp ── */
+/* ── Contact/Headset: rounded square (like app icon), above WhatsApp ── */
 function ContactButton() {
   const [hovered, setHovered] = useState(false);
   const scrollToContact = (e) => {
@@ -119,16 +119,17 @@ function ContactButton() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position: 'fixed', bottom: '158px', right: '2rem',
-        width: '48px', height: '48px',
-        background: 'linear-gradient(135deg, #c5a880, #9a7550)', color: '#fff',
-        borderRadius: '50%',
+        position: 'fixed', bottom: '170px', right: '2rem',
+        width: '56px', height: '56px',
+        background: 'linear-gradient(135deg, #1877F2, #0a52c4)',
+        color: '#fff',
+        borderRadius: '16px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         textDecoration: 'none',
-        boxShadow: hovered ? '0 6px 20px rgba(197,168,128,0.6)' : '0 3px 12px rgba(197,168,128,0.4)',
-        transform: hovered ? 'scale(1.12)' : 'scale(1)',
+        boxShadow: hovered ? '0 8px 24px rgba(24,119,242,0.6)' : '0 4px 16px rgba(24,119,242,0.35)',
+        transform: hovered ? 'scale(1.08)' : 'scale(1)',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        zIndex: 8999,
+        zIndex: 8998,
       }}
     >
       <HeadsetIcon />
