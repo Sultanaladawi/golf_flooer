@@ -15,6 +15,7 @@ import WallOfLove         from './components/WallOfLove';
 import Contact            from './components/Contact';
 import Footer             from './components/Footer';
 import Chatbot            from './components/Chatbot';
+import FloatingWidgets   from './components/FloatingWidgets';
 import Cart               from './components/Cart';
 import Checkout           from './components/Checkout';
 import Wishlist           from './components/Wishlist';
@@ -144,6 +145,7 @@ function PublicSite() {
 
       <Footer />
       <Chatbot />
+      <FloatingWidgets />
 
       <Wishlist isOpen={wishlistOpen} onClose={() => setWishlistOpen(false)} />
       <OrderTracking isOpen={trackingOpen} onClose={() => setTrackingOpen(false)} />
