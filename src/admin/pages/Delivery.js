@@ -75,7 +75,7 @@ async function fedexTrackShipment(token, trackingNumber) {
 /* ─────────────────────────────────────────────────────────────
    Logestech API helpers  (Jordan local delivery)
 ───────────────────────────────────────────────────────────── */
-const LOGESTECH_BASE = 'https://backend.logestechs.com/api';
+const LOGESTECH_BASE = 'https://apisv2.logestechs.com/api';
 
 async function logestechCreateShipment(apiKey, companyId, shipment) {
   const payload = {
@@ -86,14 +86,14 @@ async function logestechCreateShipment(apiKey, companyId, shipment) {
     destination_city: shipment.city || shipment.destination.split(',')[0],
     weight: shipment.weight || 1,
     cod_amount: shipment.cod || 0,
-    notes: shipment.notes || 'Zahrat Beesan Order',
-    company_id: companyId
+    notes: shipment.notes || 'Zahrat Beesan Order'
   };
-  const res = await fetch(`${LOGESTECH_BASE}/shipments`, {
+  const res = await fetch(`${LOGESTECH_BASE}/ship/request/by-email`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
+      'company-id': companyId,
       Accept: 'application/json'
     },
     body: JSON.stringify(payload)
@@ -102,9 +102,13 @@ async function logestechCreateShipment(apiKey, companyId, shipment) {
   return res.json();
 }
 
-async function logestechTrackShipment(apiKey, trackingNumber) {
+async function logestechTrackShipment(apiKey, companyId, trackingNumber) {
   const res = await fetch(`${LOGESTECH_BASE}/shipments/${trackingNumber}/track`, {
-    headers: { Authorization: `Bearer ${apiKey}`, Accept: 'application/json' }
+    headers: { 
+      Authorization: `Bearer ${apiKey}`, 
+      'company-id': companyId,
+      Accept: 'application/json' 
+    }
   });
   if (!res.ok) throw new Error('Logestech track failed');
   return res.json();
@@ -185,7 +189,7 @@ const Delivery = () => {
     if (logestechApiKey) {
       try {
         const res = await fetch(`${LOGESTECH_BASE}/companies`, {
-          headers: { Authorization: `Bearer ${logestechApiKey}`, Accept: 'application/json' }
+          headers: { Authorization: `Bearer ${logestechApiKey}`, 'company-id': logestechCompanyId, Accept: 'application/json' }
         });
         status.logestech = res.ok ? 'ok' : 'error';
       } catch { status.logestech = 'error'; }
