@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useCart } from '../context/CartContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
-import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2 } from 'lucide-react';
+import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap } from 'lucide-react';
 
 // Comprehensive list of world countries with flag ISO codes (flagcdn.com)
 const WORLD_COUNTRIES = [
