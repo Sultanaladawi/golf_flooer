@@ -102,47 +102,13 @@ function WhatsAppButton() {
   );
 }
 
-/* ── Contact/Headset: rounded square (like app icon), above WhatsApp ── */
-function ContactButton() {
-  const [hovered, setHovered] = useState(false);
-  const scrollToContact = (e) => {
-    e.preventDefault();
-    const el = document.getElementById('contact');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-  return (
-    <a
-      href="#contact"
-      onClick={scrollToContact}
-      aria-label="تواصل معنا"
-      title="تواصل معنا"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'fixed', bottom: '170px', right: '2rem',
-        width: '56px', height: '56px',
-        background: 'linear-gradient(135deg, #1877F2, #0a52c4)',
-        color: '#fff',
-        borderRadius: '16px',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        textDecoration: 'none',
-        boxShadow: hovered ? '0 8px 24px rgba(24,119,242,0.6)' : '0 4px 16px rgba(24,119,242,0.35)',
-        transform: hovered ? 'scale(1.08)' : 'scale(1)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        zIndex: 8998,
-      }}
-    >
-      <HeadsetIcon />
-    </a>
-  );
-}
+
 
 export default function FloatingWidgets() {
   return (
     <>
       <SocialSidebar />
       <WhatsAppButton />
-      <ContactButton />
     </>
   );
 }
