@@ -118,9 +118,9 @@ const Delivery = () => {
   const [activeTab, setActiveTab] = useState('international');
 
   // API settings — stored in localStorage
-  const [fedexClientId, setFedexClientId] = useState(() => localStorage.getItem('fedex_client_id') || '');
-  const [fedexClientSecret, setFedexClientSecret] = useState(() => localStorage.getItem('fedex_client_secret') || '');
-  const [fedexAccountNum, setFedexAccountNum] = useState(() => localStorage.getItem('fedex_account_num') || '');
+  const [fedexClientId, setFedexClientId] = useState(() => localStorage.getItem('fedex_client_id') || 'l744fb38ebfcd74c87bce7b16fbe236931');
+  const [fedexClientSecret, setFedexClientSecret] = useState(() => localStorage.getItem('fedex_client_secret') || '2771d602967246658269cc3a0ae4b4b9');
+  const [fedexAccountNum, setFedexAccountNum] = useState(() => localStorage.getItem('fedex_account_num') || '211266142');
   const [logestechApiKey, setLogestechApiKey] = useState(() => localStorage.getItem('logestech_api_key') || '');
   const [logestechCompanyId, setLogestechCompanyId] = useState(() => localStorage.getItem('logestech_company_id') || '');
 
