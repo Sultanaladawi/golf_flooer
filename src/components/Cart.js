@@ -129,9 +129,11 @@ export default function Cart({ onClose, onCheckout }) {
           </div>
 
           <button className={styles.checkoutBtn} onClick={onCheckout} style={{ background: 'var(--brown)', border: '1px solid var(--border)', color: 'var(--cream)' }}>
-            <i className="fas fa-shield-alt" />
-            <span>تأكيد الطلب</span>
-            <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '8px', fontSize: '1rem', marginLeft: 'auto' }}>{formatPrice(totalPrice)}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <i className="fas fa-shield-alt" />
+              <span>تأكيد الطلب</span>
+            </div>
+            <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '8px', fontSize: '1rem' }}>{formatPrice(totalPrice)}</span>
           </button>
           
           <button className={styles.clearBtn} onClick={clearCart}>
