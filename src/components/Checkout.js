@@ -47,6 +47,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const { items, totalPrice, clearCart } = useCart();
   const { format } = useCurrency();
   const [step, setStep] = useState(initialStep);
+  const [authMode, setAuthMode] = useState('auth'); 
+  const [authEmail, setAuthEmail] = useState('');
   const [orderId, setOrderId] = useState(initialOrderId);
   const [orderStatus, setOrderStatus] = useState('preparing');
   const [timeRemaining, setTimeRemaining] = useState(120);
@@ -841,7 +843,64 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
             )}
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit} noValidate>
+          {/* Auth Section */}
+          {authMode === 'auth' && (
+            <div style={{ background: 'var(--bg-surface)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border)', marginBottom: '20px', direction: 'rtl', textAlign: 'right' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <i className="far fa-user-circle" style={{ fontSize: '1.5rem', color: 'var(--espresso)' }}></i>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1rem', color: 'var(--espresso)', fontWeight: 'bold' }}>تسجيل الدخول / التسجيل</h3>
+                    <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--espresso-dim)' }}>سجل دخولك أو أنشئ حساباً جديداً لإتمام طلبك.</p>
+                  </div>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => setAuthMode('guest')}
+                  style={{ background: 'none', border: 'none', color: 'var(--espresso)', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                >
+                  <i className="fas fa-chevron-left" style={{ fontSize: '0.7rem' }}></i> الشراء كضيف
+                </button>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <input 
+                  type="email" 
+                  placeholder="البريد الإلكتروني" 
+                  value={authEmail}
+                  onChange={e => setAuthEmail(e.target.value)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--border)', outline: 'none', background: 'var(--white)' }}
+                />
+                <button 
+                  type="button"
+                  onClick={() => {
+                    if(authEmail.includes('@')) {
+                      setAuthMode('logged_in');
+                      setForm(f => ({ ...f, email: authEmail }));
+                    } else {
+                      alert('يرجى إدخال بريد إلكتروني صحيح');
+                    }
+                  }}
+                  style={{ width: '100%', padding: '12px', background: 'var(--espresso)', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' }}
+                >
+                  دخول
+                </button>
+              </div>
+            </div>
+          )}
+
+          {authMode === 'auth' ? (
+            <div style={{ opacity: 0.5, pointerEvents: 'none' }}>
+              <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)', textAlign: 'center', color: 'var(--espresso-dim)', marginBottom: '20px' }}>
+                حدد عنوانك لمعرفة رسوم وسرعة التوصيل
+              </div>
+              <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)', textAlign: 'center', color: 'var(--espresso-dim)' }}>
+                <i className="fas fa-truck" style={{ fontSize: '1.2rem', marginBottom: '10px' }} />
+                <br/>
+                عنوان التوصيل
+              </div>
+            </div>
+          ) : (
+            <form className={styles.form} onSubmit={handleSubmit} noValidate>
             
             {/* Delivery Details — Online store only: always delivery */}
             <div className={styles.formSection} style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)' }}>
@@ -1514,6 +1573,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               {step === 'processing' ? 'جاري إرسال الطلب...' : `تأكيد وإتمام الطلب بقيمة ${formatPrice(finalPrice)}`}
             </button>
           </form>
+          )}
         </div>
       </div>
     </div>
