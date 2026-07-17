@@ -156,12 +156,19 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     if (form.country === 'الأردن') {
       setShippingError('');
       setIsCalculatingShipping(false);
-      if (form.city.includes('عمان') || form.city.toLowerCase() === 'amman') {
+      if (!form.city.trim()) {
+        setShippingFee(0);
+      } else if (form.city.includes('عمان') || form.city.toLowerCase() === 'amman') {
         setShippingFee(2);
       } else {
         setShippingFee(3);
       }
     } else {
+      if (!form.city.trim()) {
+        setShippingFee(0);
+        return;
+      }
+
       setIsCalculatingShipping(true);
       setShippingError('');
       const totalWeight = items.length || 1;
@@ -752,8 +759,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               {isCalculatingShipping ? (
                 <span style={{ color: 'var(--gold-dim)' }}>جاري الحساب...</span>
               ) : (
-                <span style={{ color: shippingFee === 0 ? '#27ae60' : 'var(--espresso)', fontWeight: shippingFee > 0 ? 'bold' : 'normal' }}>
-                  {shippingFee === 0 ? 'مجاني' : `+${formatPrice(shippingFee)}`}
+                <span style={{ color: (!form.city.trim() || shippingFee === 0) ? 'var(--espresso-dim)' : 'var(--espresso)', fontWeight: shippingFee > 0 ? 'bold' : 'normal', fontSize: (!form.city.trim() || shippingFee === 0) ? '0.8rem' : '1rem' }}>
+                  {!form.city.trim() ? 'يُحسب بعد إدخال المدينة' : (shippingFee === 0 ? 'مجاني' : `+${formatPrice(shippingFee)}`)}
                 </span>
               )}
             </div>
