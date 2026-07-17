@@ -550,11 +550,14 @@ db.query("SHOW COLUMNS FROM menu_items LIKE 'pre_order'", (err, results) => {
     });
   }
 });
-db.query("SHOW COLUMNS FROM orders LIKE 'is_gift'", (err, results) => {
+db.query("SHOW COLUMNS FROM orders LIKE 'gift_fee'", (err, results) => {
   if (!err && results.length === 0) {
-    db.query("ALTER TABLE orders ADD COLUMN is_gift TINYINT(1) DEFAULT 0, ADD COLUMN gift_message TEXT DEFAULT NULL, ADD COLUMN gift_packaging VARCHAR(100) DEFAULT NULL, ADD COLUMN gift_fee DECIMAL(10,2) DEFAULT 0.00", (errAlter) => {
-      if (errAlter) console.error('Add gift columns error:', errAlter);
-    });
+    // We use IGNORE or try to add them individually if they might exist.
+    // However, since we know gift_fee is missing, we can add it. If is_gift is missing, we should add it too.
+    db.query("ALTER TABLE orders ADD COLUMN is_gift TINYINT(1) DEFAULT 0", () => {});
+    db.query("ALTER TABLE orders ADD COLUMN gift_message TEXT DEFAULT NULL", () => {});
+    db.query("ALTER TABLE orders ADD COLUMN gift_packaging VARCHAR(100) DEFAULT NULL", () => {});
+    db.query("ALTER TABLE orders ADD COLUMN gift_fee DECIMAL(10,2) DEFAULT 0.00", () => {});
   }
 });
 

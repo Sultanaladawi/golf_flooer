@@ -551,7 +551,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
           } else if (resultStatus === 'outofstock') {
             setStep('outofstock');
           } else {
-            setStep('error');
+            setStep('error:' + (resultStatus === 'error' ? 'حدث خطأ غير معروف' : resultStatus));
           }
         } else if (data.url) {
           // Redirect to Stripe Checkout page
@@ -711,7 +711,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     );
   }
 
-  if (step === 'error') {
+  if (step && step.startsWith('error')) {
+    const errorMsg = step.replace('error', '').replace(':', '') || 'لم نتمكن من معالجة طلبكِ. يرجى التأكد من البيانات والمحاولة مجدداً.';
     return (
       <div className={styles.overlay} onClick={() => setStep('form')} style={{ direction: 'rtl' }}>
         <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
@@ -720,7 +721,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               <i className="fas fa-exclamation-circle" />
             </div>
             <h2 style={{ fontSize: '2rem', color: 'var(--gold-dim)', marginBottom: '10px' }}>حدث خطأ ما</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '30px' }}>لم نتمكن من معالجة طلبكِ. يرجى التأكد من البيانات والمحاولة مجدداً.</p>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', wordBreak: 'break-word' }}>{errorMsg}</p>
             <button
               className="btn btn-primary"
               onClick={() => setStep('form')}
