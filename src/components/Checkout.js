@@ -72,6 +72,10 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const [storeComment, setStoreComment] = useState('');
   const [outOfStockError, setOutOfStockError] = useState(null);
 
+  const [shippingFee, setShippingFee] = useState(0);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
+  const [shippingError, setShippingError] = useState('');
+
   const [showCountrySelect, setShowCountrySelect] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const countrySelectRef = useRef(null);
@@ -101,6 +105,54 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       .then(data => setStoreSettings(data))
       .catch(console.error);
   }, []);
+
+  useEffect(() => {
+    if (!form.country || form.country === 'دولة أخرى / Other') {
+      setShippingFee(0);
+      return;
+    }
+    
+    if (form.country === 'الأردن') {
+      setShippingError('');
+      setIsCalculatingShipping(false);
+      if (form.city.includes('عمان') || form.city.toLowerCase() === 'amman') {
+        setShippingFee(2);
+      } else {
+        setShippingFee(3);
+      }
+    } else {
+      setIsCalculatingShipping(true);
+      setShippingError('');
+      const totalWeight = items.length || 1;
+      const countryIso = WORLD_COUNTRIES.find(c => c.name === form.country)?.iso?.toUpperCase() || '';
+      
+      fetch('/api/shipping-rates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          countryCode: countryIso,
+          city: form.city || 'Capital',
+          totalWeight: totalWeight
+        })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.amount) {
+            setShippingFee(data.amount);
+          } else {
+            setShippingFee(15); // Fallback standard intl shipping
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setShippingFee(15);
+          setShippingError('تم تطبيق سعر الشحن الدولي الافتراضي.');
+        })
+        .finally(() => {
+          setIsCalculatingShipping(false);
+        });
+    }
+  }, [form.country, form.city, items.length]);
 
   useEffect(() => {
     const phoneClean = (form.phone || '').trim();
@@ -176,8 +228,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
   const giftFee = isGift ? (giftPackaging === 'silk_wrap' ? 5 : (giftPackaging === 'premium_box' ? 3 : 0)) : 0;
   const subtotalAfterDiscount = Math.max(0, totalPrice - discountAmount - pointsDiscountAmount);
-  // Free delivery in Jordan!
-  const finalPrice = subtotalAfterDiscount + giftFee;
+  // Calculate final price including shipping fee
+  const finalPrice = subtotalAfterDiscount + giftFee + shippingFee;
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
@@ -296,7 +348,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
             form.paymentMethod === 'card' ? 'بطاقة ائتمانية (Visa/MasterCard)' :
             form.paymentMethod === 'cliq' ? ('تحويل كليك - رقم الحوالة: ' + form.transferReceipt) :
             ('محفظة إلكترونية/تحويل بنكي - رقم الحوالة: ' + form.transferReceipt)
-          }`,
+          } | رسوم التوصيل: ${shippingFee} JOD`,
           phone: form.phone.trim(),
           coupon_code: couponApplied ? couponApplied.code : null,
           redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
@@ -656,7 +708,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
             <div className={styles.sumItem} style={{ marginTop: '5px' }}>
               <span>رسوم الشحن والتوصيل</span>
-              <span style={{ color: '#27ae60' }}>مجاني</span>
+              {isCalculatingShipping ? (
+                <span style={{ color: 'var(--gold-dim)' }}>جاري الحساب...</span>
+              ) : (
+                <span style={{ color: shippingFee === 0 ? '#27ae60' : 'var(--espresso)', fontWeight: shippingFee > 0 ? 'bold' : 'normal' }}>
+                  {shippingFee === 0 ? 'مجاني' : `+${formatPrice(shippingFee)}`}
+                </span>
+              )}
             </div>
 
             {isGift && giftFee > 0 && (

@@ -121,7 +121,7 @@ export default function Cart({ onClose, onCheckout }) {
           </div>
           <div className={styles.summaryRow}>
             <span>رسوم التوصيل</span>
-            <span style={{ color: '#27ae60' }}>مجاني</span>
+            <span style={{ color: 'var(--espresso)' }}>يُحسب في الدفع</span>
           </div>
           <div className={`${styles.summaryRow} ${styles.totalRow}`}>
             <span>المجموع الكلي</span>
@@ -141,7 +141,7 @@ export default function Cart({ onClose, onCheckout }) {
           </button>
 
           <p className={styles.orderNote}>
-            <i className="fas fa-info-circle" /> شحن وتوصيل مجاني وسريع لكافة دول العالم.
+            <i className="fas fa-info-circle" /> يتم حساب رسوم التوصيل بدقة في صفحة الدفع.
           </p>
         </div>
       </div>
