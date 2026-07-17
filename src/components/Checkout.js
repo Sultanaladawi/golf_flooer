@@ -1118,7 +1118,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               </div>
             </div>
 
-            {/* Gift Options Section */}
+            {/* Gift Options Section - Temporarily Hidden per user request */}
+            {false && (
             <div style={{
               background: 'var(--bg-surface)',
               border: '1px solid var(--border)',
@@ -1189,6 +1190,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 </div>
               )}
             </div>
+            )}
 
             {/* Policy Notice Box */}
             <div style={{
