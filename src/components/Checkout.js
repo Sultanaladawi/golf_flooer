@@ -451,6 +451,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       console.error('API Error:', error);
       return 'error';
     }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!validate()) return;
