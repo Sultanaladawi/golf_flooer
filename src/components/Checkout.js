@@ -76,6 +76,47 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
   const [shippingError, setShippingError] = useState('');
 
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
+
+  const handleGetLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('متصفحك لا يدعم تحديد الموقع');
+      return;
+    }
+    setIsLocating(true);
+    setLocationError('');
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`);
+          const data = await res.json();
+          
+          if (data && data.address) {
+            setForm(f => ({
+              ...f,
+              country: data.address.country || f.country,
+              state: data.address.state || f.state,
+              city: data.address.city || data.address.town || data.address.village || f.city,
+              area: data.address.suburb || data.address.neighbourhood || f.area,
+              address: data.display_name || f.address
+            }));
+          }
+        } catch (err) {
+          setLocationError('فشل في جلب المنطقة تلقائياً، يرجى الإدخال يدوياً');
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (err) => {
+        setLocationError('يرجى السماح للمتصفح بالوصول لموقعك');
+        setIsLocating(false);
+      }
+    );
+  };
+
   const [showCountrySelect, setShowCountrySelect] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
   const countrySelectRef = useRef(null);
@@ -784,6 +825,33 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               </div>
               {(
                 <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                  <button
+                    type="button"
+                    onClick={handleGetLocation}
+                    disabled={isLocating}
+                    style={{
+                      width: '100%',
+                      padding: '12px',
+                      background: 'var(--espresso)',
+                      color: 'var(--white)',
+                      border: 'none',
+                      borderRadius: '12px',
+                      fontWeight: 'bold',
+                      fontSize: '0.95rem',
+                      cursor: isLocating ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      transition: 'background 0.2s',
+                      marginBottom: '10px'
+                    }}
+                  >
+                    <i className="fas fa-map-marker-alt" />
+                    {isLocating ? 'جاري تحديد الموقع...' : 'تحديد موقعي تلقائياً 📍'}
+                  </button>
+                  {locationError && <p style={{ color: '#dc3545', fontSize: '0.8rem', textAlign: 'center', marginTop: '-5px' }}>{locationError}</p>}
+
                   {/* Country Custom Dropdown */}
                   <div className={styles.field} ref={countrySelectRef} style={{ position: 'relative' }}>
                     <label className={styles.label} style={{ color: 'var(--espresso)' }}>الدولة <span style={{ color: 'red' }}>*</span></label>
