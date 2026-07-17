@@ -3,7 +3,8 @@ import styles from './LoginModal.module.css';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { FiUser, FiX } from 'react-icons/fi';
 import { FaApple, FaFacebookF } from 'react-icons/fa';
-import { FcGoogle } from 'react-icons/fc';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
 
 export default function LoginModal() {
   const { isLoginModalOpen, closeLoginModal, login } = useCustomerAuth();
@@ -15,6 +16,13 @@ export default function LoginModal() {
     e.preventDefault();
     if (email.trim()) {
       login(email.trim());
+    }
+  };
+
+  const handleGoogleSuccess = (credentialResponse) => {
+    const decoded = jwtDecode(credentialResponse.credential);
+    if (decoded && decoded.email) {
+      login(decoded.email);
     }
   };
 
@@ -51,15 +59,15 @@ export default function LoginModal() {
         <div className={styles.divider}>أو سجل دخولك من خلال</div>
 
         <div className={styles.socialLogins}>
-          <button className={styles.socialBtn} aria-label="تسجيل الدخول بواسطة أبل">
-            <FaApple />
-          </button>
-          <button className={styles.socialBtn} aria-label="تسجيل الدخول بواسطة فيسبوك" style={{ color: '#1877F2' }}>
-            <FaFacebookF />
-          </button>
-          <button className={styles.socialBtn} aria-label="تسجيل الدخول بواسطة جوجل">
-            <FcGoogle />
-          </button>
+          <div className={styles.googleBtnContainer}>
+             <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => {
+                  console.log('Login Failed');
+                }}
+                useOneTap
+             />
+          </div>
         </div>
       </div>
     </div>

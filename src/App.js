@@ -180,9 +180,13 @@ function PublicSite() {
 import Account from './components/Account';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import LoginModal from './components/LoginModal';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
+const GOOGLE_CLIENT_ID = "521878294229-usg7sqkjrl9gklke66ln7bt8e5d4foie.apps.googleusercontent.com";
 
 export default function App() {
   return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <BrowserRouter>
       <StoreProvider>
         <CurrencyProvider>
@@ -238,5 +242,6 @@ export default function App() {
         </CurrencyProvider>
       </StoreProvider>
     </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }
