@@ -1,11 +1,14 @@
+import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
 import styles from './Cart.module.css';
 import { useEffect } from 'react';
 
-export default function Cart({ onClose, onCheckout }) {
+export default function Cart({ isOpen, onClose, onCheckout }) {
   const { items, totalItems, totalPrice, removeItem, setQty, clearCart } = useCart();
   const { format } = useCurrency();
+  const { customer, openLoginModal } = useCustomerAuth();
 
   const formatPrice = (n) => {
     return format(n);
@@ -128,7 +131,7 @@ export default function Cart({ onClose, onCheckout }) {
             <span>{formatPrice(totalPrice)}</span>
           </div>
 
-          <button className={styles.checkoutBtn} onClick={onCheckout} style={{ background: 'var(--brown)', border: '1px solid var(--border)', color: 'var(--cream)' }}>
+          <button className={styles.checkoutBtn} onClick={() => customer ? onCheckout() : openLoginModal(onCheckout)} style={{ background: 'var(--brown)', border: '1px solid var(--border)', color: 'var(--cream)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <i className="fas fa-shield-alt" />
               <span>تأكيد الطلب</span>

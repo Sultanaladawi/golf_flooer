@@ -4,6 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useDarkMode } from '../context/DarkModeContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { FiUser } from 'react-icons/fi';
 import styles from './Navbar.module.css';
 
 const BagIcon = () => (
@@ -79,6 +81,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   const wishlistCount              = wishlist.length;
   const { isDark, toggleDark }     = useDarkMode();
   const { currency, setCurrency, currencies } = useCurrency();
+  const { customer, openLoginModal } = useCustomerAuth();
 
   const [showLanguage, setShowLanguage] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
@@ -522,6 +525,22 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
+              )}
+            </button>
+
+            {/* Profile/Auth Button */}
+            <button
+              onClick={() => customer ? (window.location.href = '/account') : openLoginModal()}
+              aria-label="حسابي"
+              title={customer ? "حسابي" : "تسجيل الدخول"}
+              style={{ color: scrolled ? 'var(--gold-dim)' : '#fff', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '8px' }}
+            >
+              <FiUser size={18} />
+              {customer && (
+                <span style={{
+                  position: 'absolute', top: '5px', right: '5px',
+                  width: '6px', height: '6px', background: '#22c55e', borderRadius: '50%'
+                }} />
               )}
             </button>
 

@@ -177,17 +177,24 @@ function PublicSite() {
   );
 }
 
+import Account from './components/Account';
+import { CustomerAuthProvider } from './context/CustomerAuthContext';
+import LoginModal from './components/LoginModal';
+
 export default function App() {
   return (
     <BrowserRouter>
       <StoreProvider>
         <CurrencyProvider>
+          <CustomerAuthProvider>
           <AdminProvider>
             <CartProvider>
               <DarkModeProvider>
               <WishlistProvider>
+              <LoginModal />
               <Routes>
               <Route path="/" element={<PublicSite />} />
+              <Route path="/account" element={<Account />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/ramadan" element={<RamadanLanding />} />
               <Route path="/eid" element={<EidLanding />} />
@@ -227,6 +234,7 @@ export default function App() {
               </DarkModeProvider>
             </CartProvider>
           </AdminProvider>
+          </CustomerAuthProvider>
         </CurrencyProvider>
       </StoreProvider>
     </BrowserRouter>
