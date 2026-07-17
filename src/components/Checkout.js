@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap } from 'lucide-react';
+import { City } from 'country-state-city';
 
 // Comprehensive list of world countries with flag ISO codes (flagcdn.com)
 const WORLD_COUNTRIES = [
@@ -121,15 +122,37 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const [countrySearch, setCountrySearch] = useState('');
   const countrySelectRef = useRef(null);
 
+  const [showCitySelect, setShowCitySelect] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const [countryCities, setCountryCities] = useState([]);
+  const citySelectRef = useRef(null);
+
   useEffect(() => {
     function handleClickOutside(e) {
       if (countrySelectRef.current && !countrySelectRef.current.contains(e.target)) {
         setShowCountrySelect(false);
       }
+      if (citySelectRef.current && !citySelectRef.current.contains(e.target)) {
+        setShowCitySelect(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const currentCountryObj = WORLD_COUNTRIES.find(c => c.name === form.country);
+    if (currentCountryObj && currentCountryObj.iso) {
+      const cities = City.getCitiesOfCountry(currentCountryObj.iso.toUpperCase());
+      // Filter out duplicate city names
+      const uniqueCities = cities ? Array.from(new Set(cities.map(c => c.name))).map(name => {
+        return cities.find(c => c.name === name);
+      }) : [];
+      setCountryCities(uniqueCities);
+    } else {
+      setCountryCities([]);
+    }
+  }, [form.country]);
 
   // Store Settings
   const [storeSettings, setStoreSettings] = useState(null);
@@ -1003,17 +1026,105 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                   </div>
 
                   {/* City */}
-                  <div className={styles.field}>
+                  <div className={styles.field} ref={citySelectRef} style={{ position: 'relative' }}>
                     <label className={styles.label} style={{ color: 'var(--espresso)' }}>المدينة <span style={{ color: 'red' }}>*</span></label>
-                    <input
-                      name="city"
-                      value={form.city}
-                      onChange={handleChange}
-                      placeholder="مثال: عمان، London, Dubai, New York"
-                      className={styles.input}
-                      style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
-                    />
-                    {errors.city && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.city}</p>}
+                    {countryCities.length > 0 ? (
+                      <>
+                        <div
+                          onClick={() => setShowCitySelect(v => !v)}
+                          className={styles.input}
+                          style={{
+                            background: 'var(--white)',
+                            border: '1px solid rgba(196,164,132,0.3)',
+                            color: 'var(--espresso)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '12px 16px',
+                            borderRadius: '8px',
+                          }}
+                        >
+                          <span>{form.city || 'اختر المدينة'}</span>
+                          <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
+                        </div>
+
+                        {showCitySelect && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            background: '#fff',
+                            border: '1px solid var(--border)',
+                            borderRadius: '12px',
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                            zIndex: 9999,
+                            maxHeight: '250px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            marginTop: '5px',
+                            direction: 'rtl'
+                          }}>
+                            <div style={{ padding: '8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
+                              <input
+                                type="text"
+                                placeholder="ابحثي عن المدينة..."
+                                value={citySearch}
+                                onChange={(e) => setCitySearch(e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  width: '100%', padding: '8px 12px', border: '1px solid rgba(196,164,132,0.3)',
+                                  borderRadius: '8px', fontSize: '0.85rem', outline: 'none', direction: 'rtl',
+                                  background: '#fff', color: 'var(--espresso)'
+                                }}
+                              />
+                            </div>
+                            <div style={{ overflowY: 'auto', flex: 1 }}>
+                              {countryCities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()))
+                                .map(c => (
+                                  <div
+                                    key={c.name}
+                                    onClick={() => {
+                                      setForm(f => ({ ...f, city: c.name }));
+                                      setErrors(err => ({ ...err, city: '' }));
+                                      setShowCitySelect(false);
+                                      setCitySearch('');
+                                    }}
+                                    style={{
+                                      padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                      justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--espresso)',
+                                      background: form.city === c.name ? 'var(--gold-glow)' : 'transparent',
+                                      transition: 'background 0.2s', textAlign: 'right'
+                                    }}
+                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                                    onMouseLeave={e => e.currentTarget.style.background = form.city === c.name ? 'var(--gold-glow)' : 'transparent'}
+                                  >
+                                    <span>{c.name}</span>
+                                    {form.city === c.name && <Check size={16} style={{ color: 'var(--gold)' }} />}
+                                  </div>
+                                ))}
+                              {countryCities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
+                                <div style={{ padding: '16px', textAlign: 'center', color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
+                                  لا توجد نتائج مطابقة
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <input
+                        name="city"
+                        value={form.city}
+                        onChange={handleChange}
+                        placeholder="مثال: عمان، London, Dubai, New York"
+                        className={styles.input}
+                        style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
+                      />
+                    )}
+                    {errors.city && <p style={{ color: '#dc3545', fontSize: '0.75rem', marginTop: '4px' }}>{errors.city}</p>}
                   </div>
 
                   {/* Area */}
