@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCart } from '../context/CartContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
-import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap } from 'lucide-react';
+import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
 import { City } from 'country-state-city';
+import { sendOrderConfirmationEmail } from '../utils/emailService';
 
 // Comprehensive list of world countries with flag ISO codes (flagcdn.com)
 const WORLD_COUNTRIES = [
@@ -450,8 +451,6 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       console.error('API Error:', error);
       return 'error';
     }
-  }
-
   async function handleSubmit(e) {
     e.preventDefault();
     if (!validate()) return;
@@ -461,6 +460,11 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       const resultStatus = await saveOrderToBackend();
 
       if (resultStatus === 'success') {
+        // Send EmailJS Confirmation
+        try {
+           sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice);
+        } catch(e) {}
+        
         clearCart();
         setStep('success');
 

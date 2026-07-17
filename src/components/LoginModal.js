@@ -58,13 +58,7 @@ export default function LoginModal() {
 
         <div className={styles.divider}>أو سجل دخولك من خلال</div>
 
-        <div className={styles.socialLogins}>
-          <button className={styles.socialBtn} aria-label="تسجيل الدخول بواسطة أبل" onClick={() => alert('سيتم تفعيل هذه الخاصية قريباً!')}>
-            <FaApple />
-          </button>
-          <button className={styles.socialBtn} aria-label="تسجيل الدخول بواسطة فيسبوك" style={{ color: '#1877F2' }} onClick={() => alert('سيتم تفعيل هذه الخاصية قريباً!')}>
-            <FaFacebookF />
-          </button>
+        <div className={styles.socialLogins} style={{ justifyContent: 'center' }}>
           <div className={styles.googleBtnContainer}>
              <GoogleLogin
                 onSuccess={handleGoogleSuccess}

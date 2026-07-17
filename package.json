@@ -9,6 +9,7 @@
     "build": "cross-env DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@react-oauth/google": "^0.13.5",
     "@stripe/react-stripe-js": "^6.6.0",
     "@stripe/stripe-js": "^9.7.0",
