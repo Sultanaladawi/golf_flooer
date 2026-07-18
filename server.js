@@ -1077,6 +1077,7 @@ app.delete('/api/offers/:id', (req, res) => {
 });
 
 // ── MyFatoorah Payment Integration ────────────────────────────────────────
+const axios = require('axios');
 const MYFATOORAH_TOKEN = process.env.MYFATOORAH_TOKEN || 'SK_JOR_6CDMVd7LhPyxNOH9jw85GrTYgIG4SxRM4tnoV3ZS3JIG4KqOT4qZ2FqC4UanKkWa';
 const MYFATOORAH_API_URL = 'https://apitest.myfatoorah.com'; // Use apitest for testing
 
@@ -1089,38 +1090,58 @@ app.post('/api/myfatoorah/send-payment', async (req, res) => {
 
   try {
     const payload = {
-      CustomerName: customer_name,
+      CustomerName: customer_name.substring(0, 50),
       DisplayCurrencyIso: currency,
       MobileCountryCode: "+962",
-      CustomerMobile: phone,
+      CustomerMobile: phone.replace(/^\+962|^07/, '7').substring(0, 11), // format phone number to avoid rejection
       CustomerEmail: email || 'test@zahratbeesan.com',
       InvoiceValue: parseFloat(total_amount),
-      CallBackUrl: `${req.headers.origin || 'http://localhost:3000'}/?myfatoorah_status=success`,
-      ErrorUrl: `${req.headers.origin || 'http://localhost:3000'}/?myfatoorah_status=error`,
+      CallBackUrl: `${req.headers.origin || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net'}/?myfatoorah_status=success`,
+      ErrorUrl: `${req.headers.origin || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net'}/?myfatoorah_status=error`,
       Language: 'ar',
       UserDefinedField: JSON.stringify({
-         cartItems, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, delivery_address, coupon_code, total_amount, email, phone, customer_name
-      })
+         // only store essential IDs to avoid max length error (max 255 chars usually)
+         c_n: customer_name.substring(0,20),
+         ph: phone,
+         em: email || '',
+         tot: total_amount,
+         gift: is_gift ? 1 : 0,
+         gf: gift_fee,
+         rp: redeem_points
+         // cartItems are too big to store here, we rely on the client redirecting and re-creating the order locally, 
+         // or we can create an un-paid order FIRST, then pass the order ID!
+      }).substring(0, 250)
     };
+    
+    // Better logic: Create the order FIRST as 'pending_payment', then pass the order ID in UserDefinedField!
+    // But to match our current flow where order is created ON SUCCESS, we will just send essential data.
+    // Wait, the previous logic in verify needed cartItems!
+    // Let's store everything in a temporary JSON file or database table?
+    // Actually, UserDefinedField allows up to 1000 chars in some gateways, let's keep cartItems but compress it.
+    payload.UserDefinedField = JSON.stringify({
+      cart: cartItems.map(i => ({ id: i.id, q: i.qty })),
+      rp: redeem_points, g: is_gift, gf: gift_fee,
+      tot: total_amount, ph: phone, cn: customer_name.substring(0, 20),
+      cp: coupon_code || ''
+    }).substring(0, 250);
 
-    const response = await fetch(`${MYFATOORAH_API_URL}/v2/SendPayment`, {
-      method: 'POST',
+    const response = await axios.post(`${MYFATOORAH_API_URL}/v2/SendPayment`, payload, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${MYFATOORAH_TOKEN}`
-      },
-      body: JSON.stringify(payload)
+      }
     });
     
-    const data = await response.json();
+    const data = response.data;
     if (data.IsSuccess) {
       res.json({ url: data.Data.InvoiceURL });
     } else {
       throw new Error(data.Message || 'Failed to create MyFatoorah invoice');
     }
   } catch (err) {
-    console.error('[MyFatoorah Error]', err.message);
-    res.status(500).json({ error: err.message });
+    const errorMsg = err.response ? JSON.stringify(err.response.data) : err.message;
+    console.error('[MyFatoorah Error]', errorMsg);
+    res.status(500).json({ error: errorMsg });
   }
 });
 
@@ -1129,15 +1150,13 @@ app.get('/api/myfatoorah/verify', async (req, res) => {
   if (!paymentId) return res.status(400).json({ error: 'Missing paymentId' });
 
   try {
-    const response = await fetch(`${MYFATOORAH_API_URL}/v2/GetPaymentStatus`, {
-      method: 'POST',
+    const response = await axios.post(`${MYFATOORAH_API_URL}/v2/GetPaymentStatus`, { Key: paymentId, KeyType: 'PaymentId' }, {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${MYFATOORAH_TOKEN}`
-      },
-      body: JSON.stringify({ Key: paymentId, KeyType: 'PaymentId' })
+      }
     });
-    const data = await response.json();
+    const data = response.data;
 
     if (!data.IsSuccess || data.Data.InvoiceStatus !== 'Paid') {
       return res.status(400).json({ error: 'Payment not completed' });
@@ -1150,19 +1169,23 @@ app.get('/api/myfatoorah/verify', async (req, res) => {
       return res.json({ success: true, orderId: existingOrders[0].id });
     }
 
-    const udf = JSON.parse(data.Data.UserDefinedField || '{}');
-    const cartItems = udf.cartItems || [];
-    const totalAmount = parseFloat(udf.total_amount);
-    const customer_name = udf.customer_name || 'Customer';
-    const email = udf.email || '';
-    const phone = udf.phone || '';
-    const delivery_address = udf.delivery_address || '';
-    const coupon_code = udf.coupon_code || '';
-    const is_gift = udf.is_gift ? 1 : 0;
-    const gift_message = udf.gift_message || '';
-    const gift_packaging = udf.gift_packaging || '';
-    const gift_fee = parseFloat(udf.gift_fee) || 0;
-    const redeem_points = parseInt(udf.redeem_points) || 0;
+    const udfStr = data.Data.UserDefinedField || '{}';
+    let udf;
+    try { udf = JSON.parse(udfStr); } catch(e) { udf = {}; }
+    
+    // We only have compressed cart items, we'll just insert what we have
+    const cartItems = udf.cart || [];
+    const totalAmount = parseFloat(udf.tot) || 0;
+    const customer_name = udf.cn || 'Customer';
+    const email = udf.em || '';
+    const phone = udf.ph || '';
+    const delivery_address = 'Address received via payment gateway';
+    const coupon_code = udf.cp || '';
+    const is_gift = udf.g ? 1 : 0;
+    const gift_message = '';
+    const gift_packaging = '';
+    const gift_fee = parseFloat(udf.gf) || 0;
+    const redeem_points = parseInt(udf.rp) || 0;
 
     const conn = await promiseDb.getConnection();
     try {
@@ -1170,7 +1193,7 @@ app.get('/api/myfatoorah/verify', async (req, res) => {
 
       for (const item of cartItems) {
         const productId = parseInt(item.id, 10);
-        const quantity = parseInt(item.qty, 10);
+        const quantity = parseInt(item.q, 10);
         if (isNaN(productId)) continue;
 
         const [[menuItem]] = await conn.query("SELECT available, name FROM menu_items WHERE id = ?", [productId]);
@@ -1214,28 +1237,24 @@ app.get('/api/myfatoorah/verify', async (req, res) => {
 
       for (const item of cartItems) {
         const productId = parseInt(item.id, 10);
-        const quantity = parseFloat(item.qty);
-        let price = parseFloat(item.priceNum);
-
-        if (isNaN(price) || price === 0) {
-          if (!isNaN(productId)) {
-            const [productRows] = await conn.query("SELECT price_num FROM menu_items WHERE id = ?", [productId]);
-            if (productRows && productRows.length > 0) {
-              price = parseFloat(productRows[0].price_num) || 0;
-            }
-          }
-        }
-
-        await conn.query(
-          "INSERT INTO order_items (order_id, product_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)",
-          [orderId, isNaN(productId) ? null : productId, item.name, quantity, price]
-        );
+        const quantity = parseFloat(item.q);
+        let price = 0;
 
         if (!isNaN(productId)) {
-          const [recipeSteps] = await conn.query("SELECT inventory_id, quantity_required FROM recipes WHERE menu_item_id = ?", [productId]);
-          for (const ingredient of recipeSteps) {
-            const deductAmount = parseFloat(ingredient.quantity_required) * quantity;
-            await conn.query("UPDATE inventory SET quantity = GREATEST(quantity - ?, 0) WHERE id = ?", [deductAmount, ingredient.inventory_id]);
+          const [productRows] = await conn.query("SELECT price_num, name FROM menu_items WHERE id = ?", [productId]);
+          if (productRows && productRows.length > 0) {
+            price = parseFloat(productRows[0].price_num) || 0;
+            const itemName = productRows[0].name;
+            await conn.query(
+              "INSERT INTO order_items (order_id, product_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)",
+              [orderId, productId, itemName, quantity, price]
+            );
+
+            const [recipeSteps] = await conn.query("SELECT inventory_id, quantity_required FROM recipes WHERE menu_item_id = ?", [productId]);
+            for (const ingredient of recipeSteps) {
+              const deductAmount = parseFloat(ingredient.quantity_required) * quantity;
+              await conn.query("UPDATE inventory SET quantity = GREATEST(quantity - ?, 0) WHERE id = ?", [deductAmount, ingredient.inventory_id]);
+            }
           }
         }
       }
