@@ -446,10 +446,10 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
         setTimeRemaining(120);
         return 'success';
       }
-      return 'error';
+      return 'error: فشل حفظ الطلب';
     } catch (error) {
       console.error('API Error:', error);
-      return 'error';
+      return 'error:' + error.message;
     }
   }
 
@@ -504,7 +504,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       } else if (resultStatus === 'outofstock') {
         setStep('outofstock');
       } else {
-        setStep('error');
+        setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
       }
     } else if (form.paymentMethod === 'card') {
       // Card payment via Stripe Checkout Session
