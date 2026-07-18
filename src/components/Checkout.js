@@ -509,7 +509,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     } else if (form.paymentMethod === 'card') {
       // Card payment via Stripe Checkout Session
       try {
-        const response = await fetch('/api/create-checkout-session', {
+        const response = await fetch('/api/myfatoorah/send-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

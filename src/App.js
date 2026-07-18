@@ -68,14 +68,14 @@ function PublicSite() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const stripeStatusParam = params.get('stripe_status');
-    const sessionId = params.get('session_id');
+    const myFatoorahStatusParam = params.get('myfatoorah_status');
+    const paymentId = params.get('paymentId');
 
-    if (stripeStatusParam === 'success' && sessionId) {
+    if (myFatoorahStatusParam === 'success' && paymentId) {
       setCheckoutOpen(true);
-      setStripeStatus('verifying');
+      setStripeStatus('verifying'); // keeping state name same to avoid refactoring
       
-      fetch(`/api/verify-checkout-session?session_id=${sessionId}`)
+      fetch(`/api/myfatoorah/verify?paymentId=${paymentId}`)
         .then(res => res.json())
         .then(data => {
           if (data.success && data.orderId) {
@@ -87,12 +87,12 @@ function PublicSite() {
           }
         })
         .catch(err => {
-          console.error('[Stripe verification error]', err);
+          console.error('[MyFatoorah verification error]', err);
           setStripeStatus('error');
         });
-    } else if (stripeStatusParam === 'cancel') {
+    } else if (myFatoorahStatusParam === 'error') {
       setCheckoutOpen(true);
-      setStripeStatus('cancelled');
+      setStripeStatus('error');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);

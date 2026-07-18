@@ -238,6 +238,9 @@ db.getConnection((err, connection) => {
       if (!columnNames.includes('stripe_session_id')) {
         await promiseDb.query("ALTER TABLE orders ADD COLUMN stripe_session_id VARCHAR(255) DEFAULT NULL");
       }
+      if (!columnNames.includes('myfatoorah_invoice_id')) {
+        await promiseDb.query("ALTER TABLE orders ADD COLUMN myfatoorah_invoice_id VARCHAR(255) DEFAULT NULL");
+      }
 
       try {
         const [zeroItems] = await promiseDb.query("SELECT id, item_name, order_id, quantity FROM order_items WHERE price = 0 OR price IS NULL");
@@ -1073,149 +1076,93 @@ app.delete('/api/offers/:id', (req, res) => {
   });
 });
 
-// ── Stripe Payment Intent ──────────────────────────────────────────────
-app.post('/api/create-payment-intent', async (req, res) => {
-  if (!stripe) return res.status(503).json({ error: 'Stripe not configured. Add STRIPE_SECRET_KEY to .env' });
-  const { amount, currency = 'usd' } = req.body;
-  if (!amount || amount <= 0) return res.status(400).json({ error: 'Invalid amount' });
-  try {
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(parseFloat(amount) * 100), // smallest unit (cents/fils)
-      currency: currency.toLowerCase(),
-      automatic_payment_methods: { enabled: true },
-      metadata: { store: 'Zahrat Beesan Eastern Embroidery' }
-    });
-    res.json({ clientSecret: paymentIntent.client_secret, paymentIntentId: paymentIntent.id });
-  } catch (err) {
-    console.error('[Stripe Error]', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
+// ── MyFatoorah Payment Integration ────────────────────────────────────────
+const MYFATOORAH_TOKEN = process.env.MYFATOORAH_TOKEN || 'SK_JOR_6CDMVd7LhPyxNOH9jw85GrTYgIG4SxRM4tnoV3ZS3JIG4KqOT4qZ2FqC4UanKkWa';
+const MYFATOORAH_API_URL = 'https://apitest.myfatoorah.com'; // Use apitest for testing
 
-// ── Stripe Checkout Session Creation ──────────────────────────────────────
-app.post('/api/create-checkout-session', async (req, res) => {
-  if (!stripe) {
-    return res.json({ mock: true });
-  }
-
-  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, currency = 'USD', redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee } = req.body;
+app.post('/api/myfatoorah/send-payment', async (req, res) => {
+  const { customer_name, email, total_amount, cartItems, phone, currency = 'JOD', redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, delivery_address, coupon_code } = req.body;
 
   if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
     return res.status(400).json({ error: 'Missing required checkout information' });
   }
 
   try {
-    const CURRENCIES = {
-      'JOD': 1.0,
-      'USD': 1.41,
-      'SAR': 5.29,
-      'AED': 5.18,
-      'EUR': 1.31,
-      'GBP': 1.11,
-      'KWD': 0.43,
-      'QAR': 5.14,
-      'BHD': 0.53,
-      'EGP': 68.5
+    const payload = {
+      CustomerName: customer_name,
+      DisplayCurrencyIso: currency,
+      MobileCountryCode: "+962",
+      CustomerMobile: phone,
+      CustomerEmail: email || 'test@zahratbeesan.com',
+      InvoiceValue: parseFloat(total_amount),
+      CallBackUrl: `${req.headers.origin || 'http://localhost:3000'}/?myfatoorah_status=success`,
+      ErrorUrl: `${req.headers.origin || 'http://localhost:3000'}/?myfatoorah_status=error`,
+      Language: 'ar',
+      UserDefinedField: JSON.stringify({
+         cartItems, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, delivery_address, coupon_code, total_amount, email, phone, customer_name
+      })
     };
-    const currencyCode = (currency || 'USD').toUpperCase();
-    const rate = CURRENCIES[currencyCode] || 1.41;
 
-    const line_items = cartItems.map(item => {
-      const priceJOD = parseFloat(item.priceNum) || 0;
-      const convertedPrice = priceJOD * rate;
-      
-      const zeroDecimalCurrencies = ['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VUV', 'VND', 'XAF', 'XOF', 'XPF'];
-      const threeDecimalCurrencies = ['BHD', 'IQD', 'JOD', 'KWD', 'LYD', 'OMR', 'TND'];
-      
-      let factor = 100;
-      if (threeDecimalCurrencies.includes(currencyCode)) {
-        factor = 1000;
-      } else if (zeroDecimalCurrencies.includes(currencyCode)) {
-        factor = 1;
-      }
-      
-      const unitAmount = Math.round(convertedPrice * factor);
-
-      return {
-        price_data: {
-          currency: currencyCode.toLowerCase(),
-          product_data: {
-            name: item.name,
-            description: item.size ? `المقاس: ${item.size}` : undefined,
-          },
-          unit_amount: unitAmount,
-        },
-        quantity: parseInt(item.qty, 10) || 1,
-      };
-    });
-
-    const totalJODItems = cartItems.reduce((sum, item) => sum + (parseFloat(item.priceNum) * item.qty), 0);
-    const finalPriceJOD = parseFloat(total_amount);
-    
-    if (finalPriceJOD < totalJODItems && totalJODItems > 0) {
-      const discountRatio = finalPriceJOD / totalJODItems;
-      for (const item of line_items) {
-        item.price_data.unit_amount = Math.round(item.price_data.unit_amount * discountRatio);
-      }
-    }
-
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items,
-      mode: 'payment',
-      metadata: {
-        customer_name,
-        email: email || '',
-        phone,
-        delivery_address: delivery_address || '',
-        coupon_code: coupon_code || '',
-        cartItems: JSON.stringify(cartItems),
-        total_amount: String(total_amount),
-        currency: currencyCode,
-        redeem_points: String(redeem_points || 0),
-        points_discount: String(points_discount || 0),
-        is_gift: String(is_gift ? 1 : 0),
-        gift_message: gift_message || '',
-        gift_packaging: gift_packaging || '',
-        gift_fee: String(gift_fee || 0.00)
+    const response = await fetch(`${MYFATOORAH_API_URL}/v2/SendPayment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${MYFATOORAH_TOKEN}`
       },
-      success_url: `${req.headers.origin || 'http://localhost:3000'}/?stripe_status=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${req.headers.origin || 'http://localhost:3000'}/?stripe_status=cancel`,
+      body: JSON.stringify(payload)
     });
-
-    res.json({ url: session.url });
+    
+    const data = await response.json();
+    if (data.IsSuccess) {
+      res.json({ url: data.Data.InvoiceURL });
+    } else {
+      throw new Error(data.Message || 'Failed to create MyFatoorah invoice');
+    }
   } catch (err) {
-    console.error('[Stripe Session Error]', err.message);
+    console.error('[MyFatoorah Error]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── Stripe Checkout Session Verification ──────────────────────────────────
-app.get('/api/verify-checkout-session', async (req, res) => {
-  if (!stripe) {
-    return res.status(503).json({ error: 'Stripe not configured' });
-  }
-
-  const { session_id } = req.query;
-  if (!session_id) {
-    return res.status(400).json({ error: 'Missing session_id' });
-  }
+app.get('/api/myfatoorah/verify', async (req, res) => {
+  const { paymentId } = req.query;
+  if (!paymentId) return res.status(400).json({ error: 'Missing paymentId' });
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session.payment_status !== 'paid') {
+    const response = await fetch(`${MYFATOORAH_API_URL}/v2/GetPaymentStatus`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${MYFATOORAH_TOKEN}`
+      },
+      body: JSON.stringify({ Key: paymentId, KeyType: 'PaymentId' })
+    });
+    const data = await response.json();
+
+    if (!data.IsSuccess || data.Data.InvoiceStatus !== 'Paid') {
       return res.status(400).json({ error: 'Payment not completed' });
     }
 
+    const invoiceId = String(data.Data.InvoiceId);
     const promiseDb = db.promise();
-    const [existingOrders] = await promiseDb.query("SELECT id FROM orders WHERE stripe_session_id = ?", [session_id]);
+    const [existingOrders] = await promiseDb.query("SELECT id FROM orders WHERE myfatoorah_invoice_id = ?", [invoiceId]);
     if (existingOrders && existingOrders.length > 0) {
       return res.json({ success: true, orderId: existingOrders[0].id });
     }
 
-    const { customer_name, email, phone, delivery_address, coupon_code, cartItems: cartItemsStr, total_amount, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee } = session.metadata;
-    const cartItems = JSON.parse(cartItemsStr);
-    const totalAmount = parseFloat(total_amount);
+    const udf = JSON.parse(data.Data.UserDefinedField || '{}');
+    const cartItems = udf.cartItems || [];
+    const totalAmount = parseFloat(udf.total_amount);
+    const customer_name = udf.customer_name || 'Customer';
+    const email = udf.email || '';
+    const phone = udf.phone || '';
+    const delivery_address = udf.delivery_address || '';
+    const coupon_code = udf.coupon_code || '';
+    const is_gift = udf.is_gift ? 1 : 0;
+    const gift_message = udf.gift_message || '';
+    const gift_packaging = udf.gift_packaging || '';
+    const gift_fee = parseFloat(udf.gift_fee) || 0;
+    const redeem_points = parseInt(udf.redeem_points) || 0;
 
     const conn = await promiseDb.getConnection();
     try {
@@ -1256,8 +1203,8 @@ app.get('/api/verify-checkout-session', async (req, res) => {
       else if (activeCount > 12) prepMinutes = 12;
 
       const [orderInsertResult] = await conn.query(
-        `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone, payment_status, stripe_session_id, is_gift, gift_message, gift_packaging, gift_fee) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), 'delivery', ?, ?, 'paid', ?, ?, ?, ?, ?)`,
-        [customer_name, email || null, totalAmount, delivery_address || null, phone || null, session_id, parseInt(is_gift) || 0, gift_message || null, gift_packaging || null, parseFloat(gift_fee) || 0.00]
+        `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone, payment_status, myfatoorah_invoice_id, is_gift, gift_message, gift_packaging, gift_fee) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), 'delivery', ?, ?, 'paid', ?, ?, ?, ?, ?)`,
+        [customer_name, email || null, totalAmount, delivery_address || null, phone || null, invoiceId, parseInt(is_gift) || 0, gift_message || null, gift_packaging || null, parseFloat(gift_fee) || 0.00]
       );
       const orderId = orderInsertResult.insertId;
 
@@ -1293,7 +1240,6 @@ app.get('/api/verify-checkout-session', async (req, res) => {
         }
       }
 
-      // ── Loyalty Points Processing ──
       const redeemed = parseInt(redeem_points) || 0;
       if (redeemed > 0) {
         const [memberRows] = await conn.query("SELECT points FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
@@ -1305,7 +1251,6 @@ app.get('/api/verify-checkout-session', async (req, res) => {
         await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'redeemed', ?)", [phone.trim(), -redeemed, orderId]);
       }
 
-      // Earn points (1 JOD = 1 Point)
       const pointsEarned = Math.floor(totalAmount);
       if (pointsEarned > 0) {
         const [memberCheck] = await conn.query("SELECT * FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
@@ -1326,35 +1271,11 @@ app.get('/api/verify-checkout-session', async (req, res) => {
       conn.release();
     }
   } catch (err) {
-    console.error('[Verify Stripe Session Error]', err.message);
+    console.error('[Verify MyFatoorah Session Error]', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ── Stripe Webhook (mark order as paid) ──────────────────────────────
-app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), (req, res) => {
-  if (!stripe) return res.status(200).send('OK');
-  const sig = req.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  let event;
-  try {
-    event = webhookSecret
-      ? stripe.webhooks.constructEvent(req.body, sig, webhookSecret)
-      : JSON.parse(req.body);
-  } catch (err) {
-    console.error('[Webhook Error]', err.message);
-    return res.status(400).send('Webhook Error');
-  }
-  if (event.type === 'payment_intent.succeeded') {
-    const pi = event.data.object;
-    const orderId = pi.metadata?.orderId;
-    if (orderId) {
-      db.query("UPDATE orders SET payment_status = 'paid' WHERE id = ?", [orderId], () => {});
-    }
-    console.log(`✅ Payment succeeded: ${pi.id}`);
-  }
-  res.json({ received: true });
-});
 
 app.get('/api/categories', (req, res) => {
   db.query('SELECT * FROM categories', (err, results) => {
