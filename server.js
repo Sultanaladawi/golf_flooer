@@ -1079,7 +1079,7 @@ app.delete('/api/offers/:id', (req, res) => {
 // ── MyFatoorah Payment Integration ────────────────────────────────────────
 const axios = require('axios');
 const MYFATOORAH_TOKEN = process.env.MYFATOORAH_TOKEN || 'SK_JOR_6CDMVd7LhPyxNOH9jw85GrTYgIG4SxRM4tnoV3ZS3JIG4KqOT4qZ2FqC4UanKkWa';
-const MYFATOORAH_API_URL = 'https://apitest.myfatoorah.com'; // Use apitest for testing
+const MYFATOORAH_API_URL = process.env.MYFATOORAH_API_URL || 'https://api.myfatoorah.com';
 
 app.post('/api/myfatoorah/send-payment', async (req, res) => {
   const { customer_name, email, total_amount, cartItems, phone, currency = 'JOD', redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, delivery_address, coupon_code } = req.body;

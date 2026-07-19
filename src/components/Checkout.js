@@ -313,8 +313,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const finalPrice = subtotalAfterDiscount + giftFee + shippingFee;
 
   useEffect(() => {
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
+    document.body.style.paddingRight = `${scrollbarWidth}px`;
+    return () => { 
+      document.body.style.overflow = ''; 
+      document.body.style.paddingRight = '';
+    };
   }, []);
 
   useEffect(() => {
