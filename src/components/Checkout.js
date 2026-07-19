@@ -142,6 +142,15 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   }, []);
 
   useEffect(() => {
+    if (form.country === 'الأردن') {
+      const jordanGovernorates = [
+        'عمان', 'إربد', 'الزرقاء', 'المفرق', 'عجلون', 'جرش', 
+        'البلقاء', 'مادبا', 'الكرك', 'الطفيلة', 'معان', 'العقبة'
+      ].map(name => ({ name }));
+      setCountryCities(jordanGovernorates);
+      return;
+    }
+
     const currentCountryObj = WORLD_COUNTRIES.find(c => c.name === form.country);
     if (currentCountryObj && currentCountryObj.iso) {
       const cities = City.getCitiesOfCountry(currentCountryObj.iso.toUpperCase());
