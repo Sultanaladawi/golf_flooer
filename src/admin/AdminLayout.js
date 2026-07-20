@@ -221,6 +221,7 @@ const AdminLayout = () => {
     { path: '/admin/ai-assistant', name: t('AI Assistant'), icon: <BotMessageSquare size={18} /> },
     { path: '/admin/leader', name: t('Team Activity'), icon: <Activity size={18} /> },
     { path: '/admin/settings', name: t('Store Settings'), icon: <Settings size={18} /> },
+    { path: '/admin/theme', name: t('Theme Settings') || 'إعدادات المظهر', icon: <Settings size={18} /> },
     { path: '/admin/social', name: 'القسم الإعلامي', icon: <Share2 size={18} /> },
   ];
 

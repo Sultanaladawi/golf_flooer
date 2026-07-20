@@ -272,10 +272,10 @@ db.getConnection((err, connection) => {
           id          INT AUTO_INCREMENT PRIMARY KEY,
           product_id  INT NOT NULL,
           color_name  VARCHAR(200) NOT NULL,
-          colors      LONGTEXT NOT NULL DEFAULT '[]',
-          images      LONGTEXT DEFAULT '[]',
+          colors      LONGTEXT NOT NULL,
+          images      LONGTEXT,
           video_url   VARCHAR(500) DEFAULT NULL,
-          sizes       LONGTEXT DEFAULT '[]',
+          sizes       LONGTEXT,
           sort_order  INT DEFAULT 0,
           created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (product_id) REFERENCES menu_items(id) ON DELETE CASCADE
