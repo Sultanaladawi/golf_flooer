@@ -5,6 +5,7 @@ import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
 import { City } from 'country-state-city';
 import { sendOrderConfirmationEmail } from '../utils/emailService';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 // Comprehensive list of world countries with flag ISO codes (flagcdn.com)
 const WORLD_COUNTRIES = [
@@ -1419,6 +1420,24 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                   <div style={{ fontSize: '0.65rem', color: 'var(--espresso-dim)' }}>تحويل فوري</div>
                 </div>
 
+                {/* PayPal */}
+                <div
+                  onClick={() => {
+                    setForm(f => ({ ...f, paymentMethod: 'paypal' }));
+                    setErrors(err => ({ ...err, paymentMethod: '' }));
+                  }}
+                  style={{
+                    padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
+                    border: form.paymentMethod === 'paypal' ? '2px solid var(--gold)' : '2px solid var(--border)',
+                    backgroundColor: form.paymentMethod === 'paypal' ? 'var(--gold-glow)' : 'var(--white)',
+                    color: 'var(--espresso)', fontWeight: 'bold'
+                  }}
+                >
+                  <i className="fab fa-paypal" style={{ fontSize: '22px', margin: '0 auto 6px', color: form.paymentMethod === 'paypal' ? '#003087' : 'var(--espresso-dim)', display: 'block' }} />
+                  <div style={{ fontSize: '0.85rem' }}>PayPal</div>
+                  <div style={{ fontSize: '0.65rem', color: 'var(--espresso-dim)' }}>دفع آمن وسريع</div>
+                </div>
+
                 {/* 4. Wallet / Bank */}
                 <div
                   onClick={() => {
@@ -1505,27 +1524,73 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               />
             </div>
 
-            <button 
-              type="submit" 
-              className={`btn btn-primary ${styles.payBtn}`} 
-              disabled={step === 'processing'}
-              style={{
-                background: 'var(--gold)',
-                padding: '20px',
-                borderRadius: '15px',
-                fontSize: '1.2rem',
-                fontWeight: '800',
-                boxShadow: '0 10px 25px rgba(196, 164, 132, 0.2)',
-                border: 'none',
-                cursor: step === 'processing' ? 'not-allowed' : 'pointer',
-                color: 'var(--espresso)',
-                width: '100%',
-                transition: 'all 0.3s',
-                opacity: step === 'processing' ? 0.7 : 1
-              }}
-            >
-              {step === 'processing' ? 'جاري إرسال الطلب...' : `تأكيد وإتمام الطلب بقيمة ${formatPrice(finalPrice)}`}
-            </button>
+            {form.paymentMethod === 'paypal' ? (
+              <div style={{ marginTop: '20px' }}>
+                <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture" }}>
+                  <PayPalButtons 
+                    style={{ layout: "vertical", shape: "pill", color: "gold" }}
+                    onClick={(data, actions) => {
+                      if (!validate()) {
+                        return actions.reject();
+                      }
+                      return actions.resolve();
+                    }}
+                    createOrder={(data, actions) => {
+                      return actions.order.create({
+                        purchase_units: [
+                          {
+                            amount: {
+                              value: finalPrice.toFixed(2)
+                            }
+                          }
+                        ]
+                      });
+                    }}
+                    onApprove={async (data, actions) => {
+                      try {
+                        setStep('processing');
+                        await actions.order.capture();
+                        const resultStatus = await saveOrderToBackend();
+                        
+                        if (resultStatus === 'success') {
+                          try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
+                          clearCart();
+                          setStep('success');
+                        } else if (resultStatus === 'outofstock') {
+                          setStep('outofstock');
+                        } else {
+                          setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
+                        }
+                      } catch (err) {
+                        setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
+                      }
+                    }}
+                  />
+                </PayPalScriptProvider>
+              </div>
+            ) : (
+              <button 
+                type="submit" 
+                className={`btn btn-primary ${styles.payBtn}`} 
+                disabled={step === 'processing'}
+                style={{
+                  background: 'var(--gold)',
+                  padding: '20px',
+                  borderRadius: '15px',
+                  fontSize: '1.2rem',
+                  fontWeight: '800',
+                  boxShadow: '0 10px 25px rgba(196, 164, 132, 0.2)',
+                  border: 'none',
+                  cursor: step === 'processing' ? 'not-allowed' : 'pointer',
+                  color: 'var(--espresso)',
+                  width: '100%',
+                  transition: 'all 0.3s',
+                  opacity: step === 'processing' ? 0.7 : 1
+                }}
+              >
+                {step === 'processing' ? 'جاري إرسال الطلب...' : `تأكيد وإتمام الطلب بقيمة ${formatPrice(finalPrice)}`}
+              </button>
+            )}
           </form>
         </div>
       </div>
