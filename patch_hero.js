@@ -1,4 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+const fs = require('fs');
+const path = require('path');
+
+const filePath = path.join(__dirname, 'src/components/Hero.js');
+
+const heroContent = `import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import styles from './Hero.module.css';
 import { Sparkles } from 'lucide-react';
@@ -46,7 +51,7 @@ export default function Hero() {
             <img 
               key={idx}
               src={url}
-              alt={`Hero Banner ${idx}`}
+              alt={\`Hero Banner \${idx}\`}
               className={styles.heroVideo}
               style={{ 
                 opacity: currentBanner === idx ? 1 : 0, 
@@ -102,3 +107,7 @@ export default function Hero() {
     </section>
   );
 }
+`;
+
+fs.writeFileSync(filePath, heroContent);
+console.log("Hero.js rewritten successfully!");

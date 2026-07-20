@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import KanbanBoard from '../components/KanbanBoard';
 import axios from 'axios';
 import { BsEye, BsClockHistory, BsCheckCircle } from 'react-icons/bs';
 import { Download, X, CheckCircle2, ShoppingBag, Phone, MapPin, Printer, Send } from 'lucide-react';
@@ -460,45 +461,7 @@ const Orders = () => {
                 
                 {/* Items Table */}
                 <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: '15px' }}>
-                  <table width="100%" style={{ borderCollapse: 'collapse', color: theme.text }}>
-                    <thead>
-                      <tr style={{ color: theme.primary, borderBottom: `1px solid ${theme.border}` }}>
-                        <th style={{ padding: '10px', textAlign: 'start' }}>{t('Item')}</th>
-                        <th style={{ padding: '10px', textAlign: 'center' }}>{t('Size')}</th>
-                        <th style={{ padding: '10px', textAlign: 'center' }}>{t('Qty')}</th>
-                        <th style={{ padding: '10px', textAlign: 'end' }}>{t('Price')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orderItems.length > 0 ? orderItems.map((item, idx) => {
-                        const { name, size } = parseItemNameAndSize(item.item_name);
-                        return (
-                          <tr key={idx} style={{ borderBottom: `1px solid ${theme.border}` }}>
-                            <td style={{ padding: '12px 10px', color: cellTextStyle.color, fontFamily: cellTextStyle.fontFamily, fontSize: cellTextStyle.fontSize }}>
-                              {name}
-                            </td>
-                            <td style={{ padding: '12px 10px', textAlign: 'center' }}>
-                              {size ? (
-                                <span style={{ backgroundColor: theme.primary, color: '#000', padding: '3px 8px', borderRadius: '6px', fontSize: '0.8rem', fontWeight: 'bold' }}>
-                                  {size}
-                                </span>
-                              ) : (
-                                <span style={{ color: '#666' }}>-</span>
-                              )}
-                            </td>
-                            <td style={{ padding: '12px 10px', textAlign: 'center', fontFamily: cellTextStyle.fontFamily }}>{item.quantity}</td>
-                            <td style={{ padding: '12px 10px', textAlign: 'end', color: theme.primary, fontFamily: cellTextStyle.fontFamily }}>JOD {(parseFloat(item.price) * item.quantity).toFixed(2)}</td>
-                          </tr>
-                        );
-                      }) : (
-                        <tr>
-                          <td colSpan="4" style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
-                            {loading ? t('Fetching details...') : t('No items found for this order.')}
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                  <KanbanBoard orders={orders} fetchOrders={fetchOrders} viewOrder={viewOrder} showToast={showToast} />
                   {selectedOrder.order_type?.toLowerCase() === 'delivery' && (
                     <div style={{ marginTop: '15px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold', fontSize: '0.95rem', borderTop: `1px dashed ${theme.border}`, paddingTop: '10px' }}>
                       <span>{t('Delivery Service Fee:')}</span>

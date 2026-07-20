@@ -1587,6 +1587,7 @@ app.get('/api/products', async (req, res) => {
         (SELECT GROUP_CONCAT(DISTINCT CONCAT(a.id, '|', a.name, '|', a.price)) FROM menu_item_addons mia JOIN addons a ON mia.addon_id = a.id WHERE mia.menu_item_id = m.id) as linked_addons,
         (SELECT GROUP_CONCAT(DISTINCT CONCAT(t.id, '|', t.name)) FROM menu_item_tags mit JOIN tags t ON mit.tag_id = t.id WHERE mit.menu_item_id = m.id) as linked_tags
       FROM menu_items m
+      ORDER BY m.sort_order ASC
     `);
 
     const products = results.map(p => {
@@ -2670,7 +2671,7 @@ app.post('/api/shipping-rates', async (req, res) => {
     const payload = {
       accountNumber: { value: fedexAccountNum },
       requestedShipment: {
-        shipper: { address: { city: 'Amman', countryCode: 'JO' } },
+        shipper: { address: { city: 'Amman', postalCode: '11118', countryCode: 'JO' } },
         recipient: { address: { city: city || 'Capital', postalCode: postalCode || '00000', countryCode: countryCode } },
         pickupType: 'DROPOFF_AT_FEDEX_LOCATION',
         rateRequestType: ['ACCOUNT'],
@@ -2708,6 +2709,48 @@ app.get('/*splat', (req, res) => {
 });
 
 // âœ… START SERVER - Single PORT definition
+
+// Theme & Banner Settings API
+app.get('/api/settings/theme', async (req, res) => {
+  try {
+    const promiseDb = db.promise();
+    const [rows] = await promiseDb.query("SELECT `key`, `value` FROM site_settings WHERE `key` IN ('theme_primary', 'theme_bg', 'theme_text', 'theme_hover', 'hero_banners')");
+    const settings = {};
+    rows.forEach(r => { settings[r.key] = r.value; });
+    res.json(settings);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/settings/theme', async (req, res) => {
+  try {
+    const { theme_primary, theme_bg, theme_text, theme_hover, hero_banners } = req.body;
+    const promiseDb = db.promise();
+    
+    const updateSetting = async (k, v) => {
+      if (v !== undefined) {
+        await promiseDb.query("DELETE FROM site_settings WHERE `key` = ?", [k]);
+        await promiseDb.query("INSERT INTO site_settings (`key`, `value`) VALUES (?, ?)", [k, typeof v === 'string' ? v : JSON.stringify(v)]);
+      }
+    };
+
+    await updateSetting('theme_primary', theme_primary);
+    await updateSetting('theme_bg', theme_bg);
+    await updateSetting('theme_text', theme_text);
+    await updateSetting('theme_hover', theme_hover);
+    await updateSetting('hero_banners', hero_banners);
+
+    if (req.logAdminAction) {
+      req.logAdminAction('Update Theme', 'Updated storefront colors and banners.');
+    }
+
+    res.json({ success: true, message: 'Theme settings updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`ًںڑ€ CaffAIne Server is LIVE on port: ${PORT}`);
   console.log(`ًں”— Local Access: http://127.0.0.1:${PORT}`);

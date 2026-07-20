@@ -44,6 +44,8 @@ import Feedback           from './admin/pages/Feedback';
 import Messages           from './admin/pages/Messages';
 import LeaderDashboard    from './admin/pages/LeaderDashboard';
 import Settings           from './admin/pages/Settings';
+import ThemeSettings      from './admin/pages/ThemeSettings';
+import axios from 'axios';
 import SocialMedia        from './admin/pages/SocialMedia';
 import Loyalty            from './admin/pages/Loyalty';
 import PreOrderInterests  from './admin/pages/PreOrderInterests';
@@ -52,6 +54,34 @@ import { RamadanLanding, EidLanding, SummerLanding } from './components/LandingP
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
+
+
+function ThemeLoader() {
+  useEffect(() => {
+    axios.get('/api/settings/theme').then(res => {
+      const data = res.data;
+      if (data) {
+        if (data.theme_primary) {
+          document.documentElement.style.setProperty('--primary-color', data.theme_primary);
+          document.documentElement.style.setProperty('--admin-accent', data.theme_primary);
+        }
+        if (data.theme_bg) {
+          document.documentElement.style.setProperty('--bg-dark', data.theme_bg);
+          document.documentElement.style.setProperty('--admin-bg', data.theme_bg);
+        }
+        if (data.theme_text) {
+          document.documentElement.style.setProperty('--text-primary', data.theme_text);
+          document.documentElement.style.setProperty('--admin-text', data.theme_text);
+        }
+        // Hover color could be injected globally or stored in window
+        if (data.theme_hover) {
+          document.documentElement.style.setProperty('--primary-hover', data.theme_hover);
+        }
+      }
+    }).catch(err => console.error("Theme load error:", err));
+  }, []);
+  return null;
+}
 
 function PublicSite() {
   const [cartOpen, setCartOpen] = useState(false);
@@ -188,6 +218,7 @@ export default function App() {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <BrowserRouter>
+    <ThemeLoader />
       <StoreProvider>
         <CurrencyProvider>
           <CustomerAuthProvider>
@@ -225,6 +256,7 @@ export default function App() {
                         <Route path="messages" element={<Messages />} />
                         <Route path="leader" element={<LeaderDashboard />} />
                         <Route path="settings" element={<Settings />} />
+                        <Route path="theme" element={<ThemeSettings />} />
                         <Route path="social" element={<SocialMedia />} />
                         <Route index element={<Navigate to="dashboard" replace />} />
                       </Route>
