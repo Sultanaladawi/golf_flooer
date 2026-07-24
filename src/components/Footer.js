@@ -91,7 +91,7 @@ export default function Footer() {
             <a href={shopInfo.instagram} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Instagram">
               <InstagramIcon />
             </a>
-            <a href="#" className={styles.socialIcon} aria-label="Facebook">
+            <a href={shopInfo.facebook} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Facebook">
               <FacebookIcon />
             </a>
             <a href="#" className={styles.socialIcon} aria-label="TikTok">

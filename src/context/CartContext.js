@@ -106,12 +106,18 @@ export function CartProvider({ children }) {
     }
   }, [state]);
 
+  const mainItemsCount = state.items.filter(i => !String(i.id).startsWith('addon-')).reduce((s, i) => s + i.qty, 0);
   const totalItems = state.items.reduce((s, i) => s + i.qty, 0);
   
-  const totalPrice = state.items.reduce((s, i) => {
+  const subTotal = state.items.reduce((s, i) => {
     const price = parseFloat(i.priceNum) || 0;
     return s + (price * i.qty);
   }, 0);
+
+  // Bundle Offer logic: 10% discount if buying 2 or more main items
+  const isBundleApplied = mainItemsCount >= 2;
+  const bundleDiscount = isBundleApplied ? (subTotal * 0.10) : 0;
+  const totalPrice = subTotal - bundleDiscount;
 
   const addItem = (item) => dispatch({ type: 'ADD_ITEM', item });
   const removeItem = (id) => dispatch({ type: 'REMOVE_ITEM', id });
@@ -122,6 +128,9 @@ export function CartProvider({ children }) {
     <CartContext.Provider value={{ 
       items: state.items, 
       totalItems, 
+      subTotal,
+      bundleDiscount,
+      isBundleApplied,
       totalPrice, 
       addItem, 
       removeItem, 

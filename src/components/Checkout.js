@@ -236,6 +236,28 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     }
   }, [form.country, form.city, items.length]);
 
+  // Abandoned Cart Tracker
+  useEffect(() => {
+    if (items.length === 0 || step === 'success') return;
+    
+    if (form.email || form.phone) {
+      const delayDebounce = setTimeout(() => {
+        fetch('/api/cart/abandoned', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: form.email,
+            phone: form.phone,
+            cartItems: items,
+            total: totalPrice
+          })
+        }).catch(() => {});
+      }, 2000); // Wait 2s after typing
+      
+      return () => clearTimeout(delayDebounce);
+    }
+  }, [form.email, form.phone, items, step, totalPrice]);
+
   useEffect(() => {
     const phoneClean = (form.phone || '').trim();
     if (phoneClean.length >= 7) {
@@ -260,6 +282,12 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const [couponApplied, setCouponApplied] = useState(null);
   const [couponError, setCouponError] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
+
+  // Gift Card State
+  const [giftCardCode, setGiftCardCode] = useState('');
+  const [giftCardApplied, setGiftCardApplied] = useState(null);
+  const [giftCardError, setGiftCardError] = useState('');
+  const [giftCardLoading, setGiftCardLoading] = useState(false);
 
   const formatPrice = (n) => {
     return format(n);
@@ -294,6 +322,33 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     }
   };
 
+  const handleApplyGiftCard = async (e) => {
+    e.preventDefault();
+    if (!giftCardCode.trim()) return;
+    setGiftCardLoading(true);
+    setGiftCardError('');
+    try {
+      const res = await fetch('/api/gift-cards/apply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: giftCardCode.trim() })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setGiftCardError(data.error || 'كود الهدية غير صحيح');
+        setGiftCardApplied(null);
+      } else if (data.success) {
+        setGiftCardApplied(data);
+        setGiftCardError('');
+      }
+    } catch (err) {
+      console.error(err);
+      setGiftCardError('حدث خطأ أثناء التحقق من البطاقة');
+    } finally {
+      setGiftCardLoading(false);
+    }
+  };
+
   const discountAmount = couponApplied 
     ? (couponApplied.discountType === 'percent' 
         ? (totalPrice * (couponApplied.discountValue / 100)) 
@@ -308,8 +363,12 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const pointsToRedeem = Math.min(loyaltyInfo.points, Math.floor(maxPossibleDiscount / loyalty_redeem_ratio));
   const pointsDiscountAmount = (usePoints && canRedeem) ? (pointsToRedeem * loyalty_redeem_ratio) : 0;
 
+  const subtotalAfterDiscount1 = Math.max(0, totalPrice - discountAmount - pointsDiscountAmount);
+  
+  const giftCardDiscountAmount = giftCardApplied ? Math.min(subtotalAfterDiscount1, giftCardApplied.balance) : 0;
+  const subtotalAfterDiscount = Math.max(0, subtotalAfterDiscount1 - giftCardDiscountAmount);
+
   const giftFee = isGift ? (giftPackaging === 'silk_wrap' ? 5 : (giftPackaging === 'premium_box' ? 3 : 0)) : 0;
-  const subtotalAfterDiscount = Math.max(0, totalPrice - discountAmount - pointsDiscountAmount);
   // Calculate final price including shipping fee
   const finalPrice = subtotalAfterDiscount + giftFee + shippingFee;
 
@@ -435,7 +494,9 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
           is_gift: isGift ? 1 : 0,
           gift_message: giftMessage,
           gift_packaging: giftPackaging,
-          gift_fee: giftFee
+          gift_fee: giftFee,
+          gift_card_code: giftCardApplied ? giftCardCode : null,
+          gift_card_discount: giftCardDiscountAmount
         }),
       });
 
@@ -514,62 +575,8 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
         setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
       }
     } else if (form.paymentMethod === 'card') {
-      // Card payment via Stripe Checkout Session
-      try {
-        const response = await fetch('/api/myfatoorah/send-payment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customer_name: form.name.trim(),
-            email: form.email.trim() || null,
-            total_amount: finalPrice,
-            cartItems: items.map(item => ({
-              id: item.productId,
-              name: `${item.name} (${item.size})`,
-              qty: item.qty,
-              priceNum: item.priceNum
-            })),
-            order_type: 'delivery',
-            delivery_address: `الدولة: ${form.country} - المدينة: ${form.city}${form.state ? ' / ' + form.state : ''} - المنطقة: ${form.area} - تفاصيل: ${form.address}`,
-            phone: form.phone.trim(),
-            coupon_code: couponApplied ? couponApplied.code : null,
-            currency: currency.code,
-            redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
-            points_discount: pointsDiscountAmount,
-            is_gift: isGift ? 1 : 0,
-            gift_message: giftMessage,
-            gift_packaging: giftPackaging,
-            gift_fee: giftFee
-          }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create payment session');
-        }
-
-        if (data.mock) {
-          // Sandbox Mode
-          await new Promise(r => setTimeout(r, 2000));
-          const resultStatus = await saveOrderToBackend();
-          if (resultStatus === 'success') {
-            clearCart();
-            setStep('success');
-          } else if (resultStatus === 'outofstock') {
-            setStep('outofstock');
-          } else {
-            setStep('error:' + (resultStatus === 'error' ? 'حدث خطأ غير معروف' : resultStatus));
-          }
-        } else if (data.url) {
-          // Redirect to Stripe Checkout page
-          window.location.href = data.url;
-        } else {
-          setStep('error');
-        }
-      } catch (error) {
-        console.error('Stripe Redirect Error:', error);
-        setStep('error');
-      }
+      // Card payment handled by PayPal
+      setStep('error:يرجى الدفع عبر PayPal.');
     }
   }
 
@@ -809,6 +816,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               </div>
             )}
 
+            {giftCardApplied && (
+              <div className={styles.sumItem} style={{ color: '#27ae60', marginTop: '5px' }}>
+                <span>خصم بطاقة الهدية</span>
+                <span style={{ fontWeight: 'bold' }}>-{formatPrice(giftCardDiscountAmount)}</span>
+              </div>
+            )}
+
             <div className={styles.sumTotal} style={{ marginTop: '15px', borderTop: '1px dashed var(--border-hover)', paddingTop: '15px' }}>
               <span style={{ fontWeight: 'bold', color: 'var(--espresso)' }}>المجموع الكلي</span>
               <span className={styles.sumTotalAmt} style={{ color: 'var(--gold-dim)' }}>{formatPrice(finalPrice)}</span>
@@ -850,6 +864,46 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                   style={{ background: 'none', border: 'none', color: '#dc3545', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem' }}
                 >
                   إلغاء الكوبون
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Gift Card Validation */}
+          <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)', marginTop: '15px' }}>
+            <label className={styles.label} style={{ color: 'var(--gold-dim)', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>هل لديكِ بطاقة هدية؟</label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input
+                type="text"
+                placeholder="أدخلي كود البطاقة (مثال: ZB-A1B2C3D4)"
+                value={giftCardCode}
+                onChange={e => setGiftCardCode(e.target.value.toUpperCase())}
+                className={styles.input}
+                style={{ flex: 1, textTransform: 'uppercase', background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
+                disabled={!!giftCardApplied}
+              />
+              <button
+                type="button"
+                onClick={handleApplyGiftCard}
+                className="btn"
+                style={{ background: 'var(--gold)', color: 'var(--espresso)', fontWeight: 'bold', padding: '0 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
+                disabled={giftCardLoading || !!giftCardApplied}
+              >
+                {giftCardLoading ? 'جاري...' : 'تطبيق'}
+              </button>
+            </div>
+            {giftCardError && <p style={{ color: '#dc3545', fontSize: '0.85rem', marginTop: '5px', fontWeight: 'bold' }}>{giftCardError}</p>}
+            {giftCardApplied && (
+              <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <p style={{ color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <CheckCircle2 size={14} /> تم تطبيق البطاقة: الرصيد المتاح {giftCardApplied.balance} JOD
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setGiftCardApplied(null); setGiftCardCode(''); }}
+                  style={{ background: 'none', border: 'none', color: '#dc3545', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem' }}
+                >
+                  إلغاء البطاقة
                 </button>
               </div>
             )}
@@ -1349,7 +1403,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                   <strong>التبديل (الاستبدال):</strong> التبديل متاح <strong>داخل الأردن فقط</strong>. لا يوجد تبديل للطلبات خارج الأردن.
                 </li>
                 <li>
-                  <strong>الدفع عند الاستلام:</strong> متوفر <strong>داخل الأردن فقط</strong>. للطلبات خارج الأردن، الدفع عبر الحوالة البنكية أو المحافظ الإلكترونية.
+                  <strong>الدفع عند الاستلام:</strong> متوفر <strong>داخل الأردن فقط</strong>.
                 </li>
               </ul>
             </div>
@@ -1365,14 +1419,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               )}
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
-                {/* 1. Cash on Delivery */}
-                <div
-                  onClick={() => {
-                    if (form.country === 'الأردن') {
+                {/* 1. COD - Only in Jordan */}
+                {form.country === 'الأردن' && (
+                  <div
+                    onClick={() => {
                       setForm(f => ({ ...f, paymentMethod: 'cod' }));
                       setErrors(err => ({ ...err, paymentMethod: '' }));
-                    }
-                  }}
+                    }}
                   style={{
                     padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: form.country === 'الأردن' ? 'pointer' : 'not-allowed', transition: '0.3s',
                     border: form.paymentMethod === 'cod' && form.country === 'الأردن' ? '2px solid var(--gold)' : '2px solid var(--border)',
@@ -1383,6 +1436,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                   <Landmark size={22} style={{ margin: '0 auto 6px', color: form.paymentMethod === 'cod' && form.country === 'الأردن' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
                   <div style={{ fontSize: '0.85rem' }}>الدفع عند الاستلام</div>
                 </div>
+                )}
 
                 {/* 2. Credit Card */}
                 <div
@@ -1524,7 +1578,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               />
             </div>
 
-            {form.paymentMethod === 'paypal' ? (
+            {(form.paymentMethod === 'paypal' || form.paymentMethod === 'card') ? (
               <div style={{ marginTop: '20px' }}>
                 <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture" }}>
                   <PayPalButtons 

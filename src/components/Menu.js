@@ -10,7 +10,9 @@ import {
   Gem,
   Snowflake,
   Sparkles,
-  Flower2
+  Flower2,
+  SlidersHorizontal,
+  Check
 } from 'lucide-react';
 import { featuredItems } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
@@ -54,6 +56,18 @@ export default function Menu() {
   const [listening, setListening] = useState(false);
   const [voiceLang, setVoiceLang] = useState('ar-SA'); 
   const [selectedProduct, setSelectedProduct] = useState(null);
+
+  // Filter States
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [priceRange, setPriceRange] = useState({ min: '', max: '' });
+  const [selectedColors, setSelectedColors] = useState([]);
+  const [selectedSizes, setSelectedSizes] = useState([]);
+
+  const clearFilters = () => {
+    setPriceRange({ min: '', max: '' });
+    setSelectedColors([]);
+    setSelectedSizes([]);
+  };
 
   // Fetch categories from DB
   useEffect(() => {
@@ -118,7 +132,7 @@ export default function Menu() {
     return terms;
   };
 
-  // Filter items based on active category AND search term
+  // Filter items based on active category AND search term AND filters
   const itemsToShow = dbItems
     .filter(item => {
       const searchTerms = getSearchTerms(searchTerm);
@@ -130,8 +144,36 @@ export default function Menu() {
         return matchesName || matchesDesc || matchesTags || matchesSubtitle;
       });
       
-      if (searchTerm) return matchesSearch;
-      return String(item.category_id) === String(activeTab);
+      if (searchTerm && !matchesSearch) return false;
+      if (!searchTerm && String(item.category_id) !== String(activeTab)) return false;
+
+      // Price Filter
+      const itemPrice = parsePrice(item.price_num || item.price);
+      if (priceRange.min !== '' && itemPrice < parseFloat(priceRange.min)) return false;
+      if (priceRange.max !== '' && itemPrice > parseFloat(priceRange.max)) return false;
+
+      // Color Filter
+      if (selectedColors.length > 0) {
+        const itemStr = JSON.stringify(item).toLowerCase();
+        const hasColor = selectedColors.some(c => itemStr.includes(c.toLowerCase()));
+        if (!hasColor) return false;
+      }
+
+      // Size Filter
+      if (selectedSizes.length > 0) {
+        const tags = Array.isArray(item.tags) ? item.tags : (item.tags || '').toString().split(',');
+        const lowerTags = tags.map(t => t.trim().toLowerCase());
+        const variantsStr = JSON.stringify(item.variants || []).toLowerCase();
+        const descStr = (item.description || item.desc || '').toLowerCase();
+        
+        const hasSize = selectedSizes.some(s => {
+           const sl = s.toLowerCase();
+           return lowerTags.includes(sl) || variantsStr.includes(`"${sl}"`) || variantsStr.includes(`:${sl}`) || descStr.includes(sl);
+        });
+        if (!hasSize) return false;
+      }
+
+      return true;
     })
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     .map(item => ({
@@ -366,6 +408,86 @@ export default function Menu() {
           })}
         </div>
 
+        {/* Filter Toggle Button */}
+        <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'flex-start', marginTop: '10px', direction: 'rtl' }}>
+          <button 
+            onClick={() => setIsFilterOpen(!isFilterOpen)}
+            className={`${styles.filterToggleBtn} ${isFilterOpen ? styles.filterToggleActive : ''}`}
+          >
+            <SlidersHorizontal size={18} />
+            <span>تصفية متقدمة</span>
+          </button>
+        </div>
+
+        {/* Filter Panel */}
+        {isFilterOpen && (
+          <div className={styles.filterPanel}>
+            <div className={styles.filterHeader}>
+              <h4 style={{ margin: 0, color: 'var(--espresso)', fontSize: '1.2rem', fontFamily: "'DM Serif Display', serif" }}>فلاتر البحث</h4>
+              <button onClick={clearFilters} className={styles.clearBtn}>مسح الفلاتر</button>
+            </div>
+            
+            <div className={styles.filterGrid}>
+              <div className={styles.filterGroup}>
+                <label>نطاق السعر</label>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input 
+                    type="number" 
+                    placeholder="من" 
+                    value={priceRange.min}
+                    onChange={e => setPriceRange({...priceRange, min: e.target.value})}
+                    className={styles.filterInput}
+                  />
+                  <input 
+                    type="number" 
+                    placeholder="إلى" 
+                    value={priceRange.max}
+                    onChange={e => setPriceRange({...priceRange, max: e.target.value})}
+                    className={styles.filterInput}
+                  />
+                </div>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>الألوان</label>
+                <div className={styles.tagsContainer}>
+                  {['أسود', 'أبيض', 'بيج', 'ذهبي', 'بني', 'كحلي', 'عنابي', 'رمادي'].map(color => {
+                    const isSelected = selectedColors.includes(color);
+                    return (
+                      <button 
+                        key={color}
+                        onClick={() => setSelectedColors(prev => isSelected ? prev.filter(c => c !== color) : [...prev, color])}
+                        className={`${styles.filterTag} ${isSelected ? styles.tagSelected : ''}`}
+                      >
+                        {isSelected && <Check size={14} style={{ marginLeft: '4px' }}/>}
+                        {color}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>المقاسات</label>
+                <div className={styles.tagsContainer}>
+                  {['S', 'M', 'L', 'XL', 'XXL', '50', '52', '54', '56', '58', '60'].map(size => {
+                    const isSelected = selectedSizes.includes(size);
+                    return (
+                      <button 
+                        key={size}
+                        onClick={() => setSelectedSizes(prev => isSelected ? prev.filter(s => s !== size) : [...prev, size])}
+                        className={`${styles.filterTag} ${isSelected ? styles.tagSelected : ''}`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className={styles.itemList} style={{ background: 'var(--cream)' }}>
           {loading ? (
             Array(4).fill(0).map((_, i) => (
@@ -391,14 +513,12 @@ export default function Menu() {
                 <div 
                   key={item.id} 
                   className={styles.item} 
-                  onClick={() => setSelectedProduct(item)} 
                   style={{ 
-                    cursor: 'pointer',
                     opacity: isOutOfStock ? 0.75 : 1,
                     direction: 'rtl'
                   }}
                 >
-                  <div className={styles.itemImageContainer} style={{ position: 'relative' }}>
+                  <div className={styles.itemImageContainer} style={{ position: 'relative' }} onClick={() => window.location.href = `/product/${item.id}`}>
                     <img src={getImageUrl(item)} alt={item.name} onError={handleImageError} />
                     {/* Wishlist Heart Button */}
                     <button
@@ -429,7 +549,7 @@ export default function Menu() {
                     )}
                   </div>
                   <div className={styles.itemDetails}>
-                    <div className={styles.itemName}>{item.name}</div>
+                    <div className={styles.itemName} onClick={() => window.location.href = `/product/${item.id}`} style={{ cursor: 'pointer' }}>{item.name}</div>
                     <div className={styles.itemDesc}>{item.subtitle || item.description}</div>
                     {item.variants && item.variants.length > 0 && (
                       <div className={styles.itemSwatches} onClick={(e) => e.stopPropagation()}>
@@ -499,14 +619,12 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
   return (
     <div 
       className={styles.featCard} 
-      onClick={onAdd} 
       style={{ 
-        cursor: 'pointer',
         background: '#121212',
         border: '1px solid rgba(197, 168, 128, 0.2)'
       }}
     >
-      <div className={styles.featImg} style={{ position: 'relative', height: '240px' }}>
+      <div className={styles.featImg} style={{ position: 'relative', height: '240px', cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>
         <img src={imgUrl} alt={item.name} onError={handleImageError} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         {item.tag && !isOutOfStock && <span className={styles.featBadge}>{item.tag}</span>}
         {isOutOfStock && (
@@ -523,7 +641,7 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
         )}
       </div>
       <div className={styles.featBody} style={{ textAlign: 'right' }}>
-        <h3 className={styles.featName} style={{ color: '#fff' }}>{item.name}</h3>
+        <h3 className={styles.featName} style={{ color: '#fff', cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>{item.name}</h3>
         {item.variants && item.variants.length > 0 && (
           <div className={styles.itemSwatches} style={{ justifyContent: 'flex-start', margin: '5px 0 10px 0' }} onClick={(e) => e.stopPropagation()}>
             {item.variants.map(v => {

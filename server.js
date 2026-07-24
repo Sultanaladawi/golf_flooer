@@ -8,6 +8,8 @@ const OpenAI = require('openai');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
+const cron = require('node-cron');
 
 // Ensure the public/images directory exists to prevent upload crashes
 const imgDir = path.join(__dirname, 'public', 'images');
@@ -170,6 +172,28 @@ app.get('/api/ping', (req, res) => {
   res.json({ status: 'ok', message: 'Server is reaching here' });
 });
 
+app.get('/api/product/:id', async (req, res) => {
+  try {
+    const promiseDb = db.promise ? db.promise() : db;
+    const [rows] = await promiseDb.query(
+      'SELECT * FROM menu_items WHERE id = ? AND available = 1',
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Not found' });
+    const p = rows[0];
+    try { p.images = JSON.parse(p.images || '[]'); } catch(e) { p.images = []; }
+    // Get reviews
+    const [reviews] = await promiseDb.query(
+      'SELECT * FROM product_reviews WHERE product_id = ? ORDER BY created_at DESC LIMIT 10',
+      [p.id]
+    );
+    p.reviews = reviews;
+    res.json(p);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/fix-db-times', async (req, res) => {
   try {
     const promiseDb = db.promise ? db.promise() : db;
@@ -294,7 +318,7 @@ db.getConnection((err, connection) => {
 
 app.post('/api/orders', async (req, res) => {
   console.log('[Server] Body:', JSON.stringify(req.body, null, 2));
-  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee } = req.body;
+  const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, gift_card_code, gift_card_discount } = req.body;
 
   if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
     return res.status(400).json({ error: 'Missing required contact information' });
@@ -450,7 +474,12 @@ app.post('/api/orders', async (req, res) => {
         await conn.query("UPDATE loyalty_members SET points = points + ?, customer_name = ? WHERE phone_number = ?", [pointsEarned, customer_name.trim(), phone.trim()]);
       }
       // Log earned points
-      await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'earned', ?)", [phone.trim(), pointsEarned, 'earned', orderId]);
+      await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, ?, ?)", [phone.trim(), pointsEarned, 'earned', orderId]);
+    }
+
+    // ── Gift Card Processing ──
+    if (gift_card_code && gift_card_discount > 0) {
+      await conn.query("UPDATE gift_cards SET balance = GREATEST(balance - ?, 0) WHERE code = ?", [gift_card_discount, gift_card_code]);
     }
 
     await conn.commit();
@@ -636,7 +665,28 @@ db.query(`CREATE TABLE IF NOT EXISTS store_reviews (id INT AUTO_INCREMENT PRIMAR
     });
 db.query(`CREATE TABLE IF NOT EXISTS ai_insights_cache (id INT AUTO_INCREMENT PRIMARY KEY, topic VARCHAR(100) UNIQUE, content TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_insights_cache table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS admin_logs (id INT AUTO_INCREMENT PRIMARY KEY, admin_email VARCHAR(255) NOT NULL, admin_name VARCHAR(255) DEFAULT NULL, action VARCHAR(255) NOT NULL, details TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure admin_logs table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS blog_posts (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, slug VARCHAR(255) UNIQUE NOT NULL, content TEXT, excerpt TEXT, image_url VARCHAR(1024), author VARCHAR(100) DEFAULT 'إدارة زهرة بيسان', status VARCHAR(50) DEFAULT 'published', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure blog_posts table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS ai_assistant_logs (id INT AUTO_INCREMENT PRIMARY KEY, admin_query TEXT, ai_response TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_assistant_logs table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS abandoned_carts (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255), phone VARCHAR(60), cart_items JSON, total_price DECIMAL(10,2), status VARCHAR(50) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure abandoned_carts table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS gift_cards (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(50) UNIQUE, initial_value DECIMAL(10,2), balance DECIMAL(10,2), buyer_email VARCHAR(255), recipient_email VARCHAR(255), message TEXT, status VARCHAR(20) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure gift_cards table error:', err); });
+
+db.query(`CREATE TABLE IF NOT EXISTS admin_users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'admin',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => {
+  if (err) console.error('Ensure admin_users table error:', err);
+  else {
+    db.query('SELECT COUNT(*) as count FROM admin_users', (err, results) => {
+      if (!err && results[0].count === 0) {
+        db.query("INSERT INTO admin_users (name, email, password, role) VALUES ('Sultan', 'sultan@zahratbeesan.com', 'sultan2026', 'super_admin'), ('Zuhair', 'zuhair@zahratbeesan.com', 'zuhair2026', 'admin')");
+      }
+    });
+  }
+});
 // Addons not used in Zahrat Beesan abaya store
 
 // --- Calorie Migration: add calories_per_unit to inventory if missing ---
@@ -1076,225 +1126,22 @@ app.delete('/api/offers/:id', (req, res) => {
   });
 });
 
-// ── MyFatoorah Payment Integration ────────────────────────────────────────
-const axios = require('axios');
-const MYFATOORAH_TOKEN = process.env.MYFATOORAH_TOKEN || 'SK_JOR_6CDMVd7LhPyxNOH9jw85GrTYgIG4SxRM4tnoV3ZS3JIG4KqOT4qZ2FqC4UanKkWa';
-const MYFATOORAH_API_URL = process.env.MYFATOORAH_API_URL || 'https://api.myfatoorah.com';
-
-app.post('/api/myfatoorah/send-payment', async (req, res) => {
-  const { customer_name, email, total_amount, cartItems, phone, currency = 'JOD', redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, delivery_address, coupon_code } = req.body;
-
-  if (!customer_name || !Array.isArray(cartItems) || cartItems.length === 0 || !phone) {
-    return res.status(400).json({ error: 'Missing required checkout information' });
-  }
-
+app.get('/api/search', async (req, res) => {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) return res.json([]);
   try {
-    const payload = {
-      CustomerName: customer_name.substring(0, 50),
-      DisplayCurrencyIso: currency,
-      MobileCountryCode: "+962",
-      CustomerMobile: phone.replace(/^\+962|^07/, '7').substring(0, 11), // format phone number to avoid rejection
-      CustomerEmail: email || 'test@zahratbeesan.com',
-      InvoiceValue: parseFloat(total_amount),
-      CallBackUrl: `${req.headers.origin || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net'}/?myfatoorah_status=success`,
-      ErrorUrl: `${req.headers.origin || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net'}/?myfatoorah_status=error`,
-      Language: 'ar',
-      UserDefinedField: JSON.stringify({
-         // only store essential IDs to avoid max length error (max 255 chars usually)
-         c_n: customer_name.substring(0,20),
-         ph: phone,
-         em: email || '',
-         tot: total_amount,
-         gift: is_gift ? 1 : 0,
-         gf: gift_fee,
-         rp: redeem_points
-         // cartItems are too big to store here, we rely on the client redirecting and re-creating the order locally, 
-         // or we can create an un-paid order FIRST, then pass the order ID!
-      }).substring(0, 250)
-    };
-    
-    // Better logic: Create the order FIRST as 'pending_payment', then pass the order ID in UserDefinedField!
-    // But to match our current flow where order is created ON SUCCESS, we will just send essential data.
-    // Wait, the previous logic in verify needed cartItems!
-    // Let's store everything in a temporary JSON file or database table?
-    // Actually, UserDefinedField allows up to 1000 chars in some gateways, let's keep cartItems but compress it.
-    payload.UserDefinedField = JSON.stringify({
-      cart: cartItems.map(i => ({ id: i.id, q: i.qty })),
-      rp: redeem_points, g: is_gift, gf: gift_fee,
-      tot: total_amount, ph: phone, cn: customer_name.substring(0, 20),
-      cp: coupon_code || ''
-    }).substring(0, 250);
-
-    const response = await axios.post(`${MYFATOORAH_API_URL}/v2/SendPayment`, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MYFATOORAH_TOKEN}`
-      }
-    });
-    
-    const data = response.data;
-    if (data.IsSuccess) {
-      res.json({ url: data.Data.InvoiceURL });
-    } else {
-      throw new Error(data.Message || 'Failed to create MyFatoorah invoice');
-    }
-  } catch (err) {
-    const errorMsg = err.response ? JSON.stringify(err.response.data) : err.message;
-    console.error('[MyFatoorah Error]', errorMsg);
-    res.status(500).json({ error: errorMsg });
+    const [results] = await db.promise().query(
+      `SELECT id, name, price, images, category_id FROM menu_items WHERE available=1 AND (name LIKE ? OR description LIKE ?) LIMIT 8`,
+      [`%${q}%`, `%${q}%`]
+    );
+    res.json(results.map(r => ({
+      ...r,
+      images: (() => { try { return JSON.parse(r.images || '[]'); } catch(e) { return []; } })()
+    })));
+  } catch(err) {
+    res.status(500).json([]);
   }
 });
-
-app.get('/api/myfatoorah/verify', async (req, res) => {
-  const { paymentId } = req.query;
-  if (!paymentId) return res.status(400).json({ error: 'Missing paymentId' });
-
-  try {
-    const response = await axios.post(`${MYFATOORAH_API_URL}/v2/GetPaymentStatus`, { Key: paymentId, KeyType: 'PaymentId' }, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${MYFATOORAH_TOKEN}`
-      }
-    });
-    const data = response.data;
-
-    if (!data.IsSuccess || data.Data.InvoiceStatus !== 'Paid') {
-      return res.status(400).json({ error: 'Payment not completed' });
-    }
-
-    const invoiceId = String(data.Data.InvoiceId);
-    const promiseDb = db.promise();
-    const [existingOrders] = await promiseDb.query("SELECT id FROM orders WHERE myfatoorah_invoice_id = ?", [invoiceId]);
-    if (existingOrders && existingOrders.length > 0) {
-      return res.json({ success: true, orderId: existingOrders[0].id });
-    }
-
-    const udfStr = data.Data.UserDefinedField || '{}';
-    let udf;
-    try { udf = JSON.parse(udfStr); } catch(e) { udf = {}; }
-    
-    // We only have compressed cart items, we'll just insert what we have
-    const cartItems = udf.cart || [];
-    const totalAmount = parseFloat(udf.tot) || 0;
-    const customer_name = udf.cn || 'Customer';
-    const email = udf.em || '';
-    const phone = udf.ph || '';
-    const delivery_address = 'Address received via payment gateway';
-    const coupon_code = udf.cp || '';
-    const is_gift = udf.g ? 1 : 0;
-    const gift_message = '';
-    const gift_packaging = '';
-    const gift_fee = parseFloat(udf.gf) || 0;
-    const redeem_points = parseInt(udf.rp) || 0;
-
-    const conn = await promiseDb.getConnection();
-    try {
-      await conn.beginTransaction();
-
-      for (const item of cartItems) {
-        const productId = parseInt(item.id, 10);
-        const quantity = parseInt(item.q, 10);
-        if (isNaN(productId)) continue;
-
-        const [[menuItem]] = await conn.query("SELECT available, name FROM menu_items WHERE id = ?", [productId]);
-        if (menuItem && menuItem.available == 0) {
-          throw new Error(`Sorry, ${menuItem.name} is currently out of stock.`);
-        }
-
-        const [ingredients] = await conn.query(`
-          SELECT i.item_name, i.quantity as stock_qty, r.quantity_required
-          FROM recipes r
-          JOIN inventory i ON r.inventory_id = i.id
-          WHERE r.menu_item_id = ?
-        `, [productId]);
-
-        for (const recipe of ingredients) {
-          const requiredTotal = parseFloat(recipe.quantity_required) * quantity;
-          if (recipe.stock_qty < requiredTotal) {
-            throw new Error(`Insufficient stock for: ${recipe.item_name}`);
-          }
-        }
-      }
-
-      const [[activeOrdersRow]] = await conn.query(
-        "SELECT COUNT(*) as cnt FROM orders WHERE status IN ('preparing', 'pending')"
-      );
-      const activeCount = parseInt(activeOrdersRow.cnt) || 0;
-      let prepMinutes = 3;
-      if (activeCount >= 4 && activeCount <= 7) prepMinutes = 5;
-      else if (activeCount >= 8 && activeCount <= 12) prepMinutes = 8;
-      else if (activeCount > 12) prepMinutes = 12;
-
-      const [orderInsertResult] = await conn.query(
-        `INSERT INTO orders (customer_name, email, total_amount, status, created_at, estimated_ready_at, order_type, delivery_address, phone, payment_status, myfatoorah_invoice_id, is_gift, gift_message, gift_packaging, gift_fee) VALUES (?, ?, ?, 'preparing', NOW(), DATE_ADD(NOW(), INTERVAL ${prepMinutes} MINUTE), 'delivery', ?, ?, 'paid', ?, ?, ?, ?, ?)`,
-        [customer_name, email || null, totalAmount, delivery_address || null, phone || null, invoiceId, parseInt(is_gift) || 0, gift_message || null, gift_packaging || null, parseFloat(gift_fee) || 0.00]
-      );
-      const orderId = orderInsertResult.insertId;
-
-      if (coupon_code) {
-        await conn.query("UPDATE coupon SET usedCount = usedCount + 1 WHERE code = ?", [coupon_code]);
-      }
-
-      for (const item of cartItems) {
-        const productId = parseInt(item.id, 10);
-        const quantity = parseFloat(item.q);
-        let price = 0;
-
-        if (!isNaN(productId)) {
-          const [productRows] = await conn.query("SELECT price_num, name FROM menu_items WHERE id = ?", [productId]);
-          if (productRows && productRows.length > 0) {
-            price = parseFloat(productRows[0].price_num) || 0;
-            const itemName = productRows[0].name;
-            await conn.query(
-              "INSERT INTO order_items (order_id, product_id, item_name, quantity, price) VALUES (?, ?, ?, ?, ?)",
-              [orderId, productId, itemName, quantity, price]
-            );
-
-            const [recipeSteps] = await conn.query("SELECT inventory_id, quantity_required FROM recipes WHERE menu_item_id = ?", [productId]);
-            for (const ingredient of recipeSteps) {
-              const deductAmount = parseFloat(ingredient.quantity_required) * quantity;
-              await conn.query("UPDATE inventory SET quantity = GREATEST(quantity - ?, 0) WHERE id = ?", [deductAmount, ingredient.inventory_id]);
-            }
-          }
-        }
-      }
-
-      const redeemed = parseInt(redeem_points) || 0;
-      if (redeemed > 0) {
-        const [memberRows] = await conn.query("SELECT points FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
-        const currentPoints = (memberRows && memberRows.length > 0) ? memberRows[0].points : 0;
-        if (currentPoints < redeemed) {
-          throw new Error("Insufficient loyalty points for redemption");
-        }
-        await conn.query("UPDATE loyalty_members SET points = GREATEST(points - ?, 0) WHERE phone_number = ?", [redeemed, phone.trim()]);
-        await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'redeemed', ?)", [phone.trim(), -redeemed, orderId]);
-      }
-
-      const pointsEarned = Math.floor(totalAmount);
-      if (pointsEarned > 0) {
-        const [memberCheck] = await conn.query("SELECT * FROM loyalty_members WHERE phone_number = ?", [phone.trim()]);
-        if (memberCheck.length === 0) {
-          await conn.query("INSERT INTO loyalty_members (phone_number, customer_name, points) VALUES (?, ?, ?)", [phone.trim(), customer_name.trim(), pointsEarned]);
-        } else {
-          await conn.query("UPDATE loyalty_members SET points = points + ?, customer_name = ? WHERE phone_number = ?", [pointsEarned, customer_name.trim(), phone.trim()]);
-        }
-        await conn.query("INSERT INTO loyalty_points_history (phone_number, points_change, action_type, order_id) VALUES (?, ?, 'earned', ?)", [phone.trim(), pointsEarned, 'earned', orderId]);
-      }
-
-      await conn.commit();
-      res.json({ success: true, orderId });
-    } catch (err) {
-      await conn.rollback();
-      throw err;
-    } finally {
-      conn.release();
-    }
-  } catch (err) {
-    console.error('[Verify MyFatoorah Session Error]', err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 
 app.get('/api/categories', (req, res) => {
   db.query('SELECT * FROM categories', (err, results) => {
@@ -1354,6 +1201,28 @@ app.delete('/api/tags/:id', async (req, res) => {
 
 
 // ── Loyalty Program APIs ──────────────────────────────────────────
+app.get('/api/vip-customers', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(`
+      SELECT 
+        o.phone,
+        o.customer_name,
+        COUNT(o.id) as total_orders,
+        SUM(o.total_amount) as total_spent,
+        MAX(o.created_at) as last_order,
+        COALESCE(lm.points, 0) as loyalty_points
+      FROM orders o
+      LEFT JOIN loyalty_members lm ON lm.phone_number = o.phone
+      GROUP BY o.phone, o.customer_name
+      ORDER BY total_spent DESC
+      LIMIT 50
+    `);
+    res.json(rows);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/loyalty/members', async (req, res) => {
   try {
     const [members] = await db.promise().query('SELECT * FROM loyalty_members ORDER BY points DESC, created_at DESC');
@@ -1484,15 +1353,38 @@ app.put('/api/mark-ready/:id', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     if (req.logAdminAction) req.logAdminAction('Update Order Status', `Marked order #${id} as ${status}`);
     res.json({ success: true, message: `Order status updated to ${status}` });
-    if (status === 'ready') {
-      db.query("SELECT customer_name, email, phone FROM orders WHERE id = ?", [id], (err, rows) => {
-        if (!err && rows.length > 0) {
-          const order = rows[0];
-          if (order.phone) console.log(`ًں“± SMS to ${order.phone}: "Hello ${order.customer_name}, your order is ready!"`);
-          if (order.email) console.log(`ًں“§ Email to ${order.email}: "Order Ready!"`);
+
+    // --- WhatsApp Auto-Notification ---
+    const WA_TOKEN = process.env.WHATSAPP_TOKEN;
+    const WA_PHONE_ID = process.env.WHATSAPP_PHONE_ID;
+    db.query("SELECT customer_name, phone FROM orders WHERE id = ?", [id], async (err2, rows) => {
+      if (err2 || !rows.length) return;
+      const order = rows[0];
+      const rawPhone = order.phone ? order.phone.replace(/[^0-9]/g, '') : null;
+      let message = null;
+      if (status === 'shipped' || status === 'ready') {
+        message = `مرحباً ${order.customer_name || ''} 🌸\n\nطلبك رقم #${id} من زهرة بيسان في طريقه إليكِ الآن! 🚚\n\nشكراً لثقتكِ بزهرة بيسان ✨`;
+      } else if (status === 'delivered') {
+        message = `مرحباً ${order.customer_name || ''} 🌸\n\nتم تسليم طلبك رقم #${id} بنجاح! 💛\n\nزهرة بيسان ✨`;
+      } else if (status === 'cancelled') {
+        message = `مرحباً ${order.customer_name || ''}\n\nنأسف، تم إلغاء طلبك رقم #${id}. للاستفسار تواصلي معنا.\n\nزهرة بيسان 🌸`;
+      }
+      if (message && rawPhone && WA_TOKEN && WA_PHONE_ID) {
+        try {
+          const phone = rawPhone.startsWith('962') ? rawPhone : `962${rawPhone.replace(/^0/, '')}`;
+          const axios = require('axios');
+          await axios.post(`https://graph.facebook.com/v19.0/${WA_PHONE_ID}/messages`,
+            { messaging_product: 'whatsapp', to: phone, type: 'text', text: { body: message } },
+            { headers: { 'Authorization': `Bearer ${WA_TOKEN}`, 'Content-Type': 'application/json' } }
+          );
+          console.log(`[WhatsApp ✅] "${status}" sent to ${phone}`);
+        } catch (waErr) {
+          console.error('[WhatsApp ❌]', waErr.response?.data || waErr.message);
         }
-      });
-    }
+      } else if (message) {
+        console.log(`[WhatsApp - Add WHATSAPP_TOKEN & WHATSAPP_PHONE_ID to .env] Status: ${status}`);
+      }
+    });
   });
 });
 
@@ -1615,6 +1507,42 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
+app.get('/api/product/:id', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query(
+      'SELECT * FROM menu_items WHERE id = ? AND available = 1',
+      [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Not found' });
+    const p = rows[0];
+    try { p.images = JSON.parse(p.images || '[]'); } catch(e) { p.images = []; }
+
+    // Fetch product variants
+    try {
+      const [vRows] = await db.promise().query(
+        'SELECT * FROM product_variants WHERE product_id = ? ORDER BY sort_order ASC, id ASC',
+        [p.id]
+      );
+      p.variants = vRows.map(v => {
+        try { v.colors = JSON.parse(v.colors || '[]'); } catch(e){ v.colors = []; }
+        try { v.images = JSON.parse(v.images || '[]'); } catch(e){ v.images = []; }
+        try { v.sizes = JSON.parse(v.sizes || '[]'); } catch(e){ v.sizes = []; }
+        return v;
+      });
+    } catch(e) { p.variants = []; }
+
+    // Get reviews
+    const [reviews] = await db.promise().query(
+      'SELECT * FROM product_reviews WHERE product_id = ? ORDER BY created_at DESC LIMIT 10',
+      [p.id]
+    );
+    p.reviews = reviews;
+    res.json(p);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/api/inventory', (req, res) => {
   db.query("SELECT * FROM inventory", (err, results) => {
     if (err) return res.status(500).json({ error: 'Internal Server Error' });
@@ -1624,18 +1552,351 @@ app.get('/api/inventory', (req, res) => {
 
 app.post('/api/admin/login', (req, res) => {
   const { email, password } = req.body;
-  const team = [
-    { email: 'sultan@zahratbeesan.com', pass: 'sultan2026', name: 'Sultan', role: 'super_admin' },
-    { email: 'zuhair@zahratbeesan.com', pass: 'zuhair2026', name: 'Zuhair', role: 'admin' }
-  ];
-  const user = team.find(u => u.email === email?.toLowerCase().trim() && u.pass === password);
-  if (user) {
-    db.query('INSERT INTO admin_logs (admin_email, admin_name, action, details) VALUES (?, ?, ?, ?)', [user.email, user.name, 'Login', 'Logged into the system'], () => { });
-    res.json({ success: true, user: { id: user.email, email: user.email, name: user.name, role: user.role } });
-  } else {
-    res.status(401).json({ success: false, message: 'Invalid credentials' });
-  }
+  if (!email || !password) return res.status(400).json({ success: false, message: 'Missing credentials' });
+  
+  db.query('SELECT * FROM admin_users WHERE email = ? AND password = ?', [email.toLowerCase().trim(), password], (err, results) => {
+    if (err) return res.status(500).json({ success: false, message: 'Server error' });
+    if (results.length > 0) {
+      const user = results[0];
+      db.query('INSERT INTO admin_logs (admin_email, admin_name, action, details) VALUES (?, ?, ?, ?)', [user.email, user.name, 'Login', 'Logged into the system'], () => { });
+      res.json({ success: true, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+    } else {
+      res.status(401).json({ success: false, message: 'Invalid credentials' });
+    }
+  });
 });
+
+// Admin Users CRUD (Staff Management)
+app.get('/api/admin/users', (req, res) => {
+  db.query('SELECT id, name, email, role, created_at FROM admin_users ORDER BY created_at DESC', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(results);
+  });
+});
+
+app.post('/api/admin/users', (req, res) => {
+  const { name, email, password, role } = req.body;
+  if (!name || !email || !password) return res.status(400).json({ error: 'Missing required fields' });
+  db.query('INSERT INTO admin_users (name, email, password, role) VALUES (?, ?, ?, ?)', [name, email.toLowerCase().trim(), password, role || 'admin'], (err, result) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Email already exists' });
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ success: true, id: result.insertId });
+  });
+});
+
+app.put('/api/admin/users/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, email, password, role } = req.body;
+  
+  let q = 'UPDATE admin_users SET name = ?, email = ?, role = ?';
+  let params = [name, email, role];
+  
+  if (password && password.trim() !== '') {
+    q += ', password = ?';
+    params.push(password);
+  }
+  
+  q += ' WHERE id = ?';
+  params.push(id);
+  
+  db.query(q, params, (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+app.delete('/api/admin/users/:id', (req, res) => {
+  const { id } = req.params;
+  db.query('DELETE FROM admin_users WHERE id = ?', [id], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// ================= BLOG ENDPOINTS =================
+// Public Get all published posts
+app.get('/api/posts', (req, res) => {
+  db.query("SELECT id, title, slug, excerpt, image_url, author, created_at FROM blog_posts WHERE status = 'published' ORDER BY created_at DESC", (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database Error' });
+    res.json(results);
+  });
+});
+
+// Public Get single post by id or slug
+app.get('/api/posts/:slugOrId', (req, res) => {
+  const param = req.params.slugOrId;
+  db.query("SELECT * FROM blog_posts WHERE (id = ? OR slug = ?) AND status = 'published'", [param, param], (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database Error' });
+    if (results.length === 0) return res.status(404).json({ error: 'Post not found' });
+    res.json(results[0]);
+  });
+});
+
+// Admin Get all posts
+app.get('/api/admin/posts', (req, res) => {
+  db.query('SELECT * FROM blog_posts ORDER BY created_at DESC', (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database Error' });
+    res.json(results);
+  });
+});
+
+// Admin Create post
+app.post('/api/admin/posts', (req, res) => {
+  const { title, slug, content, excerpt, image_url, author, status } = req.body;
+  if (!title || !slug) return res.status(400).json({ error: 'Title and slug are required' });
+  db.query('INSERT INTO blog_posts (title, slug, content, excerpt, image_url, author, status) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+    [title, slug, content, excerpt, image_url, author || 'إدارة زهرة بيسان', status || 'published'], (err, result) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Slug already exists' });
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ success: true, id: result.insertId });
+  });
+});
+
+// Admin Update post
+app.put('/api/admin/posts/:id', (req, res) => {
+  const { id } = req.params;
+  const { title, slug, content, excerpt, image_url, author, status } = req.body;
+  db.query('UPDATE blog_posts SET title=?, slug=?, content=?, excerpt=?, image_url=?, author=?, status=? WHERE id=?',
+    [title, slug, content, excerpt, image_url, author, status, id], (err) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') return res.status(400).json({ error: 'Slug already exists' });
+      return res.status(500).json({ error: err.message });
+    }
+    res.json({ success: true });
+  });
+});
+
+// Admin Delete post
+app.delete('/api/admin/posts/:id', (req, res) => {
+  db.query('DELETE FROM blog_posts WHERE id = ?', [req.params.id], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ success: true });
+  });
+});
+
+// ================= AUTOMATED REPORTS =================
+
+const sendReportEmail = async (period, days) => {
+  if (!process.env.SMTP_USER) return;
+  db.query("SELECT COUNT(*) as orders_count, SUM(total) as revenue FROM orders WHERE created_at >= NOW() - INTERVAL ? DAY", [days], async (err, results) => {
+    if (err || !results) return;
+    const { orders_count, revenue } = results[0];
+    
+    await transporter.sendMail({
+      from: `"Zahrat Beesan" <${process.env.SMTP_USER}>`,
+      to: process.env.ADMIN_EMAIL || process.env.SMTP_USER,
+      subject: `📊 تقرير زهرة بيسان ${period === 'weekly' ? 'الأسبوعي' : 'الشهري'}`,
+      html: `
+        <div dir="rtl" style="font-family: Arial; color: #333; text-align: right;">
+          <h2 style="color: #5c3d1e;">ملخص أداء المتجر - ${period === 'weekly' ? 'آخر 7 أيام' : 'آخر 30 يوم'}</h2>
+          <p>إجمالي المبيعات: <b>${revenue || 0} JOD</b></p>
+          <p>عدد الطلبات: <b>${orders_count || 0}</b></p>
+        </div>
+      `
+    }).catch(e => console.error('Report email failed', e));
+  });
+};
+
+// Weekly Report: Friday at 23:00
+cron.schedule('0 23 * * 5', () => sendReportEmail('weekly', 7));
+
+// Monthly Report: 1st of every month at 00:00
+cron.schedule('0 0 1 * *', () => sendReportEmail('monthly', 30));
+
+app.post('/api/admin/reports/send-manual', (req, res) => {
+  const { period } = req.body;
+  const days = period === 'weekly' ? 7 : 30;
+  sendReportEmail(period, days);
+  res.json({ success: true, message: 'Report is being sent' });
+});
+
+// =====================================================
+
+// ================= e-GIFT CARDS ======================
+
+const generateGiftCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = 'ZB-';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+app.post('/api/gift-cards/purchase', (req, res) => {
+  const { amount, buyerEmail, recipientEmail, message } = req.body;
+  const code = generateGiftCode();
+  db.query("INSERT INTO gift_cards (code, initial_value, balance, buyer_email, recipient_email, message) VALUES (?, ?, ?, ?, ?, ?)", [code, amount, amount, buyerEmail, recipientEmail, message], async (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    
+    // In a real app, charge credit card here first. 
+    // Then send email to recipient.
+    if (process.env.SMTP_USER && recipientEmail) {
+      await transporter.sendMail({
+        from: `"زهرة بيسان" <${process.env.SMTP_USER}>`,
+        to: recipientEmail,
+        subject: "🎁 لقد تلقيت بطاقة هدية من زهرة بيسان!",
+        html: `
+          <div dir="rtl" style="font-family: Arial; text-align: right; color: #333;">
+            <h2 style="color: #c5a880;">مرحباً!</h2>
+            <p>لقد أرسل لك <b>${buyerEmail}</b> بطاقة هدية بقيمة <b>${amount} JOD</b> للتسوق من متجر زهرة بيسان.</p>
+            ${message ? `<p>الرسالة: "<i>${message}</i>"</p>` : ''}
+            <div style="background: #f5f5f5; padding: 15px; text-align: center; font-size: 24px; letter-spacing: 2px; font-weight: bold; margin: 20px 0;">
+              ${code}
+            </div>
+            <p>استخدم هذا الكود عند الدفع للحصول على الخصم.</p>
+            <a href="${process.env.SITE_URL || 'https://zahratbeesan.com'}" style="background: #5c3d1e; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px;">تسوّق الآن</a>
+          </div>
+        `
+      }).catch(e => console.error(e));
+    }
+
+    res.json({ success: true, code });
+  });
+});
+
+app.post('/api/gift-cards/apply', (req, res) => {
+  const { code } = req.body;
+  db.query("SELECT * FROM gift_cards WHERE code = ? AND status = 'active'", [code], (err, results) => {
+    if (err || results.length === 0) return res.status(404).json({ error: 'الكود غير صالح أو مستخدم' });
+    const card = results[0];
+    if (card.balance <= 0) return res.status(400).json({ error: 'لا يوجد رصيد كافٍ في هذه البطاقة' });
+    res.json({ success: true, balance: card.balance });
+  });
+});
+
+app.get('/api/admin/gift-cards', (req, res) => {
+  db.query("SELECT * FROM gift_cards ORDER BY created_at DESC", (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database error' });
+    res.json(results);
+  });
+});
+
+// =====================================================
+
+// ================= ABANDONED CART =================
+
+app.post('/api/cart/abandoned', (req, res) => {
+  const { email, phone, cartItems, total } = req.body;
+  if ((!email && !phone) || !cartItems || cartItems.length === 0) return res.json({ success: false });
+  
+  // Find if pending cart exists for this user
+  db.query("SELECT id FROM abandoned_carts WHERE (email = ? OR phone = ?) AND status = 'pending'", [email, phone], (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    
+    if (results.length > 0) {
+      // Update existing
+      db.query("UPDATE abandoned_carts SET cart_items = ?, total_price = ?, updated_at = NOW() WHERE id = ?", [JSON.stringify(cartItems), total, results[0].id], (err) => {
+        res.json({ success: true, updated: true });
+      });
+    } else {
+      // Insert new
+      db.query("INSERT INTO abandoned_carts (email, phone, cart_items, total_price) VALUES (?, ?, ?, ?)", [email, phone, JSON.stringify(cartItems), total], (err) => {
+        res.json({ success: true, inserted: true });
+      });
+    }
+  });
+});
+
+app.get('/api/admin/abandoned-carts', (req, res) => {
+  db.query('SELECT * FROM abandoned_carts ORDER BY updated_at DESC', (err, results) => {
+    if (err) return res.status(500).json({ error: 'Database Error' });
+    res.json(results);
+  });
+});
+
+// Configure NodeMailer (Uses environment variables)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: process.env.SMTP_PORT || 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+app.post('/api/admin/abandoned-carts/send-reminder', async (req, res) => {
+  const { id } = req.body;
+  db.query('SELECT * FROM abandoned_carts WHERE id = ?', [id], async (err, results) => {
+    if (err || results.length === 0) return res.status(404).json({ error: 'Cart not found' });
+    const cart = results[0];
+    
+    if (!cart.email) return res.status(400).json({ error: 'No email address for this cart' });
+    if (!process.env.SMTP_USER) return res.status(500).json({ error: 'SMTP credentials not configured on server' });
+
+    try {
+      const items = typeof cart.cart_items === 'string' ? JSON.parse(cart.cart_items) : cart.cart_items;
+      let itemsList = items.map(i => `<li>${i.name} - ${i.quantity} x ${i.price} JOD</li>`).join('');
+
+      await transporter.sendMail({
+        from: `"زهرة بيسان" <${process.env.SMTP_USER}>`,
+        to: cart.email,
+        subject: "🛒 لا تفوتي عباءتك المفضلة من زهرة بيسان!",
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; color: #333;">
+            <h2 style="color: #5c3d1e;">مرحباً،</h2>
+            <p>لاحظنا أنك تركتِ بعض القطع الأنيقة في سلة التسوق الخاصة بك. العباءات المميزة تُباع بسرعة، لا تفوتي فرصتك!</p>
+            <ul style="background: #fdfaf6; padding: 15px 30px; border-radius: 8px;">
+              ${itemsList}
+            </ul>
+            <p>إجمالي السلة: <b>${cart.total_price} JOD</b></p>
+            <p>استخدمي الكود <b>COMEBACK5</b> للحصول على خصم 5% على طلبك اليوم!</p>
+            <a href="https://${req.get('host')}/checkout" style="background: #c5a880; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">أكملي طلبك الآن</a>
+          </div>
+        `
+      });
+
+      db.query("UPDATE abandoned_carts SET status = 'sent' WHERE id = ?", [id]);
+      res.json({ success: true });
+    } catch (sendErr) {
+      console.error(sendErr);
+      res.status(500).json({ error: 'Failed to send email: ' + sendErr.message });
+    }
+  });
+});
+
+// Cron Job: Run every hour, check for pending carts > 2 hours old
+cron.schedule('0 * * * *', () => {
+  db.query("SELECT * FROM abandoned_carts WHERE status = 'pending' AND updated_at < NOW() - INTERVAL 2 HOUR AND email IS NOT NULL", async (err, results) => {
+    if (err || !results) return;
+    for (let cart of results) {
+      if (!process.env.SMTP_USER) break; // Skip if SMTP not configured
+      try {
+        const items = typeof cart.cart_items === 'string' ? JSON.parse(cart.cart_items) : cart.cart_items;
+        let itemsList = items.map(i => `<li>${i.name} - ${i.quantity} x ${i.price} JOD</li>`).join('');
+
+        await transporter.sendMail({
+          from: `"زهرة بيسان" <${process.env.SMTP_USER}>`,
+          to: cart.email,
+          subject: "🛒 لا تفوتي عباءتك المفضلة من زهرة بيسان!",
+          html: `
+            <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; color: #333;">
+              <h2 style="color: #5c3d1e;">مرحباً،</h2>
+              <p>لاحظنا أنك تركتِ بعض القطع الأنيقة في سلة التسوق الخاصة بك.</p>
+              <ul style="background: #fdfaf6; padding: 15px 30px; border-radius: 8px;">
+                ${itemsList}
+              </ul>
+              <p>إجمالي السلة: <b>${cart.total_price} JOD</b></p>
+              <p>استخدمي الكود <b>COMEBACK5</b> للحصول على خصم 5% على طلبك اليوم!</p>
+              <a href="${process.env.SITE_URL || 'https://zahratbeesan.com'}/checkout" style="background: #c5a880; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">أكملي طلبك الآن</a>
+            </div>
+          `
+        });
+        db.query("UPDATE abandoned_carts SET status = 'sent' WHERE id = ?", [cart.id]);
+      } catch (e) {
+        console.error('Cron email send failed', e);
+      }
+    }
+  });
+});
+
+// ==================================================
+
 
 app.post('/api/inventory', (req, res) => {
   try {
@@ -2703,8 +2964,48 @@ app.post('/api/shipping-rates', async (req, res) => {
   }
 });
 
-// Default fallback for React router
-app.get('/*splat', (req, res) => {
+app.get('/api/facebook-catalog.xml', (req, res) => {
+  db.query('SELECT * FROM menu_items WHERE active = 1', (err, results) => {
+    if (err) return res.status(500).send('Database Error');
+    
+    let xml = `<?xml version="1.0"?>
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+  <channel>
+    <title>زهرة بيسان (Zahrat Beesan)</title>
+    <link>https://${req.get('host')}</link>
+    <description>متجر زهرة بيسان للعباءات الفاخرة</description>
+`;
+
+    results.forEach(item => {
+      // Clean description for XML
+      const desc = (item.description || item.subtitle || item.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+      const title = item.name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+      const img = item.image_url ? (item.image_url.startsWith('http') ? item.image_url : `https://${req.get('host')}${item.image_url}`) : `https://${req.get('host')}/logo512.png`;
+      const link = `https://${req.get('host')}/product/${item.id}`;
+      
+      xml += `    <item>
+      <g:id>${item.id}</g:id>
+      <g:title>${title}</g:title>
+      <g:description>${desc}</g:description>
+      <g:link>${link}</g:link>
+      <g:image_link>${img}</g:image_link>
+      <g:brand>Zahrat Beesan</g:brand>
+      <g:condition>new</g:condition>
+      <g:availability>in stock</g:availability>
+      <g:price>${item.price} JOD</g:price>
+      <g:inventory>${item.quantity > 0 ? item.quantity : 1}</g:inventory>
+    </item>\n`;
+    });
+
+    xml += `  </channel>\n</rss>`;
+    
+    res.set('Content-Type', 'text/xml');
+    res.send(xml);
+  });
+});
+
+// For any other GET request (that isn't an API), serve React's index.html
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 

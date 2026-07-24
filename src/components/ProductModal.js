@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import styles from './ProductModal.module.css';
 
 export default function ProductModal({ model, onClose }) {
+  const navigate = useNavigate();
   const { addItem, items } = useCart();
   const { format } = useCurrency();
   
@@ -580,18 +582,30 @@ export default function ProductModal({ model, onClose }) {
                 {!selectedSize && (
                   <p className={styles.sizeWarning} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> يرجى اختيار المقاس أولاً</p>
                 )}
-                <button
-                  className={`${styles.addToCartBtn} ${addedToCart ? styles.addedToCart : ''}`}
-                  onClick={handleAddCart}
-                >
-                  <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {addedToCart 
-                      ? <><CheckCircle2 size={16} /> {model.pre_order === 1 ? 'تم الحجز المسبق' : 'تمت الإضافة للسلة'}</> 
-                      : (model.pre_order === 1 ? 'طلب مسبق (Pre-Order)' : 'أضيفي للسلة')
-                    }
-                  </span>
-                </button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    className={`${styles.addToCartBtn} ${addedToCart ? styles.addedToCart : ''}`}
+                    onClick={handleAddCart}
+                    style={{ flex: 1 }}
+                  >
+                    <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      {addedToCart 
+                        ? <><CheckCircle2 size={16} /> {model.pre_order === 1 ? 'تم الحجز' : 'تمت الإضافة'}</> 
+                        : (model.pre_order === 1 ? 'طلب مسبق' : 'أضيفي للسلة')
+                      }
+                    </span>
+                  </button>
+                  <button
+                    className={styles.addToCartBtn}
+                    onClick={() => { handleAddCart(); onClose(); navigate('/checkout'); }}
+                    style={{ flex: 1, background: 'linear-gradient(135deg, var(--gold, #c5a880), #a8864d)' }}
+                  >
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      اطلب الآن
+                    </span>
+                  </button>
+                </div>
               </>
             )}
             <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {model.pre_order === 1 ? 'سيتوفر الطلب المسبق قريباً' : 'شحن مجاني خلال 24 ساعة'}</p>

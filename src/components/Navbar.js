@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { shopInfo } from '../data/shopData';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -6,6 +6,7 @@ import { useDarkMode } from '../context/DarkModeContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { FiUser } from 'react-icons/fi';
+import ProductModal from './ProductModal';
 import styles from './Navbar.module.css';
 
 const BagIcon = () => (
@@ -27,10 +28,12 @@ const InstaIcon = () => (
 );
 
 const LINKS = [
-  { label: 'الرئيسية',  href: '#home' },
-  { label: 'التشكيلة',  href: '#collection' },
-  { label: 'معرضنا',    href: '#gallery' },
-  { label: 'اتصلي بنا', href: '#contact' }
+  { label: 'الرئيسية',  href: '/#home' },
+  { label: 'التشكيلة',  href: '/#collection' },
+  { label: 'معرضنا',    href: '/#gallery' },
+  { label: 'مجلة زهرة بيسان', href: '/blog' },
+  { label: 'بطاقات الهدايا', href: '/gift-cards' },
+  { label: 'اتصلي بنا', href: '/#contact' }
 ];
 
 const LANGUAGES = [
@@ -83,6 +86,16 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   const { currency, setCurrency, currencies } = useCurrency();
   const { customer, openLoginModal } = useCustomerAuth();
 
+  // ── Smart Search ──
+  const [searchOpen, setSearchOpen]       = useState(false);
+  const [searchQuery, setSearchQuery]     = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchProduct, setSearchProduct] = useState(null);
+  const searchRef                         = useRef(null);
+  const searchInputRef                    = useRef(null);
+  const searchDebounceRef                 = useRef(null);
+
   const [showLanguage, setShowLanguage] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
     try {
@@ -131,12 +144,21 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   }, [open]);
 
   useEffect(() => {
-    const onEsc = (e) => { if (e.key === 'Escape') { setOpen(false); setShowCurrency(false); setShowLanguage(false); } };
+    const onEsc = (e) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        setShowCurrency(false);
+        setShowLanguage(false);
+        setSearchOpen(false);
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+    };
     document.addEventListener('keydown', onEsc);
     return () => document.removeEventListener('keydown', onEsc);
   }, []);
 
-  // Close currency and language dropdowns when clicking outside
+  // Close currency, language, and search dropdowns when clicking outside
   useEffect(() => {
     const onClick = (e) => {
       if (currencyRef.current && !currencyRef.current.contains(e.target)) {
@@ -145,10 +167,58 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
       if (languageRef.current && !languageRef.current.contains(e.target)) {
         setShowLanguage(false);
       }
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
+        setSearchOpen(false);
+        setSearchQuery('');
+        setSearchResults([]);
+      }
     };
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
+
+  // Debounced search fetch
+  const doSearch = useCallback((q) => {
+    clearTimeout(searchDebounceRef.current);
+    if (!q || q.trim().length < 2) { setSearchResults([]); setSearchLoading(false); return; }
+    setSearchLoading(true);
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`);
+        const data = await res.json();
+        setSearchResults(Array.isArray(data) ? data : []);
+      } catch {
+        setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 300);
+  }, []);
+
+  const handleSearchToggle = () => {
+    setSearchOpen(v => {
+      if (!v) {
+        setTimeout(() => searchInputRef.current && searchInputRef.current.focus(), 50);
+      } else {
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+      return !v;
+    });
+  };
+
+  const handleSearchChange = (e) => {
+    const q = e.target.value;
+    setSearchQuery(q);
+    doSearch(q);
+  };
+
+  const handleResultClick = (product) => {
+    setSearchProduct(product);
+    setSearchOpen(false);
+    setSearchQuery('');
+    setSearchResults([]);
+  };
 
   const changeLanguage = (langCode, countryIso) => {
     try {
@@ -307,6 +377,150 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
 
           {/* Right Controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+
+            {/* ── Smart Search Bar ── */}
+            <div ref={searchRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                background: searchOpen
+                  ? (scrolled ? '#fff' : 'rgba(255,255,255,0.15)')
+                  : 'transparent',
+                border: searchOpen
+                  ? (scrolled ? '1.5px solid var(--gold)' : '1.5px solid rgba(197,168,128,0.7)')
+                  : '1.5px solid transparent',
+                borderRadius: '24px',
+                padding: searchOpen ? '4px 12px' : '4px 8px',
+                transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
+                width: searchOpen ? '220px' : '36px',
+                overflow: 'hidden',
+                backdropFilter: searchOpen ? 'blur(8px)' : 'none',
+              }}>
+                <button
+                  onClick={handleSearchToggle}
+                  aria-label={searchOpen ? 'إغلاق البحث' : 'البحث'}
+                  style={{
+                    background: 'none', border: 'none', cursor: 'pointer',
+                    color: scrolled ? 'var(--gold-dim)' : '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    padding: '2px', flexShrink: 0, transition: 'color 0.3s'
+                  }}
+                >
+                  {searchOpen ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                  )}
+                </button>
+                {searchOpen && (
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    placeholder="ابحثي عن منتج..."
+                    dir="rtl"
+                    style={{
+                      flex: 1,
+                      background: 'transparent',
+                      border: 'none',
+                      outline: 'none',
+                      color: scrolled ? 'var(--espresso)' : '#fff',
+                      fontSize: '0.85rem',
+                      fontFamily: 'inherit',
+                      fontWeight: '500',
+                      marginRight: '8px',
+                      minWidth: 0,
+                    }}
+                  />
+                )}
+                {searchOpen && searchLoading && (
+                  <span style={{ flexShrink: 0, opacity: 0.5 }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 0.8s linear infinite' }}>
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                  </span>
+                )}
+              </div>
+
+              {/* Search Dropdown */}
+              {searchOpen && (searchResults.length > 0 || (searchQuery.trim().length >= 2 && !searchLoading)) && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 10px)',
+                  right: 0,
+                  background: '#fff',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+                  minWidth: '280px',
+                  maxWidth: '340px',
+                  zIndex: 9999,
+                  overflow: 'hidden',
+                  direction: 'rtl',
+                }}>
+                  {searchResults.length === 0 ? (
+                    <div style={{ padding: '20px 16px', textAlign: 'center', color: 'var(--espresso)', opacity: 0.5, fontSize: '0.85rem' }}>
+                      لا توجد نتائج
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ padding: '8px 14px 6px', fontSize: '0.7rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
+                        نتائج البحث ({searchResults.length})
+                      </div>
+                      {searchResults.map(product => (
+                        <button
+                          key={product.id}
+                          onClick={() => handleResultClick(product)}
+                          style={{
+                            width: '100%', background: 'none', border: 'none',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center',
+                            gap: '12px', padding: '10px 14px',
+                            borderBottom: '1px solid var(--divider)',
+                            transition: 'background 0.18s', textAlign: 'right'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                        >
+                          <div style={{
+                            width: '46px', height: '46px', borderRadius: '10px',
+                            overflow: 'hidden', flexShrink: 0,
+                            background: 'var(--bg-elevated)',
+                            border: '1px solid var(--divider)'
+                          }}>
+                            {product.images && product.images[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, fontSize: '1.2rem' }}>🌸</div>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--espresso)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {product.name}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--gold-dim)', fontWeight: '700', marginTop: '2px' }}>
+                              {currency ? `${(parseFloat(product.price) * (currency.rate || 1)).toFixed(2)} ${currency.code}` : `${product.price} JD`}
+                            </div>
+                          </div>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" style={{ flexShrink: 0, opacity: 0.7 }}>
+                            <polyline points="15 18 9 12 15 6"/>
+                          </svg>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+              <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+            </div>
 
             {/* Hidden Google Translate Widget (used for backend translation trigger) */}
             <div
@@ -700,6 +914,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
           <InstaIcon /> {shopInfo.instagramHandle}
         </a>
       </div>
+
+      {/* ── Search Product Modal ── */}
+      {searchProduct && (
+        <ProductModal model={searchProduct} onClose={() => setSearchProduct(null)} />
+      )}
     </>
   );
 }

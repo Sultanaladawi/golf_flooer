@@ -6,13 +6,19 @@ import styles from './Cart.module.css';
 import { useEffect } from 'react';
 
 export default function Cart({ isOpen, onClose, onCheckout }) {
-  const { items, totalItems, totalPrice, removeItem, setQty, clearCart } = useCart();
-  const { format } = useCurrency();
+  const { 
+    items, 
+    removeItem, 
+    setQty, 
+    clearCart, 
+    subTotal,
+    bundleDiscount,
+    isBundleApplied,
+    totalPrice,
+    totalItems
+  } = useCart();
+  const { format: formatPrice } = useCurrency();
   const { customer, openLoginModal } = useCustomerAuth();
-
-  const formatPrice = (n) => {
-    return format(n);
-  };
 
 
 
@@ -117,8 +123,14 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
         <div className={styles.summary}>
           <div className={styles.summaryRow}>
             <span>المجموع الفرعي</span>
-            <span>{formatPrice(totalPrice)}</span>
+            <span>{formatPrice(subTotal)}</span>
           </div>
+          {isBundleApplied && (
+            <div className={styles.summaryRow} style={{ color: 'var(--gold)', fontWeight: 'bold' }}>
+              <span><i className="fas fa-tags" /> خصم الباقة (10%)</span>
+              <span>- {formatPrice(bundleDiscount)}</span>
+            </div>
+          )}
           <div className={styles.summaryRow}>
             <span>رسوم التوصيل</span>
             <span style={{ color: 'var(--espresso)' }}>يُحسب في الدفع</span>

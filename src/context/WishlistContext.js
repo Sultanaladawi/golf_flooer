@@ -1,12 +1,15 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useCustomerAuth } from './CustomerAuthContext';
 
 const WishlistContext = createContext(null);
 
-const STORAGE_KEY = 'zahrat_beesan_wishlist';
+const getStorageKey = (email) => {
+  return email ? `zahrat_wishlist_${email}` : 'zahrat_beesan_wishlist';
+};
 
-function loadWishlist() {
+function loadWishlist(email) {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(getStorageKey(email));
     return stored ? JSON.parse(stored) : [];
   } catch {
     return [];
@@ -14,15 +17,24 @@ function loadWishlist() {
 }
 
 export function WishlistProvider({ children }) {
-  const [wishlist, setWishlist] = useState(() => loadWishlist());
+  const { customer } = useCustomerAuth();
+  const [wishlist, setWishlist] = useState(() => loadWishlist(null));
+  
+  // Reload wishlist when user changes (login/logout)
+  useEffect(() => {
+    const email = customer?.email || null;
+    const loaded = loadWishlist(email);
+    setWishlist(loaded);
+  }, [customer]);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(wishlist));
+      const email = customer?.email || null;
+      localStorage.setItem(getStorageKey(email), JSON.stringify(wishlist));
     } catch (err) {
       console.error('Error saving wishlist:', err);
     }
-  }, [wishlist]);
+  }, [wishlist, customer]);
 
   const isWishlisted = (id) => wishlist.some(item => item.id === id);
 

@@ -8,7 +8,7 @@ import {
   LayoutGrid, ShoppingBag, ShoppingCart, Box,
   BarChart3, MessageSquare, BotMessageSquare, LogOut, User, Coffee, Sparkles,
   FileText, MessagesSquare, Volume2, VolumeX, Briefcase, BellRing,
-  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe, Truck
+  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe, Truck, Crown, Gift
 } from 'lucide-react';
 
 // Setup global axios interceptor to attach admin identity for Audit Logs
@@ -207,23 +207,31 @@ const AdminLayout = () => {
   let menuItems = [
     { path: '/admin/dashboard', name: t('Dashboard'), icon: <LayoutGrid size={18} /> },
     { path: '/admin/orders', name: t('Orders'), icon: <ShoppingCart size={18} />, badge: newOrderCount },
+    { path: '/admin/abandoned-carts', name: 'السلال المتروكة', icon: <ShoppingCart size={18} /> },
     { path: '/admin/products', name: t('Products'), icon: <ShoppingBag size={18} /> },
     { path: '/admin/inventory', name: t('Inventory'), icon: <Box size={18} /> },
     { path: '/admin/delivery', name: t('Delivery & Shipping'), icon: <Truck size={18} /> },
     { path: '/admin/analytics', name: t('Analytics'), icon: <BarChart3 size={18} /> },
     { path: '/admin/offers', name: t('Offers'), icon: <ShoppingCart size={18} /> },
     { path: '/admin/coupons', name: t('Coupons & Codes'), icon: <Ticket size={18} /> },
+    { path: '/admin/gift-cards', name: 'بطاقات الهدايا', icon: <Gift size={18} /> },
     { path: '/admin/loyalty', name: t('Loyalty Program'), icon: <Sparkles size={18} /> },
+    { path: '/admin/vip', name: t('VIP Customers') || 'عملاء VIP', icon: <Crown size={18} /> },
     { path: '/admin/pre-orders', name: t('Pre-Order Interests'), icon: <Activity size={18} /> },
     { path: '/admin/newsletter', name: t('Newsletter Subscribers'), icon: <Mail size={18} /> },
     { path: '/admin/messages', name: t('Inbox Messages'), icon: <Mail size={18} /> },
     { path: '/admin/feedback', name: t('Feedback & Reviews'), icon: <MessageSquare size={18} /> },
     { path: '/admin/ai-assistant', name: t('AI Assistant'), icon: <BotMessageSquare size={18} /> },
+    { path: '/admin/blog', name: 'المدونة والمقالات', icon: <FileText size={18} /> },
     { path: '/admin/leader', name: t('Team Activity'), icon: <Activity size={18} /> },
     { path: '/admin/settings', name: t('Store Settings'), icon: <Settings size={18} /> },
     { path: '/admin/theme', name: t('Theme Settings') || 'إعدادات المظهر', icon: <Settings size={18} /> },
     { path: '/admin/social', name: 'القسم الإعلامي', icon: <Share2 size={18} /> },
   ];
+
+  if (admin?.role === 'super_admin') {
+    menuItems.push({ path: '/admin/staff', name: 'إدارة الموظفين', icon: <User size={18} /> });
+  }
 
   return (
     <div style={{

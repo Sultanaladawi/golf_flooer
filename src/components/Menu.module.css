@@ -451,6 +451,135 @@
   }
 }
 
+/* Filter Panel Styles */
+.filterToggleBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--gold);
+  color: var(--espresso);
+  padding: 8px 16px;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(197, 168, 128, 0.15);
+  margin-bottom: 10px;
+}
+
+.filterToggleBtn:hover, .filterToggleActive {
+  background: var(--gold);
+  color: #000;
+  box-shadow: 0 6px 15px rgba(197, 168, 128, 0.3);
+}
+
+.filterPanel {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  margin: 0 20px 20px 20px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  direction: rtl;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.filterHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px dashed var(--border-hover);
+  padding-bottom: 15px;
+}
+
+.clearBtn {
+  background: transparent;
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+  border-radius: 50px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.clearBtn:hover {
+  background: #ff4d4d;
+  color: white;
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filterGroup label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--coffee-dark);
+}
+
+.filterInput {
+  flex: 1;
+  padding: 10px 15px;
+  border: 1px solid var(--border-hover);
+  border-radius: 10px;
+  outline: none;
+  font-family: inherit;
+  transition: 0.3s;
+}
+
+.filterInput:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.2);
+}
+
+.tagsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.filterTag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hover);
+  color: var(--espresso);
+  padding: 6px 12px;
+  border-radius: 50px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filterTag:hover {
+  border-color: var(--gold);
+}
+
+.tagSelected {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #000;
+  font-weight: bold;
+}
+
 /* Modal Styles */
 .modalOverlay {
   position: fixed;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { TrendingUp, ShoppingBag, DollarSign, ArrowUpRight, BarChart3, Zap, Calendar, Search, X, ArrowUpDown, Crown, Gem, Snowflake, Sparkles, Flower2, Shirt, Trophy, Medal, Award, Star } from 'lucide-react';
+import { TrendingUp, ShoppingBag, DollarSign, ArrowUpRight, BarChart3, Zap, Calendar, Search, X, ArrowUpDown, Crown, Gem, Snowflake, Sparkles, Flower2, Shirt, Trophy, Medal, Award, Star, Mail } from 'lucide-react';
 import { useAdminLang } from '../AdminLangContext';
 
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -323,6 +323,20 @@ const Analytics = () => {
           <BarChart3 size={28} color="var(--admin-accent)" />
           <span>{t('Business Analytics')}</span>
         </div>
+        <button 
+          onClick={async () => {
+            if(!window.confirm('هل أنت متأكد من إرسال تقرير المبيعات إلى إيميل الإدارة؟')) return;
+            try {
+              await axios.post('/api/admin/reports/send-manual', { period: 'weekly' });
+              alert('تم إرسال التقرير بنجاح!');
+            } catch (e) {
+              alert('حدث خطأ أثناء الإرسال. تأكد من إعدادات البريد.');
+            }
+          }}
+          style={{ position: 'absolute', left: 0, top: '10px', background: 'var(--admin-primary)', color: '#fff', border: 'none', padding: '10px 20px', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+        >
+          <Mail size={18} /> إرسال تقرير الآن
+        </button>
 
         {/* Today quick stats */}
         {allTime && (

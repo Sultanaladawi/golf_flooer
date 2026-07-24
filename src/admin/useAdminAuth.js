@@ -48,28 +48,6 @@ export function useAdminAuth() {
         return false;
       }
     } catch (err) {
-      console.warn("Backend unreachable. Triggering local fallback mode.");
-      
-      const team = [
-        { email: 'sultan@zahratbeesan.com', pass: 'sultan2026', name: 'Sultan', role: 'super_admin' },
-        { email: 'zuhair@zahratbeesan.com', pass: 'zuhair2026', name: 'Zuhair', role: 'admin' }
-      ];
-      
-      const user = team.find(u => u.email === email.toLowerCase().trim() && u.pass === password);
-      
-      if (user) {
-        const fallbackData = { 
-          id: `local-${user.name}`, 
-          email: user.email, 
-          name: user.name, 
-          role: user.role 
-        };
-        setAdmin(fallbackData);
-        sessionStorage.setItem('admin_session', JSON.stringify(fallbackData));
-        setLoading(false);
-        return true;
-      }
-
       setError('Connection error or invalid credentials.');
       setLoading(false);
       return false;

@@ -34,9 +34,9 @@ const SnapchatIcon = () => (
 
 /* ── Left Social Sidebar: 4 icons ── */
 const socialLinks = [
-  { label: 'Instagram', href: shopInfo.instagram || 'https://instagram.com/zahratbeesan', icon: <InstagramIcon />, bg: '#E1306C' },
-  { label: 'Facebook',  href: 'https://facebook.com/zahratbeesan', icon: <FacebookIcon />, bg: '#1877F2' },
-  { label: 'TikTok',   href: 'https://tiktok.com/@zahratbeesan',   icon: <TikTokIcon />,  bg: '#010101' },
+  { label: 'Instagram', href: shopInfo.instagram, icon: <InstagramIcon />, bg: '#E1306C' },
+  { label: 'Facebook',  href: shopInfo.facebook, icon: <FacebookIcon />, bg: '#1877F2' },
+  { label: 'TikTok',   href: 'https://tiktok.com/@zahratbeesanshop',   icon: <TikTokIcon />,  bg: '#010101' },
   { label: 'Snapchat', href: 'https://snapchat.com/add/zahratbeesan', icon: <SnapchatIcon />, bg: '#FFFC00', color: '#000' },
 ];
 

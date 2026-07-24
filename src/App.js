@@ -20,6 +20,10 @@ import Cart               from './components/Cart';
 import Checkout           from './components/Checkout';
 import Wishlist           from './components/Wishlist';
 import OrderTracking      from './components/OrderTracking';
+import ProductPage        from './components/ProductPage';
+import Blog               from './components/Blog';
+import BlogPost           from './components/BlogPost';
+import GiftCards          from './components/GiftCards';
 
 import LoadingScreen      from './components/LoadingScreen';
 
@@ -50,6 +54,11 @@ import SocialMedia        from './admin/pages/SocialMedia';
 import Loyalty            from './admin/pages/Loyalty';
 import PreOrderInterests  from './admin/pages/PreOrderInterests';
 import Delivery           from './admin/pages/Delivery';
+import VIPCustomers       from './admin/pages/VIPCustomers';
+import StaffManagement    from './admin/pages/StaffManagement';
+import BlogManagement     from './admin/pages/BlogManagement';
+import AbandonedCarts     from './admin/pages/AbandonedCarts';
+import AdminGiftCards     from './admin/pages/AdminGiftCards';
 import { RamadanLanding, EidLanding, SummerLanding } from './components/LandingPages';
 
 let LenisClass = null;
@@ -89,43 +98,13 @@ function PublicSite() {
   const [trackingOpen, setTrackingOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [stripeStatus, setStripeStatus] = useState(null);
-  const [stripeOrderId, setStripeOrderId] = useState(null);
+
   const { isStoreOpen } = useStore();
 
   const dotRef = useRef(null);
   const ringRef = useRef(null);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const myFatoorahStatusParam = params.get('myfatoorah_status');
-    const paymentId = params.get('paymentId');
 
-    if (myFatoorahStatusParam === 'success' && paymentId) {
-      setCheckoutOpen(true);
-      setStripeStatus('verifying'); // keeping state name same to avoid refactoring
-      
-      fetch(`/api/myfatoorah/verify?paymentId=${paymentId}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.orderId) {
-            setStripeOrderId(data.orderId);
-            setStripeStatus('success');
-            window.history.replaceState({}, document.title, window.location.pathname);
-          } else {
-            setStripeStatus('error');
-          }
-        })
-        .catch(err => {
-          console.error('[MyFatoorah verification error]', err);
-          setStripeStatus('error');
-        });
-    } else if (myFatoorahStatusParam === 'error') {
-      setCheckoutOpen(true);
-      setStripeStatus('error');
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
   useEffect(() => {
     // Disable smooth scroll on touch/mobile — causes jank and slowness
@@ -191,16 +170,8 @@ function PublicSite() {
           onClose={() => { 
             setCartOpen(false); 
             setCheckoutOpen(false); 
-            setStripeStatus(null); 
-            setStripeOrderId(null); 
           }} 
           onBack={() => { setCheckoutOpen(false); setCartOpen(true); }} 
-          initialStep={
-            stripeStatus === 'verifying' ? 'processing' : 
-            stripeStatus === 'success' ? 'success' : 
-            stripeStatus === 'error' ? 'error' : 'form'
-          }
-          initialOrderId={stripeOrderId}
         />
       )}
     </div>
@@ -229,11 +200,15 @@ export default function App() {
               <LoginModal />
               <Routes>
               <Route path="/" element={<PublicSite />} />
+              <Route path="/product/:id" element={<ProductPage />} />
               <Route path="/account" element={<Account />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/ramadan" element={<RamadanLanding />} />
               <Route path="/eid" element={<EidLanding />} />
               <Route path="/summer" element={<SummerLanding />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
+              <Route path="/gift-cards" element={<GiftCards />} />
               <Route path="/admin/*" element={
                 <AdminProvider>
                   <AdminLangProvider>
@@ -258,6 +233,11 @@ export default function App() {
                         <Route path="settings" element={<Settings />} />
                         <Route path="theme" element={<ThemeSettings />} />
                         <Route path="social" element={<SocialMedia />} />
+                        <Route path="vip" element={<VIPCustomers />} />
+                        <Route path="staff" element={<StaffManagement />} />
+                        <Route path="blog" element={<BlogManagement />} />
+                        <Route path="abandoned-carts" element={<AbandonedCarts />} />
+                        <Route path="gift-cards" element={<AdminGiftCards />} />
                         <Route index element={<Navigate to="dashboard" replace />} />
                       </Route>
                     </Routes>
