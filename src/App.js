@@ -20,11 +20,6 @@ import Cart               from './components/Cart';
 import Checkout           from './components/Checkout';
 import Wishlist           from './components/Wishlist';
 import OrderTracking      from './components/OrderTracking';
-import ProductPage        from './components/ProductPage';
-import Blog               from './components/Blog';
-import BlogPost           from './components/BlogPost';
-import GiftCards          from './components/GiftCards';
-
 import LoadingScreen      from './components/LoadingScreen';
 
 import { lazy, Suspense } from 'react';
