@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { galleryImages } from '../data/shopData';
+import { galleryImages, shopInfo } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
 import styles from './Gallery.module.css';
 
@@ -95,11 +95,11 @@ export default function Gallery() {
           <i className="fab fa-instagram" />
           تابعونا على{' '}
           <a
-            href="https://instagram.com/zahratbeesan"
+            href={shopInfo.instagram}
             target="_blank"
             rel="noopener noreferrer"
           >
-            @zahratbeesan
+            {shopInfo.instagramHandle}
           </a>
         </p>
       </div>
