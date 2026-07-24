@@ -107,7 +107,6 @@ function WhatsAppButton() {
 export default function FloatingWidgets() {
   return (
     <>
-      <SocialSidebar />
       <WhatsAppButton />
     </>
   );
