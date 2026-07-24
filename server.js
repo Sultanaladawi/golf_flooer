@@ -10,6 +10,7 @@ const fs = require('fs');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
+const compression = require('compression');
 
 // Ensure the public/images directory exists to prevent upload crashes
 const imgDir = path.join(__dirname, 'public', 'images');
@@ -59,10 +60,10 @@ if (API_KEY && API_KEY !== 'your_key_here') {
 
 const app = express();
 
-// âœ… Azure uses process.env.PORT; locally falls back to SERVER_PORT to avoid conflict with React client
-const PORT = process.env.PORT || process.env.SERVER_PORT || 8080;
+// Enable Gzip/Brotli response compression for ultra-fast network transfers
+app.use(compression());
 
-// âœ… FIXED: CORS now allows Azure and localhost
+// ✅ FIXED: CORS now allows Azure and localhost
 app.use(cors({
   origin: true,
   credentials: true,
@@ -73,7 +74,7 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// âœ… ENFORCE HTTPS (For Azure Production)
+// ✅ ENFORCE HTTPS (For Azure Production)
 app.use((req, res, next) => {
   if (req.headers['x-forwarded-proto'] && req.headers['x-forwarded-proto'] !== 'https' && process.env.NODE_ENV === 'production') {
     return res.redirect('https://' + req.get('host') + req.url);
@@ -90,7 +91,7 @@ app.use('/images', (req, res, next) => {
 
   // Set headers that Chrome needs for proper image caching
   res.set({
-    'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',
+    'Cache-Control': 'public, max-age=2592000, immutable',
     'Access-Control-Allow-Origin': '*',
     'Vary': 'Accept-Encoding',
     'X-Content-Type-Options': 'nosniff'
@@ -114,10 +115,11 @@ app.use('/images', (req, res, next) => {
   }
 });
 
-// --- STATIC FILES SERVING (HARDENED) ---
-// Serve static assets from build and public
-app.use(express.static(path.resolve(__dirname, 'build')));
-app.use(express.static(path.resolve(__dirname, 'public')));
+// --- STATIC FILES SERVING (HARDENED & OPTIMIZED) ---
+// Serve static assets from build and public with aggressive caching
+const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
+app.use(express.static(path.resolve(__dirname, 'build'), cacheOptions));
+app.use(express.static(path.resolve(__dirname, 'public'), cacheOptions));
 
 // 3. Specific favicon and manifest routes for stability
 app.get('/favicon.ico', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.ico')));

@@ -27,39 +27,50 @@ import GiftCards          from './components/GiftCards';
 
 import LoadingScreen      from './components/LoadingScreen';
 
+import { lazy, Suspense } from 'react';
+
+// Core Public Components (eagerly loaded for instant home page rendering)
 import { WishlistProvider } from './context/WishlistContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 
 import { AdminProvider }  from './admin/AdminContext';
 import { AdminLangProvider } from './admin/AdminLangContext';
 import AdminRoute         from './admin/AdminRoute';
-import AdminLogin         from './admin/AdminLogin';
-import AdminLayout        from './admin/AdminLayout';
-import Dashboard          from './admin/pages/Dashboard';
-import Orders             from './admin/pages/Orders';
-import Products           from './admin/pages/Products';
-import Analytics          from './admin/pages/Analytics';
-import Inventory          from './admin/pages/Inventory';
-import Offers             from './admin/pages/Offers';
-import Coupons            from './admin/pages/Coupons';
-import Newsletter         from './admin/pages/Newsletter';
-import AIAssistant        from './admin/pages/AIAssistant';
-import Feedback           from './admin/pages/Feedback';
-import Messages           from './admin/pages/Messages';
-import LeaderDashboard    from './admin/pages/LeaderDashboard';
-import Settings           from './admin/pages/Settings';
-import ThemeSettings      from './admin/pages/ThemeSettings';
 import axios from 'axios';
-import SocialMedia        from './admin/pages/SocialMedia';
-import Loyalty            from './admin/pages/Loyalty';
-import PreOrderInterests  from './admin/pages/PreOrderInterests';
-import Delivery           from './admin/pages/Delivery';
-import VIPCustomers       from './admin/pages/VIPCustomers';
-import StaffManagement    from './admin/pages/StaffManagement';
-import BlogManagement     from './admin/pages/BlogManagement';
-import AbandonedCarts     from './admin/pages/AbandonedCarts';
-import AdminGiftCards     from './admin/pages/AdminGiftCards';
 import { RamadanLanding, EidLanding, SummerLanding } from './components/LandingPages';
+
+// Lazy-loaded secondary & admin routes for maximum performance
+const Account          = lazy(() => import('./components/Account'));
+const ProductPage      = lazy(() => import('./components/ProductPage'));
+const Blog             = lazy(() => import('./components/Blog'));
+const BlogPost         = lazy(() => import('./components/BlogPost'));
+const GiftCards        = lazy(() => import('./components/GiftCards'));
+
+const AdminLogin       = lazy(() => import('./admin/AdminLogin'));
+const AdminLayout      = lazy(() => import('./admin/AdminLayout'));
+const Dashboard        = lazy(() => import('./admin/pages/Dashboard'));
+const Orders           = lazy(() => import('./admin/pages/Orders'));
+const Products         = lazy(() => import('./admin/pages/Products'));
+const Analytics        = lazy(() => import('./admin/pages/Analytics'));
+const Inventory        = lazy(() => import('./admin/pages/Inventory'));
+const Offers           = lazy(() => import('./admin/pages/Offers'));
+const Coupons          = lazy(() => import('./admin/pages/Coupons'));
+const Newsletter       = lazy(() => import('./admin/pages/Newsletter'));
+const AIAssistant      = lazy(() => import('./admin/pages/AIAssistant'));
+const Feedback         = lazy(() => import('./admin/pages/Feedback'));
+const Messages         = lazy(() => import('./admin/pages/Messages'));
+const LeaderDashboard  = lazy(() => import('./admin/pages/LeaderDashboard'));
+const Settings         = lazy(() => import('./admin/pages/Settings'));
+const ThemeSettings    = lazy(() => import('./admin/pages/ThemeSettings'));
+const SocialMedia      = lazy(() => import('./admin/pages/SocialMedia'));
+const Loyalty          = lazy(() => import('./admin/pages/Loyalty'));
+const PreOrderInterests = lazy(() => import('./admin/pages/PreOrderInterests'));
+const Delivery         = lazy(() => import('./admin/pages/Delivery'));
+const VIPCustomers     = lazy(() => import('./admin/pages/VIPCustomers'));
+const StaffManagement  = lazy(() => import('./admin/pages/StaffManagement'));
+const BlogManagement   = lazy(() => import('./admin/pages/BlogManagement'));
+const AbandonedCarts   = lazy(() => import('./admin/pages/AbandonedCarts'));
+const AdminGiftCards   = lazy(() => import('./admin/pages/AdminGiftCards'));
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
@@ -178,7 +189,6 @@ function PublicSite() {
   );
 }
 
-import Account from './components/Account';
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import LoginModal from './components/LoginModal';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -198,6 +208,7 @@ export default function App() {
               <DarkModeProvider>
               <WishlistProvider>
               <LoginModal />
+              <Suspense fallback={<LoadingScreen />}>
               <Routes>
               <Route path="/" element={<PublicSite />} />
               <Route path="/product/:id" element={<ProductPage />} />
@@ -246,6 +257,7 @@ export default function App() {
               } />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            </Suspense>
               </WishlistProvider>
               </DarkModeProvider>
             </CartProvider>
