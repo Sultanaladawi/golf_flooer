@@ -101,7 +101,7 @@ export default function AdminLogin() {
           background: #fbfaf8 !important;
           border: 1px solid ${colors.border} !important;
           border-radius: 16px !important;
-          padding: 16px 20px !important;
+          padding: 16px 45px !important;
           color: ${colors.text} !important;
           outline: none !important;
           transition: all 0.3s ease !important;
@@ -174,7 +174,7 @@ export default function AdminLogin() {
             <label className="label-text"><Lock size={14} /> {t('Password')}</label>
             <div style={{ position: 'relative' }}>
               <input type={showPass ? 'text' : 'password'} className="lux-input" placeholder="••••••••" value={form.password} onChange={e => setForm({...form, password: e.target.value})} required />
-              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', padding: '5px' }}>
+              <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', insetInlineEnd: '15px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: colors.textMuted, cursor: 'pointer', padding: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
