@@ -85,7 +85,7 @@ function WhatsAppButton() {
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        position: 'fixed', bottom: '100px', right: '2rem',
+        position: 'fixed', bottom: '100px', left: '2rem',
         width: '56px', height: '56px',
         background: '#25D366', color: '#fff',
         borderRadius: '50%',
