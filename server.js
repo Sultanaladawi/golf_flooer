@@ -59,6 +59,7 @@ if (API_KEY && API_KEY !== 'your_key_here') {
 }
 
 const app = express();
+const PORT = process.env.PORT || process.env.SERVER_PORT || 5000;
 
 // Enable Gzip/Brotli response compression for ultra-fast network transfers
 app.use(compression());
