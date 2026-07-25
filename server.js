@@ -3049,13 +3049,16 @@ app.post('/api/settings/theme', async (req, res) => {
 
 // For any other GET request (that isn't an API), serve React's index.html without caching index.html
 app.get('*', (req, res) => {
-  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-  res.setHeader('Pragma', 'no-cache');
-  res.setHeader('Expires', '0');
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  const indexPath = path.join(__dirname, 'build', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.sendFile(indexPath);
+  }
+  res.send('Zahrat Beesan Server is LIVE. Loading app...');
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`ًںڑ€ CaffAIne Server is LIVE on port: ${PORT}`);
-  console.log(`ًں”— Local Access: http://127.0.0.1:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Server is LIVE on port: ${PORT}`);
 });
