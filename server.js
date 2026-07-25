@@ -3048,7 +3048,7 @@ app.post('/api/settings/theme', async (req, res) => {
 });
 
 // For any other GET request (that isn't an API), serve React's index.html without caching index.html
-app.get('(.*)', (req, res) => {
+app.get(/.*/, (req, res) => {
   const indexPath = path.join(__dirname, 'build', 'index.html');
   if (fs.existsSync(indexPath)) {
     res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
