@@ -3006,13 +3006,6 @@ app.get('/api/facebook-catalog.xml', (req, res) => {
   });
 });
 
-// For any other GET request (that isn't an API), serve React's index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
-});
-
-// âœ… START SERVER - Single PORT definition
-
 // Theme & Banner Settings API
 app.get('/api/settings/theme', async (req, res) => {
   try {
@@ -3052,6 +3045,11 @@ app.post('/api/settings/theme', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// For any other GET request (that isn't an API), serve React's index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
