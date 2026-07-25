@@ -79,8 +79,8 @@ export const shopInfo = {
   name: "زهرة بيسان",
   tagline: "للعبايات والأزياء الفاخرة",
   // Online-only global store — no physical address
-  email: "info@zahratbeesan.com",
-  careersEmail: "careers@zahratbeesan.com",
+  email: "zahratbeesanshop@gmail.com",
+  careersEmail: "zahratbeesanshop@gmail.com",
   instagram: "https://www.instagram.com/zahratbeesanshop/",
   instagramHandle: "@zahratbeesanshop",
   facebook: "https://web.facebook.com/profile.php?id=61592655440235",
