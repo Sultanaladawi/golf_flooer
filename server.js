@@ -3047,8 +3047,11 @@ app.post('/api/settings/theme', async (req, res) => {
   }
 });
 
-// For any other GET request (that isn't an API), serve React's index.html
+// For any other GET request (that isn't an API), serve React's index.html without caching index.html
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
