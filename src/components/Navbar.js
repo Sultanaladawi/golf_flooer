@@ -77,8 +77,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   const [open, setOpen]           = useState(false);
   const [offers, setOffers]       = useState([]);
   const [bounce, setBounce]       = useState(false);
-  const [showCurrency, setShowCurrency] = useState(false);
-  const currencyRef               = useRef(null);
+
   const { totalItems }            = useCart();
   const { wishlist }               = useWishlist();
   const wishlistCount              = wishlist.length;
@@ -147,7 +146,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
     const onEsc = (e) => {
       if (e.key === 'Escape') {
         setOpen(false);
-        setShowCurrency(false);
         setShowLanguage(false);
         setSearchOpen(false);
         setSearchQuery('');
@@ -161,9 +159,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   // Close currency, language, and search dropdowns when clicking outside
   useEffect(() => {
     const onClick = (e) => {
-      if (currencyRef.current && !currencyRef.current.contains(e.target)) {
-        setShowCurrency(false);
-      }
+
       if (languageRef.current && !languageRef.current.contains(e.target)) {
         setShowLanguage(false);
       }
@@ -535,7 +531,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
               }}
             />
 
-            {/* Custom Language Switcher (matching Country/Currency dropdown styling) */}
+            {/* Merged Country / Currency Switcher */}
             <div ref={languageRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowLanguage(v => !v)}
@@ -554,7 +550,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   transition: 'all 0.3s',
                   letterSpacing: '0.5px'
                 }}
-                aria-label="تغيير اللغة"
+                aria-label="تغيير البلد والعملة"
               >
                 <img
                   src={getFlagUrl(currentLangObj.iso)}
@@ -562,7 +558,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
                   onError={e => { e.target.style.display = 'none'; }}
                 />
-                <span>{currentLangObj.name}</span>
+                <span>{currentLangObj.name} ({currency.code})</span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
               </button>
 
@@ -576,21 +572,26 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   border: '1px solid var(--border)',
                   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                   padding: '10px 0',
-                  minWidth: '200px',
+                  minWidth: '220px',
                   maxHeight: '340px',
                   overflowY: 'auto',
                   zIndex: 9999,
                   direction: 'rtl'
                 }}>
                   <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                    اختاري اللغة / البلد
+                    اختاري البلد / العملة
                   </div>
                   {LANGUAGES.map(l => {
                     const isSelected = selectedLanguage === l.code && selectedIso === l.iso;
+                    const cur = currencies.find(c => c.iso === l.iso) || currencies.find(c => c.code === 'USD');
                     return (
                       <button
                         key={`${l.code}-${l.iso}`}
-                        onClick={() => { changeLanguage(l.code, l.iso); setShowLanguage(false); }}
+                        onClick={() => {
+                          changeLanguage(l.code, l.iso);
+                          setCurrency(cur);
+                          setShowLanguage(false);
+                        }}
                         style={{
                           width: '100%',
                           padding: '10px 16px',
@@ -617,97 +618,10 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                           onError={e => { e.target.style.display = 'none'; }}
                         />
                         <span style={{ flex: 1 }}>{l.name}</span>
+                        <span style={{ color: 'var(--gold-dim)', fontWeight: '700', fontSize: '0.8rem' }}>{cur.code}</span>
                       </button>
                     );
                   })}
-                </div>
-              )}
-            </div>
-
-
-            {/* Currency Switcher */}
-            <div ref={currencyRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowCurrency(v => !v)}
-                style={{
-                  background: scrolled ? 'var(--bg-elevated)' : 'rgba(255,255,255,0.12)',
-                  border: scrolled ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '20px',
-                  padding: '5px 12px',
-                  cursor: 'pointer',
-                  color: textColor,
-                  fontSize: '0.78rem',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  transition: 'all 0.3s',
-                  letterSpacing: '0.5px'
-                }}
-                aria-label="تغيير العملة"
-              >
-                <img
-                  src={getFlagUrl(currency.iso)}
-                  alt={currency.code}
-                  style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
-                  onError={e => { e.target.style.display = 'none'; }}
-                />
-                <span>{currency.code}</span>
-                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
-              </button>
-
-              {showCurrency && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  left: '0',
-                  background: '#fff',
-                  borderRadius: '16px',
-                  border: '1px solid var(--border)',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                  padding: '10px 0',
-                  minWidth: '220px',
-                  zIndex: 9999,
-                  maxHeight: '340px',
-                  overflowY: 'auto',
-                  direction: 'rtl'
-                }}>
-                  <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                    اختاري العملة
-                  </div>
-                  {currencies.map(c => (
-                    <button
-                      key={c.code}
-                      onClick={() => { setCurrency(c); setShowCurrency(false); }}
-                      style={{
-                        width: '100%',
-                        padding: '10px 16px',
-                        background: currency.code === c.code ? 'var(--gold-glow)' : 'transparent',
-                        border: 'none',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        fontSize: '0.88rem',
-                        color: 'var(--espresso)',
-                        fontWeight: currency.code === c.code ? '700' : '400',
-                        textAlign: 'right',
-                        transition: 'background 0.2s',
-                        borderRight: currency.code === c.code ? '3px solid var(--gold)' : '3px solid transparent',
-                      }}
-                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                      onMouseLeave={e => e.currentTarget.style.background = currency.code === c.code ? 'var(--gold-glow)' : 'transparent'}
-                    >
-                      <img
-                        src={getFlagUrl(c.iso)}
-                        alt={c.code}
-                        style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-                        onError={e => { e.target.style.display = 'none'; }}
-                      />
-                      <span style={{ flex: 1 }}>{c.name}</span>
-                      <span style={{ color: 'var(--gold-dim)', fontWeight: '700', fontSize: '0.8rem' }}>{c.code}</span>
-                    </button>
-                  ))}
                 </div>
               )}
             </div>
@@ -842,15 +756,20 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
           </button>
         </nav>
 
-        {/* Language in mobile */}
+        {/* Country / Currency in mobile */}
         <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '10px', color: '#fff', letterSpacing: '1px' }}>اللغة / البلد</div>
+          <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '10px', color: '#fff', letterSpacing: '1px' }}>البلد / العملة</div>
           <div style={{ position: 'relative' }}>
             <select
               value={`${selectedLanguage}-${selectedIso}`}
               onChange={(e) => {
-                const [code, iso] = e.target.value.split('-');
-                changeLanguage(code, iso);
+                const [lang, iso] = e.target.value.split('-');
+                const matchingLang = LANGUAGES.find(l => l.code === lang && l.iso === iso);
+                if (matchingLang) {
+                  const cur = currencies.find(c => c.iso === matchingLang.iso) || currencies.find(c => c.code === 'USD');
+                  changeLanguage(matchingLang.code, matchingLang.iso);
+                  setCurrency(cur);
+                }
               }}
               style={{
                 width: '100%',
@@ -868,45 +787,16 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                 direction: 'rtl'
               }}
             >
-              {LANGUAGES.map(l => (
-                <option key={`${l.code}-${l.iso}`} value={`${l.code}-${l.iso}`} style={{ background: '#1a1a1a', color: '#fff' }}>
-                  {l.name}
-                </option>
-              ))}
+              {LANGUAGES.map(l => {
+                const cur = currencies.find(c => c.iso === l.iso) || currencies.find(c => c.code === 'USD');
+                return (
+                  <option key={`${l.code}-${l.iso}`} value={`${l.code}-${l.iso}`} style={{ background: '#1a1a1a', color: '#fff' }}>
+                    {l.name} ({cur.code})
+                  </option>
+                );
+              })}
             </select>
             <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#fff', pointerEvents: 'none', fontSize: '0.7rem' }}>▼</span>
-          </div>
-        </div>
-
-        {/* Currency in mobile */}
-        <div style={{ padding: '20px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-          <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '10px', color: '#fff', letterSpacing: '1px' }}>العملة</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            {currencies.map(c => (
-              <button
-                key={c.code}
-                onClick={() => { setCurrency(c); }}
-                style={{
-                  background: currency.code === c.code ? 'var(--gold)' : 'rgba(255,255,255,0.08)',
-                  border: '1px solid ' + (currency.code === c.code ? 'var(--gold)' : 'rgba(255,255,255,0.15)'),
-                  borderRadius: '20px',
-                  padding: '5px 12px',
-                  cursor: 'pointer',
-                  color: currency.code === c.code ? '#1a1a1a' : '#fff',
-                  fontSize: '0.78rem',
-                  fontWeight: '700',
-                  display: 'flex', alignItems: 'center', gap: '4px'
-                }}
-              >
-                <img
-                  src={getFlagUrl(c.iso)}
-                  alt={c.code}
-                  style={{ width: '18px', height: '13px', objectFit: 'cover', borderRadius: '2px' }}
-                  onError={e => { e.target.style.display = 'none'; }}
-                />
-                {c.code}
-              </button>
-            ))}
           </div>
         </div>
 
