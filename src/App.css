@@ -12,9 +12,6 @@ html, body, #root {
   scroll-behavior: smooth;
 }
 
-div, section, main {
-  transition: background-color 0.3s ease;
-}
 
 .admin-card-bg {
   background-color: var(--admin-card) !important;
