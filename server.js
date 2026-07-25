@@ -207,12 +207,12 @@ app.get('/api/fix-db-times', async (req, res) => {
   }
 });
 
-const dbHost = process.env.DB_HOST || 'localhost';
+const dbHost = process.env.DB_HOST || 'zahrat-beesan-db.mysql.database.azure.com';
 const pool = mysql.createPool({
   host: dbHost,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || process.env.DB_PASS || '',
-  database: process.env.DB_NAME || 'graduation_project',
+  user: process.env.DB_USER || 'zahratbeesan',
+  password: process.env.DB_PASSWORD || process.env.DB_PASS || 'S2u0l0t0a8n0$',
+  database: process.env.DB_NAME || 'golf_flooer',
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
   connectionLimit: 10,
