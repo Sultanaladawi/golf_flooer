@@ -62,4 +62,4 @@ jobs:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
           package: .
-          
+          startup-command: 'node server.js'
