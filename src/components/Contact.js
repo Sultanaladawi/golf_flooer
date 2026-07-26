@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Star } from 'lucide-react';
 import { shopInfo } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
 import styles from './Contact.module.css';
@@ -13,6 +14,8 @@ export default function Contact() {
   const [infoRef, infoVis] = useReveal();
   const [formRef, formVis] = useReveal();
 
+  const [formType, setFormType] = useState('message'); // 'message' or 'review'
+  const [rating, setRating] = useState(5);
   const [fields, setFields] = useState({ name: '', email: '', message: '' });
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -23,42 +26,77 @@ export default function Contact() {
   const change = e => {
     const { name, value } = e.target;
     setFields(p => ({ ...p, [name]: value }));
-    if (touched[name]) setErrors(p => ({ ...p, [name]: validate[name](value) }));
+    if (touched[name] && validate[name]) {
+      setErrors(p => ({ ...p, [name]: validate[name](value) }));
+    }
   };
 
   const blur = e => {
     const { name, value } = e.target;
     setTouched(p => ({ ...p, [name]: true }));
-    setErrors(p => ({ ...p, [name]: validate[name](value) }));
+    if (validate[name]) {
+      setErrors(p => ({ ...p, [name]: validate[name](value) }));
+    }
   };
 
   const submit = async e => {
     e.preventDefault();
-    const errs = Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, validate[k](v)]));
+    let errs = {};
+    if (formType === 'message') {
+      errs = {
+        name: validate.name(fields.name),
+        email: validate.email(fields.email),
+        message: validate.message(fields.message)
+      };
+    } else {
+      errs = {
+        message: fields.message.trim().length < 5 ? 'مضمون التقييم قصير جداً (5 أحرف كحد أدنى).' : ''
+      };
+    }
     setErrors(errs);
-    setTouched({ name: true, email: true, message: true });
+    
+    if (formType === 'message') {
+      setTouched({ name: true, email: true, message: true });
+    } else {
+      setTouched({ message: true });
+    }
+
     if (!Object.values(errs).every(x => !x)) return;
 
     setSubmitting(true);
     setSubmitError('');
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: fields.name.trim(),
-          email: fields.email.trim(),
-          message: fields.message.trim(),
-        }),
-      });
+      if (formType === 'message') {
+        const response = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: fields.name.trim(),
+            email: fields.email.trim(),
+            message: fields.message.trim(),
+          }),
+        });
 
-      if (!response.ok) throw new Error('Failed to send message');
+        if (!response.ok) throw new Error('Failed to send message');
+      } else {
+        const response = await fetch('/api/feedback/general', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            reviewer_name: fields.name.trim() || 'مجهول',
+            comment: fields.message.trim(),
+            rating: rating
+          }),
+        });
+
+        if (!response.ok) throw new Error('Failed to submit store review');
+      }
       
       setDone(true);
     } catch (error) {
-      console.error('Contact submit error:', error);
-      setSubmitError('حدث خطأ ما. يرجى إعادة المحاولة لاحقاً أو مراسلتنا بالبريد الإلكتروني.');
+      console.error('Submit error:', error);
+      setSubmitError('حدث خطأ ما. يرجى إعادة المحاولة لاحقاً.');
     } finally {
       setSubmitting(false);
     }
@@ -111,35 +149,74 @@ export default function Contact() {
           <div ref={formRef} className={`${styles.formWrap} reveal ${formVis ? 'vis' : ''}`}>
             {!done ? (
               <form onSubmit={submit} noValidate style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '24px', border: '1px solid var(--border)' }}>
-                <h3 className={styles.formTitle} style={{ color: 'var(--espresso)', textAlign: 'right', marginBottom: '20px' }}>أرسلي لنا رسالة</h3>
+                {/* Form Type Switcher */}
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', background: 'var(--bg-base)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => { setFormType('message'); setSubmitError(''); }} 
+                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: formType === 'message' ? 'var(--gold)' : 'transparent', color: formType === 'message' ? '#000' : 'var(--espresso-dim)', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    تواصل معنا
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => { setFormType('review'); setSubmitError(''); }} 
+                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: formType === 'review' ? 'var(--gold)' : 'transparent', color: formType === 'review' ? '#000' : 'var(--espresso-dim)', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
+                  >
+                    تقييم المتجر
+                  </button>
+                </div>
+
+                <h3 className={styles.formTitle} style={{ color: 'var(--espresso)', textAlign: 'right', marginBottom: '20px' }}>
+                  {formType === 'message' ? 'أرسلي لنا رسالة' : 'شاركينا تقييمكِ للمتجر'}
+                </h3>
                 
                 <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
-                  <label htmlFor="name" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>الاسم الكريم</label>
+                  <label htmlFor="name" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
+                    {formType === 'message' ? 'الاسم الكريم' : 'اسمكِ الكريم (اختياري)'}
+                  </label>
                   <input
                     id="name" name="name" type="text" placeholder="مثال: سارة أحمد"
                     value={fields.name} onChange={change} onBlur={blur}
-                    className={errors.name ? styles.er : ''}
+                    className={errors.name && formType === 'message' ? styles.er : ''}
                     style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
                   />
-                  {errors.name && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.name}</span>}
+                  {errors.name && formType === 'message' && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.name}</span>}
                 </div>
 
-                <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
-                  <label htmlFor="email" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>البريد الإلكتروني</label>
-                  <input
-                    id="email" name="email" type="email" placeholder="you@example.com"
-                    value={fields.email} onChange={change} onBlur={blur}
-                    className={errors.email ? styles.er : ''}
-                    style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
-                  />
-                  {errors.email && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.email}</span>}
-                </div>
+                {formType === 'message' && (
+                  <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
+                    <label htmlFor="email" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>البريد الإلكتروني</label>
+                    <input
+                      id="email" name="email" type="email" placeholder="you@example.com"
+                      value={fields.email} onChange={change} onBlur={blur}
+                      className={errors.email ? styles.er : ''}
+                      style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
+                    />
+                    {errors.email && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.email}</span>}
+                  </div>
+                )}
+
+                {formType === 'review' && (
+                  <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
+                    <label style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>تقييمكِ بالنجوم</label>
+                    <div style={{ display: 'flex', gap: '6px', direction: 'rtl', justifyContent: 'flex-start' }}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <button key={s} type="button" onClick={() => setRating(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>
+                          <Star size={26} fill={s <= rating ? 'var(--gold)' : 'none'} stroke={s <= rating ? 'var(--gold)' : 'var(--espresso-dim)'} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '25px', textAlign: 'right' }}>
-                  <label htmlFor="message" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>نص الرسالة</label>
+                  <label htmlFor="message" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
+                    {formType === 'message' ? 'نص الرسالة' : 'رأيكِ وتجربتكِ'}
+                  </label>
                   <textarea
                     id="message" name="message" rows={5}
-                    placeholder="كيف يمكننا مساعدتكِ؟"
+                    placeholder={formType === 'message' ? 'كيف يمكننا مساعدتكِ؟' : 'اكتبي رأيكِ هنا...'}
                     value={fields.message} onChange={change} onBlur={blur}
                     className={errors.message ? styles.er : ''}
                     style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
@@ -150,7 +227,7 @@ export default function Contact() {
                 {submitError && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '15px' }}>{submitError}</p>}
 
                 <button type="submit" className="btn btn-primary" disabled={submitting} style={{ width: '100%', display: 'flex', justifyContent: 'center', background: 'var(--gold)', color: '#000', fontWeight: 'bold' }}>
-                  {submitting ? 'جاري الإرسال...' : 'إرسال الرسالة'}
+                  {submitting ? 'جاري الإرسال...' : (formType === 'message' ? 'إرسال الرسالة' : 'إرسال التقييم')}
                 </button>
               </form>
             ) : (
@@ -158,8 +235,21 @@ export default function Contact() {
                 <div className={styles.successIcon} style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--gold-glow)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '1.5rem' }}>
                   <i className="fas fa-check" />
                 </div>
-                <h3 style={{ color: 'var(--espresso)', fontSize: '1.5rem', marginBottom: '10px' }}>تم استلام رسالتكِ بنجاح</h3>
-                <p style={{ color: 'var(--espresso-mid)', fontSize: '0.95rem' }}>نشكركِ على تواصلكِ معنا، وسنقوم بالرد عليكِ في أقرب وقت ممكن.</p>
+                <h3 style={{ color: 'var(--espresso)', fontSize: '1.5rem', marginBottom: '10px' }}>
+                  {formType === 'message' ? 'تم استلاف رسالتكِ بنجاح' : 'شكراً لتقييمكِ الجميل!'}
+                </h3>
+                <p style={{ color: 'var(--espresso-mid)', fontSize: '0.95rem' }}>
+                  {formType === 'message' 
+                    ? 'نشكركِ على تواصلكِ معنا، وسنقوم بالرد عليكِ في أقرب وقت ممكن.' 
+                    : 'يسعدنا جداً مشاركتكِ لرأيكِ، ويساعدنا ذلك على تقديم الأفضل دائماً لعشاق زهرة بيسان.'}
+                </p>
+                <button 
+                  type="button" 
+                  onClick={() => { setDone(false); setFields({ name: '', email: '', message: '' }); setRating(5); }} 
+                  style={{ marginTop: '20px', background: 'none', border: 'none', color: 'var(--gold)', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}
+                >
+                  {formType === 'message' ? 'إرسال رسالة أخرى' : 'كتابة تقييم آخر'}
+                </button>
               </div>
             )}
           </div>
