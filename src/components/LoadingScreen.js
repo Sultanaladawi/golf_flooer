@@ -4,6 +4,11 @@ import styles from './LoadingScreen.module.css';
 export default function LoadingScreen({ onComplete }) {
   const [phase, setPhase] = useState('intro');
   const canvasRef = useRef(null);
+  const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  });
 
   useEffect(() => {
     // Particle animation
@@ -56,7 +61,7 @@ export default function LoadingScreen({ onComplete }) {
     const t2 = setTimeout(() => setPhase('fading'), 2200);
     const t3 = setTimeout(() => {
       setPhase('done');
-      if (onComplete) onComplete();
+      if (onCompleteRef.current) onCompleteRef.current();
     }, 2900);
 
     return () => {
@@ -65,7 +70,7 @@ export default function LoadingScreen({ onComplete }) {
       clearTimeout(t2);
       clearTimeout(t3);
     };
-  }, [onComplete]);
+  }, []);
 
   if (phase === 'done') return null;
 
@@ -98,8 +103,6 @@ export default function LoadingScreen({ onComplete }) {
 
         {/* Decorative line bottom */}
         <div className={`${styles.decoLine} ${phase === 'reveal' ? styles.decoLineVisible : ''}`} />
-
-
 
         {/* Progress */}
         <div className={`${styles.progressBar} ${phase === 'reveal' ? styles.progressBarVisible : ''}`}>
