@@ -228,7 +228,17 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
         localStorage.setItem('zahrat_language_iso', countryIso);
 
         // Sync currency with language country
-        const matchingCurr = currencies.find(c => c.iso === countryIso);
+        let matchingCurr = currencies.find(c => c.iso === countryIso);
+        // Handle Euro zone & European currencies mapping
+        if (!matchingCurr && ['de', 'fr', 'eu', 'ch', 'se', 'no'].includes(countryIso)) {
+          if (countryIso === 'ch') matchingCurr = currencies.find(c => c.code === 'CHF');
+          else if (countryIso === 'se') matchingCurr = currencies.find(c => c.code === 'SEK');
+          else if (countryIso === 'no') matchingCurr = currencies.find(c => c.code === 'NOK');
+          else matchingCurr = currencies.find(c => c.code === 'EUR');
+        }
+        if (!matchingCurr) {
+          matchingCurr = currencies.find(c => c.code === 'USD');
+        }
         if (matchingCurr) {
           setCurrency(matchingCurr);
         }
@@ -567,7 +577,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   position: 'absolute',
                   top: 'calc(100% + 8px)',
                   left: '0',
-                  background: '#fff',
+                  background: 'var(--bg-surface)',
                   borderRadius: '16px',
                   border: '1px solid var(--border)',
                   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
@@ -723,9 +733,9 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
               aria-expanded={open}
               style={{ background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '5px' }}
             >
-              <span style={{ width: '25px', height: '2px', background: textColor, transition: 'background 0.3s' }} />
-              <span style={{ width: '25px', height: '2px', background: textColor, transition: 'background 0.3s' }} />
-              <span style={{ width: '25px', height: '2px', background: textColor, transition: 'background 0.3s' }} />
+              <span style={{ width: '25px', height: '2px', background: open ? 'var(--espresso)' : textColor, transition: 'background 0.3s' }} />
+              <span style={{ width: '25px', height: '2px', background: open ? 'var(--espresso)' : textColor, transition: 'background 0.3s' }} />
+              <span style={{ width: '25px', height: '2px', background: open ? 'var(--espresso)' : textColor, transition: 'background 0.3s' }} />
             </button>
           </div>
         </div>
@@ -733,10 +743,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
 
       {/* ── Mobile Drawer ── */}
       <div className={`${styles.mobile} ${open ? styles.mobileOpen : ''}`} role="dialog" aria-label="Navigation" style={{ direction: 'rtl' }}>
-        <button className={styles.mobileClose} onClick={() => setOpen(false)} aria-label="إغلاق">
-          <CloseIcon />
-        </button>
-        <nav>
+        <nav style={{ width: '100%' }}>
           {LINKS.map(({ label, href }) => (
             <a key={label} href={href} className={styles.mobileLink} onClick={() => setOpen(false)}>
               {label}
