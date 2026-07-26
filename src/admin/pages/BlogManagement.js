@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import AdminLayout from '../AdminLayout';
 import { useAdminLang } from '../AdminLangContext';
 import { PenTool, Plus, Edit2, Trash2, Save, X, Image as ImageIcon } from 'lucide-react';
 import axios from 'axios';
@@ -81,7 +80,7 @@ export default function BlogManagement() {
   };
 
   return (
-    <AdminLayout>
+    <>
       <div style={{ padding: '20px', direction: isRTL ? 'rtl' : 'ltr' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
@@ -194,6 +193,6 @@ export default function BlogManagement() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }

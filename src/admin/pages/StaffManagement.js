@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import AdminLayout from '../AdminLayout';
 import { useAdminAuth } from '../useAdminAuth';
 import { Shield, Plus, Edit2, Trash2, Mail, Lock, User, AlertTriangle } from 'lucide-react';
 import { useAdminLang } from '../AdminLangContext';
@@ -86,18 +85,16 @@ export default function StaffManagement() {
   // Restrict to super_admin only
   if (admin?.role !== 'super_admin') {
     return (
-      <AdminLayout>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--espresso)' }}>
-          <Shield size={64} style={{ color: 'red', marginBottom: '20px', opacity: 0.5 }} />
-          <h2>عذراً، غير مصرح لك بالدخول</h2>
-          <p style={{ opacity: 0.7 }}>هذه الصفحة مخصصة لمدراء النظام (Super Admins) فقط.</p>
-        </div>
-      </AdminLayout>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', color: 'var(--espresso)' }}>
+        <Shield size={64} style={{ color: 'red', marginBottom: '20px', opacity: 0.5 }} />
+        <h2>عذراً، غير مصرح لك بالدخول</h2>
+        <p style={{ opacity: 0.7 }}>هذه الصفحة مخصصة لمدراء النظام (Super Admins) فقط.</p>
+      </div>
     );
   }
 
   return (
-    <AdminLayout>
+    <>
       <div style={{ padding: '20px', direction: isRTL ? 'rtl' : 'ltr' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
@@ -231,6 +228,6 @@ export default function StaffManagement() {
           </div>
         </div>
       )}
-    </AdminLayout>
+    </>
   );
 }
