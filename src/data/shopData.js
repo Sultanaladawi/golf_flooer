@@ -84,9 +84,9 @@ export const shopInfo = {
   instagram: "https://www.instagram.com/zahratbeesanshop/",
   instagramHandle: "@zahratbeesanshop",
   facebook: "https://web.facebook.com/profile.php?id=61592655440235",
-  twitter: "#",
-  snapchat: "#",
-  tiktok: "#",
+  twitter: "https://twitter.com/zahratbeesan",
+  snapchat: "https://www.snapchat.com/add/zahratbeesan",
+  tiktok: "https://www.tiktok.com/@zahratbeesanshop",
   phone: "0796697413"
 };
 
