@@ -91,7 +91,7 @@ export const shopInfo = {
 };
 
 
-// Online-only global store — no opening hours
+// Online-only global store — launch ready
 
 export const sophieKnowledge = {
   greeting: "أهلاً بكِ في زهرة بيسان للعبايات والأزياء الفاخرة! ✨ أنا يافا، مساعدتكِ الافتراضية لعالم الموضة والعبايات الفاخرة. كيف يمكنني مساعدتكِ اليوم؟",
