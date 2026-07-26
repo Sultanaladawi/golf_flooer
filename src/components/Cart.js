@@ -71,6 +71,26 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
           </button>
         </div>
 
+        {/* Dynamic Free Shipping Progress Bar */}
+        <div style={{ padding: '15px 20px', background: 'rgba(197, 168, 128, 0.06)', borderBottom: '1px solid rgba(197, 168, 128, 0.15)', direction: 'rtl', textAlign: 'right' }}>
+          {totalPrice >= 100 ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#166534', fontWeight: 'bold', fontSize: '0.88rem' }}>
+              <i className="fas fa-plane" style={{ transform: 'scaleX(-1)' }} />
+              <span>تهانينا! لقد حصلتِ على شحن دولي مجاني لطلبكِ! ✈️🎁</span>
+            </div>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.82rem', fontWeight: 'bold', color: 'var(--espresso)', marginBottom: '8px' }}>
+                <span>تبقّى لكِ <span style={{ color: 'var(--gold, #c5a880)' }}>{formatPrice(100 - totalPrice)}</span> للحصول على شحن مجاني! ✈️</span>
+                <span>{Math.round(Math.min((totalPrice / 100) * 100, 100))}%</span>
+              </div>
+              <div style={{ width: '100%', height: '8px', background: 'rgba(197, 168, 128, 0.2)', borderRadius: '4px', overflow: 'hidden' }}>
+                <div style={{ width: `${Math.min((totalPrice / 100) * 100, 100)}%`, height: '100%', background: 'linear-gradient(90deg, var(--gold, #c5a880) 0%, #a8864d 100%)', borderRadius: '4px', transition: 'width 0.5s ease-out' }} />
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className={styles.itemList}>
           {items.map(item => (
             <div key={item.id} className={styles.cartItem}>

@@ -93,6 +93,7 @@ const Products = () => {
     pre_order: 0,
     category_id: '',
     image_url: '',
+    video_url: '',
     tags: '',
     addons: '',
     addon_ids: [],
@@ -225,7 +226,7 @@ const Products = () => {
   const openAddModal = () => {
     setModalMode('add');
     setFormData({ 
-      id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, pre_order: 0, category_id: dbCategories[0]?.id || '', image_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
+      id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, pre_order: 0, category_id: dbCategories[0]?.id || '', image_url: '', video_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
       sku: '', subtitle: '', badge: '',
       sizes_json: '["S", "M", "L", "XL", "XXL", "3XL"]',
       fabric_json: '[{"label": "نوع القماش", "value": "كريب فاخر"}, {"label": "بلد المنشأ", "value": "الأردن"}]',
@@ -250,6 +251,7 @@ const Products = () => {
       pre_order: product.pre_order ?? 0,
       category_id: product.category_id || (dbCategories[0]?.id || ''),
       image_url: product.image_url || '',
+      video_url: product.video_url || '',
       tags: product.tags || '',
       addons: product.addons || '',
       addon_ids: product.linkedAddons ? product.linkedAddons.map(a => parseInt(a.id)) : [],
@@ -637,6 +639,18 @@ const Products = () => {
                   </button>
                   {formData.image_url && <button type="button" onClick={() => setFormData({...formData, image_url: ''})} style={{ background: 'none', border: 'none', color: '#e74a3b', cursor: 'pointer' }}><X size={18} /></button>}
                 </div>
+              </div>
+
+              {/* Video URL Input */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '5px' }}>
+                <label style={labelStyle}>{t('Product Video URL') || 'رابط فيديو المنتج (Video URL)'}</label>
+                <input 
+                  type="text" 
+                  value={formData.video_url || ''} 
+                  onChange={(e) => setFormData({...formData, video_url: e.target.value})}
+                  placeholder="مثال: https://example.com/abaya-reels.mp4"
+                  style={inputStyle}
+                />
               </div>
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>

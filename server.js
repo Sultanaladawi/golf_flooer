@@ -636,6 +636,9 @@ db.query("SELECT * FROM categories", (err, categories) => {
 db.query("SHOW COLUMNS FROM menu_items LIKE 'image_url'", (err, results) => {
   if (!err && results.length === 0) db.query("ALTER TABLE menu_items ADD COLUMN image_url VARCHAR(1024) DEFAULT NULL");
 });
+db.query("SHOW COLUMNS FROM menu_items LIKE 'video_url'", (err, results) => {
+  if (!err && results.length === 0) db.query("ALTER TABLE menu_items ADD COLUMN video_url VARCHAR(1024) DEFAULT NULL");
+});
 db.query("SHOW COLUMNS FROM menu_items LIKE 'created_at'", (err, results) => {
   if (!err && results.length === 0) db.query("ALTER TABLE menu_items ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 });
@@ -2657,11 +2660,20 @@ CRITICAL RULES:
         businessContext = `You MUST reply EXACTLY with this text and nothing else: "DB_ERROR: ${dbError.message}"`;
       }
     } else {
-      const [menuRes] = await promiseDb.query(`SELECT id, name, price_display FROM menu_items WHERE available = 1`);
+      const [menuRes] = await promiseDb.query(`
+        SELECT m.id, m.name, m.price_display,
+          (SELECT GROUP_CONCAT(CONCAT(v.color_name, ' (مقاسات: ', v.sizes, ')')) FROM product_variants v WHERE v.product_id = m.id) as variants_info
+        FROM menu_items m 
+        WHERE m.available = 1
+      `);
 
-      const menuItems = menuRes.map(m => `${m.name} (${m.price_display})`).join(', ');
+      const menuItems = menuRes.map(m => `- ${m.name} (${m.price_display}) ${m.variants_info ? `[ألوان ومقاسات: ${m.variants_info}]` : '[متوفر بكافة المقاسات الافتراضية]'}`).join('\n');
 
-      businessContext += `\nMenu: ${menuItems}\nCALORIE RULES: IGNORE ANY PREVIOUS RECIPE DATA. You are a professional nutritionist. Provide EXACT, SINGLE INTEGER numbers for calories using standard reliable sources. NEVER use ranges (like "120-180") and NEVER use approximations (like "~" or "about"). Give only one precise number.`;
+      businessContext += `\nكتالوج المنتجات المتوفرة حالياً بالمتجر والألوان والمقاسات:\n${menuItems}\n
+قواعد هامة لك:
+1. أنتِ يافا (Yafa)، مستشارة الأزياء والأناقة المتخصصة في عبايات متجر "زهرة بيسان".
+2. أجيبِ العميلات بلباقة ودفء ورقي تام باللهجة واللغة التي يكتبن بها (العربية الفصحى أو العامية اللطيفة أو الإنجليزية).
+3. استعيني بالكتالوج أعلاه للإجابة عن توافر الألوان والمقاسات بدقة متناهية ولا تخترعي معلومات غير موجودة بالجدول.`;
     }
   } catch (e) {
     console.warn('[AI] Context Fetch Error:', e.message);

@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
-import { Star, ChevronRight, ChevronLeft, ShoppingBag, ArrowRight, Heart, Share2, MessageSquare } from 'lucide-react';
+import { Star, ChevronRight, ChevronLeft, ShoppingBag, ArrowRight, Heart, Share2, MessageSquare, X } from 'lucide-react';
 
-const SIZES = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
+const SIZES = ['50', '52', '54', '56', '58', '60'];
 
 function StarRating({ rating, size = 16 }) {
   return (
@@ -26,7 +26,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentImg, setCurrentImg] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedSize, setSelectedSize] = useState('54');
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [addedToCart, setAddedToCart] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
@@ -37,6 +37,12 @@ export default function ProductPage() {
   const [reviewSuccess, setReviewSuccess] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
+
+  // Luxury upgrades states
+  const [showSizeModal, setShowSizeModal] = useState(false);
+  const [userHeight, setUserHeight] = useState(160);
+  const [recommendedSize, setRecommendedSize] = useState('54');
+  const [isPlayingVideo, setIsPlayingVideo] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -109,6 +115,25 @@ export default function ProductPage() {
     });
     setAddedToCart(true);
     setTimeout(() => setAddedToCart(false), 2500);
+  };
+
+  const handleWhatsAppOrder = () => {
+    const abayaName = product?.name || '';
+    const abayaSize = selectedSize || 'غير محدد';
+    const abayaColor = selectedVariant?.color_name || 'غير محدد';
+    const abayaPrice = price || '';
+    const pageUrl = window.location.href;
+
+    const messageText = `السلام عليكم ورحمة الله، أرغب في طلب عباية:
+*${abayaName}*
+- المقاس: ${abayaSize}
+- اللون: ${abayaColor}
+- السعر: ${abayaPrice}
+رابط المنتج: ${pageUrl}`;
+
+    const encodedText = encodeURIComponent(messageText);
+    const whatsappUrl = `https://wa.me/962796697413?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const handleShare = () => {
@@ -205,6 +230,40 @@ export default function ProductPage() {
                   ))}
                 </div>
               </>)}
+              
+              {/* Play Video reels button overlay */}
+              {(product.video_url || true) && (
+                <button 
+                  type="button" 
+                  onClick={() => setIsPlayingVideo(true)}
+                  style={{
+                    position: 'absolute',
+                    bottom: '14px',
+                    right: '14px',
+                    padding: '8px 16px',
+                    borderRadius: '20px',
+                    background: 'rgba(255, 255, 255, 0.85)',
+                    backdropFilter: 'blur(6px)',
+                    border: '1px solid rgba(255, 255, 255, 0.5)',
+                    color: 'var(--espresso)',
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                    transition: 'all 0.2s',
+                    zIndex: 10
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="var(--gold, #c5a880)" stroke="var(--gold, #c5a880)" strokeWidth="2">
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                  </svg>
+                  عرض الفيديو حركياً 🎥
+                </button>
+              )}
+
               <button onClick={() => setWishlisted(w => !w)} style={{ position: 'absolute', top: '14px', left: '14px', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', transition: 'all 0.2s' }}>
                 <Heart size={18} fill={wishlisted ? '#ef4444' : 'none'} stroke={wishlisted ? '#ef4444' : '#888'} />
               </button>
@@ -270,9 +329,18 @@ export default function ProductPage() {
 
             {/* Size Selector */}
             <div>
-              <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--espresso, #5c3d1e)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                المقاس: <span style={{ color: 'var(--gold, #c5a880)' }}>{selectedSize}</span>
-              </h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--espresso, #5c3d1e)', textTransform: 'uppercase', letterSpacing: '1px', margin: 0 }}>
+                  المقاس: <span style={{ color: 'var(--gold, #c5a880)' }}>{selectedSize}</span>
+                </h3>
+                <button 
+                  type="button" 
+                  onClick={() => setShowSizeModal(true)} 
+                  style={{ background: 'none', border: 'none', color: 'var(--gold, #c5a880)', fontSize: '0.82rem', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
+                >
+                  📏 دليل ومساعد المقاسات الذكي
+                </button>
+              </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {SIZES.map(sz => (
                   <button key={sz} className="pp-size-btn" onClick={() => setSelectedSize(sz)}
@@ -302,6 +370,36 @@ export default function ProductPage() {
                 <Share2 size={20} />
               </button>
             </div>
+
+            {/* WhatsApp Quick Order */}
+            <button 
+              type="button" 
+              onClick={handleWhatsAppOrder} 
+              disabled={!!product.isOutOfStock}
+              style={{
+                width: '100%',
+                padding: '16px 12px',
+                marginTop: '10px',
+                background: product.isOutOfStock ? '#aaa' : '#25D366',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '14px',
+                fontWeight: 900,
+                fontSize: '1rem',
+                cursor: product.isOutOfStock ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 6px 20px rgba(37, 211, 102, 0.25)',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#fff" style={{ flexShrink: 0 }}>
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.197 1.45 4.817 1.453 5.461 0 9.902-4.43 9.905-9.877.002-2.639-1.02-5.12-2.878-6.98C16.636 1.89 14.152.868 11.516.868c-5.466 0-9.907 4.431-9.91 9.88-.002 1.716.452 3.39 1.31 4.887l-.994 3.633 3.725-.977zm11.367-7.915c-.12-.2-.44-.32-.92-.56-.48-.24-2.84-1.4-3.28-1.56-.44-.16-.76-.24-.96.24-.2.48-.76 1.56-.93 1.76-.17.2-.34.22-.82-.02-.48-.24-2.02-.74-3.84-2.37-1.42-1.27-2.38-2.84-2.66-3.32-.28-.48-.03-.74.21-.97.22-.22.48-.56.72-.84.24-.28.32-.48.48-.8.16-.32.08-.6-.04-.84-.12-.24-.96-2.32-1.32-3.18-.35-.85-.7-.73-.96-.74-.25-.01-.54-.01-.83-.01-.29 0-.76.11-1.15.53-.39.42-1.5 1.46-1.5 3.57 0 2.1 1.53 4.14 1.74 4.42.22.28 3.01 4.6 7.3 6.46 1.02.44 1.82.7 2.44.9.1.03.2.05.3.06 1.02.15 2.05.1 2.82-.02.86-.13 2.63-1.08 3-2.12.37-1.04.37-1.92.26-2.12z"/>
+              </svg>
+              طلب سريع وسهل عبر WhatsApp 💬
+            </button>
 
             {/* Tags */}
             {product.tags && (
@@ -403,6 +501,126 @@ export default function ProductPage() {
           </div>
         </div>
       </div>
+
+      {/* Interactive Size Modal */}
+      {showSizeModal && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px', backdropFilter: 'blur(5px)', direction: 'rtl' }}>
+          <div style={{ background: 'var(--bg-card, #fff)', width: '95%', maxWidth: '600px', borderRadius: '24px', border: '1.5px solid var(--gold, rgba(197, 168, 128, 0.3))', padding: '30px', position: 'relative', boxShadow: '0 20px 50px rgba(0,0,0,0.2)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <button onClick={() => setShowSizeModal(false)} style={{ position: 'absolute', top: '20px', left: '20px', background: 'none', border: 'none', color: 'var(--espresso, #5c3d1e)', cursor: 'pointer', padding: 0 }} title="إغلاق">
+              <X size={24} />
+            </button>
+
+            <h3 style={{ margin: '0 0 20px 0', color: 'var(--espresso, #5c3d1e)', fontSize: '1.4rem', fontWeight: 900, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              📏 دليل ومساعد المقاسات الذكي
+            </h3>
+
+            {/* Interactive Section */}
+            <div style={{ background: 'rgba(197, 168, 128, 0.08)', padding: '20px', borderRadius: '16px', border: '1px solid rgba(197, 168, 128, 0.2)', marginBottom: '25px', textAlign: 'right' }}>
+              <h4 style={{ margin: '0 0 15px 0', color: 'var(--gold, #c5a880)', fontSize: '1.05rem', fontWeight: 800 }}>حاسبة المقاس التفاعلية</h4>
+              
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 700, color: 'var(--espresso)', marginBottom: '10px' }}>
+                  طولكِ الكريم: <span style={{ color: 'var(--gold)', fontWeight: 800 }}>{userHeight} سم</span>
+                </label>
+                <input 
+                  type="range" 
+                  min="145" 
+                  max="185" 
+                  value={userHeight} 
+                  onChange={(e) => {
+                    const h = parseInt(e.target.value);
+                    setUserHeight(h);
+                    let recSize = '54';
+                    if (h <= 152) recSize = '50';
+                    else if (h <= 157) recSize = '52';
+                    else if (h <= 162) recSize = '54';
+                    else if (h <= 167) recSize = '56';
+                    else if (h <= 172) recSize = '58';
+                    else recSize = '60';
+                    setRecommendedSize(recSize);
+                  }}
+                  style={{ width: '100%', accentColor: 'var(--gold)' }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--espresso-dim)', marginTop: '4px' }}>
+                  <span>145 سم</span>
+                  <span>165 سم</span>
+                  <span>185 سم</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card, #fff)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
+                  <strong style={{ fontSize: '1.4rem', color: 'var(--gold)', fontWeight: 900 }}>عباية مقاس {recommendedSize}</strong>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setSelectedSize(recommendedSize);
+                    setShowSizeModal(false);
+                  }}
+                  style={{ padding: '8px 16px', background: 'var(--gold)', color: '#000', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
+                >
+                  اعتماد المقاس
+                </button>
+              </div>
+            </div>
+
+            {/* Standard Size Table (KEPT SIDE-BY-SIDE!) */}
+            <div style={{ textAlign: 'right' }}>
+              <h4 style={{ margin: '0 0 15px 0', color: 'var(--espresso, #5c3d1e)', fontSize: '1.05rem', fontWeight: 800 }}>جدول المقاسات القياسي للعبايات</h4>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
+                  <thead>
+                    <tr style={{ background: 'rgba(197, 168, 128, 0.12)', color: 'var(--espresso)' }}>
+                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>مقاس العباية</th>
+                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>طولكِ الملائم (سم)</th>
+                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>طول العباية (إنش)</th>
+                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>طول الكم (إنش)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { size: '50', height: '147 - 152', length: '50', sleeve: '25' },
+                      { size: '52', height: '153 - 157', length: '52', sleeve: '26' },
+                      { size: '54', height: '158 - 162', length: '54', sleeve: '27' },
+                      { size: '56', height: '163 - 167', length: '56', sleeve: '28' },
+                      { size: '58', height: '168 - 172', length: '58', sleeve: '29' },
+                      { size: '60', height: '173 - 178', length: '60', sleeve: '30' }
+                    ].map((row) => (
+                      <tr key={row.size} style={{ background: recommendedSize === row.size ? 'rgba(197, 168, 128, 0.15)' : 'none', fontWeight: recommendedSize === row.size ? 'bold' : 'normal' }}>
+                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)', color: 'var(--gold)', fontWeight: 'bold' }}>{row.size}</td>
+                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.height} سم</td>
+                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.length}</td>
+                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.sleeve}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Video Reels Modal */}
+      {isPlayingVideo && (product.video_url || true) && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px', backdropFilter: 'blur(10px)' }}>
+          <button onClick={() => setIsPlayingVideo(false)} style={{ position: 'absolute', top: '25px', left: '25px', background: 'none', border: 'none', color: '#fff', cursor: 'pointer', padding: 0 }} title="إغلاق">
+            <X size={32} />
+          </button>
+          <div style={{ width: '100%', maxWidth: '450px', aspectRatio: '9/16', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 20px 50px rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <video 
+              src={product.video_url || 'https://assets.mixkit.co/videos/preview/mixkit-beautiful-woman-posing-in-traditional-moroccan-dress-33158-large.mp4'} 
+              autoPlay 
+              loop 
+              controls 
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
