@@ -64,7 +64,7 @@ export default function ProductPage() {
         }
         
         // Fetch related products
-        fetch('/api/menu-items')
+        fetch('/api/products')
           .then(res => res.json())
           .then(items => {
             const others = items.filter(i => String(i.id) !== String(data.id));

@@ -619,10 +619,6 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
   return (
     <div 
       className={styles.featCard} 
-      style={{ 
-        background: '#121212',
-        border: '1px solid rgba(197, 168, 128, 0.2)'
-      }}
     >
       <div className={styles.featImg} style={{ position: 'relative', height: '240px', cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>
         <img src={imgUrl} alt={item.name} onError={handleImageError} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -641,7 +637,26 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
         )}
       </div>
       <div className={styles.featBody} style={{ textAlign: 'right' }}>
-        <h3 className={styles.featName} style={{ color: '#fff', cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>{item.name}</h3>
+        <h3 className={styles.featName} style={{ cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>{item.name}</h3>
+        {/* Luxury Star Rating */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: '6px 0 10px 0', fontSize: '0.82rem', direction: 'rtl', justifyContent: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: '2px' }}>
+            {Array.from({ length: 5 }).map((_, i) => {
+              const ratingVal = item.avg_rating || 5;
+              return (
+                <svg key={i} xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill={i < Math.round(ratingVal) ? 'var(--gold)' : 'none'} stroke="var(--gold)" strokeWidth="2" style={{ flexShrink: 0 }}>
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              );
+            })}
+          </div>
+          <span style={{ color: 'var(--espresso)', fontWeight: '700', marginRight: '4px' }}>
+            {parseFloat(item.avg_rating || 5).toFixed(1)}
+          </span>
+          <span style={{ color: 'var(--espresso-dim)', fontSize: '0.75rem' }}>
+            ({item.total_reviews || 0} {item.total_reviews === 1 ? 'تقييم' : 'تقييمات'})
+          </span>
+        </div>
         {item.variants && item.variants.length > 0 && (
           <div className={styles.itemSwatches} style={{ justifyContent: 'flex-start', margin: '5px 0 10px 0' }} onClick={(e) => e.stopPropagation()}>
             {item.variants.map(v => {

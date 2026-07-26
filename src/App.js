@@ -11,7 +11,7 @@ import Menu               from './components/Menu';
 
 import Gallery            from './components/Gallery';
 import About              from './components/About';
-import WallOfLove         from './components/WallOfLove';
+// import WallOfLove         from './components/WallOfLove';
 import Contact            from './components/Contact';
 import Footer             from './components/Footer';
 import Chatbot            from './components/Chatbot';
@@ -154,7 +154,7 @@ function PublicSite() {
         <Menu />
         <Gallery />
         <About />
-        <WallOfLove />
+        {/* <WallOfLove /> */}
         <Contact />
       </main>
 
