@@ -217,10 +217,10 @@ export default function ProductPage() {
 
           {/* LEFT: Image Gallery */}
           <div>
-            <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.1)', aspectRatio: '3/4', maxHeight: '550px' }}>
+            <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
               <img src={images[currentImg] || '/12.png'} alt={product.name}
                 onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
-                style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top', display: 'block' }} />
+                style={{ width: '100%', height: 'auto', display: 'block' }} />
               {images.length > 1 && (<>
                 <button onClick={handlePrev} style={arrowBtn('right')}><ChevronRight size={20} /></button>
                 <button onClick={handleNext} style={arrowBtn('left')}><ChevronLeft size={20} /></button>
