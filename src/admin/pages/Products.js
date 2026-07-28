@@ -1621,12 +1621,11 @@ const Products = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', color: colors.latte, textAlign: 'start', tableLayout: 'fixed' }}>
                 <colgroup>
                   <col style={{ width: '10%' }} />
-                  <col style={{ width: '22%' }} />
-                  <col style={{ width: '10%' }} />
-                  <col style={{ width: '10%' }} />
-                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '28%' }} />
                   <col style={{ width: '12%' }} />
                   <col style={{ width: '10%' }} />
+                  <col style={{ width: '10%' }} />
+                  <col style={{ width: '14%' }} />
                   <col style={{ width: '8%' }} />
                   <col style={{ width: '8%' }} />
                 </colgroup>
@@ -1638,7 +1637,6 @@ const Products = () => {
                     <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Price')}</th>
                     <th style={{ padding: '20px 10px', color: '#4ade80', fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Net Profit')}</th>
                     <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Tags')}</th>
-                    <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Add-ons')}</th>
                     <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700' }}>{t('Status')}</th>
                     <th style={{ padding: '20px 10px', color: colors.latte, fontSize: '0.8rem', letterSpacing: '1px', fontWeight: '700', textAlign: 'center' }}>{t('Actions')}</th>
                   </tr>
@@ -1771,30 +1769,7 @@ const Products = () => {
                         )) : <span style={{ color: '#444', fontSize: '0.7rem', fontStyle: 'italic' }}>—</span>}
                       </div>
                     </td>
-                    <td style={{ padding: '20px 10px' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                        {item.linkedAddons && item.linkedAddons.length > 0 ? item.linkedAddons.slice(0, 3).map((addon, i) => (
-                          <span key={i} style={{ 
-                            fontSize: '0.65rem', color: colors.crema, opacity: 0.7,
-                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                          }}>
-                            + {addon.name}
-                          </span>
-                        )) : item.addons ? item.addons.split(',').slice(0, 3).map((addon, i) => (
-                          <span key={i} style={{ 
-                            fontSize: '0.65rem', color: colors.crema, opacity: 0.7,
-                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                          }}>
-                            + {addon.trim()}
-                          </span>
-                        )) : <span style={{ color: '#444', fontSize: '0.7rem', fontStyle: 'italic' }}>—</span>}
-                        {item.linkedAddons && item.linkedAddons.length > 3 ? (
-                          <span style={{ fontSize: '0.6rem', color: colors.gold, opacity: 0.5 }}>+{item.linkedAddons.length - 3} more</span>
-                        ) : item.addons && item.addons.split(',').length > 3 && (
-                          <span style={{ fontSize: '0.6rem', color: colors.gold, opacity: 0.5 }}>+{item.addons.split(',').length - 3} more</span>
-                        )}
-                      </div>
-                    </td>
+
                     <td style={{ padding: '20px 10px' }}>
                       <span style={{ 
                         backgroundColor: item.available === 0 ? 'rgba(231, 74, 59, 0.1)' : 'rgba(40, 167, 69, 0.1)', 
