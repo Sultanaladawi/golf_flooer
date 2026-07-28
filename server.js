@@ -645,6 +645,17 @@ db.query("SHOW COLUMNS FROM menu_items LIKE 'created_at'", (err, results) => {
 db.query(`CREATE TABLE IF NOT EXISTS product_reviews (id INT AUTO_INCREMENT PRIMARY KEY, product_id INT NOT NULL, reviewer_name VARCHAR(255) DEFAULT NULL, comment TEXT DEFAULT NULL, rating TINYINT(1) DEFAULT 5, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (product_id) REFERENCES menu_items(id) ON DELETE CASCADE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure product_reviews table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS general_feedback (id INT AUTO_INCREMENT PRIMARY KEY, reviewer_name VARCHAR(255) DEFAULT 'Anonymous', comment TEXT DEFAULT NULL, rating TINYINT(1) DEFAULT 5, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure general_feedback table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS store_reviews (id INT AUTO_INCREMENT PRIMARY KEY, reviewer_name VARCHAR(255) DEFAULT 'Anonymous', comment TEXT DEFAULT NULL, rating TINYINT(1) DEFAULT 5, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure store_reviews table error:', err); });
+db.query("SELECT * FROM tags WHERE name LIKE '%COFFEE%' OR name LIKE '%TEA%' OR name LIKE '%HOT%' OR name = 'CLASSICCOFFEE'", (err, results) => {
+  if (!err && results && results.length > 0) {
+    db.query("DELETE FROM menu_item_tags");
+    db.query("DELETE FROM tags");
+    const fashionTags = ['عرائسي', 'قفطان', 'عبايات ملكية', 'مناسبات', 'فاخر', 'تطريز يدوي', 'جديد', 'الأكثر مبيعاً', 'تشكيلة العروس', 'حرير ناعم', 'كريب فاخر', 'مخمل ملوكي', 'طقم كامل'];
+    fashionTags.forEach(tag => {
+      db.query("INSERT IGNORE INTO tags (name) VALUES (?)", [tag]);
+    });
+    console.log("[Data Integrity] Purged legacy beverage tags and initialized fashion abaya tags.");
+  }
+});
     // Enhanced migration check for Azure MySQL compatibility
     db.query("SHOW COLUMNS FROM orders LIKE 'estimated_ready_at'", (err, results) => {
       if (!err && results.length === 0) {
