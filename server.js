@@ -656,6 +656,24 @@ db.query("SELECT * FROM tags WHERE name LIKE '%COFFEE%' OR name LIKE '%TEA%' OR 
     console.log("[Data Integrity] Purged legacy beverage tags and initialized fashion abaya tags.");
   }
 });
+db.query("SELECT * FROM addons WHERE name LIKE '%Shot%' OR name LIKE '%Syrup%' OR name LIKE '%Caramel%' OR name LIKE '%Vanilla%'", (err, results) => {
+  if (!err && results && results.length > 0) {
+    db.query("DELETE FROM menu_item_addons");
+    db.query("DELETE FROM addons");
+    db.query("UPDATE menu_items SET addons = NULL");
+    const fashionAddons = [
+      { name: 'طرحة حريرية مطابقة', price: 10.00 },
+      { name: 'حزام ذهبي مطرز', price: 15.00 },
+      { name: 'تغليف هدايا ملكي', price: 5.00 },
+      { name: 'بطانة إضافية', price: 8.00 },
+      { name: 'تعديل الطول مجاناً', price: 0.00 }
+    ];
+    fashionAddons.forEach(a => {
+      db.query("INSERT INTO addons (name, price) VALUES (?, ?)", [a.name, a.price]);
+    });
+    console.log("[Data Integrity] Purged legacy beverage addons and initialized fashion abaya addons.");
+  }
+});
     // Enhanced migration check for Azure MySQL compatibility
     db.query("SHOW COLUMNS FROM orders LIKE 'estimated_ready_at'", (err, results) => {
       if (!err && results.length === 0) {
