@@ -43,6 +43,7 @@ export default function ProductPage() {
   const [userHeight, setUserHeight] = useState(160);
   const [recommendedSize, setRecommendedSize] = useState('54');
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [imgHovered, setImgHovered] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -217,10 +218,14 @@ export default function ProductPage() {
 
           {/* LEFT: Image Gallery */}
           <div>
-            <div style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.1)' }}>
+            <div 
+              style={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', background: '#fff', boxShadow: '0 20px 60px rgba(0,0,0,0.1)', cursor: 'zoom-in' }}
+              onMouseEnter={() => setImgHovered(true)}
+              onMouseLeave={() => setImgHovered(false)}
+            >
               <img src={images[currentImg] || '/12.png'} alt={product.name}
                 onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
-                style={{ width: '100%', height: 'auto', display: 'block' }} />
+                style={{ width: '100%', height: 'auto', display: 'block', transition: 'transform 0.4s ease', transform: imgHovered ? 'scale(1.12)' : 'scale(1)', transformOrigin: 'top center' }} />
               {images.length > 1 && (<>
                 <button onClick={handlePrev} style={arrowBtn('right')}><ChevronRight size={20} /></button>
                 <button onClick={handleNext} style={arrowBtn('left')}><ChevronLeft size={20} /></button>
