@@ -57,7 +57,6 @@ export default function ProductPage() {
       .then(data => {
         setProduct(data);
         setReviews(data.reviews || []);
-        if (data.variants && data.variants.length > 0) setSelectedVariant(data.variants[0]);
         
         let pChart = [];
         try { pChart = data.size_chart ? (typeof data.size_chart === 'string' ? JSON.parse(data.size_chart) : data.size_chart) : []; } catch(e){}
@@ -354,13 +353,32 @@ export default function ProductPage() {
             )}
 
             {/* Color Variants */}
-            {product.variants && product.variants.length > 0 && (
+            {((product.variants && product.variants.length > 0) || product.image_url) && (
               <div>
                 <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--espresso, #5c3d1e)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                  اللون: <span style={{ color: 'var(--gold, #c5a880)' }}>{selectedVariant?.color_name || ''}</span>
+                  اللون: <span style={{ color: 'var(--gold, #c5a880)' }}>{selectedVariant ? selectedVariant.color_name : 'اللون الأصلي'}</span>
                 </h3>
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                  {product.variants.map(v => {
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                  {/* Original Color Swatch */}
+                  {product.variants && product.variants.length > 0 && (
+                    <button 
+                      type="button"
+                      className="pp-swatch" 
+                      title="اللون الأصلي" 
+                      onClick={() => { setSelectedVariant(null); setCurrentImg(0); }}
+                      style={{ 
+                        width: '36px', height: '36px', borderRadius: '50%', 
+                        background: 'linear-gradient(135deg, #c5a880, #8f6e40)', 
+                        border: `3px solid ${!selectedVariant ? 'var(--gold, #c5a880)' : 'rgba(197,168,128,0.3)'}`, 
+                        cursor: 'pointer', transition: 'transform 0.2s, border-color 0.2s', 
+                        boxShadow: !selectedVariant ? '0 0 0 2px rgba(197,168,128,0.4)' : 'none', 
+                        transform: !selectedVariant ? 'scale(1.15)' : 'scale(1)', 
+                        padding: 0 
+                      }} 
+                    />
+                  )}
+                  {/* Additional Variants */}
+                  {(product.variants || []).map(v => {
                     const list = Array.isArray(v.colors) ? v.colors : (typeof v.colors === 'string' ? JSON.parse(v.colors || '[]') : []);
                     let bg = list[0] || '#333';
                     if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
