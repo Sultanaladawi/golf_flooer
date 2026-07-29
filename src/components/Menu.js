@@ -252,19 +252,16 @@ export default function Menu() {
 
       {/* Featured abayas cards */}
       <div ref={featRef} className={`section-wrap ${styles.featuredGrid} reveal ${featVis ? 'vis' : ''}`}>
-        {featuredItems.map((feat) => {
-          // Sync with DB item to get latest stock/details
-          const dbItem = dbItems.find(i => i.id === feat.id);
-          const rawItem = dbItem
-            ? { ...dbItem, tag: feat.tag, image: dbItem.image_url || feat.image }
-            : feat;
+        {((dbItems && dbItems.length > 0) ? dbItems.slice(0, 4) : featuredItems).map((rawItem, idx) => {
+          const defaultTags = ['الأكثر مبيعاً', 'جديد', 'تشكيلة الشتاء', 'فاخر'];
           const item = {
             ...rawItem,
+            tag: rawItem.tag || defaultTags[idx % defaultTags.length],
             displayPrice: format(parsePrice(rawItem.price_num || rawItem.price))
           };
           return (
             <FeaturedCard 
-              key={item.id} 
+              key={item.id || idx} 
               item={item} 
               onAdd={() => setSelectedProduct(item)} 
               getImageUrl={getImageUrl} 
@@ -618,7 +615,7 @@ export default function Menu() {
 }
 
 function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
-  const imgUrl = item.image || item.image_url || getImageUrl(item);
+  const imgUrl = getImageUrl(item);
   const isOutOfStock = !!item.isOutOfStock;
   return (
     <div 
