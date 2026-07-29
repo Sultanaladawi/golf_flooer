@@ -167,7 +167,13 @@ const Products = () => {
   const fetchVariants = async (productId) => {
     try {
       const res = await axios.get(`/api/products/${productId}/variants`);
-      setVariants(res.data || []);
+      const parsed = (res.data || []).map(v => ({
+        ...v,
+        colors: typeof v.colors === 'string' ? (JSON.parse(v.colors || '[]')) : (v.colors || []),
+        images: typeof v.images === 'string' ? (JSON.parse(v.images || '[]')) : (v.images || []),
+        sizes: typeof v.sizes === 'string' ? (JSON.parse(v.sizes || '[]')) : (v.sizes || [])
+      }));
+      setVariants(parsed);
     } catch (err) {
       console.error('Variants fetch error:', err);
       setVariants([]);
@@ -1236,9 +1242,10 @@ const Products = () => {
                           {(() => {
                             let productSizes = [];
                             try { productSizes = JSON.parse(formData.sizes_json || '[]'); } catch(e){ productSizes = ["S", "M", "L", "XL", "XXL", "3XL"]; }
+                            const editingSizes = Array.isArray(editingVariant.sizes) ? editingVariant.sizes : (typeof editingVariant.sizes === 'string' ? (JSON.parse(editingVariant.sizes || '[]')) : []);
                             
                             return productSizes.map(sizeName => {
-                              const existingSize = (editingVariant.sizes || []).find(s => s.size === sizeName);
+                              const existingSize = editingSizes.find(s => s.size === sizeName);
                               const qty = existingSize ? existingSize.quantity : 0;
                               const isChecked = existingSize !== undefined;
                               
@@ -1248,7 +1255,7 @@ const Products = () => {
                                     type="checkbox"
                                     checked={isChecked}
                                     onChange={e => {
-                                      let newSizes = [...(editingVariant.sizes || [])];
+                                      let newSizes = [...editingSizes];
                                       if (e.target.checked) {
                                         newSizes.push({ size: sizeName, quantity: 10 });
                                       } else {
@@ -1264,7 +1271,7 @@ const Products = () => {
                                       type="number"
                                       value={qty}
                                       onChange={e => {
-                                        const newSizes = (editingVariant.sizes || []).map(s => {
+                                        const newSizes = editingSizes.map(s => {
                                           if (s.size === sizeName) {
                                             return { ...s, quantity: Math.max(0, parseInt(e.target.value) || 0) };
                                           }
@@ -1326,7 +1333,7 @@ const Products = () => {
                           <div key={v.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 15px', borderRadius: '15px', backgroundColor: 'rgba(255,255,255,0.03)', border: `1px solid ${colors.border}` }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                               {(() => {
-                                const list = v.colors || [];
+                                const list = (Array.isArray(v.colors) ? v.colors : (typeof v.colors === 'string' ? JSON.parse(v.colors || '[]') : []));
                                 let bg = '';
                                 if (list.length === 1) bg = list[0];
                                 else if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
@@ -1343,7 +1350,7 @@ const Products = () => {
                               <div>
                                 <div style={{ fontSize: '0.9rem', color: colors.latte, fontWeight: '600' }}>{v.color_name}</div>
                                 <div style={{ fontSize: '0.75rem', color: '#888', marginTop: '2px' }}>
-                                  {t('المقاسات:')} {(v.sizes || []).map(s => `${s.size} (${s.quantity})`).join(', ') || t('لا يوجد مقاسات')}
+                                  {t('المقاسات:')} {(Array.isArray(v.sizes) ? v.sizes : (typeof v.sizes === 'string' ? JSON.parse(v.sizes || '[]') : [])).map(s => `${s.size} (${s.quantity})`).join(', ') || t('لا يوجد مقاسات')}
                                 </div>
                               </div>
                             </div>
