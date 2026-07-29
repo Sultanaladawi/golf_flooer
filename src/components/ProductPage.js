@@ -542,7 +542,16 @@ export default function ProductPage() {
                   }}
                   style={{ width: '100%', accentColor: 'var(--gold)' }}
                 />
-                    <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--espresso-dim)', marginTop: '4px' }}>
+                  <span>145 سم</span>
+                  <span>165 سم</span>
+                  <span>185 سم</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card, #fff)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                <div>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
                   <strong style={{ fontSize: '1.4rem', color: 'var(--gold)', fontWeight: 900 }}>عباية مقاس {recommendedSize}</strong>
                 </div>
                 <button 
