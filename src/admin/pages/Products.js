@@ -224,12 +224,12 @@ const Products = () => {
   };
 
   const defaultSizeChart = [
-    { size: '50', chest: '95 سم', hip: '105 سم' },
-    { size: '52', chest: '100 سم', hip: '110 سم' },
-    { size: '54', chest: '105 سم', hip: '115 سم' },
-    { size: '56', chest: '110 سم', hip: '120 سم' },
-    { size: '58', chest: '115 سم', hip: '125 سم' },
-    { size: '60', chest: '120 سم', hip: '130 سم' }
+    { size: '50', chest: '95 سم', hip: '105 سم', weight: '0.6 كغم' },
+    { size: '52', chest: '100 سم', hip: '110 سم', weight: '0.65 كغم' },
+    { size: '54', chest: '105 سم', hip: '115 سم', weight: '0.7 كغم' },
+    { size: '56', chest: '110 سم', hip: '120 سم', weight: '0.75 كغم' },
+    { size: '58', chest: '115 سم', hip: '125 سم', weight: '0.8 كغم' },
+    { size: '60', chest: '120 سم', hip: '130 سم', weight: '0.85 كغم' }
   ];
 
   const openAddModal = () => {
@@ -891,12 +891,12 @@ const Products = () => {
                       onClick={() => setFormData({
                         ...formData,
                         size_chart_list: [
-                          { size: '50', chest: '95 سم', hip: '105 سم' },
-                          { size: '52', chest: '100 سم', hip: '110 سم' },
-                          { size: '54', chest: '105 سم', hip: '115 سم' },
-                          { size: '56', chest: '110 سم', hip: '120 سم' },
-                          { size: '58', chest: '115 سم', hip: '125 سم' },
-                          { size: '60', chest: '120 سم', hip: '130 سم' }
+                          { size: '50', chest: '95 سم', hip: '105 سم', weight: '0.6 كغم' },
+                          { size: '52', chest: '100 سم', hip: '110 سم', weight: '0.65 كغم' },
+                          { size: '54', chest: '105 سم', hip: '115 سم', weight: '0.7 كغم' },
+                          { size: '56', chest: '110 سم', hip: '120 سم', weight: '0.75 كغم' },
+                          { size: '58', chest: '115 سم', hip: '125 سم', weight: '0.8 كغم' },
+                          { size: '60', chest: '120 سم', hip: '130 سم', weight: '0.85 كغم' }
                         ]
                       })}
                       style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
@@ -908,11 +908,11 @@ const Products = () => {
                       onClick={() => setFormData({
                         ...formData,
                         size_chart_list: [
-                          { size: 'S', chest: '90 سم', hip: '98 سم' },
-                          { size: 'M', chest: '96 سم', hip: '104 سم' },
-                          { size: 'L', chest: '102 سم', hip: '110 سم' },
-                          { size: 'XL', chest: '110 سم', hip: '118 سم' },
-                          { size: 'XXL', chest: '118 سم', hip: '126 سم' }
+                          { size: 'S', chest: '90 سم', hip: '98 سم', weight: '0.5 كغم' },
+                          { size: 'M', chest: '96 سم', hip: '104 سم', weight: '0.6 كغم' },
+                          { size: 'L', chest: '102 سم', hip: '110 سم', weight: '0.7 كغم' },
+                          { size: 'XL', chest: '110 سم', hip: '118 سم', weight: '0.8 كغم' },
+                          { size: 'XXL', chest: '118 سم', hip: '126 سم', weight: '0.9 كغم' }
                         ]
                       })}
                       style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
@@ -925,9 +925,10 @@ const Products = () => {
                 <div style={{ background: '#fdfbf7', border: '1.5px solid rgba(197,168,128,0.35)', borderRadius: '14px', padding: '14px' }}>
                   {/* Column titles */}
                   <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px', padding: '0 4px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--espresso, #5c3d1e)' }}>
-                    <div style={{ width: '120px', textAlign: 'center' }}>المقاس</div>
+                    <div style={{ width: '100px', textAlign: 'center' }}>المقاس</div>
                     <div style={{ flex: 1 }}>محيط الصدر</div>
                     <div style={{ flex: 1 }}>محيط الحوض</div>
+                    <div style={{ flex: 1 }}>الوزن (كغم/غرام)</div>
                     <div style={{ width: '30px' }}></div>
                   </div>
 
@@ -943,7 +944,7 @@ const Products = () => {
                             updated[idx] = { ...updated[idx], size: e.target.value };
                             setFormData({ ...formData, size_chart_list: updated });
                           }}
-                          style={{ ...inputStyle, width: '120px', fontWeight: 'bold', textAlign: 'center' }}
+                          style={{ ...inputStyle, width: '100px', fontWeight: 'bold', textAlign: 'center' }}
                         />
                         <input 
                           type="text" 
@@ -967,6 +968,17 @@ const Products = () => {
                           }}
                           style={{ ...inputStyle, flex: 1 }}
                         />
+                        <input 
+                          type="text" 
+                          placeholder="مثلاً 0.7 كغم" 
+                          value={row.weight || ''} 
+                          onChange={(e) => {
+                            const updated = [...(formData.size_chart_list || [])];
+                            updated[idx] = { ...updated[idx], weight: e.target.value };
+                            setFormData({ ...formData, size_chart_list: updated });
+                          }}
+                          style={{ ...inputStyle, flex: 1 }}
+                        />
                         <button 
                           type="button" 
                           onClick={() => {
@@ -986,7 +998,7 @@ const Products = () => {
                     type="button" 
                     onClick={() => setFormData({
                       ...formData,
-                      size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '' }]
+                      size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '', weight: '' }]
                     })}
                     style={{ width: '100%', padding: '9px', borderRadius: '10px', border: '1px dashed var(--gold, #c5a880)', background: '#fff', color: 'var(--espresso, #5c3d1e)', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '8px' }}
                   >

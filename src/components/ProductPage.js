@@ -133,6 +133,8 @@ export default function ProductPage() {
   };
 
   const currentRecommendedSize = getDynamicRecommendedSize(userHeight);
+  const selectedSizeInfo = Array.isArray(activeSizeChart) ? activeSizeChart.find(x => String(x.size) === String(selectedSize)) : null;
+  const currentWeight = selectedSizeInfo?.weight || product?.weight || null;
 
   const images = getImages();
   const handlePrev = () => setCurrentImg(i => (i === 0 ? images.length - 1 : i - 1));
@@ -147,6 +149,7 @@ export default function ProductPage() {
       priceNum: parseFloat(product.price_num) || 0,
       image_url: images[0],
       size: selectedSize,
+      weight: currentWeight,
       variant: selectedVariant ? selectedVariant.color_name : null,
     });
     setAddedToCart(true);
@@ -413,9 +416,9 @@ export default function ProductPage() {
 
             {/* Weight & Tags */}
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', paddingTop: '6px' }}>
-              {product.weight && (
+              {currentWeight && (
                 <span style={{ padding: '6px 14px', borderRadius: '20px', background: 'rgba(197,168,128,0.15)', color: 'var(--espresso, #5c3d1e)', fontSize: '0.82rem', fontWeight: 800, border: '1px solid rgba(197,168,128,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  ⚖️ وزن القطعة: {product.weight}
+                  ⚖️ الوزن للمقاس ({selectedSize}): {currentWeight}
                 </span>
               )}
               {product.tags && (Array.isArray(product.tags) ? product.tags : String(product.tags).split(',')).filter(Boolean).map((tag, i) => (
@@ -573,7 +576,7 @@ export default function ProductPage() {
 
             {/* Detailed Size Table */}
             <div style={{ textAlign: 'right' }}>
-              <h4 style={{ margin: '0 0 15px 0', color: 'var(--espresso, #5c3d1e)', fontSize: '1.05rem', fontWeight: 800 }}>📏 جدول القياسات التفصيلي للمنتج</h4>
+              <h4 style={{ margin: '0 0 15px 0', color: 'var(--espresso, #5c3d1e)', fontSize: '1.05rem', fontWeight: 800 }}>📏 جدول القياسات التفصيلي والأوزان</h4>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', textAlign: 'center', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
                   <thead>
@@ -581,16 +584,17 @@ export default function ProductPage() {
                       <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>المقاس</th>
                       <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الصدر</th>
                       <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الحوض</th>
+                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>الوزن التقريبي</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(activeSizeChart && activeSizeChart.length > 0 ? activeSizeChart : [
-                      { size: '50', chest: '95 سم', hip: '105 سم' },
-                      { size: '52', chest: '100 سم', hip: '110 سم' },
-                      { size: '54', chest: '105 سم', hip: '115 سم' },
-                      { size: '56', chest: '110 سم', hip: '120 سم' },
-                      { size: '58', chest: '115 سم', hip: '125 سم' },
-                      { size: '60', chest: '120 سم', hip: '130 سم' }
+                      { size: '50', chest: '95 سم', hip: '105 سم', weight: '0.6 كغم' },
+                      { size: '52', chest: '100 سم', hip: '110 سم', weight: '0.65 كغم' },
+                      { size: '54', chest: '105 سم', hip: '115 سم', weight: '0.7 كغم' },
+                      { size: '56', chest: '110 سم', hip: '120 سم', weight: '0.75 كغم' },
+                      { size: '58', chest: '115 سم', hip: '125 سم', weight: '0.8 كغم' },
+                      { size: '60', chest: '120 سم', hip: '130 سم', weight: '0.85 كغم' }
                     ]).map((row, idx) => (
                       <tr 
                         key={idx} 
@@ -605,6 +609,7 @@ export default function ProductPage() {
                         <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)', color: 'var(--gold, #c5a880)', fontWeight: 900, fontSize: '1rem' }}>{row.size}</td>
                         <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.chest || '—'}</td>
                         <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.hip || '—'}</td>
+                        <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.weight || product?.weight || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
