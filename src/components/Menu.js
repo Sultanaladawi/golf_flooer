@@ -625,7 +625,7 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
       className={styles.featCard} 
     >
       <div className={styles.featImg} style={{ position: 'relative', height: '240px', cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>
-        <img src={imgUrl} alt={item.name} onError={handleImageError} style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} />
+        <img src={imgUrl} alt={item.name} onError={handleImageError} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
         {item.tag && !isOutOfStock && <span className={styles.featBadge}>{item.tag}</span>}
         {isOutOfStock && (
           <span className={styles.featBadge} style={{ 
