@@ -361,7 +361,7 @@ export default function ProductPage() {
                 </h3>
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                   {product.variants.map(v => {
-                    const list = v.colors || [];
+                    const list = Array.isArray(v.colors) ? v.colors : (typeof v.colors === 'string' ? JSON.parse(v.colors || '[]') : []);
                     let bg = list[0] || '#333';
                     if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
                     else if (list.length >= 3) bg = `conic-gradient(${list[0]} 0deg 120deg, ${list[1]} 120deg 240deg, ${list[2]} 240deg 360deg)`;

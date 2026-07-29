@@ -175,27 +175,7 @@ app.get('/api/ping', (req, res) => {
   res.json({ status: 'ok', message: 'Server is reaching here' });
 });
 
-app.get('/api/product/:id', async (req, res) => {
-  try {
-    const promiseDb = db.promise ? db.promise() : db;
-    const [rows] = await promiseDb.query(
-      'SELECT * FROM menu_items WHERE id = ? AND available = 1',
-      [req.params.id]
-    );
-    if (!rows.length) return res.status(404).json({ error: 'Not found' });
-    const p = rows[0];
-    try { p.images = JSON.parse(p.images || '[]'); } catch(e) { p.images = []; }
-    // Get reviews
-    const [reviews] = await promiseDb.query(
-      'SELECT * FROM product_reviews WHERE product_id = ? ORDER BY created_at DESC LIMIT 10',
-      [p.id]
-    );
-    p.reviews = reviews;
-    res.json(p);
-  } catch(err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 app.get('/api/fix-db-times', async (req, res) => {
   try {
