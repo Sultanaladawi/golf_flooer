@@ -223,14 +223,24 @@ const Products = () => {
     }
   };
 
+  const defaultSizeChart = [
+    { size: '50', chest: '95 سم', hip: '105 سم', length: '128 سم' },
+    { size: '52', chest: '100 سم', hip: '110 سم', length: '133 سم' },
+    { size: '54', chest: '105 سم', hip: '115 سم', length: '138 سم' },
+    { size: '56', chest: '110 سم', hip: '120 سم', length: '143 سم' },
+    { size: '58', chest: '115 سم', hip: '125 سم', length: '148 سم' },
+    { size: '60', chest: '120 سم', hip: '130 سم', length: '153 سم' }
+  ];
+
   const openAddModal = () => {
     setModalMode('add');
     setFormData({ 
       id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, pre_order: 0, category_id: dbCategories[0]?.id || '', image_url: '', video_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
       sku: '', subtitle: '', badge: '',
-      sizes_json: '["S", "M", "L", "XL", "XXL", "3XL"]',
+      sizes_json: '["50", "52", "54", "56", "58", "60"]',
       fabric_json: '[{"label": "نوع القماش", "value": "كريب فاخر"}, {"label": "بلد المنشأ", "value": "الأردن"}]',
-      care_json: '["غسيل يدوي بماء بارد", "كي على حرارة منخفضة"]'
+      care_json: '["غسيل يدوي بماء بارد", "كي على حرارة منخفضة"]',
+      size_chart_list: defaultSizeChart
     });
     setRecipeIngredients([]);
     setVariants([]);
@@ -240,6 +250,21 @@ const Products = () => {
 
   const openEditModal = (product) => {
     setModalMode('edit');
+    let parsedChart = [];
+    try {
+      parsedChart = product.size_chart ? (typeof product.size_chart === 'string' ? JSON.parse(product.size_chart) : product.size_chart) : [];
+    } catch(e) { parsedChart = []; }
+    
+    if (!Array.isArray(parsedChart) || parsedChart.length === 0) {
+      let parsedSizes = [];
+      try { parsedSizes = product.sizes ? (typeof product.sizes === 'string' ? JSON.parse(product.sizes) : product.sizes) : []; } catch(e){}
+      if (Array.isArray(parsedSizes) && parsedSizes.length > 0) {
+        parsedChart = parsedSizes.map(s => ({ size: String(s), chest: '', hip: '', length: '' }));
+      } else {
+        parsedChart = defaultSizeChart;
+      }
+    }
+
     setFormData({
       id: product.id,
       name: product.name,
@@ -259,9 +284,10 @@ const Products = () => {
       sku: product.sku || '',
       subtitle: product.subtitle || '',
       badge: product.badge || '',
-      sizes_json: product.sizes ? (typeof product.sizes === 'string' ? product.sizes : JSON.stringify(product.sizes)) : '["S", "M", "L", "XL", "XXL", "3XL"]',
+      sizes_json: product.sizes ? (typeof product.sizes === 'string' ? product.sizes : JSON.stringify(product.sizes)) : '["50", "52", "54", "56", "58", "60"]',
       fabric_json: product.fabric ? (typeof product.fabric === 'string' ? product.fabric : JSON.stringify(product.fabric)) : '[]',
-      care_json: product.care ? (typeof product.care === 'string' ? product.care : JSON.stringify(product.care)) : '[]'
+      care_json: product.care ? (typeof product.care === 'string' ? product.care : JSON.stringify(product.care)) : '[]',
+      size_chart_list: parsedChart
     });
     fetchRecipe(product.id);
     fetchVariants(product.id);
@@ -272,7 +298,11 @@ const Products = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Filter out any legacy or invalid IDs and remove duplicates before sending
+      const chartList = formData.size_chart_list || [];
+      const sizeNames = chartList.map(item => String(item.size || '').trim()).filter(Boolean);
+      const computedSizesJson = JSON.stringify(sizeNames.length > 0 ? sizeNames : ["50", "52", "54", "56", "58", "60"]);
+      const computedSizeChartJson = JSON.stringify(chartList);
+
       const cleanFormData = {
         ...formData,
         addon_ids: [...new Set((formData.addon_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
@@ -280,7 +310,8 @@ const Products = () => {
         sku: formData.sku || null,
         subtitle: formData.subtitle || null,
         badge: formData.badge || null,
-        sizes: formData.sizes_json ? formData.sizes_json : '["S", "M", "L", "XL", "XXL", "3XL"]',
+        sizes: computedSizesJson,
+        size_chart: computedSizeChartJson,
         fabric: formData.fabric_json ? formData.fabric_json : null,
         care: formData.care_json ? formData.care_json : null
       };
@@ -838,13 +869,117 @@ const Products = () => {
                   />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>{t('Available Sizes (JSON Array)')}</label>
-                  <input 
-                    type="text" value={formData.sizes_json || ''} 
-                    onChange={(e) => setFormData({...formData, sizes_json: e.target.value})}
-                    placeholder='["S", "M", "L", "XL"]'
-                    style={inputStyle}
-                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label style={{ ...labelStyle, marginBottom: 0 }}>📏 {t('جدول المقاسات المفصل والقياسات')}</label>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <button 
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          size_chart_list: [
+                            { size: '50', chest: '95 سم', hip: '105 سم', length: '128 سم' },
+                            { size: '52', chest: '100 سم', hip: '110 سم', length: '133 سم' },
+                            { size: '54', chest: '105 سم', hip: '115 سم', length: '138 سم' },
+                            { size: '56', chest: '110 سم', hip: '120 سم', length: '143 سم' },
+                            { size: '58', chest: '115 سم', hip: '125 سم', length: '148 سم' },
+                            { size: '60', chest: '120 سم', hip: '130 سم', length: '153 سم' }
+                          ]
+                        })}
+                        style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
+                      >
+                        + أرقام خليجية (50-60)
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={() => setFormData({
+                          ...formData,
+                          size_chart_list: [
+                            { size: 'S', chest: '90 سم', hip: '98 سم', length: '132 سم' },
+                            { size: 'M', chest: '96 سم', hip: '104 سم', length: '135 سم' },
+                            { size: 'L', chest: '102 سم', hip: '110 سم', length: '138 سم' },
+                            { size: 'XL', chest: '110 سم', hip: '118 سم', length: '140 سم' },
+                            { size: 'XXL', chest: '118 سم', hip: '126 سم', length: '142 سم' }
+                          ]
+                        })}
+                        style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
+                      >
+                        + حروف (S-XXL)
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div style={{ background: '#fdfbf7', border: '1px solid rgba(197,168,128,0.3)', borderRadius: '12px', padding: '12px', maxHeight: '220px', overflowY: 'auto' }}>
+                    {(formData.size_chart_list || []).map((row, idx) => (
+                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                        <input 
+                          type="text" 
+                          placeholder="المقاس (مثلاً 56 أو XL أو 4)" 
+                          value={row.size || ''} 
+                          onChange={(e) => {
+                            const updated = [...(formData.size_chart_list || [])];
+                            updated[idx] = { ...updated[idx], size: e.target.value };
+                            setFormData({ ...formData, size_chart_list: updated });
+                          }}
+                          style={{ ...inputStyle, width: '100px', fontWeight: 'bold', textAlign: 'center' }}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="الصدر (مثلاً 105 سم)" 
+                          value={row.chest || ''} 
+                          onChange={(e) => {
+                            const updated = [...(formData.size_chart_list || [])];
+                            updated[idx] = { ...updated[idx], chest: e.target.value };
+                            setFormData({ ...formData, size_chart_list: updated });
+                          }}
+                          style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="الحوض / الأوراك (مثلاً 115 سم)" 
+                          value={row.hip || ''} 
+                          onChange={(e) => {
+                            const updated = [...(formData.size_chart_list || [])];
+                            updated[idx] = { ...updated[idx], hip: e.target.value };
+                            setFormData({ ...formData, size_chart_list: updated });
+                          }}
+                          style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <input 
+                          type="text" 
+                          placeholder="الطول (مثلاً 138 سم)" 
+                          value={row.length || ''} 
+                          onChange={(e) => {
+                            const updated = [...(formData.size_chart_list || [])];
+                            updated[idx] = { ...updated[idx], length: e.target.value };
+                            setFormData({ ...formData, size_chart_list: updated });
+                          }}
+                          style={{ ...inputStyle, flex: 1 }}
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => {
+                            const updated = (formData.size_chart_list || []).filter((_, i) => i !== idx);
+                            setFormData({ ...formData, size_chart_list: updated });
+                          }}
+                          style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '4px' }}
+                          title="حذف هذا المقاس"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    <button 
+                      type="button" 
+                      onClick={() => setFormData({
+                        ...formData,
+                        size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '', length: '' }]
+                      })}
+                      style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px dashed var(--gold, #c5a880)', background: '#fff', color: 'var(--espresso, #5c3d1e)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '4px' }}
+                    >
+                      <Plus size={16} /> إضافة مقاس جديد
+                    </button>
+                  </div>
                 </div>
               </div>
 

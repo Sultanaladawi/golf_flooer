@@ -58,6 +58,17 @@ export default function ProductPage() {
         setProduct(data);
         setReviews(data.reviews || []);
         if (data.variants && data.variants.length > 0) setSelectedVariant(data.variants[0]);
+        
+        let pChart = [];
+        try { pChart = data.size_chart ? (typeof data.size_chart === 'string' ? JSON.parse(data.size_chart) : data.size_chart) : []; } catch(e){}
+        let pSizes = [];
+        if (Array.isArray(pChart) && pChart.length > 0) {
+          pSizes = pChart.map(x => String(x.size)).filter(Boolean);
+        } else {
+          try { pSizes = data.sizes ? (typeof data.sizes === 'string' ? JSON.parse(data.sizes) : data.sizes) : []; } catch(e){}
+        }
+        if (pSizes && pSizes.length > 0) setSelectedSize(String(pSizes[0]));
+
         // SEO
         document.title = `${data.name} | زهرة بيسان`;
         let metaDesc = document.querySelector('meta[name="description"]');
@@ -98,6 +109,21 @@ export default function ProductPage() {
     if (imgs.length === 0) imgs = ['/12.png'];
     return imgs;
   };
+
+  let activeSizeChart = [];
+  try {
+    activeSizeChart = product?.size_chart ? (typeof product.size_chart === 'string' ? JSON.parse(product.size_chart) : product.size_chart) : [];
+  } catch(e) { activeSizeChart = []; }
+
+  let activeSizes = [];
+  if (Array.isArray(activeSizeChart) && activeSizeChart.length > 0) {
+    activeSizes = activeSizeChart.map(x => String(x.size || '').trim()).filter(Boolean);
+  } else {
+    try {
+      activeSizes = product?.sizes ? (typeof product.sizes === 'string' ? JSON.parse(product.sizes) : product.sizes) : [];
+    } catch(e) { activeSizes = []; }
+  }
+  const availableSizes = (activeSizes && activeSizes.length > 0) ? activeSizes : SIZES;
 
   const images = getImages();
   const handlePrev = () => setCurrentImg(i => (i === 0 ? images.length - 1 : i - 1));
@@ -347,7 +373,7 @@ export default function ProductPage() {
                 </button>
               </div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                {SIZES.map(sz => (
+                {availableSizes.map(sz => (
                   <button key={sz} className="pp-size-btn" onClick={() => setSelectedSize(sz)}
                     style={{ padding: '8px 16px', borderRadius: '10px', fontWeight: 800, border: `2px solid ${selectedSize === sz ? 'var(--gold, #c5a880)' : 'rgba(197,168,128,0.3)'}`, background: selectedSize === sz ? 'var(--gold, #c5a880)' : 'transparent', color: selectedSize === sz ? '#fff' : 'var(--espresso, #5c3d1e)', cursor: 'pointer', transition: 'all 0.2s', fontSize: '0.9rem', minWidth: '50px' }}>
                     {sz}
@@ -375,36 +401,6 @@ export default function ProductPage() {
                 <Share2 size={20} />
               </button>
             </div>
-
-            {/* WhatsApp Quick Order */}
-            <button 
-              type="button" 
-              onClick={handleWhatsAppOrder} 
-              disabled={!!product.isOutOfStock}
-              style={{
-                width: '100%',
-                padding: '16px 12px',
-                marginTop: '10px',
-                background: product.isOutOfStock ? '#aaa' : '#25D366',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '14px',
-                fontWeight: 900,
-                fontSize: '1rem',
-                cursor: product.isOutOfStock ? 'not-allowed' : 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 6px 20px rgba(37, 211, 102, 0.25)',
-                transition: 'all 0.3s ease',
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#fff" style={{ flexShrink: 0 }}>
-                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.197 1.45 4.817 1.453 5.461 0 9.902-4.43 9.905-9.877.002-2.639-1.02-5.12-2.878-6.98C16.636 1.89 14.152.868 11.516.868c-5.466 0-9.907 4.431-9.91 9.88-.002 1.716.452 3.39 1.31 4.887l-.994 3.633 3.725-.977zm11.367-7.915c-.12-.2-.44-.32-.92-.56-.48-.24-2.84-1.4-3.28-1.56-.44-.16-.76-.24-.96.24-.2.48-.76 1.56-.93 1.76-.17.2-.34.22-.82-.02-.48-.24-2.02-.74-3.84-2.37-1.42-1.27-2.38-2.84-2.66-3.32-.28-.48-.03-.74.21-.97.22-.22.48-.56.72-.84.24-.28.32-.48.48-.8.16-.32.08-.6-.04-.84-.12-.24-.96-2.32-1.32-3.18-.35-.85-.7-.73-.96-.74-.25-.01-.54-.01-.83-.01-.29 0-.76.11-1.15.53-.39.42-1.5 1.46-1.5 3.57 0 2.1 1.53 4.14 1.74 4.42.22.28 3.01 4.6 7.3 6.46 1.02.44 1.82.7 2.44.9.1.03.2.05.3.06 1.02.15 2.05.1 2.82-.02.86-.13 2.63-1.08 3-2.12.37-1.04.37-1.92.26-2.12z"/>
-              </svg>
-              طلب سريع وسهل عبر WhatsApp 💬
-            </button>
 
             {/* Tags */}
             {product.tags && (
@@ -571,33 +567,42 @@ export default function ProductPage() {
               </div>
             </div>
 
-            {/* Standard Size Table (KEPT SIDE-BY-SIDE!) */}
+            {/* Detailed Size Table */}
             <div style={{ textAlign: 'right' }}>
-              <h4 style={{ margin: '0 0 15px 0', color: 'var(--espresso, #5c3d1e)', fontSize: '1.05rem', fontWeight: 800 }}>جدول المقاسات القياسي للعبايات</h4>
+              <h4 style={{ margin: '0 0 15px 0', color: 'var(--espresso, #5c3d1e)', fontSize: '1.05rem', fontWeight: 800 }}>📏 جدول القياسات التفصيلي للمنتج</h4>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.82rem', textAlign: 'center', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem', textAlign: 'center', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(197, 168, 128, 0.12)', color: 'var(--espresso)' }}>
-                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>مقاس العباية</th>
-                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>طولكِ الملائم (سم)</th>
-                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>طول العباية (إنش)</th>
-                      <th style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>طول الكم (إنش)</th>
+                    <tr style={{ background: 'rgba(197, 168, 128, 0.15)', color: 'var(--espresso, #5c3d1e)', fontWeight: 'bold' }}>
+                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>المقاس</th>
+                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الصدر</th>
+                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الحوض / الورك</th>
+                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>الطول</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { size: '50', height: '147 - 152', length: '50', sleeve: '25' },
-                      { size: '52', height: '153 - 157', length: '52', sleeve: '26' },
-                      { size: '54', height: '158 - 162', length: '54', sleeve: '27' },
-                      { size: '56', height: '163 - 167', length: '56', sleeve: '28' },
-                      { size: '58', height: '168 - 172', length: '58', sleeve: '29' },
-                      { size: '60', height: '173 - 178', length: '60', sleeve: '30' }
-                    ].map((row) => (
-                      <tr key={row.size} style={{ background: recommendedSize === row.size ? 'rgba(197, 168, 128, 0.15)' : 'none', fontWeight: recommendedSize === row.size ? 'bold' : 'normal' }}>
-                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)', color: 'var(--gold)', fontWeight: 'bold' }}>{row.size}</td>
-                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.height} سم</td>
-                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.length}</td>
-                        <td style={{ padding: '8px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.sleeve}</td>
+                    {(activeSizeChart && activeSizeChart.length > 0 ? activeSizeChart : [
+                      { size: '50', chest: '95 سم', hip: '105 سم', length: '128 سم' },
+                      { size: '52', chest: '100 سم', hip: '110 سم', length: '133 سم' },
+                      { size: '54', chest: '105 سم', hip: '115 سم', length: '138 سم' },
+                      { size: '56', chest: '110 سم', hip: '120 سم', length: '143 سم' },
+                      { size: '58', chest: '115 سم', hip: '125 سم', length: '148 سم' },
+                      { size: '60', chest: '120 سم', hip: '130 سم', length: '153 سم' }
+                    ]).map((row, idx) => (
+                      <tr 
+                        key={idx} 
+                        onClick={() => { setSelectedSize(String(row.size)); setShowSizeModal(false); }}
+                        style={{ 
+                          background: selectedSize === String(row.size) ? 'rgba(197, 168, 128, 0.2)' : 'none', 
+                          fontWeight: selectedSize === String(row.size) ? 'bold' : 'normal',
+                          cursor: 'pointer',
+                          transition: 'background 0.2s'
+                        }}
+                      >
+                        <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)', color: 'var(--gold, #c5a880)', fontWeight: 900, fontSize: '1rem' }}>{row.size}</td>
+                        <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.chest || '—'}</td>
+                        <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.hip || '—'}</td>
+                        <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.length || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
