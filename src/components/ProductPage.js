@@ -542,16 +542,7 @@ export default function ProductPage() {
                   }}
                   style={{ width: '100%', accentColor: 'var(--gold)' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--espresso-dim)', marginTop: '4px' }}>
-                  <span>145 سم</span>
-                  <span>165 سم</span>
-                  <span>185 سم</span>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card, #fff)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                <div>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
                   <strong style={{ fontSize: '1.4rem', color: 'var(--gold)', fontWeight: 900 }}>عباية مقاس {recommendedSize}</strong>
                 </div>
                 <button 
@@ -576,18 +567,17 @@ export default function ProductPage() {
                     <tr style={{ background: 'rgba(197, 168, 128, 0.15)', color: 'var(--espresso, #5c3d1e)', fontWeight: 'bold' }}>
                       <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>المقاس</th>
                       <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الصدر</th>
-                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الحوض / الورك</th>
-                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>الطول</th>
+                      <th style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الحوض</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(activeSizeChart && activeSizeChart.length > 0 ? activeSizeChart : [
-                      { size: '50', chest: '95 سم', hip: '105 سم', length: '128 سم' },
-                      { size: '52', chest: '100 سم', hip: '110 سم', length: '133 سم' },
-                      { size: '54', chest: '105 سم', hip: '115 سم', length: '138 سم' },
-                      { size: '56', chest: '110 سم', hip: '120 سم', length: '143 سم' },
-                      { size: '58', chest: '115 سم', hip: '125 سم', length: '148 سم' },
-                      { size: '60', chest: '120 سم', hip: '130 سم', length: '153 سم' }
+                      { size: '50', chest: '95 سم', hip: '105 سم' },
+                      { size: '52', chest: '100 سم', hip: '110 سم' },
+                      { size: '54', chest: '105 سم', hip: '115 سم' },
+                      { size: '56', chest: '110 سم', hip: '120 سم' },
+                      { size: '58', chest: '115 سم', hip: '125 سم' },
+                      { size: '60', chest: '120 سم', hip: '130 سم' }
                     ]).map((row, idx) => (
                       <tr 
                         key={idx} 
@@ -602,7 +592,6 @@ export default function ProductPage() {
                         <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)', color: 'var(--gold, #c5a880)', fontWeight: 900, fontSize: '1rem' }}>{row.size}</td>
                         <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.chest || '—'}</td>
                         <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.hip || '—'}</td>
-                        <td style={{ padding: '10px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.length || '—'}</td>
                       </tr>
                     ))}
                   </tbody>

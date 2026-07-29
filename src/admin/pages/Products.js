@@ -224,12 +224,12 @@ const Products = () => {
   };
 
   const defaultSizeChart = [
-    { size: '50', chest: '95 سم', hip: '105 سم', length: '128 سم' },
-    { size: '52', chest: '100 سم', hip: '110 سم', length: '133 سم' },
-    { size: '54', chest: '105 سم', hip: '115 سم', length: '138 سم' },
-    { size: '56', chest: '110 سم', hip: '120 سم', length: '143 سم' },
-    { size: '58', chest: '115 سم', hip: '125 سم', length: '148 سم' },
-    { size: '60', chest: '120 سم', hip: '130 سم', length: '153 سم' }
+    { size: '50', chest: '95 سم', hip: '105 سم' },
+    { size: '52', chest: '100 سم', hip: '110 سم' },
+    { size: '54', chest: '105 سم', hip: '115 سم' },
+    { size: '56', chest: '110 سم', hip: '120 سم' },
+    { size: '58', chest: '115 سم', hip: '125 سم' },
+    { size: '60', chest: '120 سم', hip: '130 سم' }
   ];
 
   const openAddModal = () => {
@@ -877,12 +877,12 @@ const Products = () => {
                         onClick={() => setFormData({
                           ...formData,
                           size_chart_list: [
-                            { size: '50', chest: '95 سم', hip: '105 سم', length: '128 سم' },
-                            { size: '52', chest: '100 سم', hip: '110 سم', length: '133 سم' },
-                            { size: '54', chest: '105 سم', hip: '115 سم', length: '138 سم' },
-                            { size: '56', chest: '110 سم', hip: '120 سم', length: '143 سم' },
-                            { size: '58', chest: '115 سم', hip: '125 سم', length: '148 سم' },
-                            { size: '60', chest: '120 سم', hip: '130 سم', length: '153 سم' }
+                            { size: '50', chest: '95 سم', hip: '105 سم' },
+                            { size: '52', chest: '100 سم', hip: '110 سم' },
+                            { size: '54', chest: '105 سم', hip: '115 سم' },
+                            { size: '56', chest: '110 سم', hip: '120 سم' },
+                            { size: '58', chest: '115 سم', hip: '125 سم' },
+                            { size: '60', chest: '120 سم', hip: '130 سم' }
                           ]
                         })}
                         style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
@@ -894,11 +894,11 @@ const Products = () => {
                         onClick={() => setFormData({
                           ...formData,
                           size_chart_list: [
-                            { size: 'S', chest: '90 سم', hip: '98 سم', length: '132 سم' },
-                            { size: 'M', chest: '96 سم', hip: '104 سم', length: '135 سم' },
-                            { size: 'L', chest: '102 سم', hip: '110 سم', length: '138 سم' },
-                            { size: 'XL', chest: '110 سم', hip: '118 سم', length: '140 سم' },
-                            { size: 'XXL', chest: '118 سم', hip: '126 سم', length: '142 سم' }
+                            { size: 'S', chest: '90 سم', hip: '98 سم' },
+                            { size: 'M', chest: '96 سم', hip: '104 سم' },
+                            { size: 'L', chest: '102 سم', hip: '110 سم' },
+                            { size: 'XL', chest: '110 سم', hip: '118 سم' },
+                            { size: 'XXL', chest: '118 سم', hip: '126 سم' }
                           ]
                         })}
                         style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
@@ -913,18 +913,18 @@ const Products = () => {
                       <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                         <input 
                           type="text" 
-                          placeholder="المقاس (مثلاً 56 أو XL أو 4)" 
+                          placeholder="المقاس (مثلاً 56)" 
                           value={row.size || ''} 
                           onChange={(e) => {
                             const updated = [...(formData.size_chart_list || [])];
                             updated[idx] = { ...updated[idx], size: e.target.value };
                             setFormData({ ...formData, size_chart_list: updated });
                           }}
-                          style={{ ...inputStyle, width: '100px', fontWeight: 'bold', textAlign: 'center' }}
+                          style={{ ...inputStyle, width: '110px', fontWeight: 'bold', textAlign: 'center' }}
                         />
                         <input 
                           type="text" 
-                          placeholder="الصدر (مثلاً 105 سم)" 
+                          placeholder="محيط الصدر (مثلاً 105 سم)" 
                           value={row.chest || ''} 
                           onChange={(e) => {
                             const updated = [...(formData.size_chart_list || [])];
@@ -935,22 +935,11 @@ const Products = () => {
                         />
                         <input 
                           type="text" 
-                          placeholder="الحوض / الأوراك (مثلاً 115 سم)" 
+                          placeholder="محيط الحوض (مثلاً 115 سم)" 
                           value={row.hip || ''} 
                           onChange={(e) => {
                             const updated = [...(formData.size_chart_list || [])];
                             updated[idx] = { ...updated[idx], hip: e.target.value };
-                            setFormData({ ...formData, size_chart_list: updated });
-                          }}
-                          style={{ ...inputStyle, flex: 1 }}
-                        />
-                        <input 
-                          type="text" 
-                          placeholder="الطول (مثلاً 138 سم)" 
-                          value={row.length || ''} 
-                          onChange={(e) => {
-                            const updated = [...(formData.size_chart_list || [])];
-                            updated[idx] = { ...updated[idx], length: e.target.value };
                             setFormData({ ...formData, size_chart_list: updated });
                           }}
                           style={{ ...inputStyle, flex: 1 }}
@@ -973,7 +962,7 @@ const Products = () => {
                       type="button" 
                       onClick={() => setFormData({
                         ...formData,
-                        size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '', length: '' }]
+                        size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '' }]
                       })}
                       style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px dashed var(--gold, #c5a880)', background: '#fff', color: 'var(--espresso, #5c3d1e)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '4px' }}
                     >
