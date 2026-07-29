@@ -1570,26 +1570,7 @@ app.get('/api/product/:id', async (req, res) => {
       'SELECT * FROM product_reviews WHERE product_id = ? ORDER BY created_at DESC LIMIT 10',
       [p.id]
     );
-    if (!reviews || reviews.length === 0) {
-      p.reviews = [
-        {
-          id: 'starter-1',
-          reviewer_name: 'منى الهاشمي',
-          comment: 'العباية بتجنن والتطريز دقيق جداً والخامة ثقيلة وراقية. شحن سريع وتغليف فخم.',
-          rating: 5,
-          created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString()
-        },
-        {
-          id: 'starter-2',
-          reviewer_name: 'سارة العتيبي',
-          comment: 'توصيل سريع والعباية طلعت أحلى من الصور بكثير. الخدمة ممتازة وسأكرر الطلب بالتأكيد.',
-          rating: 5,
-          created_at: new Date(Date.now() - 3 * 24 * 3600 * 1000).toISOString()
-        }
-      ];
-    } else {
-      p.reviews = reviews;
-    }
+    p.reviews = reviews || [];
     res.json(p);
   } catch(err) {
     res.status(500).json({ error: err.message });
