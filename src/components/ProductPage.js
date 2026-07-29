@@ -106,6 +106,11 @@ export default function ProductPage() {
       imgs = Array.isArray(product.images) ? product.images : [];
       if (imgs.length === 0 && product.image_url) imgs = [product.image_url];
     }
+    imgs = imgs.map(src => {
+      if (!src) return '/12.png';
+      if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+      return `/images/${src.toLowerCase()}`;
+    });
     if (imgs.length === 0) imgs = ['/12.png'];
     return imgs;
   };

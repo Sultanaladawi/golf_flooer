@@ -193,9 +193,13 @@ export default function Menu() {
     } catch (e) {
       imagesArray = [];
     }
-    if (imagesArray.length > 0) return imagesArray[0];
-    if (item.image_url) return item.image_url;
-    return '/12.png';
+    let src = '';
+    if (imagesArray.length > 0 && imagesArray[0]) src = imagesArray[0];
+    else if (item.image_url) src = item.image_url;
+    
+    if (!src) return '/12.png';
+    if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+    return `/images/${src.toLowerCase()}`;
   };
 
   const handleImageError = (e) => {
