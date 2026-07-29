@@ -468,7 +468,7 @@ export default function ProductPage() {
                       src={rp.image_url ? (rp.image_url.startsWith('/') || rp.image_url.startsWith('http') || rp.image_url.startsWith('data:') ? rp.image_url : `/images/${rp.image_url.toLowerCase()}`) : '/12.png'} 
                       alt={rp.name} 
                       onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
-                      style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} 
                     />
                   </div>
                   <div style={{ padding: '16px' }}>
