@@ -205,7 +205,27 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
       setIsCalculatingShipping(true);
       setShippingError('');
-      const totalWeight = items.length || 1;
+      
+      // Calculate real total weight from cart items
+      const parseItemWeightInKg = (weightStr) => {
+        if (!weightStr) return 0.8; // Default 0.8kg per abaya
+        const str = String(weightStr).toLowerCase();
+        const numMatch = str.match(/[\d.]+/);
+        if (!numMatch) return 0.8;
+        const num = parseFloat(numMatch[0]);
+        if (isNaN(num)) return 0.8;
+        if (str.includes('غرام') || str.includes('gram') || str.includes('غم') || (str.includes('g') && !str.includes('kg'))) {
+          return num >= 50 ? num / 1000 : num;
+        }
+        return num;
+      };
+
+      const computedWeight = items.reduce((acc, item) => {
+        const singleW = parseItemWeightInKg(item.weight);
+        return acc + (singleW * (item.quantity || 1));
+      }, 0);
+
+      const totalWeight = Math.max(0.5, Math.round((computedWeight || 1) * 100) / 100);
       const countryIso = WORLD_COUNTRIES.find(c => c.name === form.country)?.iso?.toUpperCase() || '';
       
       fetch('/api/shipping-rates', {
@@ -234,7 +254,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
           setIsCalculatingShipping(false);
         });
     }
-  }, [form.country, form.city, items.length]);
+  }, [form.country, form.city, items]);
 
   // Abandoned Cart Tracker
   useEffect(() => {
