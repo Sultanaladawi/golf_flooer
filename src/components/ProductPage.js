@@ -402,16 +402,19 @@ export default function ProductPage() {
               </button>
             </div>
 
-            {/* Tags */}
-            {product.tags && (
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', paddingTop: '4px' }}>
-                {(Array.isArray(product.tags) ? product.tags : String(product.tags).split(',')).filter(Boolean).map((tag, i) => (
-                  <span key={i} style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(197,168,128,0.1)', color: 'var(--espresso-dim, #8b6540)', fontSize: '0.78rem', fontWeight: 600, border: '1px solid rgba(197,168,128,0.2)' }}>
-                    #{typeof tag === 'object' ? tag.name : String(tag).trim()}
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Weight & Tags */}
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', paddingTop: '6px' }}>
+              {product.weight && (
+                <span style={{ padding: '6px 14px', borderRadius: '20px', background: 'rgba(197,168,128,0.15)', color: 'var(--espresso, #5c3d1e)', fontSize: '0.82rem', fontWeight: 800, border: '1px solid rgba(197,168,128,0.3)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  ⚖️ وزن القطعة: {product.weight}
+                </span>
+              )}
+              {product.tags && (Array.isArray(product.tags) ? product.tags : String(product.tags).split(',')).filter(Boolean).map((tag, i) => (
+                <span key={i} style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(197,168,128,0.1)', color: 'var(--espresso-dim, #8b6540)', fontSize: '0.78rem', fontWeight: 600, border: '1px solid rgba(197,168,128,0.2)' }}>
+                  #{typeof tag === 'object' ? tag.name : String(tag).trim()}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 

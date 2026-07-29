@@ -236,7 +236,7 @@ const Products = () => {
     setModalMode('add');
     setFormData({ 
       id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, pre_order: 0, category_id: dbCategories[0]?.id || '', image_url: '', video_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
-      sku: '', subtitle: '', badge: '',
+      sku: '', subtitle: '', badge: '', weight: '',
       sizes_json: '["50", "52", "54", "56", "58", "60"]',
       fabric_json: '[{"label": "نوع القماش", "value": "كريب فاخر"}, {"label": "بلد المنشأ", "value": "الأردن"}]',
       care_json: '["غسيل يدوي بماء بارد", "كي على حرارة منخفضة"]',
@@ -284,6 +284,7 @@ const Products = () => {
       sku: product.sku || '',
       subtitle: product.subtitle || '',
       badge: product.badge || '',
+      weight: product.weight || '',
       sizes_json: product.sizes ? (typeof product.sizes === 'string' ? product.sizes : JSON.stringify(product.sizes)) : '["50", "52", "54", "56", "58", "60"]',
       fabric_json: product.fabric ? (typeof product.fabric === 'string' ? product.fabric : JSON.stringify(product.fabric)) : '[]',
       care_json: product.care ? (typeof product.care === 'string' ? product.care : JSON.stringify(product.care)) : '[]',
@@ -310,6 +311,7 @@ const Products = () => {
         sku: formData.sku || null,
         subtitle: formData.subtitle || null,
         badge: formData.badge || null,
+        weight: formData.weight || null,
         sizes: computedSizesJson,
         size_chart: computedSizeChartJson,
         fabric: formData.fabric_json ? formData.fabric_json : null,
@@ -858,14 +860,25 @@ const Products = () => {
                 </div>
               </div>
 
-              <div style={{ marginBottom: '16px' }}>
-                <label style={labelStyle}>{t('Product Badge')}</label>
-                <input 
-                  type="text" value={formData.badge || ''} 
-                  onChange={(e) => setFormData({...formData, badge: e.target.value})}
-                  placeholder="الأكثر مبيعاً، جديد"
-                  style={inputStyle}
-                />
+              <div className="modal-grid-2" style={{ display: 'flex', gap: '20px', marginBottom: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>{t('Product Badge')}</label>
+                  <input 
+                    type="text" value={formData.badge || ''} 
+                    onChange={(e) => setFormData({...formData, badge: e.target.value})}
+                    placeholder="الأكثر مبيعاً، جديد"
+                    style={inputStyle}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={labelStyle}>⚖️ {t('وزن القطعة (كغم / غرام)')}</label>
+                  <input 
+                    type="text" value={formData.weight || ''} 
+                    onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                    placeholder="مثلاً: 0.5 كغم أو 500 غرام"
+                    style={inputStyle}
+                  />
+                </div>
               </div>
 
               {/* FULL-WIDTH DETAILED SIZE CHART EDITOR */}

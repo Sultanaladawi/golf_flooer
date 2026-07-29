@@ -642,6 +642,9 @@ db.query("SHOW COLUMNS FROM menu_items LIKE 'size_chart'", (err, results) => {
 db.query("SHOW COLUMNS FROM menu_items LIKE 'video_url'", (err, results) => {
   if (!err && results.length === 0) db.query("ALTER TABLE menu_items ADD COLUMN video_url VARCHAR(1024) DEFAULT NULL");
 });
+db.query("SHOW COLUMNS FROM menu_items LIKE 'weight'", (err, results) => {
+  if (!err && results.length === 0) db.query("ALTER TABLE menu_items ADD COLUMN weight VARCHAR(100) DEFAULT NULL");
+});
 db.query("SHOW COLUMNS FROM menu_items LIKE 'created_at'", (err, results) => {
   if (!err && results.length === 0) db.query("ALTER TABLE menu_items ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
 });
@@ -2465,7 +2468,7 @@ app.put('/api/products/reorder', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care, pre_order, size_chart } = req.body;
+  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care, pre_order, size_chart, weight } = req.body;
   if (category_id === 'espresso') category_id = '2';
   if (category_id === 'tea') category_id = '6';
   if (category_id === 'cold') category_id = '1';
@@ -2485,7 +2488,7 @@ app.post('/api/products', async (req, res) => {
     const cleanCost = cost_price ? parseFloat(cost_price) || 0 : 0;
     const cleanTax = tax_amount ? parseFloat(tax_amount) || 0 : 0;
     const price_display = cleanPrice ? `JOD ${parseFloat(cleanPrice).toFixed(2)}` : null;
-    const [result] = await conn.query('INSERT INTO menu_items (category_id, name, price_num, cost_price, tax_amount, price_display, description, tags, available, image_url, addons, sort_order, sku, subtitle, badge, images, fabric, sizes, care, pre_order, size_chart) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [category_id || null, name, cleanPrice, cleanCost, cleanTax, price_display, description || null, tags || null, available ?? 1, image_url || null, addons || null, nextOrder, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, pre_order ? 1 : 0, size_chart || null]);
+    const [result] = await conn.query('INSERT INTO menu_items (category_id, name, price_num, cost_price, tax_amount, price_display, description, tags, available, image_url, addons, sort_order, sku, subtitle, badge, images, fabric, sizes, care, pre_order, size_chart, weight) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', [category_id || null, name, cleanPrice, cleanCost, cleanTax, price_display, description || null, tags || null, available ?? 1, image_url || null, addons || null, nextOrder, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, pre_order ? 1 : 0, size_chart || null, weight || null]);
     const productId = result.insertId;
     if (Array.isArray(addon_ids)) for (const aid of addon_ids) if (aid) await conn.query('INSERT IGNORE INTO menu_item_addons (menu_item_id, addon_id) VALUES (?, ?)', [productId, aid]);
     if (Array.isArray(tag_ids)) for (const tid of tag_ids) if (tid) await conn.query('INSERT IGNORE INTO menu_item_tags (menu_item_id, tag_id) VALUES (?, ?)', [productId, tid]);
@@ -2502,7 +2505,7 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
-  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care, pre_order, size_chart } = req.body;
+  let { name, price_num, cost_price, tax_amount, description, available, category_id, image_url, tags, addons, addon_ids, tag_ids, sku, subtitle, badge, images, fabric, sizes, care, pre_order, size_chart, weight } = req.body;
   let conn;
   try {
     conn = await db.promise().getConnection();
@@ -2512,7 +2515,7 @@ app.put('/api/products/:id', async (req, res) => {
     const cleanCost = cost_price ? parseFloat(cost_price) || 0 : 0;
     const cleanTax = tax_amount ? parseFloat(tax_amount) || 0 : 0;
     const price_display = cleanPrice ? `JOD ${parseFloat(cleanPrice).toFixed(2)}` : null;
-    await conn.query("UPDATE menu_items SET name = ?, price_num = ?, cost_price = ?, tax_amount = ?, price_display = ?, description = ?, available = ?, category_id = ?, image_url = ?, tags = ?, addons = ?, sku = ?, subtitle = ?, badge = ?, images = ?, fabric = ?, sizes = ?, care = ?, pre_order = ?, size_chart = ? WHERE id = ?", [name, cleanPrice, cleanCost, cleanTax, price_display, description, available, category_id || null, image_url || null, tags || null, addons || null, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, pre_order ? 1 : 0, size_chart || null, id]);
+    await conn.query("UPDATE menu_items SET name = ?, price_num = ?, cost_price = ?, tax_amount = ?, price_display = ?, description = ?, available = ?, category_id = ?, image_url = ?, tags = ?, addons = ?, sku = ?, subtitle = ?, badge = ?, images = ?, fabric = ?, sizes = ?, care = ?, pre_order = ?, size_chart = ?, weight = ? WHERE id = ?", [name, cleanPrice, cleanCost, cleanTax, price_display, description, available, category_id || null, image_url || null, tags || null, addons || null, sku || null, subtitle || null, badge || null, images || null, fabric || null, sizes || '["S", "M", "L", "XL", "XXL", "3XL"]', care || null, pre_order ? 1 : 0, size_chart || null, weight || null, id]);
     if (Array.isArray(addon_ids)) {
       await conn.query('DELETE FROM menu_item_addons WHERE menu_item_id = ?', [id]);
       for (const aid of addon_ids) if (aid) await conn.query('INSERT INTO menu_item_addons (menu_item_id, addon_id) VALUES (?, ?)', [id, aid]);
