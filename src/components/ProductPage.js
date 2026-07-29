@@ -445,8 +445,13 @@ export default function ProductPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
               {relatedProducts.map(rp => (
                 <Link to={`/product/${rp.id}`} key={rp.id} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ textDecoration: 'none', background: '#fff', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', transition: 'transform 0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                  <div style={{ width: '100%', aspectRatio: '3/4', overflow: 'hidden' }}>
-                    <img src={rp.image_url || '/12.png'} alt={rp.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <div style={{ width: '100%', aspectRatio: '3/4', overflow: 'hidden', backgroundColor: '#faf7f2' }}>
+                    <img 
+                      src={rp.image_url ? (rp.image_url.startsWith('/') || rp.image_url.startsWith('http') || rp.image_url.startsWith('data:') ? rp.image_url : `/images/${rp.image_url.toLowerCase()}`) : '/12.png'} 
+                      alt={rp.name} 
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
+                      style={{ width: '100%', height: '100%', objectFit: 'contain', objectPosition: 'center' }} 
+                    />
                   </div>
                   <div style={{ padding: '16px' }}>
                     <h4 style={{ fontSize: '1rem', color: 'var(--espresso)', margin: '0 0 6px', fontWeight: 800 }}>{rp.name}</h4>
