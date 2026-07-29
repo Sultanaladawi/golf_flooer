@@ -125,6 +125,15 @@ export default function ProductPage() {
   }
   const availableSizes = (activeSizes && activeSizes.length > 0) ? activeSizes : SIZES;
 
+  const getDynamicRecommendedSize = (hVal) => {
+    if (!availableSizes || availableSizes.length === 0) return '54';
+    const ratio = Math.max(0, Math.min(0.999, (hVal - 145) / 41));
+    const idx = Math.floor(ratio * availableSizes.length);
+    return availableSizes[idx] || availableSizes[0];
+  };
+
+  const currentRecommendedSize = getDynamicRecommendedSize(userHeight);
+
   const images = getImages();
   const handlePrev = () => setCurrentImg(i => (i === 0 ? images.length - 1 : i - 1));
   const handleNext = () => setCurrentImg(i => (i === images.length - 1 ? 0 : i + 1));
@@ -534,14 +543,6 @@ export default function ProductPage() {
                   onChange={(e) => {
                     const h = parseInt(e.target.value);
                     setUserHeight(h);
-                    let recSize = '54';
-                    if (h <= 152) recSize = '50';
-                    else if (h <= 157) recSize = '52';
-                    else if (h <= 162) recSize = '54';
-                    else if (h <= 167) recSize = '56';
-                    else if (h <= 172) recSize = '58';
-                    else recSize = '60';
-                    setRecommendedSize(recSize);
                   }}
                   style={{ width: '100%', accentColor: 'var(--gold)' }}
                 />
@@ -555,12 +556,12 @@ export default function ProductPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card, #fff)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                 <div>
                   <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
-                  <strong style={{ fontSize: '1.4rem', color: 'var(--gold)', fontWeight: 900 }}>عباية مقاس {recommendedSize}</strong>
+                  <strong style={{ fontSize: '1.4rem', color: 'var(--gold)', fontWeight: 900 }}>مقاس {currentRecommendedSize}</strong>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => {
-                    setSelectedSize(recommendedSize);
+                    setSelectedSize(currentRecommendedSize);
                     setShowSizeModal(false);
                   }}
                   style={{ padding: '8px 16px', background: 'var(--gold)', color: '#000', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}
