@@ -858,73 +858,83 @@ const Products = () => {
                 </div>
               </div>
 
-              <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={labelStyle}>{t('Product Badge')}</label>
-                  <input 
-                    type="text" value={formData.badge || ''} 
-                    onChange={(e) => setFormData({...formData, badge: e.target.value})}
-                    placeholder="الأكثر مبيعاً، جديد"
-                    style={inputStyle}
-                  />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label style={{ ...labelStyle, marginBottom: 0 }}>📏 {t('جدول المقاسات المفصل والقياسات')}</label>
-                    <div style={{ display: 'flex', gap: '6px' }}>
-                      <button 
-                        type="button"
-                        onClick={() => setFormData({
-                          ...formData,
-                          size_chart_list: [
-                            { size: '50', chest: '95 سم', hip: '105 سم' },
-                            { size: '52', chest: '100 سم', hip: '110 سم' },
-                            { size: '54', chest: '105 سم', hip: '115 سم' },
-                            { size: '56', chest: '110 سم', hip: '120 سم' },
-                            { size: '58', chest: '115 سم', hip: '125 سم' },
-                            { size: '60', chest: '120 سم', hip: '130 سم' }
-                          ]
-                        })}
-                        style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
-                      >
-                        + أرقام خليجية (50-60)
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setFormData({
-                          ...formData,
-                          size_chart_list: [
-                            { size: 'S', chest: '90 سم', hip: '98 سم' },
-                            { size: 'M', chest: '96 سم', hip: '104 سم' },
-                            { size: 'L', chest: '102 سم', hip: '110 سم' },
-                            { size: 'XL', chest: '110 سم', hip: '118 سم' },
-                            { size: 'XXL', chest: '118 سم', hip: '126 سم' }
-                          ]
-                        })}
-                        style={{ padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
-                      >
-                        + حروف (S-XXL)
-                      </button>
-                    </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={labelStyle}>{t('Product Badge')}</label>
+                <input 
+                  type="text" value={formData.badge || ''} 
+                  onChange={(e) => setFormData({...formData, badge: e.target.value})}
+                  placeholder="الأكثر مبيعاً، جديد"
+                  style={inputStyle}
+                />
+              </div>
+
+              {/* FULL-WIDTH DETAILED SIZE CHART EDITOR */}
+              <div style={{ marginBottom: '20px', width: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <label style={{ ...labelStyle, marginBottom: 0, fontSize: '0.95rem' }}>📏 {t('جدول المقاسات المفصل (الصدر والحوض)')}</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        size_chart_list: [
+                          { size: '50', chest: '95 سم', hip: '105 سم' },
+                          { size: '52', chest: '100 سم', hip: '110 سم' },
+                          { size: '54', chest: '105 سم', hip: '115 سم' },
+                          { size: '56', chest: '110 سم', hip: '120 سم' },
+                          { size: '58', chest: '115 سم', hip: '125 سم' },
+                          { size: '60', chest: '120 سم', hip: '130 سم' }
+                        ]
+                      })}
+                      style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
+                    >
+                      + مقاسات خليجية (50 - 60)
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        size_chart_list: [
+                          { size: 'S', chest: '90 سم', hip: '98 سم' },
+                          { size: 'M', chest: '96 سم', hip: '104 سم' },
+                          { size: 'L', chest: '102 سم', hip: '110 سم' },
+                          { size: 'XL', chest: '110 سم', hip: '118 سم' },
+                          { size: 'XXL', chest: '118 سم', hip: '126 سم' }
+                        ]
+                      })}
+                      style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', background: 'rgba(197,168,128,0.15)', color: '#8b6540', border: '1px solid rgba(197,168,128,0.3)', cursor: 'pointer' }}
+                    >
+                      + مقاسات عالمية (S - XXL)
+                    </button>
                   </div>
-                  
-                  <div style={{ background: '#fdfbf7', border: '1px solid rgba(197,168,128,0.3)', borderRadius: '12px', padding: '12px', maxHeight: '220px', overflowY: 'auto' }}>
+                </div>
+                
+                <div style={{ background: '#fdfbf7', border: '1.5px solid rgba(197,168,128,0.35)', borderRadius: '14px', padding: '14px' }}>
+                  {/* Column titles */}
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px', padding: '0 4px', fontSize: '0.8rem', fontWeight: 800, color: 'var(--espresso, #5c3d1e)' }}>
+                    <div style={{ width: '120px', textAlign: 'center' }}>المقاس</div>
+                    <div style={{ flex: 1 }}>محيط الصدر</div>
+                    <div style={{ flex: 1 }}>محيط الحوض</div>
+                    <div style={{ width: '30px' }}></div>
+                  </div>
+
+                  <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
                     {(formData.size_chart_list || []).map((row, idx) => (
-                      <div key={idx} style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
+                      <div key={idx} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '8px' }}>
                         <input 
                           type="text" 
-                          placeholder="المقاس (مثلاً 56)" 
+                          placeholder="مثلاً 56 أو XL" 
                           value={row.size || ''} 
                           onChange={(e) => {
                             const updated = [...(formData.size_chart_list || [])];
                             updated[idx] = { ...updated[idx], size: e.target.value };
                             setFormData({ ...formData, size_chart_list: updated });
                           }}
-                          style={{ ...inputStyle, width: '110px', fontWeight: 'bold', textAlign: 'center' }}
+                          style={{ ...inputStyle, width: '120px', fontWeight: 'bold', textAlign: 'center' }}
                         />
                         <input 
                           type="text" 
-                          placeholder="محيط الصدر (مثلاً 105 سم)" 
+                          placeholder="مثلاً 105 سم" 
                           value={row.chest || ''} 
                           onChange={(e) => {
                             const updated = [...(formData.size_chart_list || [])];
@@ -935,7 +945,7 @@ const Products = () => {
                         />
                         <input 
                           type="text" 
-                          placeholder="محيط الحوض (مثلاً 115 سم)" 
+                          placeholder="مثلاً 115 سم" 
                           value={row.hip || ''} 
                           onChange={(e) => {
                             const updated = [...(formData.size_chart_list || [])];
@@ -950,25 +960,25 @@ const Products = () => {
                             const updated = (formData.size_chart_list || []).filter((_, i) => i !== idx);
                             setFormData({ ...formData, size_chart_list: updated });
                           }}
-                          style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '4px' }}
+                          style={{ background: 'none', border: 'none', color: '#e74c3c', cursor: 'pointer', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                           title="حذف هذا المقاس"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={18} />
                         </button>
                       </div>
                     ))}
-                    
-                    <button 
-                      type="button" 
-                      onClick={() => setFormData({
-                        ...formData,
-                        size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '' }]
-                      })}
-                      style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px dashed var(--gold, #c5a880)', background: '#fff', color: 'var(--espresso, #5c3d1e)', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '4px' }}
-                    >
-                      <Plus size={16} /> إضافة مقاس جديد
-                    </button>
                   </div>
+                  
+                  <button 
+                    type="button" 
+                    onClick={() => setFormData({
+                      ...formData,
+                      size_chart_list: [...(formData.size_chart_list || []), { size: '', chest: '', hip: '' }]
+                    })}
+                    style={{ width: '100%', padding: '9px', borderRadius: '10px', border: '1px dashed var(--gold, #c5a880)', background: '#fff', color: 'var(--espresso, #5c3d1e)', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '8px' }}
+                  >
+                    <Plus size={16} /> إضافة مقاس جديد
+                  </button>
                 </div>
               </div>
 
