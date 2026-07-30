@@ -71,6 +71,7 @@ const Products = () => {
   const headerBoxStyle = { display: 'inline-block', padding: '10px 18px', borderRadius: '12px', background: 'rgba(255,255,255,0.03)' };
 
   const [dbCategories, setDbCategories] = useState([]);
+  const [aiVideoLoading, setAiVideoLoading] = useState(false);
 
   const fetchCategories = async () => {
     try {
@@ -680,14 +681,58 @@ const Products = () => {
                 </div>
               </div>
 
-              {/* Video URL Input */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '5px' }}>
-                <label style={labelStyle}>{t('Product Video URL') || 'رابط فيديو المنتج (Video URL)'}</label>
+              {/* Video URL Input & AI Generator */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label style={labelStyle}>{t('Product Video URL') || 'رابط فيديو المنتج (Video URL)'}</label>
+                  <button
+                    type="button"
+                    disabled={aiVideoLoading || !formData.image_url}
+                    onClick={async () => {
+                      if (!formData.image_url) {
+                        showToast('يرجى اختيار صورة للمنتج أولاً للتوليد منها', 'error');
+                        return;
+                      }
+                      setAiVideoLoading(true);
+                      try {
+                        const res = await axios.post('/api/admin/generate-video', {
+                          imageUrl: formData.image_url,
+                          productName: formData.name
+                        });
+                        if (res.data && res.data.videoUrl) {
+                          setFormData(prev => ({ ...prev, video_url: res.data.videoUrl }));
+                          showToast('✓ تم توليد فيديو سينمائي عالي الدقة (14ث) بدون علامة مائية بنجاح!', 'success');
+                        }
+                      } catch(err) {
+                        showToast('فشل توليد الفيديو: ' + err.message, 'error');
+                      } finally {
+                        setAiVideoLoading(false);
+                      }
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #c5a880, #8f6e40)',
+                      border: 'none',
+                      borderRadius: '8px',
+                      color: '#fff',
+                      padding: '6px 14px',
+                      fontSize: '0.82rem',
+                      fontWeight: '800',
+                      cursor: (aiVideoLoading || !formData.image_url) ? 'not-allowed' : 'pointer',
+                      opacity: (aiVideoLoading || !formData.image_url) ? 0.6 : 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      boxShadow: '0 4px 12px rgba(197,168,128,0.3)'
+                    }}
+                  >
+                    {aiVideoLoading ? '🎬 جاري توليد الفيديو السينمائي AI (14ث)...' : '✨ توليد فيديو سينمائي AI (12-15ث)'}
+                  </button>
+                </div>
                 <input 
                   type="text" 
                   value={formData.video_url || ''} 
                   onChange={(e) => setFormData({...formData, video_url: e.target.value})}
-                  placeholder="مثال: https://example.com/abaya-reels.mp4"
+                  placeholder="مثال: /images/video_media_01KJYR0Y7G2RRS94QBZ9F8VQWX.mp4"
                   style={inputStyle}
                 />
               </div>

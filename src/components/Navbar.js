@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useDarkMode } from '../context/DarkModeContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { FiUser } from 'react-icons/fi';
 import ProductModal from './ProductModal';

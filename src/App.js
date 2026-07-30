@@ -5,6 +5,7 @@ import './styles/global.css';
 import { CartProvider }   from './context/CartContext';
 import { StoreProvider, useStore } from './context/StoreContext';
 import { CurrencyProvider } from './context/CurrencyContext';
+import { LanguageProvider } from './context/LanguageContext';
 import Navbar             from './components/Navbar';
 import Hero               from './components/Hero';
 import Menu               from './components/Menu';
@@ -192,75 +193,77 @@ const GOOGLE_CLIENT_ID = "521878294229-usg7sqkjrl9gklke66ln7bt8e5d4foie.apps.goo
 
 export default function App() {
   return (
-    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-    <BrowserRouter>
-    <ThemeLoader />
-      <StoreProvider>
-        <CurrencyProvider>
-          <CustomerAuthProvider>
-          <AdminProvider>
-            <CartProvider>
-              <DarkModeProvider>
-              <WishlistProvider>
-              <LoginModal />
-              <Suspense fallback={<LoadingScreen />}>
-              <Routes>
-              <Route path="/" element={<PublicSite />} />
-              <Route path="/product/:id" element={<ProductPage />} />
-              <Route path="/account" element={<Account />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/ramadan" element={<RamadanLanding />} />
-              <Route path="/eid" element={<EidLanding />} />
-              <Route path="/summer" element={<SummerLanding />} />
-              <Route path="/blog" element={<Blog />} />
-              <Route path="/blog/:slug" element={<BlogPost />} />
-              <Route path="/gift-cards" element={<GiftCards />} />
-              <Route path="/admin/*" element={
+    <LanguageProvider>
+      <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+        <BrowserRouter>
+          <ThemeLoader />
+          <StoreProvider>
+            <CurrencyProvider>
+              <CustomerAuthProvider>
                 <AdminProvider>
-                  <AdminLangProvider>
-                    <Routes>
-                      <Route path="login" element={<AdminLogin />} />
-                      <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="orders" element={<Orders />} />
-                        <Route path="products" element={<Products />} />
-                        <Route path="inventory" element={<Inventory />} />
-                        <Route path="delivery" element={<Delivery />} />
-                        <Route path="analytics" element={<Analytics />} />
-                        <Route path="offers" element={<Offers />} />
-                        <Route path="coupons" element={<Coupons />} />
-                        <Route path="loyalty" element={<Loyalty />} />
-                        <Route path="pre-orders" element={<PreOrderInterests />} />
-                        <Route path="newsletter" element={<Newsletter />} />
-                        <Route path="ai-assistant" element={<AIAssistant />} />
-                        <Route path="feedback" element={<Feedback />} />
-                        <Route path="messages" element={<Messages />} />
-                        <Route path="leader" element={<LeaderDashboard />} />
-                        <Route path="settings" element={<Settings />} />
-                        <Route path="theme" element={<ThemeSettings />} />
-                        <Route path="social" element={<SocialMedia />} />
-                        <Route path="vip" element={<VIPCustomers />} />
-                        <Route path="staff" element={<StaffManagement />} />
-                        <Route path="blog" element={<BlogManagement />} />
-                        <Route path="abandoned-carts" element={<AbandonedCarts />} />
-                        <Route path="gift-cards" element={<AdminGiftCards />} />
-                        <Route index element={<Navigate to="dashboard" replace />} />
-                      </Route>
-                    </Routes>
-                  </AdminLangProvider>
+                  <CartProvider>
+                    <DarkModeProvider>
+                      <WishlistProvider>
+                        <LoginModal />
+                        <Suspense fallback={<LoadingScreen />}>
+                          <Routes>
+                            <Route path="/" element={<PublicSite />} />
+                            <Route path="/product/:id" element={<ProductPage />} />
+                            <Route path="/account" element={<Account />} />
+                            <Route path="/checkout" element={<Checkout />} />
+                            <Route path="/ramadan" element={<RamadanLanding />} />
+                            <Route path="/eid" element={<EidLanding />} />
+                            <Route path="/summer" element={<SummerLanding />} />
+                            <Route path="/blog" element={<Blog />} />
+                            <Route path="/blog/:slug" element={<BlogPost />} />
+                            <Route path="/gift-cards" element={<GiftCards />} />
+                            <Route path="/admin/*" element={
+                              <AdminProvider>
+                                <AdminLangProvider>
+                                  <Routes>
+                                    <Route path="login" element={<AdminLogin />} />
+                                    <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                                      <Route path="dashboard" element={<Dashboard />} />
+                                      <Route path="orders" element={<Orders />} />
+                                      <Route path="products" element={<Products />} />
+                                      <Route path="inventory" element={<Inventory />} />
+                                      <Route path="delivery" element={<Delivery />} />
+                                      <Route path="analytics" element={<Analytics />} />
+                                      <Route path="offers" element={<Offers />} />
+                                      <Route path="coupons" element={<Coupons />} />
+                                      <Route path="loyalty" element={<Loyalty />} />
+                                      <Route path="pre-orders" element={<PreOrderInterests />} />
+                                      <Route path="newsletter" element={<Newsletter />} />
+                                      <Route path="ai-assistant" element={<AIAssistant />} />
+                                      <Route path="feedback" element={<Feedback />} />
+                                      <Route path="messages" element={<Messages />} />
+                                      <Route path="leader" element={<LeaderDashboard />} />
+                                      <Route path="settings" element={<Settings />} />
+                                      <Route path="theme" element={<ThemeSettings />} />
+                                      <Route path="social" element={<SocialMedia />} />
+                                      <Route path="vip" element={<VIPCustomers />} />
+                                      <Route path="staff" element={<StaffManagement />} />
+                                      <Route path="blog" element={<BlogManagement />} />
+                                      <Route path="abandoned-carts" element={<AbandonedCarts />} />
+                                      <Route path="gift-cards" element={<AdminGiftCards />} />
+                                      <Route index element={<Navigate to="dashboard" replace />} />
+                                    </Route>
+                                  </Routes>
+                                </AdminLangProvider>
+                              </AdminProvider>
+                            } />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                          </Routes>
+                        </Suspense>
+                      </WishlistProvider>
+                    </DarkModeProvider>
+                  </CartProvider>
                 </AdminProvider>
-              } />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            </Suspense>
-              </WishlistProvider>
-              </DarkModeProvider>
-            </CartProvider>
-          </AdminProvider>
-          </CustomerAuthProvider>
-        </CurrencyProvider>
-      </StoreProvider>
-    </BrowserRouter>
-    </GoogleOAuthProvider>
+              </CustomerAuthProvider>
+            </CurrencyProvider>
+          </StoreProvider>
+        </BrowserRouter>
+      </GoogleOAuthProvider>
+    </LanguageProvider>
   );
 }
