@@ -265,10 +265,32 @@ export default function ProductPage() {
               onMouseEnter={() => setImgHovered(true)}
               onMouseLeave={() => setImgHovered(false)}
             >
-              <img src={images[currentImg] || '/12.png'} alt={product.name}
-                onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
-                style={{ width: '100%', height: 'auto', display: 'block', transition: 'transform 0.4s ease', transform: imgHovered ? 'scale(1.12)' : 'scale(1)', transformOrigin: 'top center' }} />
-              {images.length > 1 && (<>
+              {/* Main Media View (Image or Inline Video Player) */}
+              {isPlayingVideo ? (
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', background: '#000', borderRadius: '20px', overflow: 'hidden' }}>
+                  <video 
+                    src={(selectedVariant && selectedVariant.video_url) ? (selectedVariant.video_url.startsWith('/') || selectedVariant.video_url.startsWith('http') ? selectedVariant.video_url : `/images/${selectedVariant.video_url}`) : (product.video_url ? (product.video_url.startsWith('/') || product.video_url.startsWith('http') ? product.video_url : `/images/${product.video_url}`) : '/images/WhatsApp Video 2026-07-28 at 8.45.43 PM.mp4')} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    controls 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  <button 
+                    onClick={() => setIsPlayingVideo(false)}
+                    style={{ position: 'absolute', top: '14px', right: '14px', padding: '6px 14px', borderRadius: '20px', background: 'rgba(0,0,0,0.7)', color: '#fff', border: '1px solid rgba(255,255,255,0.3)', fontSize: '0.8rem', fontWeight: 800, cursor: 'pointer', zIndex: 20 }}
+                  >
+                    ✕ إغلاق الفيديو والعودة للصور
+                  </button>
+                </div>
+              ) : (
+                <img src={images[currentImg] || '/12.png'} alt={product.name}
+                  onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
+                  style={{ width: '100%', height: 'auto', display: 'block', transition: 'transform 0.4s ease', transform: imgHovered ? 'scale(1.12)' : 'scale(1)', transformOrigin: 'top center' }} />
+              )}
+
+              {images.length > 1 && !isPlayingVideo && (<>
                 <button onClick={handlePrev} style={arrowBtn('right')}><ChevronRight size={20} /></button>
                 <button onClick={handleNext} style={arrowBtn('left')}><ChevronLeft size={20} /></button>
                 <div style={{ position: 'absolute', bottom: '14px', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '6px' }}>
@@ -279,51 +301,62 @@ export default function ProductPage() {
               </>)}
               
               {/* Play Video reels button overlay */}
-              {(product.video_url || true) && (
+              {!isPlayingVideo && (
                 <button 
                   type="button" 
                   onClick={() => setIsPlayingVideo(true)}
                   style={{
                     position: 'absolute',
-                    bottom: '14px',
+                    top: '14px',
                     right: '14px',
                     padding: '8px 16px',
                     borderRadius: '20px',
-                    background: 'rgba(255, 255, 255, 0.85)',
-                    backdropFilter: 'blur(6px)',
-                    border: '1px solid rgba(255, 255, 255, 0.5)',
-                    color: 'var(--espresso)',
-                    fontSize: '0.8rem',
+                    background: 'linear-gradient(135deg, var(--gold, #c5a880), #a8864d)',
+                    color: '#fff',
+                    fontSize: '0.82rem',
                     fontWeight: 'bold',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
+                    boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
                     transition: 'all 0.2s',
-                    zIndex: 10
+                    zIndex: 10,
+                    border: 'none'
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="var(--gold, #c5a880)" stroke="var(--gold, #c5a880)" strokeWidth="2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="#fff" stroke="#fff" strokeWidth="2">
                     <polygon points="5 3 19 12 5 21 5 3" />
                   </svg>
-                  عرض الفيديو حركياً 🎥
+                  🎬 فيديو العباية (14ث)
                 </button>
               )}
 
-              <button onClick={() => setWishlisted(w => !w)} style={{ position: 'absolute', top: '14px', left: '14px', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', transition: 'all 0.2s' }}>
+              <button onClick={() => setWishlisted(w => !w)} style={{ position: 'absolute', top: '14px', left: '14px', width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.85)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', transition: 'all 0.2s', zIndex: 10 }}>
                 <Heart size={18} fill={wishlisted ? '#ef4444' : 'none'} stroke={wishlisted ? '#ef4444' : '#888'} />
               </button>
             </div>
-            {images.length > 1 && (
-              <div style={{ display: 'flex', gap: '10px', marginTop: '14px', overflowX: 'auto', paddingBottom: '6px' }}>
-                {images.map((img, i) => (
-                  <button key={i} className="pp-thumb" onClick={() => setCurrentImg(i)} style={{ width: '72px', height: '90px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', padding: 0, cursor: 'pointer', border: `2px solid ${i === currentImg ? 'var(--gold, #c5a880)' : 'rgba(197,168,128,0.2)'}`, opacity: i === currentImg ? 1 : 0.65, transition: 'all 0.2s', background: '#fff' }}>
-                    <img src={img} alt="" onError={e => { e.target.src = '/12.png'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  </button>
-                ))}
-              </div>
-            )}
+
+            {/* Thumbnails Bar including Video Button */}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '14px', overflowX: 'auto', paddingBottom: '6px' }}>
+              <button 
+                className="pp-thumb" 
+                onClick={() => setIsPlayingVideo(true)} 
+                style={{
+                  width: '72px', height: '90px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', padding: 0, cursor: 'pointer',
+                  border: `2px solid ${isPlayingVideo ? 'var(--gold, #c5a880)' : 'rgba(197,168,128,0.4)'}`,
+                  background: 'linear-gradient(135deg, #2a2015, #5c3d1e)', color: '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px'
+                }}
+              >
+                <span style={{ fontSize: '1.4rem' }}>🎬</span>
+                <span style={{ fontSize: '0.65rem', fontWeight: 800 }}>فيديو HD</span>
+              </button>
+              {images.map((img, i) => (
+                <button key={i} className="pp-thumb" onClick={() => { setIsPlayingVideo(false); setCurrentImg(i); }} style={{ width: '72px', height: '90px', flexShrink: 0, borderRadius: '10px', overflow: 'hidden', padding: 0, cursor: 'pointer', border: `2px solid ${(!isPlayingVideo && i === currentImg) ? 'var(--gold, #c5a880)' : 'rgba(197,168,128,0.2)'}`, opacity: (!isPlayingVideo && i === currentImg) ? 1 : 0.65, transition: 'all 0.2s', background: '#fff' }}>
+                  <img src={img} alt="" onError={e => { e.target.src = '/12.png'; }} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* RIGHT: Product Details */}

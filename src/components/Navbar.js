@@ -542,8 +542,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
               }}
             />
 
-            {/* Merged Country / Currency Switcher */}
-            <div ref={languageRef} style={{ position: 'relative' }}>
+              {/* 9 Languages Switcher Dropdown */}
               <button
                 onClick={() => setShowLanguage(v => !v)}
                 style={{
@@ -561,15 +560,10 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   transition: 'all 0.3s',
                   letterSpacing: '0.5px'
                 }}
-                aria-label="تغيير البلد والعملة"
+                aria-label="تغيير اللغة"
               >
-                <img
-                  src={getFlagUrl(currentLangObj.iso)}
-                  alt={currentLangObj.name}
-                  style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
-                  onError={e => { e.target.style.display = 'none'; }}
-                />
-                <span>{currentLangObj.name} ({currency.code})</span>
+                <span style={{ fontSize: '1rem' }}>{currentLang?.flag || '🌐'}</span>
+                <span>{currentLang?.name || 'العربية'}</span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
               </button>
 
@@ -583,24 +577,22 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   border: '1px solid var(--border)',
                   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                   padding: '10px 0',
-                  minWidth: '220px',
-                  maxHeight: '340px',
+                  minWidth: '200px',
+                  maxHeight: '380px',
                   overflowY: 'auto',
                   zIndex: 9999,
-                  direction: 'rtl'
+                  direction: currentLang?.dir || 'rtl'
                 }}>
                   <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                    اختاري البلد / العملة
+                    {t('changeLanguage') || 'اختاري اللغة / Choose Language'}
                   </div>
-                  {LANGUAGES.map(l => {
-                    const isSelected = selectedLanguage === l.code && selectedIso === l.iso;
-                    const cur = currencies.find(c => c.iso === l.iso) || currencies.find(c => c.code === 'USD');
+                  {APP_LANGUAGES.map(l => {
+                    const isSelected = langCode === l.code;
                     return (
                       <button
-                        key={`${l.code}-${l.iso}`}
+                        key={l.code}
                         onClick={() => {
-                          changeLanguage(l.code, l.iso);
-                          setCurrency(cur);
+                          setAppLang(l.code);
                           setShowLanguage(false);
                         }}
                         style={{
@@ -622,14 +614,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                         onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
                         onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
                       >
-                        <img
-                          src={getFlagUrl(l.iso)}
-                          alt={l.name}
-                          style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
-                          onError={e => { e.target.style.display = 'none'; }}
-                        />
-                        <span style={{ flex: 1 }}>{l.name}</span>
-                        <span style={{ color: 'var(--gold-dim)', fontWeight: '700', fontSize: '0.8rem' }}>{cur.code}</span>
+                        <span style={{ fontSize: '1.2rem' }}>{l.flag}</span>
+                        <span style={{ flex: 1, fontWeight: '700' }}>{l.name}</span>
                       </button>
                     );
                   })}
