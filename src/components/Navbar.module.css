@@ -62,6 +62,7 @@
   position: relative;
   transition: color var(--tr);
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .navLink::after {

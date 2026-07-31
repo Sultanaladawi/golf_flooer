@@ -362,15 +362,15 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
 
           {/* Desktop Links */}
           <nav aria-label="Main navigation">
-            <ul style={{ display: 'flex', gap: '2rem', listStyle: 'none', margin: 0, padding: 0 }}>
+            <ul style={{ display: 'flex', alignItems: 'center', gap: '1.3rem', listStyle: 'none', margin: 0, padding: 0, flexWrap: 'nowrap' }}>
               {LINKS.map(({ label, href }) => (
-                <li key={label}>
-                  <a href={href} className={styles.navLink} style={{ color: textColor, transition: 'color 0.3s' }}>
+                <li key={label} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  <a href={href} className={styles.navLink} style={{ color: textColor, transition: 'color 0.3s', whiteSpace: 'nowrap' }}>
                     {label}
                   </a>
                 </li>
               ))}
-              <li>
+              <li style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
                 <button
                   onClick={onTrackOrderOpen}
                   className={styles.navLink}
@@ -378,7 +378,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                     color: textColor, transition: 'color 0.3s',
                     background: 'none', border: 'none', cursor: 'pointer',
                     fontFamily: 'inherit', fontSize: 'inherit', fontWeight: 'inherit',
-                    padding: 0
+                    padding: 0, whiteSpace: 'nowrap'
                   }}
                 >
                   تتبع الطلب
