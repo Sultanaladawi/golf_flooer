@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCart } from '../context/CartContext';
+import { trackPurchase } from '../utils/socialPixel';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
@@ -537,6 +538,9 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       if (result.success) {
         setOrderId(result.orderId);
         setTimeRemaining(120);
+        try {
+          trackPurchase(result.orderId, finalPrice, items);
+        } catch (_) {}
         return 'success';
       }
       return 'error: فشل حفظ الطلب';

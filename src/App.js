@@ -72,8 +72,11 @@ let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
 
 
+import { initSocialPixels } from './utils/socialPixel';
+
 function ThemeLoader() {
   useEffect(() => {
+    initSocialPixels();
     axios.get('/api/settings/theme').then(res => {
       const data = res.data;
       if (data) {

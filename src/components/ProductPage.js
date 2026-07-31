@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { trackViewContent } from '../utils/socialPixel';
 import { Star, ChevronRight, ChevronLeft, ShoppingBag, ArrowRight, Heart, Share2, MessageSquare, X } from 'lucide-react';
 
 const SIZES = ['50', '52', '54', '56', '58', '60'];
@@ -56,6 +57,7 @@ export default function ProductPage() {
       })
       .then(data => {
         setProduct(data);
+        try { trackViewContent(data); } catch (_) {}
         setReviews(data.reviews || []);
         
         let pChart = [];

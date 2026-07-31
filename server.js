@@ -550,6 +550,17 @@ db.query(`CREATE TABLE IF NOT EXISTS job_applications (id INT AUTO_INCREMENT PRI
 db.query(`CREATE TABLE IF NOT EXISTS careers (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, type VARCHAR(100) DEFAULT 'Full-time', location VARCHAR(255) DEFAULT 'As-Salt', description TEXT, active TINYINT(1) DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure careers table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS site_settings (\`key\` VARCHAR(255) PRIMARY KEY, \`value\` TEXT, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure site_settings table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS offers (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, description TEXT, discount_percent DECIMAL(5,2), active TINYINT(1) DEFAULT 1, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure offers table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS social_pixels (
+  id INT PRIMARY KEY DEFAULT 1,
+  meta_pixel_id VARCHAR(255) DEFAULT '',
+  snap_pixel_id VARCHAR(255) DEFAULT '',
+  tiktok_pixel_id VARCHAR(255) DEFAULT '',
+  meta_token TEXT,
+  snap_token TEXT,
+  tiktok_token TEXT,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure social_pixels table error:', err); });
+
 db.query(`CREATE TABLE IF NOT EXISTS chat_messages (id INT AUTO_INCREMENT PRIMARY KEY, user_msg TEXT, ai_msg TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure chat_messages table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS ai_assistant_messages (id INT AUTO_INCREMENT PRIMARY KEY, admin_query TEXT, ai_response TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_assistant_messages table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS loyalty_members (
@@ -2779,8 +2790,9 @@ Rule: Answer ONLY from the data above. Be precise and professional. All monetary
 CRITICAL RULES:
 1. Do NOT invent, hallucinate, or guess. Use the EXACT numbers from "TODAY", "YESTERDAY", "THIS MONTH", and "SALES TREND". NEVER manually sum or calculate totals from the "Recent Orders List" as it is only a partial list and will give wrong answers!
 2. Pay STRICT attention to dates, hours, and the number of orders per day. When answering, emphasize the exact date, time (hour/minute), and order counts for the requested period (e.g., Today, Yesterday, Day before yesterday, This Month, or All-Time).
-3. If the user asks in Arabic, answer in Arabic. HOWEVER, NEVER translate names, products, or database values (e.g. "sultan", "Ahmad"). You MUST output them exactly as written in English in the database tables.
 4. Ensure 100% factual accuracy based solely on the provided context.`;
+      } catch (dbErr) {
+        console.error('[AI] Admin DB Fetch Error:', dbErr);
       }
     } else {
       const [menuRes] = await promiseDb.query(`
@@ -2806,7 +2818,7 @@ CRITICAL RULES:
   if (gemini) {
     try {
       const model = gemini.getGenerativeModel({
-        model: 'gemini-2.5-pro',
+        model: 'gemini-1.5-pro',
         systemInstruction: businessContext
       });
 
@@ -3240,6 +3252,93 @@ app.post('/api/settings/theme', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// --- SOCIAL ADS & PIXELS API ---
+app.get('/api/social-pixels', (req, res) => {
+  db.query('SELECT meta_pixel_id, snap_pixel_id, tiktok_pixel_id FROM social_pixels WHERE id = 1 LIMIT 1', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) return res.json({ meta_pixel_id: '', snap_pixel_id: '', tiktok_pixel_id: '' });
+    res.json(results[0]);
+  });
+});
+
+app.get('/api/admin/social-pixels', (req, res) => {
+  db.query('SELECT * FROM social_pixels WHERE id = 1 LIMIT 1', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (results.length === 0) {
+      return res.json({
+        meta_pixel_id: '',
+        snap_pixel_id: '',
+        tiktok_pixel_id: '',
+        meta_token: '',
+        snap_token: '',
+        tiktok_token: ''
+      });
+    }
+    res.json(results[0]);
+  });
+});
+
+app.post('/api/admin/social-pixels', (req, res) => {
+  const { meta_pixel_id, snap_pixel_id, tiktok_pixel_id, meta_token, snap_token, tiktok_token } = req.body;
+  const sql = `
+    INSERT INTO social_pixels (id, meta_pixel_id, snap_pixel_id, tiktok_pixel_id, meta_token, snap_token, tiktok_token)
+    VALUES (1, ?, ?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      meta_pixel_id = VALUES(meta_pixel_id),
+      snap_pixel_id = VALUES(snap_pixel_id),
+      tiktok_pixel_id = VALUES(tiktok_pixel_id),
+      meta_token = VALUES(meta_token),
+      snap_token = VALUES(snap_token),
+      tiktok_token = VALUES(tiktok_token)
+  `;
+  db.query(sql, [meta_pixel_id || '', snap_pixel_id || '', tiktok_pixel_id || '', meta_token || '', snap_token || '', tiktok_token || ''], (err) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (req.logAdminAction) {
+      req.logAdminAction('Update Social Pixels', 'Updated social ad tracking IDs & access tokens.');
+    }
+    res.json({ success: true, message: 'تم حفظ إعدادات البكسل بنجاح' });
+  });
+});
+
+// Catalog Feed for Social Ads (Meta / Snapchat / TikTok catalog ingestion)
+app.get('/api/catalog.json', (req, res) => {
+  const host = req.get('host');
+  const protocol = req.protocol;
+  const baseUrl = `${protocol}://${host}`;
+
+  db.query('SELECT * FROM products WHERE available = 1 ORDER BY id DESC', (err, products) => {
+    if (err) return res.status(500).json({ error: err.message });
+
+    const catalog = products.map(p => {
+      let imageUrl = p.image || '';
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
+      }
+
+      return {
+        id: `PROD_${p.id}`,
+        title: p.name,
+        description: p.description || p.name,
+        availability: 'in stock',
+        condition: 'new',
+        price: `${parseFloat(p.price).toFixed(2)} JOD`,
+        link: `${baseUrl}/#product-${p.id}`,
+        image_link: imageUrl,
+        brand: 'Zahrat Beesan',
+        category: p.category || 'Abaya'
+      };
+    });
+
+    res.setHeader('Content-Type', 'application/json');
+    res.json({
+      title: 'Zahrat Beesan Product Catalog',
+      updated_at: new Date().toISOString(),
+      item_count: catalog.length,
+      items: catalog
+    });
+  });
 });
 
 // For any other GET request (that isn't an API), serve React's index.html without caching index.html

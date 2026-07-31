@@ -1,4 +1,5 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
+import { trackAddToCart } from '../utils/socialPixel';
 
 const CartContext = createContext(null);
 
@@ -119,7 +120,16 @@ export function CartProvider({ children }) {
   const bundleDiscount = isBundleApplied ? (subTotal * 0.10) : 0;
   const totalPrice = subTotal - bundleDiscount;
 
-  const addItem = (item) => dispatch({ type: 'ADD_ITEM', item });
+  const addItem = (item) => {
+    dispatch({ type: 'ADD_ITEM', item });
+    try {
+      trackAddToCart({
+        id: item.id,
+        name: item.name || item.title || 'Product',
+        price: item.priceNum || item.price || 0
+      });
+    } catch (_) {}
+  };
   const removeItem = (id) => dispatch({ type: 'REMOVE_ITEM', id });
   const setQty = (id, qty) => dispatch({ type: 'SET_QTY', id, qty });
   const clearCart = () => dispatch({ type: 'CLEAR_CART' });

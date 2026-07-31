@@ -4,7 +4,7 @@ import {
   ExternalLink, Share2, Eye, Heart, TrendingUp, Users,
   Send, Globe, Rss, BarChart2,
   Link2, Image, X, CheckCircle2, Clock,
-  AlertCircle, Trash2, RefreshCw, Plus
+  AlertCircle, Trash2, RefreshCw, Plus, Copy, Save, Target, Sparkles, ShoppingBag
 } from 'lucide-react';
 import { FaInstagram, FaFacebook, FaWhatsapp, FaTwitter, FaTiktok, FaYoutube, FaSnapchatGhost } from 'react-icons/fa';
 
@@ -20,7 +20,7 @@ const PLATFORMS = [
 
 const platformShareUrl = (platform, content) => {
   const encoded = encodeURIComponent(content);
-  const storeUrl = encodeURIComponent('http://localhost:3000');
+  const storeUrl = encodeURIComponent(window.location.origin);
   switch (platform) {
     case 'facebook':  return `https://www.facebook.com/sharer/sharer.php?u=${storeUrl}&quote=${encoded}`;
     case 'twitter':   return `https://twitter.com/intent/tweet?text=${encoded}&url=${storeUrl}`;
@@ -37,7 +37,7 @@ const socialPlatformLinks = [
   { id: 'youtube',   name: 'YouTube',   handle: 'زهرة بيسان', url: 'https://www.youtube.com/@zahratbeesan', color: '#ff0000', gradient: 'linear-gradient(135deg, #ff0000, #cc0000)', icon: <FaYoutube size={26} />, stats: { followers: '1.2K', posts: '28', engagement: '5.4%' }, desc: 'فيديوهات العناية بالعبايات والمجموعات' },
   { id: 'twitter',   name: 'X (Twitter)', handle: '@zahratbeesan', url: 'https://twitter.com/zahratbeesan', color: '#1DA1F2', gradient: 'linear-gradient(135deg, #14171A, #2c3e50)', icon: <FaTwitter size={26} />, stats: { followers: '3.4K', posts: '520', engagement: '2.1%' }, desc: 'تحديثات سريعة وعروض حصرية' },
   { id: 'snapchat',  name: 'Snapchat',  handle: 'zahratbeesan', url: 'https://www.snapchat.com/add/zahratbeesan', color: '#FFFC00', gradient: 'linear-gradient(135deg, #FFFC00, #ffcc00)', icon: <FaSnapchatGhost size={26} />, stats: { followers: '2.1K', posts: '—', engagement: '—' }, desc: 'سناب ستوريز حصرية لأحدث العبايات' },
-  { id: 'website',   name: 'الموقع', handle: 'zahratbeesan.com', url: 'http://localhost:3000', color: '#c5a880', gradient: 'linear-gradient(135deg, #c5a880, #8b6914)', icon: <Globe size={26} />, stats: { followers: '—', posts: '—', engagement: '—' }, desc: 'متجرنا الإلكتروني الرسمي' },
+  { id: 'website',   name: 'الموقع', handle: 'zahratbeesan.com', url: window.location.origin, color: '#c5a880', gradient: 'linear-gradient(135deg, #c5a880, #8b6914)', icon: <Globe size={26} />, stats: { followers: '—', posts: '—', engagement: '—' }, desc: 'متجرنا الإلكتروني الرسمي' },
 ];
 
 const postIdeas = [
@@ -53,6 +53,9 @@ const postIdeas = [
 
 export default function SocialMedia() {
   const { t } = useAdminLang();
+
+  // Active Main Tab: 'social' or 'ads'
+  const [activeMainTab, setActiveMainTab] = useState('social');
 
   // Composer state
   const [content, setContent] = useState('');
@@ -72,6 +75,20 @@ export default function SocialMedia() {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [copied, setCopied] = useState(null);
 
+  // Ads & Pixels state
+  const [pixelData, setPixelData] = useState({
+    meta_pixel_id: '',
+    snap_pixel_id: '',
+    tiktok_pixel_id: '',
+    meta_token: '',
+    snap_token: '',
+    tiktok_token: ''
+  });
+  const [loadingPixels, setLoadingPixels] = useState(false);
+  const [savingPixels, setSavingPixels] = useState(false);
+  const [pixelSaveMessage, setPixelSaveMessage] = useState('');
+  const [copiedCatalog, setCopiedCatalog] = useState(false);
+
   const fetchPosts = async () => {
     setLoadingPosts(true);
     try {
@@ -85,7 +102,64 @@ export default function SocialMedia() {
     }
   };
 
-  useEffect(() => { fetchPosts(); }, []);
+  const fetchPixels = async () => {
+    setLoadingPixels(true);
+    try {
+      const res = await fetch('/api/admin/social-pixels');
+      const data = await res.json();
+      if (data) {
+        setPixelData({
+          meta_pixel_id: data.meta_pixel_id || '',
+          snap_pixel_id: data.snap_pixel_id || '',
+          tiktok_pixel_id: data.tiktok_pixel_id || '',
+          meta_token: data.meta_token || '',
+          snap_token: data.snap_token || '',
+          tiktok_token: data.tiktok_token || ''
+        });
+      }
+    } catch (e) {
+      console.error('Error loading pixels:', e);
+    } finally {
+      setLoadingPixels(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPosts();
+    fetchPixels();
+  }, []);
+
+  const handleSavePixels = async (e) => {
+    e.preventDefault();
+    setSavingPixels(true);
+    setPixelSaveMessage('');
+    try {
+      const res = await fetch('/api/admin/social-pixels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pixelData)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPixelSaveMessage('✅ تم حفظ إعدادات البكسل والتتبع بنجاح!');
+        setTimeout(() => setPixelSaveMessage(''), 4000);
+      } else {
+        setPixelSaveMessage('❌ ' + (data.error || 'حدث خطأ أثناء الحفظ'));
+      }
+    } catch (e) {
+      setPixelSaveMessage('❌ خطأ في الاتصال بالخادم');
+    } finally {
+      setSavingPixels(false);
+    }
+  };
+
+  const catalogUrl = `${window.location.origin}/api/catalog.json`;
+
+  const copyCatalogUrl = () => {
+    navigator.clipboard.writeText(catalogUrl);
+    setCopiedCatalog(true);
+    setTimeout(() => setCopiedCatalog(false), 3000);
+  };
 
   const togglePlatform = (id) => {
     setSelectedPlatforms(prev =>
@@ -144,7 +218,6 @@ export default function SocialMedia() {
         setImageUrl('');
         setScheduleDate('');
 
-        // Open manual platforms in new tabs
         selectedPlatforms.forEach(pid => {
           const result = data.results?.[pid];
           if (result?.manual) {
@@ -160,394 +233,674 @@ export default function SocialMedia() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('هل تريد حذف هذا المنشور من السجل؟')) return;
-    try {
-      await fetch(`/api/social/posts/${id}`, { method: 'DELETE' });
-      setPosts(prev => prev.filter(p => p.id !== id));
-    } catch (e) {}
-  };
-
-  const copyLink = (url, id) => {
-    navigator.clipboard.writeText(url);
+  const copyToClipboard = (text, id) => {
+    navigator.clipboard.writeText(text);
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
   };
 
-  const charLimit = 280;
-  const charColor = content.length > charLimit * 0.9 ? '#f87171' : content.length > charLimit * 0.7 ? '#fbbf24' : 'var(--text-secondary)';
-
   return (
-    <div className="dashboard-fade-in" style={{ padding: '40px', minHeight: '100vh' }}>
+    <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
 
-      {/* Header */}
-      <div style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: 'linear-gradient(135deg, #f09433, #dc2743, #bc1888)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 20px rgba(220,39,67,0.3)' }}>
-          <Share2 size={24} color="#fff" />
-        </div>
+      {/* Header & Tabs */}
+      <div style={{ marginBottom: '28px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: '2.8rem', lineHeight: 1, marginBottom: '8px' }}>
-            <span style={{ color: 'var(--admin-accent)' }}>Zahrat Beesan</span> <span style={{ color: 'var(--admin-text)', fontStyle: 'italic' }}>Luxury</span>
-          </div>
-          <h1 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem', color: 'var(--admin-accent)', margin: 0, lineHeight: 1 }}>القسم الإعلامي</h1>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px', fontSize: '1rem', margin: 0 }}>نشر المحتوى وإدارة وسائل التواصل الاجتماعي</p>
-        </div>
-      </div>
-
-      {/* ── POST COMPOSER ── */}
-      <div style={{ backgroundColor: 'var(--admin-card)', border: '1px solid var(--admin-border)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.6rem', color: 'var(--admin-text)', margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Send size={22} color="var(--admin-accent)" /> إنشاء منشور جديد
-        </h2>
-
-        {/* Platform Selector */}
-        <div style={{ marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <label style={{ fontWeight: '600', color: 'var(--admin-text)', fontSize: '0.9rem' }}>اختر المنصات</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={selectAll} style={{ padding: '5px 12px', borderRadius: '8px', border: '1px solid var(--admin-border)', background: 'rgba(197,168,128,0.1)', color: 'var(--admin-accent)', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>
-                تحديد الكل
-              </button>
-              <button onClick={selectNone} style={{ padding: '5px 12px', borderRadius: '8px', border: '1px solid var(--admin-border)', background: 'rgba(248,113,113,0.08)', color: '#f87171', fontWeight: '700', fontSize: '0.75rem', cursor: 'pointer' }}>
-                مسح الكل
-              </button>
-            </div>
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-            {PLATFORMS.map(p => {
-              const sel = selectedPlatforms.includes(p.id);
-              return (
-                <button key={p.id} onClick={() => togglePlatform(p.id)} style={{
-                  display: 'flex', alignItems: 'center', gap: '7px',
-                  padding: '9px 16px', borderRadius: '50px',
-                  border: sel ? `2px solid ${p.color}` : '1px solid var(--admin-border)',
-                  background: sel ? `${p.color}18` : 'transparent',
-                  color: sel ? p.color : 'var(--text-secondary)',
-                  fontWeight: sel ? '700' : '500', fontSize: '0.82rem',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  boxShadow: sel ? `0 4px 12px ${p.color}30` : 'none'
-                }}>
-                  {p.icon} {p.name}
-                  {sel && <CheckCircle2 size={13} />}
-                </button>
-              );
-            })}
-          </div>
+          <h1 style={{ fontSize: '2rem', fontWeight: '800', color: 'var(--admin-text, #1e293b)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Share2 style={{ color: 'var(--admin-accent, #c5a880)' }} size={32} />
+            إدارة السوشيال ميديا والإعلانات المدفوعة
+          </h1>
+          <p style={{ color: '#64748b', margin: '6px 0 0 0', fontSize: '0.95rem' }}>
+            ادارة منشورات السوشيال ميديا، وتتبع الحملات الإعلانية ومزامنة الكتالوج المباشر مع فيس بوك وانستغرام وسناب شات وتيك توك.
+          </p>
         </div>
 
-        {/* Image Upload */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontWeight: '600', color: 'var(--admin-text)', fontSize: '0.9rem', display: 'block', marginBottom: '10px' }}>صورة المنشور (اختياري)</label>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '10px 18px', borderRadius: '10px',
-              background: 'rgba(197,168,128,0.1)', border: '1px dashed var(--admin-accent)',
-              color: 'var(--admin-accent)', fontWeight: '700', fontSize: '0.85rem',
-              cursor: 'pointer', transition: '0.2s', flexShrink: 0
-            }}>
-              <Image size={16} /> {uploading ? 'جاري الرفع...' : 'رفع صورة'}
-            </button>
-            <input
-              type="text"
-              value={imageUrl}
-              onChange={e => setImageUrl(e.target.value)}
-              placeholder="أو الصق رابط الصورة هنا (https://...)"
-              style={{ flex: 1, padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-border)', background: 'var(--bg-surface)', color: 'var(--admin-text)', fontSize: '0.87rem', outline: 'none' }}
-            />
-            {imageUrl && <button onClick={() => setImageUrl('')} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer' }}><X size={18} /></button>}
-            <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleImageUpload} />
-          </div>
-          {imageUrl && (
-            <div style={{ marginTop: '10px', borderRadius: '12px', overflow: 'hidden', maxWidth: '200px', border: '1px solid var(--admin-border)' }}>
-              <img src={imageUrl} alt="preview" style={{ width: '100%', height: '130px', objectFit: 'cover', display: 'block' }} onError={e => { e.target.style.display = 'none'; }} />
-            </div>
-          )}
-        </div>
-
-        {/* Content Textarea */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={{ fontWeight: '600', color: 'var(--admin-text)', fontSize: '0.9rem', display: 'block', marginBottom: '10px' }}>محتوى المنشور</label>
-          <div style={{ position: 'relative' }}>
-            <textarea
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="اكتبي نص المنشور هنا... يمكنك استخدام الإيموجي والهاشتاق #زهرة_بيسان"
-              rows={5}
-              style={{
-                width: '100%', padding: '16px', borderRadius: '14px',
-                border: '1px solid var(--admin-border)',
-                background: 'var(--bg-surface)', color: 'var(--admin-text)',
-                fontSize: '1rem', lineHeight: '1.6', resize: 'vertical',
-                outline: 'none', direction: 'rtl', boxSizing: 'border-box',
-                fontFamily: "'Inter', sans-serif"
-              }}
-            />
-            <div style={{ position: 'absolute', bottom: '10px', insetInlineStart: '12px', fontSize: '0.75rem', color: charColor }}>
-              {content.length} / {charLimit}
-            </div>
-          </div>
-          {/* Quick ideas */}
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '10px' }}>
-            {postIdeas.slice(0, 4).map((idea, i) => (
-              <button key={i} onClick={() => setContent(prev => prev ? prev + '\n' + idea : idea)} style={{
-                padding: '5px 10px', borderRadius: '8px', fontSize: '0.72rem',
-                border: '1px solid var(--admin-border)', background: 'rgba(255,255,255,0.03)',
-                color: 'var(--text-secondary)', cursor: 'pointer', transition: '0.2s'
-              }}
-                onMouseEnter={e => { e.target.style.borderColor = 'var(--admin-accent)'; e.target.style.color = 'var(--admin-accent)'; }}
-                onMouseLeave={e => { e.target.style.borderColor = 'var(--admin-border)'; e.target.style.color = 'var(--text-secondary)'; }}
-              >{idea.split(' ').slice(0, 4).join(' ')}...</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Schedule */}
-        <div style={{ marginBottom: '24px' }}>
-          <label style={{ fontWeight: '600', color: 'var(--admin-text)', fontSize: '0.9rem', display: 'block', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Clock size={15} /> جدولة النشر (اختياري — اتركه فارغاً للنشر الفوري)
-          </label>
-          <input
-            type="datetime-local"
-            value={scheduleDate}
-            onChange={e => setScheduleDate(e.target.value)}
-            style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-border)', background: 'var(--bg-surface)', color: 'var(--admin-text)', fontSize: '0.9rem', outline: 'none' }}
-          />
-        </div>
-
-        {/* Publish Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+        {/* Top Main Navigation Tabs */}
+        <div style={{ display: 'flex', gap: '8px', background: 'rgba(0,0,0,0.04)', padding: '4px', borderRadius: '12px' }}>
           <button
-            onClick={handlePublish}
-            disabled={publishing || !content.trim() || !selectedPlatforms.length}
+            onClick={() => setActiveMainTab('social')}
             style={{
-              padding: '14px 32px', borderRadius: '14px',
-              background: publishing ? '#555' : 'linear-gradient(135deg, var(--admin-accent), #c5a880)',
-              color: '#000', fontWeight: '800', fontSize: '1rem',
-              border: 'none', cursor: publishing ? 'not-allowed' : 'pointer',
-              display: 'flex', alignItems: 'center', gap: '10px',
-              boxShadow: '0 8px 20px rgba(197,168,128,0.3)', transition: '0.2s'
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontWeight: '700',
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              background: activeMainTab === 'social' ? 'var(--admin-accent, #c5a880)' : 'transparent',
+              color: activeMainTab === 'social' ? '#fff' : '#64748b',
+              boxShadow: activeMainTab === 'social' ? '0 4px 12px rgba(197, 168, 128, 0.3)' : 'none'
             }}
           >
-            {publishing ? <><RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> جاري النشر...</> : scheduleDate ? <><Clock size={18} /> جدولة المنشور</> : <><Send size={18} /> نشر الآن</>}
+            <Globe size={18} />
+            منصات التواصل والنشر
           </button>
 
-          {selectedPlatforms.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>على:</span>
-              {selectedPlatforms.map(pid => {
-                const pl = PLATFORMS.find(p => p.id === pid);
-                return pl ? (
-                  <span key={pid} style={{ padding: '3px 10px', borderRadius: '20px', background: `${pl.color}20`, color: pl.color, fontSize: '0.75rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    {pl.icon} {pl.name}
-                  </span>
-                ) : null;
-              })}
-            </div>
-          )}
+          <button
+            onClick={() => setActiveMainTab('ads')}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontWeight: '700',
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              background: activeMainTab === 'ads' ? 'var(--admin-accent, #c5a880)' : 'transparent',
+              color: activeMainTab === 'ads' ? '#fff' : '#64748b',
+              boxShadow: activeMainTab === 'ads' ? '0 4px 12px rgba(197, 168, 128, 0.3)' : 'none'
+            }}
+          >
+            <Target size={18} />
+            🎯 الإعلانات والبكسل (Ads & Pixels)
+          </button>
         </div>
+      </div>
 
-        {/* Result */}
-        {publishResult && (
-          <div style={{ marginTop: '20px', padding: '16px 20px', borderRadius: '14px', background: publishResult.success ? 'rgba(74,222,128,0.08)' : 'rgba(248,113,113,0.08)', border: `1px solid ${publishResult.success ? 'rgba(74,222,128,0.25)' : 'rgba(248,113,113,0.25)'}` }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-              {publishResult.success ? <CheckCircle2 size={18} color="#4ade80" /> : <AlertCircle size={18} color="#f87171" />}
-              <strong style={{ color: publishResult.success ? '#4ade80' : '#f87171', fontSize: '0.95rem' }}>
-                {publishResult.success ? 'تم حفظ المنشور وإرساله للمنصات' : `خطأ: ${publishResult.error}`}
-              </strong>
-            </div>
-            {publishResult.results && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {Object.entries(publishResult.results).map(([pid, r]) => {
-                  const pl = PLATFORMS.find(p => p.id === pid);
-                  return (
-                    <div key={pid} style={{ padding: '5px 12px', borderRadius: '20px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.78rem' }}>
-                      <span style={{ color: pl?.color }}>{pl?.icon}</span>
-                      <span style={{ color: r.success ? '#4ade80' : r.manual ? '#fbbf24' : '#f87171' }}>
-                        {r.success ? '✓ نُشر' : r.manual ? '↗ يدوي' : `✗ ${r.error?.substring(0, 30)}`}
-                      </span>
+      {/* TAB 1: SOCIAL MEDIA & POST PUBLISHER */}
+      {activeMainTab === 'social' && (
+        <>
+          {/* Quick Platform Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px', marginBottom: '32px' }}>
+            {socialPlatformLinks.map(platform => (
+              <div
+                key={platform.id}
+                onMouseEnter={() => setHoveredCard(platform.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                style={{
+                  background: 'var(--admin-card-bg, #ffffff)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  border: '1px solid rgba(0,0,0,0.06)',
+                  boxShadow: hoveredCard === platform.id ? '0 12px 24px -8px rgba(0,0,0,0.12)' : '0 2px 6px rgba(0,0,0,0.02)',
+                  transition: 'all 0.3s ease',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '14px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '46px',
+                      height: '46px',
+                      borderRadius: '12px',
+                      background: platform.gradient,
+                      color: platform.id === 'snapchat' ? '#000' : '#fff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {platform.icon}
                     </div>
-                  );
-                })}
-              </div>
-            )}
-            {publishResult.success && Object.values(publishResult.results || {}).some(r => r.manual) && (
-              <p style={{ fontSize: '0.8rem', color: '#fbbf24', marginTop: '8px', marginBottom: 0 }}>
-                ⚡ المنصات المُعلَّمة بـ "يدوي" فُتحت في نوافذ جديدة — أكملي النشر هناك. للنشر التلقائي أضيفي توكنات API في الإعدادات.
-              </p>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* ── VISUAL BRANDING KIT ── */}
-      <div style={{ backgroundColor: 'var(--admin-card)', border: '1px solid var(--admin-border)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
-        <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.6rem', color: 'var(--admin-text)', margin: '0 0 24px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Image size={22} color="var(--admin-accent)" /> حقيبة الهوية البصرية الرسمية (Social Media Kit)
-        </h2>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginTop: '-15px', marginBottom: '24px' }}>
-          استخدمي هذه القوالب والشعارات الرسمية الموحدة للمحافظة على هوية بصرية فاخرة ومتناسقة عبر جميع حسابات التواصل الاجتماعي لـ (زهرة بيسان).
-        </p>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
-          {/* Profile Photo */}
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--admin-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '120px', height: '120px', borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--admin-accent)', background: '#fff', marginBottom: '15px', boxShadow: '0 8px 24px rgba(166,134,93,0.15)' }}>
-              <img src="/logo.png" alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            </div>
-            <span style={{ fontWeight: '700', color: 'var(--admin-text)', fontSize: '0.95rem', marginBottom: '4px' }}>صورة الملف الشخصي (Profile)</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>شعار زهرة بيسان الفاخر الدائري المعتمد (1:1)</span>
-            <a href="/logo.png" download="Zahrat_Beesan_Profile.png" style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', background: 'var(--admin-accent)', color: '#000', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              تحميل الشعار الرسمي
-            </a>
-          </div>
-
-          {/* Cover Banner */}
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--admin-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '100%', height: '120px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--admin-border)', marginBottom: '15px' }}>
-              <img src="/cover_banner_exact.jpg" alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-            <span style={{ fontWeight: '700', color: 'var(--admin-text)', fontSize: '0.95rem', marginBottom: '4px' }}>غلاف الحسابات (Cover Banner)</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>غلاف عريض رسمي متناسق لجميع الصفحات (16:9)</span>
-            <a href="/cover_banner_exact.jpg" download="Zahrat_Beesan_Cover.jpg" style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-accent)', color: 'var(--admin-accent)', background: 'transparent', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              تحميل غلاف الحسابات
-            </a>
-          </div>
-
-          {/* Post Template */}
-          <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--admin-border)', borderRadius: '16px', padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-            <div style={{ width: '120px', height: '120px', borderRadius: '10px', overflow: 'hidden', border: '1px solid var(--admin-border)', marginBottom: '15px' }}>
-              <img src="/instagram_post_exact.jpg" alt="Post Template" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            </div>
-            <span style={{ fontWeight: '700', color: 'var(--admin-text)', fontSize: '0.95rem', marginBottom: '4px' }}>قالب منشورات المنتجات (Grid Post)</span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '15px' }}>قالب عرض العبايات والمنتجات الرسمي (1:1)</span>
-            <a href="/instagram_post_exact.jpg" download="Zahrat_Beesan_Post_Template.jpg" style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-accent)', color: 'var(--admin-accent)', background: 'transparent', fontWeight: '700', fontSize: '0.8rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-              تحميل قالب المنشور
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* ── POSTS HISTORY ── */}
-      <div style={{ backgroundColor: 'var(--admin-card)', border: '1px solid var(--admin-border)', borderRadius: '24px', padding: '32px', marginBottom: '40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-          <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.6rem', color: 'var(--admin-text)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <BarChart2 size={22} color="var(--admin-accent)" /> سجل المنشورات
-          </h2>
-          <button onClick={fetchPosts} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '10px', border: '1px solid var(--admin-border)', background: 'transparent', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '0.82rem' }}>
-            <RefreshCw size={14} /> تحديث
-          </button>
-        </div>
-
-        {loadingPosts ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-secondary)' }}>جاري التحميل...</div>
-        ) : posts.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '50px', color: 'var(--text-secondary)', borderRadius: '16px', border: '1px dashed var(--admin-border)' }}>
-            <Send size={40} style={{ opacity: 0.3, marginBottom: '12px', display: 'block', margin: '0 auto 12px' }} />
-            <p>لا توجد منشورات بعد. أنشئ أول منشور!</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {posts.map(post => {
-              let platforms = [];
-              let results = {};
-              try { platforms = typeof post.platforms === 'string' ? JSON.parse(post.platforms) : (post.platforms || []); } catch (e) {}
-              try { results = typeof post.results === 'string' ? JSON.parse(post.results) : (post.results || {}); } catch (e) {}
-              return (
-                <div key={post.id} style={{ padding: '18px 20px', borderRadius: '16px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--admin-border)', display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                  {post.image_url && (
-                    <img src={post.image_url} alt="" style={{ width: '70px', height: '70px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }} onError={e => e.target.style.display = 'none'} />
-                  )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: '0 0 8px 0', color: 'var(--admin-text)', fontSize: '0.9rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {post.content.length > 150 ? post.content.substring(0, 150) + '...' : post.content}
-                    </p>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
-                      {platforms.map(pid => {
-                        const pl = PLATFORMS.find(p => p.id === pid);
-                        const r = results[pid];
-                        return pl ? (
-                          <span key={pid} style={{ padding: '3px 10px', borderRadius: '20px', background: `${pl.color}15`, color: pl.color, fontSize: '0.72rem', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            {pl.icon} {pl.name}
-                            {r?.success ? ' ✓' : r?.manual ? ' ↗' : ''}
-                          </span>
-                        ) : null;
-                      })}
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginInlineEnd: 'auto' }}>
-                        {post.admin_name} · {new Date(post.published_at || post.created_at).toLocaleString('ar-JO')}
-                      </span>
-                      <span style={{ padding: '2px 10px', borderRadius: '20px', fontSize: '0.72rem', fontWeight: '700', background: post.status === 'published' ? 'rgba(74,222,128,0.1)' : 'rgba(251,191,36,0.1)', color: post.status === 'published' ? '#4ade80' : '#fbbf24' }}>
-                        {post.status === 'published' ? 'منشور' : 'مجدول'}
-                      </span>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '700', color: 'var(--admin-text, #1e293b)' }}>{platform.name}</h3>
+                      <span style={{ fontSize: '0.85rem', color: '#64748b', dir: 'ltr', display: 'block' }}>{platform.handle}</span>
                     </div>
                   </div>
-                  <button onClick={() => handleDelete(post.id)} style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: '4px', flexShrink: 0, opacity: 0.6 }}
-                    onMouseEnter={e => e.currentTarget.style.opacity = '1'}
-                    onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
-                  ><Trash2 size={16} /></button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
 
-      {/* ── PLATFORMS OVERVIEW ── */}
-      <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: '1.6rem', color: 'var(--admin-text)', marginBottom: '20px' }}>
-        المنصات الاجتماعية
-      </h2>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '18px' }}>
-        {socialPlatformLinks.map(platform => (
-          <div key={platform.id}
-            style={{
-              borderRadius: '20px', padding: '22px',
-              background: hoveredCard === platform.id ? platform.gradient : 'var(--admin-card)',
-              border: '1px solid var(--admin-border)', cursor: 'pointer',
-              transition: 'all 0.3s cubic-bezier(0.175,0.885,0.32,1.275)',
-              transform: hoveredCard === platform.id ? 'translateY(-5px)' : 'none',
-              boxShadow: hoveredCard === platform.id ? '0 18px 40px rgba(0,0,0,0.25)' : 'none',
-              position: 'relative', overflow: 'hidden'
-            }}
-            onMouseEnter={() => setHoveredCard(platform.id)}
-            onMouseLeave={() => setHoveredCard(null)}
-          >
-            {hoveredCard === platform.id && <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', borderRadius: '20px', zIndex: 0 }} />}
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: hoveredCard === platform.id ? 'rgba(255,255,255,0.15)' : `${platform.color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: hoveredCard === platform.id ? '#fff' : platform.color, transition: '0.3s' }}>
-                  {platform.icon}
+                  <a
+                    href={platform.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      padding: '8px',
+                      borderRadius: '8px',
+                      background: 'rgba(0,0,0,0.04)',
+                      color: '#64748b',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 0.2s ease'
+                    }}
+                    title="زيارة الحساب"
+                  >
+                    <ExternalLink size={18} />
+                  </a>
                 </div>
-                <div>
-                  <div style={{ fontWeight: '700', color: hoveredCard === platform.id ? '#fff' : 'var(--admin-text)' }}>{platform.name}</div>
-                  <div style={{ fontSize: '0.78rem', color: hoveredCard === platform.id ? 'rgba(255,255,255,0.7)' : 'var(--text-secondary)' }}>{platform.handle}</div>
+
+                <p style={{ fontSize: '0.88rem', color: '#64748b', margin: '0 0 16px 0', lineHeight: '1.4' }}>
+                  {platform.desc}
+                </p>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.06)', paddingTop: '12px' }}>
+                  <div style={{ display: 'flex', gap: '16px' }}>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>المتابعون</span>
+                      <strong style={{ fontSize: '0.95rem', color: 'var(--admin-text, #1e293b)' }}>{platform.stats.followers}</strong>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>التفاعل</span>
+                      <strong style={{ fontSize: '0.95rem', color: '#10b981' }}>{platform.stats.engagement}</strong>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => copyToClipboard(platform.url, platform.id)}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: copied === platform.id ? '#10b981' : 'rgba(0,0,0,0.05)',
+                      color: copied === platform.id ? '#fff' : '#475569',
+                      fontSize: '0.8rem',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {copied === platform.id ? <CheckCircle2 size={14} /> : <Link2 size={14} />}
+                    {copied === platform.id ? 'تم النسخ' : 'نسخ الرابط'}
+                  </button>
                 </div>
               </div>
-              {platform.stats.followers !== '—' && (
-                <div style={{ display: 'flex', gap: '10px', padding: '10px 12px', borderRadius: '10px', background: hoveredCard === platform.id ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.04)', border: hoveredCard === platform.id ? '1px solid rgba(255,255,255,0.2)' : '1px solid var(--admin-border)', marginBottom: '14px' }}>
-                  {[['متابع', platform.stats.followers], ['منشور', platform.stats.posts], ['تفاعل', platform.stats.engagement]].map(([l, v]) => (
-                    <div key={l} style={{ flex: 1, textAlign: 'center' }}>
-                      <div style={{ fontWeight: '700', fontSize: '0.85rem', color: hoveredCard === platform.id ? '#fff' : 'var(--admin-text)' }}>{v}</div>
-                      <div style={{ fontSize: '0.65rem', color: hoveredCard === platform.id ? 'rgba(255,255,255,0.6)' : 'var(--text-secondary)', marginTop: '2px' }}>{l}</div>
-                    </div>
-                  ))}
+            ))}
+          </div>
+
+          {/* Publisher & Ideas Section */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px', marginBottom: '32px' }}>
+
+            {/* Post Publisher Card */}
+            <div style={{
+              background: 'var(--admin-card-bg, #ffffff)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(0,0,0,0.06)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+            }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Send size={20} style={{ color: 'var(--admin-accent, #c5a880)' }} />
+                إنشاء ونشر منشور جديد
+              </h2>
+
+              {/* Platform Selector */}
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label style={{ fontSize: '0.88rem', fontWeight: '600', color: '#475569' }}>اختر المنصات للتحضير أو النشر:</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={selectAll} style={{ background: 'none', border: 'none', color: 'var(--admin-accent, #c5a880)', fontSize: '0.8rem', cursor: 'pointer', fontWeight: '600' }}>الكل</button>
+                    <span style={{ color: '#cbd5e1' }}>|</span>
+                    <button onClick={selectNone} style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.8rem', cursor: 'pointer' }}>إلغاء</button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {PLATFORMS.map(p => {
+                    const isSelected = selectedPlatforms.includes(p.id);
+                    return (
+                      <button
+                        key={p.id}
+                        onClick={() => togglePlatform(p.id)}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          border: isSelected ? `2px solid ${p.color}` : '1px solid #e2e8f0',
+                          background: isSelected ? `${p.color}15` : '#fff',
+                          color: isSelected ? p.color : '#64748b',
+                          fontSize: '0.85rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
+                        {p.icon}
+                        {p.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Content Input */}
+              <div style={{ marginBottom: '16px' }}>
+                <textarea
+                  value={content}
+                  onChange={e => setContent(e.target.value)}
+                  placeholder="اكتبي نص المنشور هنا..."
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    fontSize: '0.95rem',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    outline: 'none',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* Image Attachment */}
+              <div style={{ marginBottom: '20px' }}>
+                {imageUrl ? (
+                  <div style={{ position: 'relative', display: 'inline-block', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+                    <img src={imageUrl} alt="preview" style={{ height: '120px', objectFit: 'cover', display: 'block' }} />
+                    <button
+                      onClick={() => setImageUrl('')}
+                      style={{
+                        position: 'absolute',
+                        top: '6px',
+                        left: '6px',
+                        background: 'rgba(0,0,0,0.6)',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '50%',
+                        width: '24px',
+                        height: '24px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <div>
+                    <input type="file" ref={fileRef} onChange={handleImageUpload} accept="image/*" style={{ display: 'none' }} />
+                    <button
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploading}
+                      style={{
+                        padding: '10px 16px',
+                        borderRadius: '10px',
+                        border: '1px dashed #cbd5e1',
+                        background: '#f8fafc',
+                        color: '#475569',
+                        fontSize: '0.9rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        width: '100%',
+                        justifyContent: 'center'
+                      }}
+                    >
+                      <Image size={18} />
+                      {uploading ? 'جاري رفع الصورة...' : 'إضافة صورة للمنشور'}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Publish Action Button */}
+              <button
+                onClick={handlePublish}
+                disabled={publishing}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'var(--admin-accent, #c5a880)',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(197, 168, 128, 0.4)',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                {publishing ? <RefreshCw className="spin" size={18} /> : <Send size={18} />}
+                {publishing ? 'جاري التحضير بالنشر...' : 'نشر الآن / مشاركة المنشور'}
+              </button>
+
+              {publishResult && (
+                <div style={{
+                  marginTop: '16px',
+                  padding: '12px 16px',
+                  borderRadius: '10px',
+                  background: publishResult.success ? '#ecfdf5' : '#fef2f2',
+                  color: publishResult.success ? '#065f46' : '#991b1b',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  {publishResult.success ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+                  <span>{publishResult.message || publishResult.error}</span>
                 </div>
               )}
+            </div>
+
+            {/* Content Ideas & Tips */}
+            <div style={{
+              background: 'var(--admin-card-bg, #ffffff)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(0,0,0,0.06)',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+            }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: '700', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Sparkles size={20} style={{ color: '#f59e0b' }} />
+                أفكار منشورات مقترحة
+              </h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {postIdeas.map((idea, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setContent(idea)}
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: '12px',
+                      background: '#f8fafc',
+                      border: '1px solid #f1f5f9',
+                      fontSize: '0.9rem',
+                      color: '#334155',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <span>{idea}</span>
+                    <Plus size={16} style={{ color: '#94a3b8' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
+        </>
+      )}
+
+      {/* TAB 2: ADS & PIXELS CONFIGURATION */}
+      {activeMainTab === 'ads' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '24px' }}>
+
+          {/* Social Pixels Setup Card */}
+          <div style={{
+            background: 'var(--admin-card-bg, #ffffff)',
+            borderRadius: '20px',
+            padding: '28px',
+            border: '1px solid rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+          }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Target style={{ color: 'var(--admin-accent, #c5a880)' }} size={24} />
+              ربط أكواد البكسل (Pixel IDs) للتتبع
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '24px', lineHeight: '1.5' }}>
+              أدخلي معرفات الـ Pixels الخاصة بحساباتك الإعلانية. سيتم تتبع الزوار والمبيعات والإضافات للسلة تلقائياً عبر <strong>Meta (Facebook & Instagram)</strong> و <strong>Snapchat</strong> و <strong>TikTok</strong>.
+            </p>
+
+            <form onSubmit={handleSavePixels}>
+              
+              {/* Meta Pixel (Facebook & Instagram) */}
+              <div style={{ marginBottom: '20px', padding: '16px', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', fontSize: '0.95rem', color: '#1877f2', marginBottom: '8px' }}>
+                  <FaFacebook size={18} /> <FaInstagram size={18} style={{ color: '#E1306C' }} />
+                  Meta Pixel ID (Facebook & Instagram)
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: 123456789012345"
+                  value={pixelData.meta_pixel_id}
+                  onChange={e => setPixelData({ ...pixelData, meta_pixel_id: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.95rem',
+                    fontFamily: 'monospace',
+                    boxSizing: 'border-box'
+                  }}
+                />
+                <span style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                  يُستخدم لتتبع الحملات على فيسبوك وانستغرام معاً
+                </span>
+              </div>
+
+              {/* Snapchat Pixel */}
+              <div style={{ marginBottom: '20px', padding: '16px', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', fontSize: '0.95rem', color: '#d97706', marginBottom: '8px' }}>
+                  <FaSnapchatGhost size={18} />
+                  Snapchat Pixel ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                  value={pixelData.snap_pixel_id}
+                  onChange={e => setPixelData({ ...pixelData, snap_pixel_id: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.95rem',
+                    fontFamily: 'monospace',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* TikTok Pixel */}
+              <div style={{ marginBottom: '24px', padding: '16px', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700', fontSize: '0.95rem', color: '#000000', marginBottom: '8px' }}>
+                  <FaTiktok size={18} />
+                  TikTok Pixel ID
+                </label>
+                <input
+                  type="text"
+                  placeholder="مثال: CXXXXXXXXXXXXXXX"
+                  value={pixelData.tiktok_pixel_id}
+                  onChange={e => setPixelData({ ...pixelData, tiktok_pixel_id: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '10px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.95rem',
+                    fontFamily: 'monospace',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              </div>
+
+              {/* Save Button */}
+              <button
+                type="submit"
+                disabled={savingPixels}
+                style={{
+                  width: '100%',
+                  padding: '14px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'var(--admin-accent, #c5a880)',
+                  color: '#fff',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(197, 168, 128, 0.4)'
+                }}
+              >
+                {savingPixels ? <RefreshCw className="spin" size={18} /> : <Save size={18} />}
+                {savingPixels ? 'جاري حفظ الإعدادات...' : 'حفظ إعدادات البكسل'}
+              </button>
+
+              {pixelSaveMessage && (
+                <div style={{
+                  marginTop: '16px',
+                  padding: '12px',
+                  borderRadius: '8px',
+                  background: pixelSaveMessage.startsWith('✅') ? '#ecfdf5' : '#fef2f2',
+                  color: pixelSaveMessage.startsWith('✅') ? '#065f46' : '#991b1b',
+                  fontSize: '0.9rem',
+                  fontWeight: '600',
+                  textAlign: 'center'
+                }}>
+                  {pixelSaveMessage}
+                </div>
+              )}
+
+            </form>
+          </div>
+
+          {/* Social Product Catalog Feed Card */}
+          <div style={{
+            background: 'var(--admin-card-bg, #ffffff)',
+            borderRadius: '20px',
+            padding: '28px',
+            border: '1px solid rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+          }}>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: '700', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <ShoppingBag style={{ color: '#10b981' }} size={24} />
+              رابط مزامنة الكتالوج التلقائي (Catalog Feed)
+            </h2>
+            <p style={{ color: '#64748b', fontSize: '0.9rem', marginBottom: '20px', lineHeight: '1.5' }}>
+              انسخي هذا الرابط وأضيفيه في حساباتك الإعلانية <strong>(Meta Commerce Manager / Snapchat Catalog / TikTok Seller)</strong> ليتم تحديث عباياتك وأسعارك وصورها تلقائياً بالكامل في الإعلانات الديناميكية!
+            </p>
+
+            {/* Catalog Link Box */}
+            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '6px' }}>رابط الكتالوج المباشر (Dynamic Catalog Feed):</span>
               <div style={{ display: 'flex', gap: '8px' }}>
-                <a href={platform.url} target="_blank" rel="noreferrer" style={{ flex: 1, padding: '8px 12px', borderRadius: '9px', background: hoveredCard === platform.id ? 'rgba(255,255,255,0.2)' : 'var(--admin-accent)', color: hoveredCard === platform.id ? '#fff' : '#000', fontWeight: '700', fontSize: '0.78rem', textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', backdropFilter: 'blur(4px)' }}>
-                  <ExternalLink size={13} /> فتح المنصة
-                </a>
-                <button onClick={() => copyLink(platform.url, platform.id)} style={{ padding: '8px 10px', borderRadius: '9px', background: hoveredCard === platform.id ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.05)', color: hoveredCard === platform.id ? '#fff' : 'var(--admin-text)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
-                  <Link2 size={13} /> {copied === platform.id ? '✓' : 'نسخ'}
+                <input
+                  type="text"
+                  readOnly
+                  value={catalogUrl}
+                  style={{
+                    flex: 1,
+                    padding: '10px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.88rem',
+                    fontFamily: 'monospace',
+                    background: '#fff',
+                    color: '#334155'
+                  }}
+                />
+                <button
+                  onClick={copyCatalogUrl}
+                  style={{
+                    padding: '10px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    background: copiedCatalog ? '#10b981' : 'var(--admin-accent, #c5a880)',
+                    color: '#fff',
+                    fontSize: '0.9rem',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                >
+                  {copiedCatalog ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                  {copiedCatalog ? 'تم النسخ' : 'نسخ الرابط'}
                 </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
 
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+            {/* Platform Quick Links & Instructions */}
+            <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1e293b', marginBottom: '12px' }}>روابط مباشرة لإعداد الكتالوج في المنصات:</h3>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              
+              <a
+                href="https://business.facebook.com/commerce"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: '#eff6ff',
+                  border: '1px solid #bfdbfe',
+                  color: '#1d4ed8',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaFacebook size={18} /> Meta Commerce Manager (FB & Insta Catalog)
+                </div>
+                <ExternalLink size={16} />
+              </a>
+
+              <a
+                href="https://business.snapchat.com/"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: '#fefce8',
+                  border: '1px solid #fef08a',
+                  color: '#a16207',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaSnapchatGhost size={18} /> Snapchat Business Catalog Manager
+                </div>
+                <ExternalLink size={16} />
+              </a>
+
+              <a
+                href="https://business.tiktok.com/"
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: '#f8fafc',
+                  border: '1px solid #e2e8f0',
+                  color: '#0f172a',
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <FaTiktok size={18} /> TikTok Business Catalog Manager
+                </div>
+                <ExternalLink size={16} />
+              </a>
+
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
     </div>
   );
 }
-
-
