@@ -85,6 +85,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   const { isDark, toggleDark }     = useDarkMode();
   const { currency, setCurrency, currencies } = useCurrency();
   const { customer, openLoginModal } = useCustomerAuth();
+  const { langCode, currentLang, changeLanguage: setAppLang, t, LANGUAGES: APP_LANGUAGES } = useLanguage();
 
   // ── Smart Search ──
   const [searchOpen, setSearchOpen]       = useState(false);
