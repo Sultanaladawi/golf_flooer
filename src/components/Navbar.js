@@ -98,6 +98,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   const searchDebounceRef                 = useRef(null);
 
   const [showLanguage, setShowLanguage] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState(() => {
     try {
       const saved = localStorage.getItem('zahrat_language');
@@ -117,6 +118,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   });
 
   const languageRef               = useRef(null);
+  const countryRef                = useRef(null);
 
   useEffect(() => {
     fetch('/api/offers')
@@ -161,7 +163,9 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
   // Close currency, language, and search dropdowns when clicking outside
   useEffect(() => {
     const onClick = (e) => {
-
+      if (countryRef.current && !countryRef.current.contains(e.target)) {
+        setShowCountryDropdown(false);
+      }
       if (languageRef.current && !languageRef.current.contains(e.target)) {
         setShowLanguage(false);
       }
@@ -542,6 +546,101 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                 pointerEvents: 'none'
               }}
             />
+
+            {/* Country & Currency Switcher Dropdown */}
+            <div ref={countryRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowCountryDropdown(v => !v)}
+                style={{
+                  background: scrolled ? 'var(--bg-elevated)' : 'rgba(255,255,255,0.12)',
+                  border: scrolled ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: '20px',
+                  padding: '5px 12px',
+                  cursor: 'pointer',
+                  color: textColor,
+                  fontSize: '0.78rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  transition: 'all 0.3s',
+                  letterSpacing: '0.5px'
+                }}
+                aria-label="تغيير البلد والعملة"
+              >
+                <img
+                  src={getFlagUrl(currentLangObj.iso)}
+                  alt={currentLangObj.name}
+                  style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+                <span>{currentLangObj.name} ({currency.code})</span>
+                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
+              </button>
+
+              {showCountryDropdown && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: '0',
+                  background: 'var(--bg-surface)',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                  padding: '10px 0',
+                  minWidth: '220px',
+                  maxHeight: '340px',
+                  overflowY: 'auto',
+                  zIndex: 9999,
+                  direction: 'rtl'
+                }}>
+                  <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
+                    اختاري البلد / العملة
+                  </div>
+                  {LANGUAGES.map(l => {
+                    const isSelected = selectedLanguage === l.code && selectedIso === l.iso;
+                    const cur = currencies.find(c => c.iso === l.iso) || currencies.find(c => c.code === 'USD');
+                    return (
+                      <button
+                        key={`${l.code}-${l.iso}`}
+                        onClick={() => {
+                          changeLanguage(l.code, l.iso);
+                          setCurrency(cur);
+                          setShowCountryDropdown(false);
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '10px 16px',
+                          background: isSelected ? 'var(--gold-glow)' : 'transparent',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '10px',
+                          fontSize: '0.88rem',
+                          color: 'var(--espresso)',
+                          fontWeight: isSelected ? '700' : '400',
+                          textAlign: 'right',
+                          transition: 'background 0.2s',
+                          borderRight: isSelected ? '3px solid var(--gold)' : '3px solid transparent',
+                        }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                        onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
+                      >
+                        <img
+                          src={getFlagUrl(l.iso)}
+                          alt={l.name}
+                          style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
+                          onError={e => { e.target.style.display = 'none'; }}
+                        />
+                        <span style={{ flex: 1 }}>{l.name}</span>
+                        <span style={{ color: 'var(--gold-dim)', fontWeight: '700', fontSize: '0.8rem' }}>{cur.code}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
             {/* 9 Languages Switcher Dropdown */}
             <div ref={languageRef} style={{ position: 'relative' }}>
