@@ -681,99 +681,53 @@ const Products = () => {
                 </div>
               </div>
 
-              {/* Video URL Input & Upload Buttons */}
+              {/* Video URL Input & Upload */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                   <label style={labelStyle}>{t('Product Video URL') || 'رابط فيديو المنتج (Video URL)'}</label>
-                  
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    <label style={{
-                      background: 'var(--espresso)',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      padding: '6px 14px',
-                      fontSize: '0.82rem',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                    }}>
-                      📁 رفع فيديو من الجهاز
-                      <input
-                        type="file"
-                        accept="video/*"
-                        style={{ display: 'none' }}
-                        onChange={async (e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          const data = new FormData();
-                          data.append('video', file);
-                          try {
-                            showToast('جاري رفع ملف الفيديو إلى السيرفر...', 'info');
-                            const res = await axios.post('/api/upload-video', data, {
-                              headers: { 'Content-Type': 'multipart/form-data' }
-                            });
-                            if (res.data && res.data.url) {
-                              setFormData(prev => ({ ...prev, video_url: res.data.url }));
-                              showToast('✓ تم رفع ملف الفيديو وحفظ مساره بنجاح!', 'success');
-                            }
-                          } catch (err) {
-                            showToast('فشل رفع ملف الفيديو: ' + err.message, 'error');
-                          }
-                        }}
-                      />
-                    </label>
-
-                    <button
-                      type="button"
-                      disabled={aiVideoLoading || !formData.image_url}
-                      onClick={async () => {
-                        if (!formData.image_url) {
-                          showToast('يرجى اختيار صورة للمنتج أولاً للتوليد منها', 'error');
-                          return;
-                        }
-                        setAiVideoLoading(true);
+                  <label style={{
+                    background: 'var(--espresso)',
+                    border: 'none',
+                    borderRadius: '8px',
+                    color: '#fff',
+                    padding: '6px 14px',
+                    fontSize: '0.82rem',
+                    fontWeight: '800',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                  }}>
+                    📁 رفع فيديو من الجهاز
+                    <input
+                      type="file"
+                      accept="video/*"
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+                        const fd = new FormData();
+                        fd.append('video', file);
                         try {
-                          const res = await axios.post('/api/admin/generate-video', {
-                            imageUrl: formData.image_url,
-                            productName: formData.name
+                          showToast('جاري رفع ملف الفيديو إلى السيرفر...', 'info');
+                          const res = await axios.post('/api/upload-video', fd, {
+                            headers: { 'Content-Type': 'multipart/form-data' }
                           });
-                          if (res.data && res.data.videoUrl) {
-                            setFormData(prev => ({ ...prev, video_url: res.data.videoUrl }));
-                            showToast('✓ تم توليد وتعيين الفيديو السينمائي (14ث) بنجاح!', 'success');
+                          if (res.data && res.data.url) {
+                            setFormData(prev => ({ ...prev, video_url: res.data.url }));
+                            showToast('✓ تم رفع ملف الفيديو وحفظ مساره بنجاح!', 'success');
                           }
-                        } catch(err) {
-                          showToast('فشل توليد الفيديو: ' + err.message, 'error');
-                        } finally {
-                          setAiVideoLoading(false);
+                        } catch (err) {
+                          showToast('فشل رفع ملف الفيديو: ' + err.message, 'error');
                         }
                       }}
-                      style={{
-                        background: 'linear-gradient(135deg, #c5a880, #8f6e40)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff',
-                        padding: '6px 14px',
-                        fontSize: '0.82rem',
-                        fontWeight: '800',
-                        cursor: (aiVideoLoading || !formData.image_url) ? 'not-allowed' : 'pointer',
-                        opacity: (aiVideoLoading || !formData.image_url) ? 0.6 : 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        boxShadow: '0 4px 12px rgba(197,168,128,0.3)'
-                      }}
-                    >
-                      {aiVideoLoading ? '🎬 جاري توليد الفيديو السينمائي AI (14ث)...' : '✨ توليد فيديو سينمائي AI (12-15ث)'}
-                    </button>
-                  </div>
+                    />
+                  </label>
                 </div>
-                <input 
-                  type="text" 
-                  value={formData.video_url || ''} 
+                <input
+                  type="text"
+                  value={formData.video_url || ''}
                   onChange={(e) => setFormData({...formData, video_url: e.target.value})}
                   placeholder="مثال: /images/video_media_01KJYR0Y7G2RRS94QBZ9F8VQWX.mp4"
                   style={inputStyle}
