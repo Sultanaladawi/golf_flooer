@@ -5,6 +5,7 @@ require('dotenv').config();
 const Stripe = require('stripe');
 const stripe = process.env.STRIPE_SECRET_KEY ? Stripe(process.env.STRIPE_SECRET_KEY) : null;
 const OpenAI = require('openai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
@@ -55,7 +56,19 @@ if (API_KEY && API_KEY !== 'your_key_here') {
   console.log(`ًں”— BASE URL: ${BASE_URL}`);
   console.log('------------------------------------------');
 } else {
-  console.warn('[WARNING] AI API Key missing or default. AI Assistant in Fallback Mode.');
+  console.warn('[WARNING] OpenAI API Key missing or default. AI Assistant in Fallback Mode.');
+}
+
+// Initialize Google Gemini
+let gemini = null;
+const GEMINI_KEY = (process.env.GEMINI_API_KEY || '').trim();
+if (GEMINI_KEY) {
+  gemini = new GoogleGenerativeAI(GEMINI_KEY);
+  console.log('------------------------------------------');
+  console.log('✨ GEMINI AI: Initialized with gemini-2.0-flash');
+  console.log('------------------------------------------');
+} else {
+  console.warn('[WARNING] GEMINI_API_KEY missing. Gemini AI disabled.');
 }
 
 const app = express();
@@ -1608,64 +1621,111 @@ app.post('/api/admin/login', (req, res) => {
 // AI Cinematic Video Generator Endpoint (Image-to-Video Engine 12-15s, Watermark-Free)
 app.post('/api/admin/generate-video', async (req, res) => {
   try {
+    const GEMINI_KEY = (process.env.GEMINI_API_KEY || '').trim();
+    if (!GEMINI_KEY) return res.status(500).json({ error: 'GEMINI_API_KEY غير مضبوط في ملف .env' });
+
     const { imageUrl, productName } = req.body;
     if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
 
-    // Available HD Watermark-Free Abaya Motion Video Assets
-    const videoAssets = [
-      '/12 (1).mp4',
-      '/12 (2).mp4',
-      '/12 (3).mp4',
-      '/12 (4).mp4',
-      '/12 (5).mp4',
-      '/11 (1).mp4',
-      '/11 (2).mp4',
-      '/11 (3).mp4',
-      '/13 (1).mp4',
-      '/13 (2).mp4',
-      '/13 (6).mp4',
-      '/13 (7).mp4',
-      '/8.mp4',
-      '/9 (1).mp4',
-      '/9 (2).mp4',
-      '/lookbook_video.mp4',
-      '/images/video_media_01KJYR0Y7G2RRS94QBZ9F8VQWX.mp4',
-      '/images/WhatsApp Video 2026-07-28 at 8.45.40 PM.mp4',
-      '/images/WhatsApp Video 2026-07-28 at 8.45.43 PM (2).mp4'
-    ];
-
-    // Smart matcher based on image filename / product string hash
-    let matchedVideo = null;
-    const cleanImg = imageUrl.toLowerCase();
-    
-    if (cleanImg.includes('12')) matchedVideo = '/12 (1).mp4';
-    else if (cleanImg.includes('11')) matchedVideo = '/11 (1).mp4';
-    else if (cleanImg.includes('13')) matchedVideo = '/13 (1).mp4';
-    else if (cleanImg.includes('8')) matchedVideo = '/8.mp4';
-    else if (cleanImg.includes('9')) matchedVideo = '/9 (1).mp4';
-
-    if (!matchedVideo) {
-      // Deterministic hash selection based on imageUrl & productName
-      let hash = 0;
-      const keyStr = (imageUrl || '') + (productName || '');
-      for (let i = 0; i < keyStr.length; i++) {
-        hash = (hash << 5) - hash + keyStr.charCodeAt(i);
-        hash |= 0;
-      }
-      const index = Math.abs(hash) % videoAssets.length;
-      matchedVideo = videoAssets[index];
+    // Step 1: Read the image as base64
+    let imageBase64, mimeType;
+    if (imageUrl.startsWith('http')) {
+      const imgFetch = await fetch(imageUrl);
+      if (!imgFetch.ok) throw new Error('Failed to fetch image from URL');
+      const imgBuffer = await imgFetch.arrayBuffer();
+      imageBase64 = Buffer.from(imgBuffer).toString('base64');
+      mimeType = imgFetch.headers.get('content-type') || 'image/jpeg';
+    } else {
+      const localPath = path.join(__dirname, 'public', imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl);
+      if (!fs.existsSync(localPath)) throw new Error('Image file not found: ' + localPath);
+      const imgBuffer = fs.readFileSync(localPath);
+      imageBase64 = imgBuffer.toString('base64');
+      const ext = path.extname(imageUrl).toLowerCase().replace('.', '');
+      mimeType = ext === 'jpg' ? 'image/jpeg' : (ext === 'png' ? 'image/png' : 'image/jpeg');
     }
 
-    setTimeout(() => {
-      res.json({
-        success: true,
-        videoUrl: matchedVideo,
-        duration: '14 seconds',
-        resolution: '4K Ultra HD',
-        watermarkFree: true
-      });
-    }, 1200);
+    // Step 2: Upload image to Gemini Files API
+    const imgBytes = Buffer.from(imageBase64, 'base64');
+    const uploadRes = await fetch(
+      `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': mimeType,
+          'Content-Length': imgBytes.length,
+          'X-Goog-Upload-Protocol': 'raw',
+          'X-Goog-Upload-Command': 'upload, finalize',
+        },
+        body: imgBytes
+      }
+    );
+    const uploadData = await uploadRes.json();
+    if (!uploadData.file || !uploadData.file.uri) {
+      throw new Error('فشل رفع الصورة إلى Gemini: ' + JSON.stringify(uploadData));
+    }
+    const fileUri = uploadData.file.uri;
+
+    // Step 3: Submit video generation job to Veo 2
+    const prompt = `Elegant cinematic product video for a luxury abaya fashion item named "${productName || 'premium product'}". Smooth slow-motion camera pan, professional fashion lighting, ultra-HD quality, no watermark.`;
+
+    const genRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predictLongRunning?key=${GEMINI_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          instances: [{
+            prompt,
+            image: { gcsUri: fileUri, mimeType }
+          }],
+          parameters: {
+            aspectRatio: '9:16',
+            durationSeconds: '8',
+            sampleCount: 1,
+            personGeneration: 'dont_allow'
+          }
+        })
+      }
+    );
+    const genData = await genRes.json();
+    if (!genData.name) throw new Error('فشل بدء عملية توليد الفيديو: ' + JSON.stringify(genData));
+
+    const operationName = genData.name;
+
+    // Step 4: Poll until done (max 3 minutes)
+    let videoBytes = null;
+    for (let i = 0; i < 36; i++) {
+      await new Promise(r => setTimeout(r, 5000));
+      const pollRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${operationName}?key=${GEMINI_KEY}`
+      );
+      const pollData = await pollRes.json();
+      if (pollData.done) {
+        if (pollData.error) throw new Error('خطأ في توليد الفيديو: ' + JSON.stringify(pollData.error));
+        const videoB64 = pollData.response?.predictions?.[0]?.bytesBase64Encoded;
+        if (videoB64) {
+          videoBytes = Buffer.from(videoB64, 'base64');
+          break;
+        }
+      }
+    }
+
+    if (!videoBytes) throw new Error('انتهى وقت الانتظار - لم يكتمل توليد الفيديو');
+
+    // Step 5: Save generated video locally
+    const videoFilename = `veo2_${Date.now()}.mp4`;
+    const videoSavePath = path.join(__dirname, 'public', 'images', videoFilename);
+    fs.writeFileSync(videoSavePath, videoBytes);
+
+    res.json({
+      success: true,
+      videoUrl: `/images/${videoFilename}`,
+      duration: '8 seconds',
+      model: 'Veo 2'
+    });
+
   } catch (err) {
+    console.error('[generate-video] Error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
@@ -2721,9 +2781,6 @@ CRITICAL RULES:
 2. Pay STRICT attention to dates, hours, and the number of orders per day. When answering, emphasize the exact date, time (hour/minute), and order counts for the requested period (e.g., Today, Yesterday, Day before yesterday, This Month, or All-Time).
 3. If the user asks in Arabic, answer in Arabic. HOWEVER, NEVER translate names, products, or database values (e.g. "sultan", "Ahmad"). You MUST output them exactly as written in English in the database tables.
 4. Ensure 100% factual accuracy based solely on the provided context.`;
-      } catch (dbError) {
-        console.error('[AI] Data Merge Error:', dbError);
-        businessContext = `You MUST reply EXACTLY with this text and nothing else: "DB_ERROR: ${dbError.message}"`;
       }
     } else {
       const [menuRes] = await promiseDb.query(`
@@ -2745,22 +2802,49 @@ CRITICAL RULES:
     console.warn('[AI] Context Fetch Error:', e.message);
   }
 
+  // --- Gemini (Primary) ---
+  if (gemini) {
+    try {
+      const model = gemini.getGenerativeModel({
+        model: 'gemini-2.0-flash',
+        systemInstruction: businessContext
+      });
+
+      // Build chat history for Gemini format
+      const geminiHistory = [];
+      if (history && Array.isArray(history)) {
+        history.forEach(m => {
+          if (m.role === 'user') geminiHistory.push({ role: 'user', parts: [{ text: m.content }] });
+          else if (m.role === 'assistant') geminiHistory.push({ role: 'model', parts: [{ text: m.content }] });
+        });
+      }
+
+      const chat = model.startChat({ history: geminiHistory });
+      const result = await chat.sendMessage(message);
+      const reply = result.response.text();
+      return res.json({ reply: reply || 'عذراً، لم أتمكن من الإجابة. حاول مرة أخرى!' });
+    } catch (geminiError) {
+      console.error('[Gemini] Chat Error:', geminiError.message);
+      // Fall through to OpenAI fallback
+    }
+  }
+
+  // --- OpenAI (Fallback) ---
   try {
-    if (!openai) throw new Error('OpenAI not initialized');
+    if (!openai) throw new Error('No AI provider available');
     const aiMessages = [{ role: 'system', content: businessContext }];
     if (history && Array.isArray(history)) aiMessages.push(...history);
     aiMessages.push({ role: 'user', content: message });
-    
-    const completion = await openai.chat.completions.create({ 
-      model: 'gpt-4o-mini', 
-      messages: aiMessages, 
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: aiMessages,
       max_tokens: 500,
       temperature: 0.0
     });
-    return res.json({ reply: completion.choices[0]?.message?.content || "I'm a bit stuck! Reach us at hello@CaffAInecoffee.co.uk âک•" });
+    return res.json({ reply: completion.choices[0]?.message?.content || 'عذراً، لم أتمكن من الإجابة.' });
   } catch (error) {
-    console.error('[AI] Chat Error:', error.message);
-    return res.status(200).json({ reply: `[Local Mode] AI service temporarily unavailable. Please try again later.` });
+    console.error('[AI] Chat Fallback Error:', error.message);
+    return res.status(200).json({ reply: 'عذراً، خدمة الذكاء الاصطناعي غير متاحة مؤقتاً. يرجى المحاولة لاحقاً.' });
   }
 });
 
