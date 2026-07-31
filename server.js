@@ -2496,7 +2496,30 @@ app.post('/api/newsletter', (req, res) => {
         [email, name || null, country || null], 
         (err3, result) => {
           if (err3) return res.status(500).json({ error: err3.message });
-          res.status(201).json({ success: true, message: 'تم الاشتراك بنجاح', id: result.insertId });
+          
+          // Send automated Welcome Email
+          const senderEmail = process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
+          if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+            transporter.sendMail({
+              from: `"زهرة بيسان" <${senderEmail}>`,
+              to: email,
+              subject: "🌸 أهلاً بكِ في عائلة زهرة بيسان! هدية خاصة بانتظارك",
+              html: `
+                <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; color: #333;">
+                  <h2 style="color: #c5a880;">أهلاً بكِ في عالم زهرة بيسان للعباءات والأناقة 🌸</h2>
+                  <p>سعداء جداً بانضمامك إلينا! كنسخة من ترحيبنا الخاص، يسعدنا إهداؤك خصم خاص على طلبك الأول.</p>
+                  <div style="background: #fdfaf6; border: 1px solid #c5a880; padding: 20px; text-align: center; border-radius: 12px; margin: 20px 0;">
+                    <span style="font-size: 1.1rem; color: #5c3d1e;">رمز الخصم الترحيبي الخاص بك:</span>
+                    <h3 style="color: #c5a880; font-size: 1.8rem; letter-spacing: 2px; margin: 10px 0;">WELCOME5</h3>
+                  </div>
+                  <p>استمتعي بتصفح التشكيلة الجديدة من العباءات الخليجية والمميزة.</p>
+                  <a href="https://zahratbeesan.com" style="background: #c5a880; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">تصفحي المتجر الآن</a>
+                </div>
+              `
+            }).catch(e => console.error('[Welcome Email Error]:', e.message));
+          }
+
+          res.status(201).json({ success: true, message: 'تم الاشتراك بنجاح وتوجيه الإيميل الترحيبي', id: result.insertId });
         }
       );
     }
