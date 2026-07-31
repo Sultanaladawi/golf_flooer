@@ -1447,7 +1447,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 </p>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '15px', marginBottom: '20px' }}>
                 {/* 1. COD - Only for Domestic (Jordan) */}
                 {form.country === 'الأردن' && (
                   <div
@@ -1456,15 +1456,15 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                       setErrors(err => ({ ...err, paymentMethod: '' }));
                     }}
                     style={{
-                      padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
+                      padding: '18px 12px', textAlign: 'center', borderRadius: '14px', cursor: 'pointer', transition: '0.3s',
                       border: form.paymentMethod === 'cod' ? '2px solid var(--gold)' : '2px solid var(--border)',
                       backgroundColor: form.paymentMethod === 'cod' ? 'var(--gold-glow)' : 'var(--white)',
                       color: 'var(--espresso)', fontWeight: 'bold'
                     }}
                   >
-                    <Landmark size={22} style={{ margin: '0 auto 6px', color: form.paymentMethod === 'cod' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
-                    <div style={{ fontSize: '0.85rem' }}>الدفع عند الاستلام</div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>داخل الأردن فقط</div>
+                    <Landmark size={24} style={{ margin: '0 auto 8px', color: form.paymentMethod === 'cod' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
+                    <div style={{ fontSize: '0.95rem' }}>الدفع عند الاستلام</div>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '2px' }}>داخل الأردن فقط</div>
                   </div>
                 )}
 
@@ -1475,74 +1475,16 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                     setErrors(err => ({ ...err, paymentMethod: '' }));
                   }}
                   style={{
-                    padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
+                    padding: '18px 12px', textAlign: 'center', borderRadius: '14px', cursor: 'pointer', transition: '0.3s',
                     border: form.paymentMethod === 'paypal' ? '2px solid var(--gold)' : '2px solid var(--border)',
                     backgroundColor: form.paymentMethod === 'paypal' ? 'var(--gold-glow)' : 'var(--white)',
                     color: 'var(--espresso)', fontWeight: 'bold'
                   }}
                 >
-                  <i className="fab fa-paypal" style={{ fontSize: '22px', margin: '0 auto 6px', color: form.paymentMethod === 'paypal' ? '#003087' : 'var(--espresso-dim)', display: 'block' }} />
-                  <div style={{ fontSize: '0.85rem' }}>PayPal</div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>لكافة الدول (عالمي)</div>
+                  <i className="fab fa-paypal" style={{ fontSize: '24px', margin: '0 auto 8px', color: form.paymentMethod === 'paypal' ? '#003087' : 'var(--espresso-dim)', display: 'block' }} />
+                  <div style={{ fontSize: '0.95rem' }}>PayPal</div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '2px' }}>كافة الدول (عالمي ومحلي)</div>
                 </div>
-
-                {/* 3. Credit Card */}
-                <div
-                  onClick={() => {
-                    setForm(f => ({ ...f, paymentMethod: 'card' }));
-                    setErrors(err => ({ ...err, paymentMethod: '' }));
-                  }}
-                  style={{
-                    padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
-                    border: form.paymentMethod === 'card' ? '2px solid var(--gold)' : '2px solid var(--border)',
-                    backgroundColor: form.paymentMethod === 'card' ? 'var(--gold-glow)' : 'var(--white)',
-                    color: 'var(--espresso)', fontWeight: 'bold'
-                  }}
-                >
-                  <CreditCard size={22} style={{ margin: '0 auto 6px', color: form.paymentMethod === 'card' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
-                  <div style={{ fontSize: '0.85rem' }}>بطاقة ائتمانية</div>
-                  <div style={{ fontSize: '0.65rem', color: 'var(--espresso-dim)' }}>Visa / MasterCard</div>
-                </div>
-
-                {/* 4. CliQ (Jordan Only) */}
-                {form.country === 'الأردن' && (
-                  <div
-                    onClick={() => {
-                      setForm(f => ({ ...f, paymentMethod: 'cliq' }));
-                      setErrors(err => ({ ...err, paymentMethod: '' }));
-                    }}
-                    style={{
-                      padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
-                      border: form.paymentMethod === 'cliq' ? '2px solid var(--gold)' : '2px solid var(--border)',
-                      backgroundColor: form.paymentMethod === 'cliq' ? 'var(--gold-glow)' : 'var(--white)',
-                      color: 'var(--espresso)', fontWeight: 'bold'
-                    }}
-                  >
-                    <Zap size={22} style={{ margin: '0 auto 6px', color: form.paymentMethod === 'cliq' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
-                    <div style={{ fontSize: '0.85rem' }}>كليك (CliQ)</div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--espresso-dim)' }}>تحويل فوري</div>
-                  </div>
-                )}
-
-                {/* 5. Wallet / Bank (Jordan Only) */}
-                {form.country === 'الأردن' && (
-                  <div
-                    onClick={() => {
-                      setForm(f => ({ ...f, paymentMethod: 'wallet' }));
-                      setErrors(err => ({ ...err, paymentMethod: '' }));
-                    }}
-                    style={{
-                      padding: '15px 10px', textAlign: 'center', borderRadius: '12px', cursor: 'pointer', transition: '0.3s',
-                      border: form.paymentMethod === 'wallet' ? '2px solid var(--gold)' : '2px solid var(--border)',
-                      backgroundColor: form.paymentMethod === 'wallet' ? 'var(--gold-glow)' : 'var(--white)',
-                      color: 'var(--espresso)', fontWeight: 'bold'
-                    }}
-                  >
-                    <CreditCard size={22} style={{ margin: '0 auto 6px', color: form.paymentMethod === 'wallet' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
-                    <div style={{ fontSize: '0.85rem' }}>محفظة إلكترونية</div>
-                    <div style={{ fontSize: '0.65rem', color: 'var(--espresso-dim)' }}>ZainCash / Umniah</div>
-                  </div>
-                )}
               </div>
 
               {['cliq', 'wallet', 'transfer'].includes(form.paymentMethod) && (
@@ -1612,7 +1554,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               />
             </div>
 
-            {(form.paymentMethod === 'paypal' || form.paymentMethod === 'card') ? (
+            {form.paymentMethod === 'paypal' ? (
               <div style={{ marginTop: '20px' }}>
                 <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture" }}>
                   <PayPalButtons 
