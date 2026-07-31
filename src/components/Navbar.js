@@ -542,7 +542,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
               }}
             />
 
-              {/* 9 Languages Switcher Dropdown */}
+            {/* 9 Languages Switcher Dropdown */}
+            <div ref={languageRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowLanguage(v => !v)}
                 style={{
