@@ -663,8 +663,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                 }}
                 aria-label="تغيير اللغة"
               >
-                <span style={{ fontSize: '1rem' }}>{currentLang?.flag || '🌐'}</span>
-                <span>{currentLang?.name || 'العربية'}</span>
+                <span style={{ fontSize: '0.9rem' }}>🌐</span>
+                <span>{langCode === 'en' ? 'English' : (langCode === 'tr' ? 'Türkçe' : (langCode === 'fr' ? 'Français' : 'العربية'))}</span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
               </button>
 
