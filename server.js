@@ -484,6 +484,30 @@ app.post('/api/orders', async (req, res) => {
     }
 
     await conn.commit();
+
+    // Send admin notification email to zahratbeesanshop@gmail.com
+    const adminEmailToNotify = process.env.STORE_ADMIN_EMAIL || 'zahratbeesanshop@gmail.com';
+    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+      try {
+        transporter.sendMail({
+          from: `"زهرة بيسان" <${process.env.SMTP_USER}>`,
+          to: adminEmailToNotify,
+          subject: `🛍️ طلب جديد بقيمة ${totalAmount} JOD من ${customer_name}`,
+          html: `
+            <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; color: #333;">
+              <h2 style="color: #c5a880;">وصل طلب جديد على متجر زهرة بيسان!</h2>
+              <p><b>رقم الطلب:</b> #${orderId}</p>
+              <p><b>اسم العميلة:</b> ${customer_name}</p>
+              <p><b>رقم الهاتف:</b> ${phone || 'غير مدخل'}</p>
+              <p><b>البريد الإلكتروني:</b> ${email || 'غير مدخل'}</p>
+              <p><b>عنوان التوصيل:</b> ${delivery_address || 'استلام'}</p>
+              <p style="font-size: 1.2rem; color: #5c3d1e;"><b>المبلغ الإجمالي:</b> ${totalAmount} JOD</p>
+            </div>
+          `
+        }).catch(e => console.error('[Order Notification Email Error]:', e.message));
+      } catch (_) {}
+    }
+
     res.status(201).json({ success: true, orderId });
 
   } catch (err) {
