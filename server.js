@@ -65,7 +65,7 @@ const GEMINI_KEY = (process.env.GEMINI_API_KEY || '').trim();
 if (GEMINI_KEY) {
   gemini = new GoogleGenerativeAI(GEMINI_KEY);
   console.log('------------------------------------------');
-  console.log('✨ GEMINI AI: Initialized with gemini-2.0-flash');
+  console.log('✨ GEMINI AI: Initialized with gemini-2.5-pro (Best Model)');
   console.log('------------------------------------------');
 } else {
   console.warn('[WARNING] GEMINI_API_KEY missing. Gemini AI disabled.');
@@ -2806,7 +2806,7 @@ CRITICAL RULES:
   if (gemini) {
     try {
       const model = gemini.getGenerativeModel({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-pro',
         systemInstruction: businessContext
       });
 
