@@ -115,10 +115,10 @@ export function CartProvider({ children }) {
     return s + (price * i.qty);
   }, 0);
 
-  // Bundle Offer logic: 10% discount if buying 2 or more main items
-  const isBundleApplied = mainItemsCount >= 2;
-  const bundleDiscount = isBundleApplied ? (subTotal * 0.10) : 0;
-  const totalPrice = subTotal - bundleDiscount;
+  // No automatic bundle discount
+  const isBundleApplied = false;
+  const bundleDiscount = 0;
+  const totalPrice = subTotal;
 
   const addItem = (item) => {
     dispatch({ type: 'ADD_ITEM', item });
