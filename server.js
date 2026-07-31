@@ -18,7 +18,7 @@ if (!fs.existsSync(imgDir)) {
   fs.mkdirSync(imgDir, { recursive: true });
 }
 
-// Multer config: save to public/images, keep original extension
+// Multer config for images & videos up to 100MB
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, imgDir),
   filename: (req, file, cb) => {
@@ -28,11 +28,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+  limits: { fileSize: 100 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|webp|gif/;
-    const ok = allowed.test(file.mimetype) && allowed.test(path.extname(file.originalname).toLowerCase());
-    ok ? cb(null, true) : cb(new Error('Only image files are allowed'));
+    const allowed = /mp4|mov|webm|avi|m4v|jpeg|jpg|png|webp|gif/;
+    const ok = allowed.test(file.mimetype) || allowed.test(path.extname(file.originalname).toLowerCase());
+    ok ? cb(null, true) : cb(new Error('Only video and image files are allowed'));
   }
 });
 
@@ -168,6 +168,11 @@ app.post('/api/log-action', (req, res) => {
 // Image upload endpoint
 app.post('/api/upload-image', upload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  res.json({ filename: req.file.filename, url: `/images/${req.file.filename}` });
+});
+
+app.post('/api/upload-video', upload.single('video'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No video file uploaded' });
   res.json({ filename: req.file.filename, url: `/images/${req.file.filename}` });
 });
 
