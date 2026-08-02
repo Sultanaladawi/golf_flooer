@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
-Sitemap: https://caffaine-dashboard-v1.azurewebsites.net/sitemap.xml
+Sitemap: https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net/sitemap.xml

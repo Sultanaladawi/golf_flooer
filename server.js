@@ -140,6 +140,49 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.resolve(__dirname, 'publ
 app.get('/favicon.jpg', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.jpg')));
 app.get('/manifest.json', (req, res) => res.sendFile(path.resolve(__dirname, 'public/manifest.json')));
 
+// Dynamic XML Sitemap Endpoint for Google Search Engine Indexing (Bilingual Arabic/English)
+app.get('/sitemap.xml', async (req, res) => {
+  const baseUrl = process.env.BASE_URL || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net';
+  let productsXml = '';
+  try {
+    const [products] = await db.promise().query('SELECT id, name, updated_at FROM products');
+    productsXml = (products || []).map(p => `
+  <url>
+    <loc>${baseUrl}/#product-${p.id}</loc>
+    <lastmod>${p.updated_at ? new Date(p.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`).join('');
+  } catch (e) {}
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>${baseUrl}/</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="ar" href="${baseUrl}/" />
+    <xhtml:link rel="alternate" hreflang="en" href="${baseUrl}/?lang=en" />
+  </url>
+  <url>
+    <loc>${baseUrl}/blog</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/gift-cards</loc>
+    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>${productsXml}
+</urlset>`;
+
+  res.header('Content-Type', 'application/xml');
+  res.send(xml.trim());
+});
+
 
 
 app.use((req, res, next) => {
