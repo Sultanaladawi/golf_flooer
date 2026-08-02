@@ -141,21 +141,21 @@ app.get('/favicon.jpg', (req, res) => res.sendFile(path.resolve(__dirname, 'publ
 app.get('/manifest.json', (req, res) => res.sendFile(path.resolve(__dirname, 'public/manifest.json')));
 
 // Dynamic XML Sitemap Endpoint for Google Search Engine Indexing (Bilingual Arabic/English)
-app.get('/sitemap.xml', async (req, res) => {
+app.get('/sitemap.xml', (req, res) => {
   const baseUrl = process.env.BASE_URL || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net';
-  let productsXml = '';
-  try {
-    const [products] = await db.promise().query('SELECT id, name, updated_at FROM products');
-    productsXml = (products || []).map(p => `
+  db.query('SELECT id, name, updated_at FROM menu_items', (err, products) => {
+    let productsXml = '';
+    if (!err && Array.isArray(products)) {
+      productsXml = products.map(p => `
   <url>
     <loc>${baseUrl}/#product-${p.id}</loc>
     <lastmod>${p.updated_at ? new Date(p.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>`).join('');
-  } catch (e) {}
+    }
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>${baseUrl}/</loc>
@@ -179,8 +179,9 @@ app.get('/sitemap.xml', async (req, res) => {
   </url>${productsXml}
 </urlset>`;
 
-  res.header('Content-Type', 'application/xml');
-  res.send(xml.trim());
+    res.header('Content-Type', 'application/xml');
+    res.send(xml.trim());
+  });
 });
 
 
