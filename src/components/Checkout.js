@@ -1561,17 +1561,21 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                     style={{ layout: "vertical", shape: "pill", color: "gold" }}
                     onClick={(data, actions) => {
                       if (!validate()) {
+                        alert('يرجى استكمال الحقول المطلوبة أولاً (الاسم الكامل، رقم الهاتف، والمدينة والعنوان).');
                         return actions.reject();
                       }
                       return actions.resolve();
                     }}
                     createOrder={(data, actions) => {
+                      const usdAmount = (finalPrice * 1.41).toFixed(2);
                       return actions.order.create({
                         purchase_units: [
                           {
                             amount: {
-                              value: finalPrice.toFixed(2)
-                            }
+                              currency_code: "USD",
+                              value: usdAmount
+                            },
+                            description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
                           }
                         ]
                       });
@@ -1594,6 +1598,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                       } catch (err) {
                         setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
                       }
+                    }}
+                    onCancel={() => {
+                      alert('تم إلغاء عملية الدفع عبر PayPal. يمكنك إعادة المحاولة في أي وقت.');
+                    }}
+                    onError={(err) => {
+                      console.error('[PayPal Error]:', err);
+                      alert('حدث تضارب أثناء الاتصال ببوابة PayPal. يرجى المحاولة مجدداً.');
                     }}
                   />
                 </PayPalScriptProvider>
