@@ -243,6 +243,8 @@ const Products = () => {
     setModalMode('add');
     setFormData({ 
       id: null, name: '', price_num: '', cost_price: '', tax_amount: '', description: '', available: 1, pre_order: 0, category_id: dbCategories[0]?.id || '', image_url: '', video_url: '', tags: '', addons: '', addon_ids: [], tag_ids: [],
+      images_list: [],
+      videos_list: [],
       sku: '', subtitle: '', badge: '', weight: '',
       sizes_json: '["50", "52", "54", "56", "58", "60"]',
       fabric_json: '[{"label": "نوع القماش", "value": "كريب فاخر"}, {"label": "بلد المنشأ", "value": "الأردن"}]',
@@ -272,6 +274,24 @@ const Products = () => {
       }
     }
 
+    let initialImages = [];
+    try {
+      if (product.images) {
+        const parsed = typeof product.images === 'string' ? JSON.parse(product.images) : product.images;
+        initialImages = Array.isArray(parsed) ? parsed : [parsed];
+      }
+    } catch(e) {}
+    if (initialImages.length === 0 && product.image_url) initialImages = [product.image_url];
+
+    let initialVideos = [];
+    try {
+      if (product.videos) {
+        const parsed = typeof product.videos === 'string' ? JSON.parse(product.videos) : product.videos;
+        initialVideos = Array.isArray(parsed) ? parsed : [parsed];
+      }
+    } catch(e) {}
+    if (initialVideos.length === 0 && product.video_url) initialVideos = [product.video_url];
+
     setFormData({
       id: product.id,
       name: product.name,
@@ -284,6 +304,8 @@ const Products = () => {
       category_id: product.category_id || (dbCategories[0]?.id || ''),
       image_url: product.image_url || '',
       video_url: product.video_url || '',
+      images_list: initialImages,
+      videos_list: initialVideos,
       tags: product.tags || '',
       addons: product.addons || '',
       addon_ids: product.linkedAddons ? product.linkedAddons.map(a => parseInt(a.id)) : [],
@@ -311,8 +333,15 @@ const Products = () => {
       const computedSizesJson = JSON.stringify(sizeNames.length > 0 ? sizeNames : ["50", "52", "54", "56", "58", "60"]);
       const computedSizeChartJson = JSON.stringify(chartList);
 
+      const imgList = formData.images_list || (formData.image_url ? [formData.image_url] : []);
+      const vidList = formData.videos_list || (formData.video_url ? [formData.video_url] : []);
+
       const cleanFormData = {
         ...formData,
+        image_url: imgList[0] || formData.image_url || '',
+        images: JSON.stringify(imgList),
+        video_url: vidList[0] || formData.video_url || '',
+        videos: JSON.stringify(vidList),
         addon_ids: [...new Set((formData.addon_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
         tag_ids: [...new Set((formData.tag_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
         sku: formData.sku || null,
@@ -652,86 +681,111 @@ const Products = () => {
             </h3>
 
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {/* Image Picker Field */}
-              <div>
-                <label style={labelStyle}>{t('Product Image')}</label>
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  <div style={{ 
-                    width: '60px', height: '60px', borderRadius: '10px', overflow: 'hidden',
-                    border: `1px solid ${colors.border}`, backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>
-                    {formData.image_url ? 
+              {/* Multi-Image Gallery Manager */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <label style={labelStyle}>📷 {t('Product Images Gallery') || 'معرض صور المنتج (يمكنك إضافة أكثر من صورة)'}</label>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setShowImagePicker(true)} 
+                      style={{
+                        background: 'linear-gradient(135deg, #c5a36a, #9e7d47)',
+                        border: 'none', borderRadius: '8px', color: '#fff',
+                        padding: '6px 14px', fontSize: '0.82rem', fontWeight: '700',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px'
+                      }}
+                    >
+                      <Image size={14} /> + اختر صورة من المعرض
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grid of uploaded images */}
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', minHeight: '65px', padding: '10px', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))', borderRadius: '12px', border: `1px dashed ${colors.border}` }}>
+                  {(formData.images_list || []).map((imgUrl, idx) => (
+                    <div key={idx} style={{ position: 'relative', width: '65px', height: '65px', borderRadius: '10px', overflow: 'hidden', border: `2px solid ${idx === 0 ? colors.crema : 'transparent'}` }}>
                       <img 
-                        src={formData.image_url.startsWith('/') || formData.image_url.startsWith('http') ? formData.image_url : `/images/${formData.image_url}`} 
+                        src={imgUrl.startsWith('/') || imgUrl.startsWith('http') ? imgUrl : `/images/${imgUrl}`} 
                         alt="" 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                         onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }} 
-                      /> 
-                      : <Image size={24} color="#888" />}
-                  </div>
-                  <button type="button" onClick={() => setShowImagePicker(true)} style={{
-                    flex: 1, padding: '14px', borderRadius: '12px', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))',
-                    border: `1px solid ${colors.border}`, color: formData.image_url ? colors.latte : '#888',
-                    cursor: 'pointer', textAlign: 'left', fontSize: '0.9rem'
-                  }}>
-                    {formData.image_url || t('Click to select image...')}
-                  </button>
-                  {formData.image_url && <button type="button" onClick={() => setFormData({...formData, image_url: ''})} style={{ background: 'none', border: 'none', color: '#e74a3b', cursor: 'pointer' }}><X size={18} /></button>}
+                      />
+                      <button 
+                        type="button" 
+                        title="حذف الصورة"
+                        onClick={() => {
+                          const updated = formData.images_list.filter((_, i) => i !== idx);
+                          setFormData({ ...formData, images_list: updated, image_url: updated[0] || '' });
+                        }}
+                        style={{ position: 'absolute', top: '2px', right: '2px', backgroundColor: 'rgba(231, 74, 59, 0.9)', color: '#fff', border: 'none', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '11px' }}
+                      >
+                        ✕
+                      </button>
+                      {idx === 0 && <span style={{ position: 'absolute', bottom: '0', insetInline: 0, backgroundColor: 'rgba(197, 163, 106, 0.95)', color: '#000', fontSize: '9px', fontWeight: '900', textAlign: 'center' }}>الرئيسية</span>}
+                    </div>
+                  ))}
+
+                  {(!formData.images_list || formData.images_list.length === 0) && (
+                    <div style={{ color: '#888', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', padding: '10px' }}>
+                      لم تقم بإضافة صور لهذا المنتج بعد. اضغط على أزرار الإضافة للبدء.
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Video URL Input & Upload */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '15px' }}>
+              {/* Multi-Video Gallery Manager */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '15px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-                  <label style={labelStyle}>{t('Product Video URL') || 'رابط فيديو المنتج (Video URL)'}</label>
+                  <label style={labelStyle}>🎬 {t('Product Videos Gallery') || 'معرض فيديوهات المنتج (يمكنك إضافة أكثر من فيديو)'}</label>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {/* Manual Upload */}
+                    {/* Upload Video Button */}
                     <label style={{
                       background: 'var(--espresso)',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#fff',
-                      padding: '6px 14px',
-                      fontSize: '0.82rem',
-                      fontWeight: '800',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
+                      border: 'none', borderRadius: '8px', color: '#fff',
+                      padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800',
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                     }}>
                       📁 رفع فيديو من الجهاز
                       <input
                         type="file"
                         accept="video/*"
+                        multiple
                         style={{ display: 'none' }}
                         onChange={async (e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          const fd = new FormData();
-                          fd.append('video', file);
-                          try {
-                            showToast('جاري رفع ملف الفيديو إلى السيرفر...', 'info');
-                            const res = await axios.post('/api/upload-video', fd, {
-                              headers: { 'Content-Type': 'multipart/form-data' }
-                            });
-                            if (res.data && res.data.url) {
-                              setFormData(prev => ({ ...prev, video_url: res.data.url }));
-                              showToast('✓ تم رفع ملف الفيديو وحفظ مساره بنجاح!', 'success');
+                          const files = Array.from(e.target.files);
+                          if (files.length === 0) return;
+                          for (const file of files) {
+                            const fd = new FormData();
+                            fd.append('video', file);
+                            try {
+                              showToast(`جاري رفع ${file.name}...`, 'info');
+                              const res = await axios.post('/api/upload-video', fd, {
+                                headers: { 'Content-Type': 'multipart/form-data' }
+                              });
+                              if (res.data && res.data.url) {
+                                setFormData(prev => {
+                                  const updated = [...(prev.videos_list || []), res.data.url];
+                                  return { ...prev, videos_list: updated, video_url: updated[0] };
+                                });
+                                showToast(`✓ تم رفع ${file.name} بنجاح!`, 'success');
+                              }
+                            } catch (err) {
+                              showToast('فشل رفع ملف الفيديو: ' + err.message, 'error');
                             }
-                          } catch (err) {
-                            showToast('فشل رفع ملف الفيديو: ' + err.message, 'error');
                           }
                         }}
                       />
                     </label>
+
                     {/* AI Generate via Veo 2 */}
                     <button
                       type="button"
-                      disabled={aiVideoLoading || !formData.image_url}
+                      disabled={aiVideoLoading || !(formData.images_list && formData.images_list[0])}
                       onClick={async () => {
-                        if (!formData.image_url) {
+                        const mainImg = formData.images_list?.[0] || formData.image_url;
+                        if (!mainImg) {
                           showToast('يرجى اختيار صورة للمنتج أولاً', 'error');
                           return;
                         }
@@ -739,11 +793,14 @@ const Products = () => {
                         showToast('🎬 جاري توليد فيديو بـ Veo 2 - قد يستغرق حتى 3 دقائق...', 'info');
                         try {
                           const res = await axios.post('/api/admin/generate-video', {
-                            imageUrl: formData.image_url,
+                            imageUrl: mainImg,
                             productName: formData.name
                           });
                           if (res.data && res.data.videoUrl) {
-                            setFormData(prev => ({ ...prev, video_url: res.data.videoUrl }));
+                            setFormData(prev => {
+                              const updated = [...(prev.videos_list || []), res.data.videoUrl];
+                              return { ...prev, videos_list: updated, video_url: updated[0] };
+                            });
                             showToast('✓ تم توليد الفيديو بـ Veo 2 وحفظه بنجاح!', 'success');
                           }
                         } catch(err) {
@@ -754,17 +811,11 @@ const Products = () => {
                       }}
                       style={{
                         background: 'linear-gradient(135deg, #c5a880, #8f6e40)',
-                        border: 'none',
-                        borderRadius: '8px',
-                        color: '#fff',
-                        padding: '6px 14px',
-                        fontSize: '0.82rem',
-                        fontWeight: '800',
-                        cursor: (aiVideoLoading || !formData.image_url) ? 'not-allowed' : 'pointer',
-                        opacity: (aiVideoLoading || !formData.image_url) ? 0.6 : 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px',
+                        border: 'none', borderRadius: '8px', color: '#fff',
+                        padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800',
+                        cursor: (aiVideoLoading || !(formData.images_list && formData.images_list[0])) ? 'not-allowed' : 'pointer',
+                        opacity: (aiVideoLoading || !(formData.images_list && formData.images_list[0])) ? 0.6 : 1,
+                        display: 'flex', alignItems: 'center', gap: '6px',
                         boxShadow: '0 4px 12px rgba(197,168,128,0.3)'
                       }}
                     >
@@ -772,13 +823,67 @@ const Products = () => {
                     </button>
                   </div>
                 </div>
-                <input
-                  type="text"
-                  value={formData.video_url || ''}
-                  onChange={(e) => setFormData({...formData, video_url: e.target.value})}
-                  placeholder="مثال: /images/video_media_01KJYR0Y7G2RRS94QBZ9F8VQWX.mp4"
-                  style={inputStyle}
-                />
+
+                {/* Video list preview */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px', backgroundColor: 'var(--admin-input, rgba(0,0,0,0.06))', borderRadius: '12px', border: `1px dashed ${colors.border}` }}>
+                  {(formData.videos_list || []).map((vidUrl, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', backgroundColor: 'rgba(0,0,0,0.15)', padding: '6px 12px', borderRadius: '8px' }}>
+                      <span style={{ fontSize: '0.82rem', color: colors.crema, wordBreak: 'break-all', flex: 1, direction: 'ltr', textAlign: 'left' }}>
+                        🎬 فيديو #{idx + 1}: {vidUrl}
+                      </span>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          const updated = formData.videos_list.filter((_, i) => i !== idx);
+                          setFormData({ ...formData, videos_list: updated, video_url: updated[0] || '' });
+                        }}
+                        style={{ backgroundColor: 'transparent', border: 'none', color: '#e74a3b', cursor: 'pointer', padding: '2px 6px' }}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
+
+                  {/* Manual URL Entry */}
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                    <input 
+                      type="text" 
+                      id="new_video_input" 
+                      placeholder="أو أدخل رابط فيديو سينمائي مخصص هنا (e.g. /images/my_video.mp4)" 
+                      style={{ ...inputStyle, flex: 1, padding: '8px 12px', fontSize: '0.82rem' }} 
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = e.target.value.trim();
+                          if (val) {
+                            setFormData(prev => {
+                              const updated = [...(prev.videos_list || []), val];
+                              return { ...prev, videos_list: updated, video_url: updated[0] };
+                            });
+                            e.target.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => {
+                        const input = document.getElementById('new_video_input');
+                        if (input && input.value.trim()) {
+                          const val = input.value.trim();
+                          setFormData(prev => {
+                            const updated = [...(prev.videos_list || []), val];
+                            return { ...prev, videos_list: updated, video_url: updated[0] };
+                          });
+                          input.value = '';
+                        }
+                      }}
+                      style={{ backgroundColor: colors.crema, color: '#000', border: 'none', borderRadius: '8px', padding: '0 12px', fontWeight: '700', fontSize: '0.8rem', cursor: 'pointer' }}
+                    >
+                      + إضافة
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="modal-grid-2" style={{ display: 'flex', gap: '20px' }}>
@@ -1600,39 +1705,50 @@ const Products = () => {
           <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.92)', zIndex: 4000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', backdropFilter: 'blur(10px)' }}>
             <div style={{ backgroundColor: colors.bean, borderRadius: '30px', padding: '35px', width: '100%', maxWidth: '900px', maxHeight: '85vh', overflowY: 'auto', border: `1px solid ${colors.border}`, boxShadow: '0 25px 60px rgba(0,0,0,0.6)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-                <h3 style={{ color: colors.crema, margin: 0, fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem' }}>Select Product Image</h3>
+                <h3 style={{ color: colors.crema, margin: 0, fontFamily: "'DM Serif Display', serif", fontSize: '1.8rem' }}>اختر صور المنتج</h3>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                  {/* Upload from Device Button */}
+                  {/* Upload Multiple from Device Button */}
                   <label style={{ 
                     display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
                     padding: '10px 18px', borderRadius: '12px', fontSize: '0.9rem', fontWeight: '600',
                     backgroundColor: uploadLoading ? '#555' : colors.latte,
                     color: colors.bean, border: 'none', transition: '0.2s'
                   }}>
-                    {uploadLoading ? '⏳ Uploading...' : '📁 Upload from Device'}
+                    {uploadLoading ? '⏳ جاري الرفع...' : '📁 رفع صور متعددة من الجهاز'}
                     <input 
                       type="file" 
                       accept="image/*" 
+                      multiple
                       style={{ display: 'none' }}
                       disabled={uploadLoading}
                       onChange={async (e) => {
-                        const file = e.target.files[0];
-                        if (!file) return;
+                        const files = Array.from(e.target.files);
+                        if (files.length === 0) return;
                         setUploadLoading(true);
-                        const fd = new FormData();
-                        fd.append('image', file);
-                        try {
-                          const res = await axios.post('/api/upload-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
-                          const newFilename = res.data.filename;
-                          await fetchImages(); // refresh grid
-                          setFormData(prev => ({ ...prev, image_url: newFilename }));
-                          setShowImagePicker(false);
-                        } catch (err) {
-                          alert('Upload failed: ' + (err.response?.data?.error || err.message));
-                        } finally {
-                          setUploadLoading(false);
-                          e.target.value = '';
+                        const uploadedNames = [];
+                        for (const file of files) {
+                          const fd = new FormData();
+                          fd.append('image', file);
+                          try {
+                            const res = await axios.post('/api/upload-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+                            if (res.data && res.data.filename) {
+                              uploadedNames.push(res.data.filename);
+                            }
+                          } catch (err) {
+                            alert('Upload failed: ' + (err.response?.data?.error || err.message));
+                          }
                         }
+                        await fetchImages(); // refresh grid
+                        if (uploadedNames.length > 0) {
+                          setFormData(prev => {
+                            const existing = prev.images_list || [];
+                            const combined = [...existing, ...uploadedNames];
+                            return { ...prev, images_list: combined, image_url: combined[0] };
+                          });
+                        }
+                        setUploadLoading(false);
+                        setShowImagePicker(false);
+                        e.target.value = '';
                       }}
                     />
                   </label>
