@@ -563,14 +563,11 @@ export default function ProductModal({ model, onClose }) {
                       <tr>
                         <th>المقاس</th>
                         {Object.keys(sizeChartArray[0])
-                          .filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available')
+                          .filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available' && k !== 'chest' && k !== 'hip' && k !== 'waist')
                           .map(key => {
                             const labels = {
-                              chest: 'الصدر (سم)',
                               shoulder: 'الكتف (سم)',
                               length: 'الطول (سم)',
-                              hip: 'الورك (سم)',
-                              waist: 'الخصر (سم)',
                               sleeve: 'الأكمام (سم)'
                             };
                             return <th key={key}>{labels[key] || key}</th>;
@@ -579,7 +576,7 @@ export default function ProductModal({ model, onClose }) {
                     </thead>
                     <tbody>
                       {sizeChartArray.map((row, idx) => {
-                        const cols = Object.keys(row).filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available');
+                        const cols = Object.keys(row).filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available' && k !== 'chest' && k !== 'hip' && k !== 'waist');
                         return (
                           <tr key={idx}>
                             <td><strong>{row.size || row.name || idx + 1}</strong></td>
@@ -598,16 +595,15 @@ export default function ProductModal({ model, onClose }) {
                         <th>المقاس</th>
                         <th>الطول (سم)</th>
                         <th>الكتف (سم)</th>
-                        <th>الصدر (سم)</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr><td>S</td><td>148</td><td>36</td><td>88</td></tr>
-                      <tr><td>M</td><td>150</td><td>38</td><td>94</td></tr>
-                      <tr><td>L</td><td>152</td><td>40</td><td>100</td></tr>
-                      <tr><td>XL</td><td>154</td><td>42</td><td>106</td></tr>
-                      <tr><td>XXL</td><td>156</td><td>44</td><td>112</td></tr>
-                      <tr><td>3XL</td><td>158</td><td>46</td><td>118</td></tr>
+                      <tr><td>S</td><td>148</td><td>36</td></tr>
+                      <tr><td>M</td><td>150</td><td>38</td></tr>
+                      <tr><td>L</td><td>152</td><td>40</td></tr>
+                      <tr><td>XL</td><td>154</td><td>42</td></tr>
+                      <tr><td>XXL</td><td>156</td><td>44</td></tr>
+                      <tr><td>3XL</td><td>158</td><td>46</td></tr>
                     </tbody>
                   </table>
                 )}
