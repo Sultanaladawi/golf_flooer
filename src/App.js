@@ -9,6 +9,7 @@ import { LanguageProvider } from './context/LanguageContext';
 import Navbar             from './components/Navbar';
 import Hero               from './components/Hero';
 import Menu               from './components/Menu';
+import CategorySlider     from './components/CategorySlider';
 
 import Gallery            from './components/Gallery';
 import About              from './components/About';
@@ -155,7 +156,7 @@ function PublicSite() {
       
       <main>
         <Hero />
-        <Menu />
+        <CategorySlider />
         <Gallery />
         <About />
         {/* <WallOfLove /> */}

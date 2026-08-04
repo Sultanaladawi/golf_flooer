@@ -2601,6 +2601,19 @@ app.delete('/api/newsletter/:id', (req, res) => {
   });
 });
 
+// Public Store Reviews endpoint (for homepage CustomerReviews component)
+app.get('/api/store-reviews', (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
+  db.query(
+    'SELECT * FROM store_reviews ORDER BY created_at DESC LIMIT ?',
+    [limit],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results || []);
+    }
+  );
+});
+
 // Reviews API using review table (with approval workflow)
 app.get('/api/reviews', (req, res) => {
   const { productId, approvedOnly } = req.query;
