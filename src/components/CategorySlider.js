@@ -1,6 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useCart } from '../context/CartContext';
+import { useLanguage } from '../context/LanguageContext';
 import ProductModal from './ProductModal';
 import styles from './CategorySlider.module.css';
 
@@ -27,9 +30,51 @@ function getImageUrl(item) {
 function ProductCard({ item, onOpen }) {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
+  const { addItem } = useCart();
+  const { t, currentLang } = useLanguage();
+  const navigate = useNavigate();
   const [imgSrc, setImgSrc] = useState(getImageUrl(item));
   const [hovered, setHovered] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
   const wishlisted = isWishlisted(item.id);
+  const hasVariants = item.variants && item.variants.length > 0;
+  const dir = currentLang.dir || 'rtl';
+
+  const handleAddToCart = (e) => {
+    e.stopPropagation();
+    if (item.isOutOfStock) return;
+    if (hasVariants) {
+      // Open modal to pick variant/size
+      onOpen(item);
+      return;
+    }
+    addItem({
+      id: item.id,
+      name: item.name,
+      priceNum: parsePrice(item.price_num || item.price),
+      image_url: getImageUrl(item),
+      category: item.category,
+    });
+    setAddedToCart(true);
+    setTimeout(() => setAddedToCart(false), 2000);
+  };
+
+  const handleBuyNow = (e) => {
+    e.stopPropagation();
+    if (item.isOutOfStock) return;
+    if (hasVariants) {
+      onOpen(item);
+      return;
+    }
+    addItem({
+      id: item.id,
+      name: item.name,
+      priceNum: parsePrice(item.price_num || item.price),
+      image_url: getImageUrl(item),
+      category: item.category,
+    });
+    navigate('/checkout');
+  };
 
   // Get second image for hover swap
   let images = [];
@@ -85,7 +130,7 @@ function ProductCard({ item, onOpen }) {
         {!isOutOfStock && (
           <div className={`${styles.quickAddOverlay} ${hovered ? styles.visible : ''}`}>
             <button className={styles.quickAddBtn} onClick={(e) => { e.stopPropagation(); onOpen(item); }}>
-              عرض التفاصيل
+              {t('details')}
             </button>
           </div>
         )}
@@ -126,6 +171,34 @@ function ProductCard({ item, onOpen }) {
               <span className={styles.moreColors}>+{item.variants.length - 6}</span>
             )}
           </div>
+        )}
+        {/* Action Buttons */}
+        {!isOutOfStock ? (
+          <div className={styles.actionBtns} dir={dir}>
+            <button
+              className={styles.addToCartBtn}
+              onClick={handleAddToCart}
+              title={t('addToCart')}
+            >
+              {addedToCart ? '✓' : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+                  <line x1="3" y1="6" x2="21" y2="6"/>
+                  <path d="M16 10a4 4 0 01-8 0"/>
+                </svg>
+              )}
+              <span>{addedToCart ? '✓' : t('addToCart')}</span>
+            </button>
+            <button
+              className={styles.buyNowBtn}
+              onClick={handleBuyNow}
+              title={t('buyNow')}
+            >
+              {t('buyNow')}
+            </button>
+          </div>
+        ) : (
+          <div className={styles.outOfStockTag}>{t('outOfStock')}</div>
         )}
       </div>
     </div>
