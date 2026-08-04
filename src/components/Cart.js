@@ -99,6 +99,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
                   <img
                     src={item.image}
                     alt={item.name}
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
                     style={{ width: '65px', height: '85px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(196, 164, 132, 0.2)' }}
                   />
                 )}

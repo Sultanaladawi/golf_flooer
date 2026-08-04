@@ -114,6 +114,25 @@ export default function ProductModal({ model, onClose }) {
     }
   }
 
+  // Format Image URLs safely to prevent broken images
+  const formatImgUrl = (img) => {
+    if (!img || typeof img !== 'string') return '/12.png';
+    const trimmed = img.trim();
+    if (!trimmed) return '/12.png';
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('/')) {
+      return trimmed;
+    }
+    return `/images/${trimmed.toLowerCase()}`;
+  };
+
+  imagesArray = imagesArray.map(formatImgUrl).filter(Boolean);
+  if (imagesArray.length === 0) {
+    imagesArray = ['/12.png'];
+  }
+
   // Fabric and Care arrays (fallbacks)
   let fabricArray = [];
   try {
@@ -345,10 +364,14 @@ export default function ProductModal({ model, onClose }) {
               <div className={styles.mainImgWrap}>
                 <img
                   key={activeImg}
-                  src={imagesArray[activeImg]}
+                  src={imagesArray[activeImg] || '/12.png'}
                   alt={`${model.name} — صورة ${activeImg + 1}`}
                   className={styles.mainImg}
                   style={{ objectFit: 'cover' }}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = '/12.png';
+                  }}
                 />
                 {imagesArray.length > 1 && (
                   <>
@@ -374,9 +397,13 @@ export default function ProductModal({ model, onClose }) {
                       aria-label={`صورة ${i + 1}`}
                     >
                       <img 
-                        src={img} 
+                        src={img || '/12.png'} 
                         alt={`thumb-${i}`} 
                         style={{ objectFit: 'cover', width: '60px', height: '72px' }} 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/12.png';
+                        }}
                       />
                     </button>
                   ))}

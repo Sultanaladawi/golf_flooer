@@ -72,20 +72,21 @@ const LANGUAGES = [
   { code: 'de', name: 'سويسرا', iso: 'ch' }
 ];
 
-
 export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen }) {
   const [scrolled, setScrolled]   = useState(false);
   const [open, setOpen]           = useState(false);
   const [offers, setOffers]       = useState([]);
   const [bounce, setBounce]       = useState(false);
 
-  const { totalItems }            = useCart();
+  const { totalItems, totalPrice } = useCart();
   const { wishlist }               = useWishlist();
   const wishlistCount              = wishlist.length;
   const { isDark, toggleDark }     = useDarkMode();
   const { currency, setCurrency, currencies } = useCurrency();
   const { customer, openLoginModal } = useCustomerAuth();
   const { langCode, currentLang, changeLanguage: setAppLang, t, LANGUAGES: APP_LANGUAGES } = useLanguage();
+
+  const [showAnnouncement, setShowAnnouncement] = useState(true);
 
   // ── Smart Search ──
   const [searchOpen, setSearchOpen]       = useState(false);
@@ -160,7 +161,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
     return () => document.removeEventListener('keydown', onEsc);
   }, []);
 
-  // Close currency, language, and search dropdowns when clicking outside
   useEffect(() => {
     const onClick = (e) => {
       if (countryRef.current && !countryRef.current.contains(e.target)) {
@@ -171,15 +171,12 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
       }
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setSearchOpen(false);
-        setSearchQuery('');
-        setSearchResults([]);
       }
     };
     document.addEventListener('mousedown', onClick);
     return () => document.removeEventListener('mousedown', onClick);
   }, []);
 
-  // Debounced search fetch
   const doSearch = useCallback((q) => {
     clearTimeout(searchDebounceRef.current);
     if (!q || q.trim().length < 2) { setSearchResults([]); setSearchLoading(false); return; }
@@ -197,21 +194,10 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
     }, 300);
   }, []);
 
-  const handleSearchToggle = () => {
-    setSearchOpen(v => {
-      if (!v) {
-        setTimeout(() => searchInputRef.current && searchInputRef.current.focus(), 50);
-      } else {
-        setSearchQuery('');
-        setSearchResults([]);
-      }
-      return !v;
-    });
-  };
-
   const handleSearchChange = (e) => {
     const q = e.target.value;
     setSearchQuery(q);
+    if (!searchOpen) setSearchOpen(true);
     doSearch(q);
   };
 
@@ -233,9 +219,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
         localStorage.setItem('zahrat_language', langCode);
         localStorage.setItem('zahrat_language_iso', countryIso);
 
-        // Sync currency with language country
         let matchingCurr = currencies.find(c => c.iso === countryIso);
-        // Handle Euro zone & European currencies mapping
         if (!matchingCurr && ['de', 'fr', 'eu', 'ch', 'se', 'no'].includes(countryIso)) {
           if (countryIso === 'ch') matchingCurr = currencies.find(c => c.code === 'CHF');
           else if (countryIso === 'se') matchingCurr = currencies.find(c => c.code === 'SEK');
@@ -268,7 +252,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
     return () => clearInterval(interval);
   }, [selectedLanguage]);
 
-  // Sync language country flag with currency selector country flag
   useEffect(() => {
     if (currency && currency.iso) {
       const matchingLang = LANGUAGES.find(l => l.iso === currency.iso);
@@ -296,21 +279,208 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
     transition: 'all 0.4s ease',
   };
 
+  const formattedTotal = currency ? (totalPrice * (currency.rate || 1)).toFixed(0) : totalPrice.toFixed(0);
+  const currencySymbol = currency ? (currency.symbol || currency.code) : 'JD';
+
   return (
     <>
-      {/* ── Fixed Header ── */}
       <header
         className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}
         style={{ direction: 'rtl' }}
       >
-        {/* Offers Ticker */}
+        {showAnnouncement && (
+          <div style={{
+            backgroundColor: '#D90429',
+            color: '#FFFFFF',
+            padding: '7px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+            fontSize: '0.86rem',
+            fontWeight: '800',
+            textAlign: 'center',
+            direction: 'rtl',
+            zIndex: 1005,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.15)'
+          }}>
+            <span style={{ margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '1rem' }}>🚀</span>
+              <span>عملائنا الأعزاء : مدة تنفيذ الطلب من 6 - 9 ايام عمل</span>
+            </span>
+            <button 
+              onClick={() => setShowAnnouncement(false)}
+              aria-label="إغلاق التنبيه"
+              style={{
+                position: 'absolute',
+                left: '18px',
+                background: 'none',
+                border: 'none',
+                color: '#FFFFFF',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                lineHeight: 1,
+                opacity: 0.85
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        <div style={{
+          backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.94)',
+          borderBottom: '1px solid rgba(0,0,0,0.07)',
+          padding: '7px 24px',
+          color: '#1F2937',
+          fontSize: '0.82rem',
+          fontWeight: '600',
+          direction: 'rtl',
+          backdropFilter: 'blur(10px)',
+          transition: 'all 0.3s ease'
+        }}>
+          <div style={{
+            maxWidth: '1280px',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '15px',
+            flexWrap: 'wrap'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <a href="/privacy" style={{ color: '#4B5563', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستخدام والخصوصية</a>
+              <span style={{ opacity: 0.3, color: '#9CA3AF' }}>|</span>
+              <a href="/about" style={{ color: '#4B5563', textDecoration: 'none', transition: 'color 0.2s' }}>من نحن</a>
+              <span style={{ opacity: 0.3, color: '#9CA3AF' }}>|</span>
+              <a href="/returns" style={{ color: '#4B5563', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستبدال والإرجاع</a>
+            </div>
+
+            <div ref={searchRef} style={{ position: 'relative', flex: '0 1 360px', minWidth: '220px' }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: '#F3F4F6',
+                borderRadius: '24px',
+                padding: '6px 14px',
+                border: '1px solid #E5E7EB',
+                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.03)',
+                transition: 'all 0.25s'
+              }}>
+                <input 
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onFocus={() => setSearchOpen(true)}
+                  placeholder="ادخل كلمة البحث"
+                  dir="rtl"
+                  style={{
+                    width: '100%',
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '0.85rem',
+                    color: '#1F2937',
+                    fontFamily: 'inherit',
+                    fontWeight: '500',
+                    paddingRight: '4px'
+                  }}
+                />
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7280" strokeWidth="2.2" style={{ flexShrink: 0, cursor: 'pointer' }}>
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </div>
+
+              {searchOpen && (searchResults.length > 0 || (searchQuery.trim().length >= 2 && !searchLoading)) && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  left: 0,
+                  background: '#fff',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+                  zIndex: 9999,
+                  overflow: 'hidden',
+                  direction: 'rtl',
+                }}>
+                  {searchResults.length === 0 ? (
+                    <div style={{ padding: '20px 16px', textAlign: 'center', color: '#6B7280', fontSize: '0.85rem' }}>
+                      لا توجد نتائج بحث مطابقة
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ padding: '8px 14px 6px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', borderBottom: '1px solid var(--divider)' }}>
+                        نتائج البحث ({searchResults.length})
+                      </div>
+                      {searchResults.map(product => (
+                        <button
+                          key={product.id}
+                          onClick={() => handleResultClick(product)}
+                          style={{
+                            width: '100%', background: 'none', border: 'none',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center',
+                            gap: '12px', padding: '10px 14px',
+                            borderBottom: '1px solid var(--divider)',
+                            transition: 'background 0.18s', textAlign: 'right'
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = '#F9FAFB'}
+                          onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                        >
+                          <div style={{
+                            width: '44px', height: '44px', borderRadius: '10px',
+                            overflow: 'hidden', flexShrink: 0,
+                            background: '#F3F4F6',
+                            border: '1px solid #E5E7EB'
+                          }}>
+                            {product.images && product.images[0] ? (
+                              <img
+                                src={product.images[0]}
+                                alt={product.name}
+                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                              />
+                            ) : (
+                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>🌸</div>
+                            )}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#1F2937', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {product.name}
+                            </div>
+                            <div style={{ fontSize: '0.8rem', color: 'var(--gold-dim)', fontWeight: '700', marginTop: '2px' }}>
+                              {currency ? `${(parseFloat(product.price) * (currency.rate || 1)).toFixed(2)} ${currency.code}` : `${product.price} JD`}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', direction: 'ltr' }}>
+              <a href="mailto:alweshah.abaya@gmail.com" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.82rem' }}>
+                alweshah.abaya@gmail.com
+              </a>
+              <span style={{ opacity: 0.3, color: '#9CA3AF' }}>|</span>
+              <a href="tel:+966531345572" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.82rem', direction: 'rtl' }}>
+                تواصل معنا: +966531345572
+              </a>
+            </div>
+          </div>
+        </div>
+
         {offers.length > 0 && (
           <div style={{
             background: scrolled
               ? 'linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim))'
               : 'rgba(0,0,0,0.55)',
             color: scrolled ? 'var(--espresso)' : '#fff',
-            padding: '6px 0',
+            padding: '5px 0',
             textAlign: 'center',
             fontSize: '0.82rem',
             fontWeight: '700',
@@ -352,15 +522,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
           </div>
         )}
 
-        {/* Main Nav Bar */}
         <div className={styles.inner}>
-
-          {/* Logo */}
           <a href="#home" aria-label="زهرة بيسان للعبايات والأزياء الفاخرة" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}>
             <img src="/logo.png" alt="زهرة بيسان" style={logoStyle} />
           </a>
 
-          {/* Desktop Links */}
           <nav aria-label="Main navigation">
             <ul style={{ display: 'flex', alignItems: 'center', gap: '1.3rem', listStyle: 'none', margin: 0, padding: 0, flexWrap: 'nowrap' }}>
               {LINKS.map(({ label, href }) => (
@@ -387,167 +553,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
             </ul>
           </nav>
 
-          {/* Right Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
-            {/* ── Smart Search Bar ── */}
-            <div ref={searchRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                background: searchOpen
-                  ? (scrolled ? '#fff' : 'rgba(255,255,255,0.15)')
-                  : 'transparent',
-                border: searchOpen
-                  ? (scrolled ? '1.5px solid var(--gold)' : '1.5px solid rgba(197,168,128,0.7)')
-                  : '1.5px solid transparent',
-                borderRadius: '24px',
-                padding: searchOpen ? '4px 12px' : '4px 8px',
-                transition: 'all 0.35s cubic-bezier(0.4,0,0.2,1)',
-                width: searchOpen ? '220px' : '36px',
-                overflow: 'hidden',
-                backdropFilter: searchOpen ? 'blur(8px)' : 'none',
-              }}>
-                <button
-                  onClick={handleSearchToggle}
-                  aria-label={searchOpen ? 'إغلاق البحث' : 'البحث'}
-                  style={{
-                    background: 'none', border: 'none', cursor: 'pointer',
-                    color: scrolled ? 'var(--gold-dim)' : '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    padding: '2px', flexShrink: 0, transition: 'color 0.3s'
-                  }}
-                >
-                  {searchOpen ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                    </svg>
-                  )}
-                </button>
-                {searchOpen && (
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={handleSearchChange}
-                    placeholder="ابحثي عن منتج..."
-                    dir="rtl"
-                    style={{
-                      flex: 1,
-                      background: 'transparent',
-                      border: 'none',
-                      outline: 'none',
-                      color: scrolled ? 'var(--espresso)' : '#fff',
-                      fontSize: '0.85rem',
-                      fontFamily: 'inherit',
-                      fontWeight: '500',
-                      marginRight: '8px',
-                      minWidth: 0,
-                    }}
-                  />
-                )}
-                {searchOpen && searchLoading && (
-                  <span style={{ flexShrink: 0, opacity: 0.5 }}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 0.8s linear infinite' }}>
-                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
-                    </svg>
-                  </span>
-                )}
-              </div>
-
-              {/* Search Dropdown */}
-              {searchOpen && (searchResults.length > 0 || (searchQuery.trim().length >= 2 && !searchLoading)) && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 10px)',
-                  right: 0,
-                  background: '#fff',
-                  borderRadius: '16px',
-                  border: '1px solid var(--border)',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
-                  minWidth: '280px',
-                  maxWidth: '340px',
-                  zIndex: 9999,
-                  overflow: 'hidden',
-                  direction: 'rtl',
-                }}>
-                  {searchResults.length === 0 ? (
-                    <div style={{ padding: '20px 16px', textAlign: 'center', color: 'var(--espresso)', opacity: 0.5, fontSize: '0.85rem' }}>
-                      لا توجد نتائج
-                    </div>
-                  ) : (
-                    <>
-                      <div style={{ padding: '8px 14px 6px', fontSize: '0.7rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                        نتائج البحث ({searchResults.length})
-                      </div>
-                      {searchResults.map(product => (
-                        <button
-                          key={product.id}
-                          onClick={() => handleResultClick(product)}
-                          style={{
-                            width: '100%', background: 'none', border: 'none',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center',
-                            gap: '12px', padding: '10px 14px',
-                            borderBottom: '1px solid var(--divider)',
-                            transition: 'background 0.18s', textAlign: 'right'
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                          onMouseLeave={e => e.currentTarget.style.background = 'none'}
-                        >
-                          <div style={{
-                            width: '46px', height: '46px', borderRadius: '10px',
-                            overflow: 'hidden', flexShrink: 0,
-                            background: 'var(--bg-elevated)',
-                            border: '1px solid var(--divider)'
-                          }}>
-                            {product.images && product.images[0] ? (
-                              <img
-                                src={product.images[0]}
-                                alt={product.name}
-                                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                              />
-                            ) : (
-                              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.3, fontSize: '1.2rem' }}>🌸</div>
-                            )}
-                          </div>
-                          <div style={{ flex: 1, minWidth: 0 }}>
-                            <div style={{ fontSize: '0.88rem', fontWeight: '700', color: 'var(--espresso)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                              {product.name}
-                            </div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--gold-dim)', fontWeight: '700', marginTop: '2px' }}>
-                              {currency ? `${(parseFloat(product.price) * (currency.rate || 1)).toFixed(2)} ${currency.code}` : `${product.price} JD`}
-                            </div>
-                          </div>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" strokeWidth="2" style={{ flexShrink: 0, opacity: 0.7 }}>
-                            <polyline points="15 18 9 12 15 6"/>
-                          </svg>
-                        </button>
-                      ))}
-                    </>
-                  )}
-                </div>
-              )}
-              <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
-            </div>
-
-            {/* Hidden Google Translate Widget (used for backend translation trigger) */}
-            <div
-              id="google_translate_element"
-              style={{
-                position: 'absolute',
-                opacity: 0,
-                width: 0,
-                height: 0,
-                overflow: 'hidden',
-                pointerEvents: 'none'
-              }}
-            />
-
-            {/* Country & Currency Switcher Dropdown */}
             <div ref={countryRef} style={{ position: 'relative' }}>
               <button
                 onClick={() => setShowCountryDropdown(v => !v)}
@@ -642,89 +649,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
               )}
             </div>
 
-            {/* 9 Languages Switcher Dropdown */}
-            <div ref={languageRef} style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowLanguage(v => !v)}
-                style={{
-                  background: scrolled ? 'var(--bg-elevated)' : 'rgba(255,255,255,0.12)',
-                  border: scrolled ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.25)',
-                  borderRadius: '20px',
-                  padding: '5px 12px',
-                  cursor: 'pointer',
-                  color: textColor,
-                  fontSize: '0.78rem',
-                  fontWeight: '700',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  transition: 'all 0.3s',
-                  letterSpacing: '0.5px'
-                }}
-                aria-label="تغيير اللغة"
-              >
-                <span style={{ fontSize: '0.9rem' }}>🌐</span>
-                <span>{langCode === 'en' ? 'English' : (langCode === 'tr' ? 'Türkçe' : (langCode === 'fr' ? 'Français' : 'العربية'))}</span>
-                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
-              </button>
-
-              {showLanguage && (
-                <div style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 8px)',
-                  left: '0',
-                  background: 'var(--bg-surface)',
-                  borderRadius: '16px',
-                  border: '1px solid var(--border)',
-                  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
-                  padding: '10px 0',
-                  minWidth: '200px',
-                  maxHeight: '380px',
-                  overflowY: 'auto',
-                  zIndex: 9999,
-                  direction: currentLang?.dir || 'rtl'
-                }}>
-                  <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                    {t('changeLanguage') || 'اختاري اللغة / Choose Language'}
-                  </div>
-                  {APP_LANGUAGES.map(l => {
-                    const isSelected = langCode === l.code;
-                    return (
-                      <button
-                        key={l.code}
-                        onClick={() => {
-                          setAppLang(l.code);
-                          setShowLanguage(false);
-                        }}
-                        style={{
-                          width: '100%',
-                          padding: '10px 16px',
-                          background: isSelected ? 'var(--gold-glow)' : 'transparent',
-                          border: 'none',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '10px',
-                          fontSize: '0.88rem',
-                          color: 'var(--espresso)',
-                          fontWeight: isSelected ? '700' : '400',
-                          textAlign: 'right',
-                          transition: 'background 0.2s',
-                          borderRight: isSelected ? '3px solid var(--gold)' : '3px solid transparent',
-                        }}
-                        onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                        onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
-                      >
-                        <span style={{ fontSize: '1.2rem' }}>{l.flag}</span>
-                        <span style={{ flex: 1, fontWeight: '700' }}>{l.name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Dark Mode Toggle */}
             <button
               onClick={toggleDark}
               aria-label={isDark ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
@@ -738,7 +662,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
               }}
             >
               {isDark ? (
-                /* Sun icon */
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="5"/>
                   <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
@@ -747,73 +670,114 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                   <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
                 </svg>
               ) : (
-                /* Moon icon */
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
               )}
             </button>
 
-            {/* Profile/Auth Button */}
+            <div 
+              onClick={onCartOpen}
+              title="فتح السلة"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                cursor: 'pointer',
+                userSelect: 'none',
+                direction: 'ltr'
+              }}
+            >
+              <span style={{
+                fontSize: '1.02rem',
+                fontWeight: '900',
+                color: scrolled ? 'var(--espresso)' : '#FFFFFF',
+                letterSpacing: '0.3px',
+                fontFamily: 'system-ui, -apple-system, sans-serif'
+              }}>
+                {currencySymbol} {formattedTotal}
+              </span>
+
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  width: '38px',
+                  height: '38px',
+                  borderRadius: '50%',
+                  backgroundColor: '#FFFFFF',
+                  border: '1.5px solid rgba(0,0,0,0.1)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                  transition: 'transform 0.2s'
+                }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B3A4A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4H6z" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <path d="M16 10a4 4 0 01-8 0" />
+                  </svg>
+                </div>
+                {totalItems > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: '-4px',
+                    right: '-4px',
+                    backgroundColor: '#A81C1C',
+                    color: '#FFFFFF',
+                    fontSize: '0.75rem',
+                    fontWeight: '900',
+                    minWidth: '19px',
+                    height: '19px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0 4px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                    lineHeight: 1
+                  }}>
+                    {totalItems}
+                  </span>
+                )}
+              </div>
+            </div>
+
             <button
               onClick={() => customer ? (window.location.href = '/account') : openLoginModal()}
               aria-label="حسابي"
               title={customer ? "حسابي" : "تسجيل الدخول"}
-              style={{ color: scrolled ? 'var(--gold-dim)' : '#fff', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '8px' }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                position: 'relative',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
             >
-              <FiUser size={18} />
+              <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="18" cy="18" r="17.5" fill="#EEF2F6" stroke="#CBD5E1" strokeWidth="1" />
+                <path d="M12 12C12 8.68629 14.6863 6 18 6C21.3137 6 24 8.68629 24 12V18C24 19.5 24.5 21 25.5 22H10.5C11.5 21 12 19.5 12 18V12Z" fill="#475569" />
+                <ellipse cx="18" cy="16" rx="5.5" ry="6.5" fill="#FDE047" opacity="0.9" />
+                <circle cx="15.5" cy="15.5" r="2.2" stroke="#1E293B" strokeWidth="1.2" fill="none" />
+                <circle cx="20.5" cy="15.5" r="2.2" stroke="#1E293B" strokeWidth="1.2" fill="none" />
+                <line x1="17.7" y1="15.5" x2="18.3" y2="15.5" stroke="#1E293B" strokeWidth="1.2" />
+                <path d="M12.5 13.5C12.5 10.5 14.5 8 18 8C21.5 8 23.5 10.5 23.5 13.5C23.5 14.5 23 15.5 22.5 16C22 13.5 20 12 18 12C16 12 14 13.5 13.5 16C13 15.5 12.5 14.5 12.5 13.5Z" fill="#334155" />
+                <path d="M9.5 29.5C9.5 24.2513 13.3056 20 18 20C22.6944 20 26.5 24.2513 26.5 29.5V32H9.5V29.5Z" fill="#4B6B94" />
+                <path d="M15.5 20L18 24L20.5 20H15.5Z" fill="#FFFFFF" />
+              </svg>
+
               {customer && (
                 <span style={{
-                  position: 'absolute', top: '5px', right: '5px',
-                  width: '6px', height: '6px', background: '#22c55e', borderRadius: '50%'
+                  position: 'absolute', top: '2px', right: '2px',
+                  width: '8px', height: '8px', background: '#22c55e', borderRadius: '50%',
+                  border: '1.5px solid #fff'
                 }} />
               )}
             </button>
 
-            {/* Wishlist Button */}
-            <button
-              onClick={onWishlistOpen}
-              aria-label={`قائمة الأمنيات — ${wishlistCount} منتج`}
-              style={{ color: scrolled ? 'var(--gold-dim)' : '#fff', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '8px' }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill={wishlistCount > 0 ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              {wishlistCount > 0 && (
-                <span style={{
-                  position: 'absolute', top: '-2px', right: '-2px',
-                  background: '#ef4444', color: '#fff',
-                  fontSize: '0.65rem', fontWeight: 'bold',
-                  padding: '1px 5px', borderRadius: '50%',
-                  minWidth: '16px', textAlign: 'center', lineHeight: '16px', height: '16px'
-                }}>
-                  {wishlistCount > 99 ? '99+' : wishlistCount}
-                </span>
-              )}
-            </button>
-
-            {/* Cart Button */}
-            <button
-              className={`${styles.cartBtn} ${scrolled ? styles.cartBtnScrolled : ''}`}
-              onClick={onCartOpen}
-              aria-label={`فتح السلة — ${totalItems} منتج`}
-              style={{ color: scrolled ? 'var(--gold-dim)' : '#fff', background: 'transparent', border: 'none', cursor: 'pointer', position: 'relative' }}
-            >
-              <BagIcon />
-              {totalItems > 0 && (
-                <span className={`${styles.cartBadge} ${bounce ? styles.cartBadgeBounce : ''}`} style={{
-                  position: 'absolute', top: '-8px', right: '-10px',
-                  background: 'var(--gold)', color: '#000',
-                  fontSize: '0.7rem', fontWeight: 'bold',
-                  padding: '2px 6px', borderRadius: '50%',
-                  minWidth: '18px', textAlign: 'center'
-                }}>
-                  {totalItems > 99 ? '99+' : totalItems}
-                </span>
-              )}
-            </button>
-
-            {/* Burger */}
             <button
               className={`${styles.burger} ${open ? styles.open : ''}`}
               onClick={() => setOpen(v => !v)}
@@ -829,7 +793,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
         </div>
       </header>
 
-      {/* ── Mobile Drawer ── */}
       <div className={`${styles.mobile} ${open ? styles.mobileOpen : ''}`} role="dialog" aria-label="Navigation" style={{ direction: 'rtl' }}>
         <nav style={{ width: '100%' }}>
           {LINKS.map(({ label, href }) => (
