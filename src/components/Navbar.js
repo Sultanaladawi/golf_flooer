@@ -288,47 +288,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
         className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}
         style={{ direction: 'rtl' }}
       >
-        {showAnnouncement && (
-          <div style={{
-            background: 'linear-gradient(90deg, #7a5238 0%, #a6865d 45%, #c5a880 70%, #a6865d 100%)',
-            color: '#faf9f6',
-            padding: '7px 16px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            fontSize: '0.86rem',
-            fontWeight: '800',
-            textAlign: 'center',
-            direction: 'rtl',
-            zIndex: 1005,
-            letterSpacing: '0.03em',
-            boxShadow: '0 2px 8px rgba(122,82,56,0.25)'
-          }}>
-            <span style={{ margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '1rem' }}>🚀</span>
-              <span>عملائنا الأعزاء : مدة تنفيذ الطلب من 6 - 9 ايام عمل</span>
-            </span>
-            <button 
-              onClick={() => setShowAnnouncement(false)}
-              aria-label="إغلاق التنبيه"
-              style={{
-                position: 'absolute',
-                left: '18px',
-                background: 'none',
-                border: 'none',
-                color: '#faf9f6',
-                cursor: 'pointer',
-                fontSize: '1.1rem',
-                fontWeight: 'bold',
-                lineHeight: 1,
-                opacity: 0.85
-              }}
-            >
-              ✕
-            </button>
-          </div>
-        )}
+
 
         <div style={{
           backgroundColor: scrolled ? 'rgba(250,249,246,0.98)' : 'rgba(250,249,246,0.96)',
