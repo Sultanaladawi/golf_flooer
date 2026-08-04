@@ -315,7 +315,7 @@ function CategoryBlock({ category, items, onOpen }) {
           <div className={styles.viewAllWrap}>
             <a href={`#collection`} className={styles.viewAllBtn}
               onClick={(e) => { e.preventDefault(); document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' }); }}>
-              عرض الكل ←
+              {t('viewAll')} {currentLang?.dir === 'ltr' ? '→' : '←'}
             </a>
           </div>
         </div>
@@ -326,6 +326,7 @@ function CategoryBlock({ category, items, onOpen }) {
 
 /* ═══════════ Best Sellers Section ═══════════ */
 function BestSellersGrid({ items, onOpen }) {
+  const { t } = useLanguage();
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -344,9 +345,9 @@ function BestSellersGrid({ items, onOpen }) {
   return (
     <section ref={ref} className={`${styles.bestSellersSection} ${visible ? styles.blockVisible : ''}`}>
       <div className={styles.bestSellersHeader}>
-        <span className={styles.sectionLabel}>الأكثر طلباً</span>
-        <h2 className={styles.sectionTitle}>الأكثر مبيعاً</h2>
-        <p className={styles.sectionSub}>التشكيلات الأكثر إقبالاً من عملائنا الكرام</p>
+        <span className={styles.sectionLabel}>{t('mostRequested')}</span>
+        <h2 className={styles.sectionTitle}>{t('bestSellers')}</h2>
+        <p className={styles.sectionSub}>{t('bestSellersDesc')}</p>
       </div>
       <div className={styles.sliderWrap} style={{ paddingTop: 0 }}>
         <div className={styles.sliderTrack}>
@@ -361,11 +362,12 @@ function BestSellersGrid({ items, onOpen }) {
 
 /* ═══════════ Trust Badges Section ═══════════ */
 function TrustBadges() {
+  const { t } = useLanguage();
   const badges = [
-    { icon: '✈️', title: 'شحن عالمي', desc: 'نوصل لجميع أنحاء العالم' },
-    { icon: '💎', title: 'جودة مضمونة', desc: 'خامات فاخرة وعالية الجودة' },
-    { icon: '🔒', title: 'دفع آمن', desc: 'جميع وسائل الدفع متاحة' },
-    { icon: '↩️', title: 'سهولة الإرجاع', desc: 'سياسة إرجاع مرنة وسهلة' },
+    { icon: '✈️', title: t('expressShipping'), desc: t('expressShippingDesc') },
+    { icon: '💎', title: t('premiumQuality'), desc: t('premiumQualityDesc') },
+    { icon: '🔒', title: t('securePayment'), desc: t('securePaymentDesc') },
+    { icon: '↩️', title: t('easyReturns'), desc: t('easyReturnsDesc') },
   ];
   return (
     <div className={styles.trustBadges}>
@@ -384,6 +386,7 @@ function TrustBadges() {
 
 /* ═══════════ Customer Reviews ═══════════ */
 function CustomerReviews() {
+  const { t } = useLanguage();
   const [reviews, setReviews] = useState([]);
 
   useEffect(() => {
@@ -398,8 +401,8 @@ function CustomerReviews() {
   return (
     <section className={styles.reviewsSection}>
       <div className={styles.bestSellersHeader}>
-        <span className={styles.sectionLabel}>آراء عملائنا</span>
-        <h2 className={styles.sectionTitle}>ماذا يقول عملاؤنا</h2>
+        <span className={styles.sectionLabel}>{t('customerReviews')}</span>
+        <h2 className={styles.sectionTitle}>{t('whatCustomersSay')}</h2>
       </div>
       <div className={styles.reviewsTrack}>
         {reviews.map((r, i) => (
@@ -416,9 +419,9 @@ function CustomerReviews() {
             <p className={styles.reviewComment}>"{r.comment}"</p>
             <div className={styles.reviewAuthor}>
               <div className={styles.reviewAvatar}>
-                {(r.reviewer_name || 'ع').charAt(0)}
+                {(r.reviewer_name || 'C').charAt(0)}
               </div>
-              <span className={styles.reviewName}>{r.reviewer_name || 'عميل كريم'}</span>
+              <span className={styles.reviewName}>{r.reviewer_name || 'Customer'}</span>
             </div>
           </div>
         ))}
