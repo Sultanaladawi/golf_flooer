@@ -7,6 +7,14 @@ import styles from './ProductModal.module.css';
 
 export default function ProductModal({ model, onClose }) {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (model && model.id) {
+      navigate(`/product/${model.id}`);
+      if (onClose) onClose();
+    }
+  }, [model, navigate, onClose]);
+
   const { addItem, items } = useCart();
   const { format } = useCurrency();
   

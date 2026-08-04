@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWishlist } from '../context/WishlistContext';
+import { shopInfo } from '../data/shopData';
 import { trackViewContent } from '../utils/socialPixel';
 import ImageZoomViewer from './ImageZoomViewer';
 import { 
@@ -187,7 +188,8 @@ export default function ProductPage() {
 رابط المنتج: ${pageUrl}`;
 
     const encodedText = encodeURIComponent(messageText);
-    const whatsappUrl = `https://wa.me/962796697413?text=${encodedText}`;
+    const phoneCleaned = shopInfo.phone ? shopInfo.phone.replace(/\D/g, '') : '962796697413';
+    const whatsappUrl = `https://wa.me/${phoneCleaned}?text=${encodedText}`;
     window.open(whatsappUrl, '_blank');
   };
 
