@@ -140,9 +140,22 @@ export default function ProductModal({ model, onClose }) {
     careArray = ['غسيل يدوي بماء بارد', 'كي على حرارة منخفضة'];
   }
 
+  // Dynamic Size Chart Array from Admin
+  let sizeChartArray = [];
+  try {
+    const raw = typeof model.size_chart === 'string' ? JSON.parse(model.size_chart) : model.size_chart;
+    sizeChartArray = Array.isArray(raw) ? raw : [];
+  } catch (e) {
+    sizeChartArray = [];
+  }
+
   // Fallback default sizes if both product and variant have none
   if (!sizesArray || sizesArray.length === 0) {
-    sizesArray = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
+    if (sizeChartArray.length > 0) {
+      sizesArray = sizeChartArray.map(item => item.size || item.name).filter(Boolean);
+    } else {
+      sizesArray = ['S', 'M', 'L', 'XL', 'XXL', '3XL'];
+    }
   }
 
   const hasImages = imagesArray.length > 0;
@@ -544,24 +557,60 @@ export default function ProductModal({ model, onClose }) {
                 })()}
               </div>
               <div className={styles.sizeChart}>
-                <table className={styles.sizeTable}>
-                  <thead>
-                    <tr>
-                      <th>المقاس</th>
-                      <th>الطول (سم)</th>
-                      <th>الكتف (سم)</th>
-                      <th>الصدر (سم)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr><td>S</td><td>148</td><td>36</td><td>88</td></tr>
-                    <tr><td>M</td><td>150</td><td>38</td><td>94</td></tr>
-                    <tr><td>L</td><td>152</td><td>40</td><td>100</td></tr>
-                    <tr><td>XL</td><td>154</td><td>42</td><td>106</td></tr>
-                    <tr><td>XXL</td><td>156</td><td>44</td><td>112</td></tr>
-                    <tr><td>3XL</td><td>158</td><td>46</td><td>118</td></tr>
-                  </tbody>
-                </table>
+                {sizeChartArray.length > 0 ? (
+                  <table className={styles.sizeTable}>
+                    <thead>
+                      <tr>
+                        <th>المقاس</th>
+                        {Object.keys(sizeChartArray[0])
+                          .filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available')
+                          .map(key => {
+                            const labels = {
+                              chest: 'الصدر (سم)',
+                              shoulder: 'الكتف (سم)',
+                              length: 'الطول (سم)',
+                              hip: 'الورك (سم)',
+                              waist: 'الخصر (سم)',
+                              sleeve: 'الأكمام (سم)'
+                            };
+                            return <th key={key}>{labels[key] || key}</th>;
+                          })}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sizeChartArray.map((row, idx) => {
+                        const cols = Object.keys(row).filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available');
+                        return (
+                          <tr key={idx}>
+                            <td><strong>{row.size || row.name || idx + 1}</strong></td>
+                            {cols.map(k => (
+                              <td key={k}>{row[k] || '-'}</td>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                ) : (
+                  <table className={styles.sizeTable}>
+                    <thead>
+                      <tr>
+                        <th>المقاس</th>
+                        <th>الطول (سم)</th>
+                        <th>الكتف (سم)</th>
+                        <th>الصدر (سم)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>S</td><td>148</td><td>36</td><td>88</td></tr>
+                      <tr><td>M</td><td>150</td><td>38</td><td>94</td></tr>
+                      <tr><td>L</td><td>152</td><td>40</td><td>100</td></tr>
+                      <tr><td>XL</td><td>154</td><td>42</td><td>106</td></tr>
+                      <tr><td>XXL</td><td>156</td><td>44</td><td>112</td></tr>
+                      <tr><td>3XL</td><td>158</td><td>46</td><td>118</td></tr>
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}
