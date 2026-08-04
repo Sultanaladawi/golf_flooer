@@ -87,7 +87,7 @@ export const shopInfo = {
   twitter: "https://twitter.com/zahratbeesan",
   snapchat: "https://www.snapchat.com/add/zahratbeesan",
   tiktok: "https://www.tiktok.com/@zahratbeesanshop",
-  phone: "0796697413"
+  phone: "+962796697413"
 };
 
 

@@ -290,8 +290,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
       >
         {showAnnouncement && (
           <div style={{
-            backgroundColor: '#D90429',
-            color: '#FFFFFF',
+            background: 'linear-gradient(90deg, #7a5238 0%, #a6865d 45%, #c5a880 70%, #a6865d 100%)',
+            color: '#faf9f6',
             padding: '7px 16px',
             display: 'flex',
             alignItems: 'center',
@@ -302,7 +302,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
             textAlign: 'center',
             direction: 'rtl',
             zIndex: 1005,
-            boxShadow: '0 1px 4px rgba(0,0,0,0.15)'
+            letterSpacing: '0.03em',
+            boxShadow: '0 2px 8px rgba(122,82,56,0.25)'
           }}>
             <span style={{ margin: '0 auto', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '1rem' }}>🚀</span>
@@ -316,7 +317,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
                 left: '18px',
                 background: 'none',
                 border: 'none',
-                color: '#FFFFFF',
+                color: '#faf9f6',
                 cursor: 'pointer',
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
@@ -330,10 +331,10 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
         )}
 
         <div style={{
-          backgroundColor: scrolled ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.94)',
-          borderBottom: '1px solid rgba(0,0,0,0.07)',
+          backgroundColor: scrolled ? 'rgba(250,249,246,0.98)' : 'rgba(250,249,246,0.96)',
+          borderBottom: '1px solid rgba(197,168,128,0.18)',
           padding: '7px 24px',
-          color: '#1F2937',
+          color: 'var(--espresso-mid)',
           fontSize: '0.82rem',
           fontWeight: '600',
           direction: 'rtl',
@@ -350,11 +351,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
             flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <a href="/privacy" style={{ color: '#4B5563', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستخدام والخصوصية</a>
-              <span style={{ opacity: 0.3, color: '#9CA3AF' }}>|</span>
-              <a href="/about" style={{ color: '#4B5563', textDecoration: 'none', transition: 'color 0.2s' }}>من نحن</a>
-              <span style={{ opacity: 0.3, color: '#9CA3AF' }}>|</span>
-              <a href="/returns" style={{ color: '#4B5563', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستبدال والإرجاع</a>
+              <a href="/privacy" style={{ color: 'var(--espresso-mid)', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستخدام والخصوصية</a>
+              <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
+              <a href="/about" style={{ color: 'var(--espresso-mid)', textDecoration: 'none', transition: 'color 0.2s' }}>من نحن</a>
+              <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
+              <a href="/returns" style={{ color: 'var(--espresso-mid)', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستبدال والإرجاع</a>
             </div>
 
             <div ref={searchRef} style={{ position: 'relative', flex: '0 1 360px', minWidth: '220px' }}>
@@ -463,12 +464,12 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', direction: 'ltr' }}>
-              <a href="mailto:alweshah.abaya@gmail.com" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.82rem' }}>
-                alweshah.abaya@gmail.com
+              <a href={`mailto:${shopInfo.email}`} style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s' }}>
+                {shopInfo.email}
               </a>
-              <span style={{ opacity: 0.3, color: '#9CA3AF' }}>|</span>
-              <a href="tel:+966531345572" style={{ color: '#4B5563', textDecoration: 'none', fontSize: '0.82rem', direction: 'rtl' }}>
-                تواصل معنا: +966531345572
+              <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
+              <a href={`tel:${shopInfo.phone}`} style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', direction: 'rtl', transition: 'color 0.2s' }}>
+                تواصل معنا: {shopInfo.phone}
               </a>
             </div>
           </div>

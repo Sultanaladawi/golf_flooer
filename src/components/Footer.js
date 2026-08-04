@@ -148,7 +148,7 @@ export default function Footer() {
             <EnvelopeIcon /> {shopInfo.email}
           </a>
 
-          <a href={`https://wa.me/962${shopInfo.phone?.replace(/\D/g,'').replace(/^0+/, '')}`} target="_blank" rel="noopener noreferrer"
+          <a href={`https://wa.me/${shopInfo.phone?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
             style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '12px', textDecoration: 'none' }}
             onMouseEnter={e => e.currentTarget.style.color = '#25D366'}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}

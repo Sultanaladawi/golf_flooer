@@ -6,16 +6,17 @@ const CartContext = createContext(null);
 function cartReducer(state, action) {
   switch (action.type) {
     case 'ADD_ITEM': {
+      const addQty = action.item.qty || 1;
       const existing = state.items.find(i => i.id === action.item.id);
       if (existing) {
         return {
           ...state,
           items: state.items.map(i =>
-            i.id === action.item.id ? { ...i, qty: i.qty + 1 } : i
+            i.id === action.item.id ? { ...i, qty: i.qty + addQty } : i
           ),
         };
       }
-      return { ...state, items: [...state.items, { ...action.item, qty: 1 }] };
+      return { ...state, items: [...state.items, { ...action.item, qty: addQty }] };
     }
 
     case 'REMOVE_ITEM':
@@ -107,8 +108,8 @@ export function CartProvider({ children }) {
     }
   }, [state]);
 
-  const mainItemsCount = state.items.filter(i => !String(i.id).startsWith('addon-')).reduce((s, i) => s + i.qty, 0);
-  const totalItems = state.items.reduce((s, i) => s + i.qty, 0);
+  const totalItems = state.items.length;
+  const totalQty = state.items.reduce((s, i) => s + i.qty, 0);
   
   const subTotal = state.items.reduce((s, i) => {
     const price = parseFloat(i.priceNum) || 0;
@@ -138,6 +139,7 @@ export function CartProvider({ children }) {
     <CartContext.Provider value={{ 
       items: state.items, 
       totalItems, 
+      totalQty,
       subTotal,
       bundleDiscount,
       isBundleApplied,
