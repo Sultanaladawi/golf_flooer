@@ -262,6 +262,7 @@ function ProductsSlider({ items, onOpen }) {
 
 /* ═══════════ Category Section Block ═══════════ */
 function CategoryBlock({ category, items, onOpen }) {
+  const { t, currentLang } = useLanguage();
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
