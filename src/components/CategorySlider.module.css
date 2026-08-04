@@ -754,3 +754,109 @@
   font-weight: 600;
 }
 
+/* ══════════════════════════════════════════
+   🌑 DARK MODE OVERRIDES
+   ══════════════════════════════════════════ */
+:global([data-theme="dark"]) .categorySliderRoot,
+:global([data-theme="dark"]) .sliderContainer,
+:global([data-theme="dark"]) .bestSellersSection,
+:global([data-theme="dark"]) .reviewsSection {
+  background: #1a130c !important;
+  color: #f5f5f5 !important;
+}
+
+:global([data-theme="dark"]) .trustBadges {
+  background: #221a12 !important;
+  border-color: rgba(197, 168, 128, 0.15) !important;
+}
+
+:global([data-theme="dark"]) .badge {
+  border-color: rgba(197, 168, 128, 0.15) !important;
+}
+
+:global([data-theme="dark"]) .badgeTitle {
+  color: #f5f5f5 !important;
+}
+
+:global([data-theme="dark"]) .badgeDesc {
+  color: #a89f91 !important;
+}
+
+:global([data-theme="dark"]) .inlineTitle,
+:global([data-theme="dark"]) .sectionTitle {
+  color: #f5f5f5 !important;
+}
+
+:global([data-theme="dark"]) .sectionDesc {
+  color: #b8ac9c !important;
+}
+
+:global([data-theme="dark"]) .productCard {
+  background: #221a12 !important;
+  border-color: rgba(197, 168, 128, 0.2) !important;
+}
+
+:global([data-theme="dark"]) .productCard:hover {
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.6) !important;
+  border-color: rgba(197, 168, 128, 0.4) !important;
+}
+
+:global([data-theme="dark"]) .imageWrap {
+  background: #150e07 !important;
+}
+
+:global([data-theme="dark"]) .productName {
+  color: #f5f5f5 !important;
+}
+
+:global([data-theme="dark"]) .productName:hover {
+  color: #c5a36a !important;
+}
+
+:global([data-theme="dark"]) .wishlistBtn {
+  background: rgba(34, 26, 18, 0.9) !important;
+  color: #ccc !important;
+}
+
+:global([data-theme="dark"]) .arrow {
+  background: #281f16 !important;
+  border-color: rgba(197, 168, 128, 0.3) !important;
+  color: #f5f5f5 !important;
+}
+
+:global([data-theme="dark"]) .arrow:hover {
+  background: #c5a36a !important;
+  color: #ffffff !important;
+}
+
+:global([data-theme="dark"]) .addToCartBtn {
+  background: #2d2218 !important;
+  color: #f5f5f5 !important;
+  border-color: rgba(197, 168, 128, 0.3) !important;
+}
+
+:global([data-theme="dark"]) .addToCartBtn:hover {
+  background: #c5a36a !important;
+  color: #1a130c !important;
+  border-color: #c5a36a !important;
+}
+
+:global([data-theme="dark"]) .reviewCard {
+  background: #221a12 !important;
+  border-color: rgba(197, 168, 128, 0.2) !important;
+}
+
+:global([data-theme="dark"]) .reviewText {
+  color: #e5dec3 !important;
+}
+
+:global([data-theme="dark"]) .reviewName {
+  color: #f5f5f5 !important;
+}
+
+:global([data-theme="dark"]) .outOfStockTag {
+  background: #2a2016 !important;
+  color: #a89a88 !important;
+}
+
+
