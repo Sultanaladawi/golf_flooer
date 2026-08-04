@@ -563,12 +563,12 @@ export default function ProductModal({ model, onClose }) {
                       <tr>
                         <th>المقاس</th>
                         {Object.keys(sizeChartArray[0])
-                          .filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available' && k !== 'chest' && k !== 'hip' && k !== 'waist')
+                          .filter(k => k === 'chest' || k === 'hip' || k === 'waist')
                           .map(key => {
                             const labels = {
-                              shoulder: 'الكتف (سم)',
-                              length: 'الطول (سم)',
-                              sleeve: 'الأكمام (سم)'
+                              chest: 'الصدر (سم)',
+                              hip: 'الورك (سم)',
+                              waist: 'الخصر (سم)'
                             };
                             return <th key={key}>{labels[key] || key}</th>;
                           })}
@@ -576,7 +576,7 @@ export default function ProductModal({ model, onClose }) {
                     </thead>
                     <tbody>
                       {sizeChartArray.map((row, idx) => {
-                        const cols = Object.keys(row).filter(k => k !== 'size' && k !== 'name' && k !== 'quantity' && k !== 'available' && k !== 'chest' && k !== 'hip' && k !== 'waist');
+                        const cols = Object.keys(row).filter(k => k === 'chest' || k === 'hip' || k === 'waist');
                         return (
                           <tr key={idx}>
                             <td><strong>{row.size || row.name || idx + 1}</strong></td>
@@ -593,17 +593,16 @@ export default function ProductModal({ model, onClose }) {
                     <thead>
                       <tr>
                         <th>المقاس</th>
-                        <th>الطول (سم)</th>
-                        <th>الكتف (سم)</th>
+                        <th>الصدر (سم)</th>
+                        <th>الورك (سم)</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr><td>S</td><td>148</td><td>36</td></tr>
-                      <tr><td>M</td><td>150</td><td>38</td></tr>
-                      <tr><td>L</td><td>152</td><td>40</td></tr>
-                      <tr><td>XL</td><td>154</td><td>42</td></tr>
-                      <tr><td>XXL</td><td>156</td><td>44</td></tr>
-                      <tr><td>3XL</td><td>158</td><td>46</td></tr>
+                      <tr><td>1</td><td>96 سم</td><td>110 سم</td></tr>
+                      <tr><td>2</td><td>100 سم</td><td>116 سم</td></tr>
+                      <tr><td>3</td><td>108 سم</td><td>124 سم</td></tr>
+                      <tr><td>4</td><td>112 سم</td><td>132 سم</td></tr>
+                      <tr><td>5</td><td>120 سم</td><td>144 سم</td></tr>
                     </tbody>
                   </table>
                 )}
