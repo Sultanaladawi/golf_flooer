@@ -679,7 +679,7 @@ export default function ProductModal({ model, onClose }) {
                 </div>
               </>
             )}
-            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {model.pre_order === 1 ? 'سيتوفر الطلب المسبق قريباً' : 'شحن مجاني خلال 24 ساعة'}</p>
+            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {model.pre_order === 1 ? 'سيتوفر الطلب المسبق قريباً' : 'مدة تنفيذ الطلب من 6 - 9 أيام عمل'}</p>
           </div>
         </div>
       </div>
