@@ -515,7 +515,7 @@ export default function ProductPage() {
                   }}
                 >
                   <PhoneCall size={18} />
-                  طلب سريع عبر واتساب
+                  استفسار وتواصل عبر الواتساب
                 </button>
 
                 <button 
@@ -636,65 +636,65 @@ export default function ProductPage() {
           marginTop: '50px',
           padding: '30px',
           borderRadius: '24px',
-          background: 'linear-gradient(135deg, rgba(197, 163, 106, 0.08) 0%, rgba(197, 163, 106, 0.02) 100%)',
-          border: '1.5px solid rgba(197, 163, 106, 0.3)',
+          background: 'linear-gradient(135deg, rgba(197, 168, 128, 0.08) 0%, rgba(197, 168, 128, 0.02) 100%)',
+          border: '1.5px solid rgba(197, 168, 128, 0.3)',
           boxShadow: '0 10px 30px rgba(0,0,0,0.03)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', marginBottom: '24px' }}>
             <div>
-              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold, #c5a36a)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-                ✨ تنسيق الموضة الملكي (Complete The Outfit)
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+                ✨ التنسيق الملكي الموصى به
               </span>
-              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', margin: '4px 0 0' }}>
-                اكتملي أناقتكِ — إطلالة بيسان الكاملة
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--espresso, #1a1a1a)', margin: '4px 0 0' }}>
+                قطع زهرة بيسان المكملة للأناقة
               </h2>
             </div>
             <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', fontWeight: 600 }}>
-              نصيحة خبيرة الأناقة يافا لربط هذه القطعة
+              نصيحة خبيرة الأناقة يافا لتنسيق القطع الملكية
             </span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
             {[
               {
-                category: 'الطرحة المتناسقة',
-                name: `طرحة حرير شيفون فاخرة (متوافقة مع ${product.name})`,
-                desc: 'طرحة شيفون إيطالي ناعم بحواف مطرزة بخيط الحرير الراقية لتكتمل إطلالتك.',
+                category: 'عباية بشت مطرزة',
+                name: 'عباية بشت حرير مطرزة (تتناسق مع هذه القطعة)',
+                desc: 'عباية بشت ملكية بتطريز ذهبي يدوي ومظهر فخم للمناسبات والاستقبال.',
+                icon: '👑',
+                price: '90.00 JOD'
+              },
+              {
+                category: 'قفطان ملكي فاخر',
+                name: 'قفطان حريري مطرز بالنقوش العتيقة',
+                desc: 'قفطان ملكي فاخر بحزام مذهب وقماش ناعم يتناسب مع إطلالتك الساحرة.',
                 icon: '✨',
-                price: '15.00 JOD'
+                price: '110.00 JOD'
               },
               {
-                category: 'الحقيبة والكعب',
-                name: 'حقيبة كليك مخملية وحذاء كعب عاجي',
-                desc: 'تناسق ساحر من جلد الستان اللامع ومقبض كلاسيكي لتسليط الضوء على أنوثتك.',
-                icon: '👝',
-                price: '35.00 JOD'
-              },
-              {
-                category: 'الإكسسوارات والعطر',
-                name: 'عطر بيسان الملكي وطقم إكسسوار مذهب',
-                desc: 'لمسة الثبات الأخيرة بخصلات العود والعنبر المعطر المعتمد لدى دار زهرة بيسان.',
-                icon: '💎',
-                price: '25.00 JOD'
+                category: 'ثوب استقبال فاخر',
+                name: 'ثوب استقبال عاجي من الكريب',
+                desc: 'ثوب فاخر بقصة واسعة وقماش راقي مناسب لاستقبال الضيوف والأعياد.',
+                icon: '🌸',
+                price: '85.00 JOD'
               }
             ].map((styleItem, sIdx) => (
               <div key={sIdx} style={{
                 background: 'var(--bg-card, #fff)',
                 padding: '20px',
                 borderRadius: '16px',
-                border: '1px solid rgba(197, 163, 106, 0.2)',
+                border: '1px solid rgba(197, 168, 128, 0.2)',
                 display: 'flex',
                 flexDirection: 'column',
                 justify: 'space-between'
               }}>
                 <div>
                   <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>{styleItem.icon}</div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase' }}>{styleItem.category}</span>
-                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--espresso)', margin: '6px 0 8px' }}>{styleItem.name}</h4>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase' }}>{styleItem.category}</span>
+                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--espresso, #1a1a1a)', margin: '6px 0 8px' }}>{styleItem.name}</h4>
                   <p style={{ fontSize: '0.83rem', color: 'var(--espresso-dim)', lineHeight: 1.6, margin: 0 }}>{styleItem.desc}</p>
                 </div>
-                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(197,163,106,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--gold)' }}>{styleItem.price}</span>
+                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(197,168,128,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--gold, #c5a880)' }}>{styleItem.price}</span>
                   <button 
                     type="button"
                     onClick={handleAddToCart}
