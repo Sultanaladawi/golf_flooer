@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, User, ArrowRight, Link as LinkIcon, ShoppingBag, Sparkles } from 'lucide-react';
+import { Calendar, User, ArrowRight, Link as LinkIcon, Sparkles } from 'lucide-react';
 import { DEFAULT_ARTICLES } from './Blog';
 
 export default function BlogPost() {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, User, ArrowLeft, Sparkles, BookOpen, Clock, Tag, ShoppingBag } from 'lucide-react';
+import { Calendar, User, ArrowLeft, Sparkles, BookOpen, Clock, ShoppingBag } from 'lucide-react';
 import { useCurrency } from '../context/CurrencyContext';
 
 export const DEFAULT_ARTICLES = [

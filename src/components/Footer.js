@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { shopInfo } from '../data/shopData';
 import styles from './Footer.module.css';
 import { 
-  Globe, Lock, RefreshCcw, ShieldCheck, Sparkles, Truck, 
-  Crown, Mail, Phone, MessageSquare, ArrowUp, Send, Heart, Award
+  ShieldCheck, Sparkles, Truck, 
+  Crown, Mail, Phone, ArrowUp, Send
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
