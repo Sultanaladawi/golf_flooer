@@ -15,9 +15,9 @@ export const DEFAULT_ARTICLES = [
     readTime: '4 دقائق قراءة',
     image_url: '/15.jpg',
     excerpt: 'تعد العباية المطرزة بالخيوط الحريرية والتطريز اليدوي الخيار الأول لإبراز الوقار والفخامة في السهرات والمناسبات الرسمية...',
-    productId: 1,
-    productName: 'عباية حرير فاخرة مطرزة',
-    productPrice: 155
+    productId: 15,
+    productName: 'عباية حرير طبيعي',
+    productPrice: 120
   },
   {
     id: 2,
@@ -29,9 +29,9 @@ export const DEFAULT_ARTICLES = [
     readTime: '3 دقائق قراءة',
     image_url: '/13.png',
     excerpt: 'خطوات عملية لحفظ رونق التطريز اليدوي ونعومة الأقمشة الثقيلة لتبدو عبايتكِ جديدة في كل موسم...',
-    productId: 2,
-    productName: 'عباية بشت شتوية فاخرة',
-    productPrice: 175
+    productId: 13,
+    productName: 'عباية بشت فاخرة',
+    productPrice: 110
   },
   {
     id: 3,
@@ -43,9 +43,9 @@ export const DEFAULT_ARTICLES = [
     readTime: '5 دقائق قراءة',
     image_url: '/8.png',
     excerpt: 'دمج التطريز الذهبي مع المجوهرات الهادئة خلق توازناً بصرياً يمنحكِ حضوراً يلفت الأنظار بدون مبالغة...',
-    productId: 3,
-    productName: 'عباية التطريز اليدوي الملكي',
-    productPrice: 160
+    productId: 8,
+    productName: 'عباية ملكية مطرزة',
+    productPrice: 90
   },
   {
     id: 4,
@@ -55,11 +55,11 @@ export const DEFAULT_ARTICLES = [
     created_at: '2026-07-15',
     category: 'إطلالات يومية',
     readTime: '3 دقائق قراءة',
-    image_url: '/13 (1).png',
+    image_url: '/9 (1).png',
     excerpt: 'تصاميم واسعة وخفيفة تتيح حرية الحركة اليومية مع المحافظة على الهيبة والوقار العربي الأصيل...',
-    productId: 4,
-    productName: 'عباية الستائر العاجية اليومية',
-    productPrice: 145
+    productId: 9,
+    productName: 'عباية صيفية راقية',
+    productPrice: 75
   }
 ];
 
@@ -74,15 +74,29 @@ export default function Blog() {
     document.title = 'مجلة زهرة بيسان | أحدث المقالات عن الأناقة والعباءات';
     window.scrollTo(0, 0);
 
-    axios.get('/api/posts')
+    // Dynamic Binding: Fetch actual store products and map their exact images & details to articles!
+    axios.get('/api/products')
       .then(res => {
-        if (Array.isArray(res.data) && res.data.length > 0) {
-          setPosts(res.data);
-        } else {
-          setPosts(DEFAULT_ARTICLES);
+        const storeProducts = Array.isArray(res.data) ? res.data : [];
+        if (storeProducts.length > 0) {
+          const updatedArticles = DEFAULT_ARTICLES.map((article, idx) => {
+            const prod = storeProducts[idx % storeProducts.length];
+            let prodImg = prod.image || (Array.isArray(prod.images) ? prod.images[0] : null) || article.image_url;
+            if (typeof prodImg === 'string' && prodImg.startsWith('[')) {
+              try { prodImg = JSON.parse(prodImg)[0]; } catch(e){}
+            }
+            return {
+              ...article,
+              productId: prod.id,
+              productName: prod.name || article.productName,
+              productPrice: prod.price || article.productPrice,
+              image_url: prodImg || article.image_url
+            };
+          });
+          setPosts(updatedArticles);
         }
       })
-      .catch(() => setPosts(DEFAULT_ARTICLES))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
