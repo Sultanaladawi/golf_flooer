@@ -607,7 +607,12 @@ export default function ProductPage() {
                   {(activeSizeChart && activeSizeChart.length > 0 ? activeSizeChart : [
                     { size: '50', chest: '95 سم', hip: '105 سم' },
                     { size: '52', chest: '100 سم', hip: '110 سم' },
-key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.2)' : 'none' }}>
+                    { size: '54', chest: '105 سم', hip: '115 سم' },
+                    { size: '56', chest: '110 سم', hip: '120 سم' },
+                    { size: '58', chest: '115 سم', hip: '125 سم' },
+                    { size: '60', chest: '120 سم', hip: '130 سم' }
+                  ]).map((row, idx) => (
+                    <tr key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.2)' : 'none' }}>
                       <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)', color: 'var(--gold)', fontWeight: 900 }}>{row.size}</td>
                       <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>{row.chest || '—'}</td>
                       <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>{row.hip || row.waist || '—'}</td>
