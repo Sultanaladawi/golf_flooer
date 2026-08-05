@@ -1,28 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, User, ArrowRight, Share2, Link as LinkIcon } from 'lucide-react';
+import { Calendar, User, ArrowRight, Link as LinkIcon, ShoppingBag, Sparkles } from 'lucide-react';
+import { DEFAULT_ARTICLES } from './Blog';
 
 export default function BlogPost() {
   const { slug } = useParams();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Scroll to top
     window.scrollTo(0, 0);
     
     axios.get(`/api/posts/${slug}`)
       .then(res => {
-        setPost(res.data);
-        document.title = `${res.data.title} | مجلة زهرة بيسان`;
+        if (res.data) {
+          setPost(res.data);
+          document.title = `${res.data.title} | مجلة زهرة بيسان`;
+        } else {
+          findFallbackPost();
+        }
       })
-      .catch(err => {
-        console.error(err);
-        setError(true);
+      .catch(() => {
+        findFallbackPost();
       })
       .finally(() => setLoading(false));
+
+    function findFallbackPost() {
+      const found = DEFAULT_ARTICLES.find(
+        p => p.slug === slug || String(p.id) === String(slug)
+      );
+      if (found) {
+        setPost(found);
+        document.title = `${found.title} | مجلة زهرة بيسان`;
+      } else {
+        setPost(DEFAULT_ARTICLES[0]);
+      }
+    }
   }, [slug]);
 
   const handleShare = () => {
@@ -33,15 +48,15 @@ export default function BlogPost() {
       });
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('تم نسخ رابط المقال');
+      alert('تم نسخ رابط المقال الملكي بنجاح ✦');
     }
   };
 
   if (loading) {
-    return <div style={{ minHeight: '80vh', padding: '150px 20px', textAlign: 'center', color: 'var(--gold)' }}>جاري تحميل المقال...</div>;
+    return <div style={{ minHeight: '80vh', padding: '150px 20px', textAlign: 'center', color: 'var(--gold)' }}>جاري تحميل المقال الملكي...</div>;
   }
 
-  if (error || !post) {
+  if (!post) {
     return (
       <div style={{ minHeight: '80vh', padding: '150px 20px', textAlign: 'center', direction: 'rtl' }}>
         <h2 style={{ color: 'var(--espresso)', marginBottom: '20px' }}>عذراً، المقال غير موجود</h2>
@@ -51,30 +66,37 @@ export default function BlogPost() {
   }
 
   return (
-    <div style={{ minHeight: '80vh', backgroundColor: '#fff', direction: 'rtl', paddingBottom: '80px' }}>
+    <div style={{ minHeight: '80vh', backgroundColor: '#fff', direction: 'rtl', paddingBottom: '80px', fontFamily: "'DM Sans', 'Inter', 'Cairo', sans-serif" }}>
       {/* Hero Image Section */}
-      <div style={{ width: '100%', height: '50vh', minHeight: '400px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '52vh', minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
         <img 
-          src={post.image_url || '/12.png'} 
+          src={post.image_url || '/15.jpg'} 
           alt={post.title} 
           style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
         />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}></div>
-        <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', padding: '40px 20px', maxWidth: '900px', margin: '0 auto', color: '#fff' }}>
-          <Link to="/blog" style={{ color: 'var(--gold)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-            <ArrowRight size={16} /> العودة للمجلة
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(26,26,26,0.92) 0%, rgba(26,26,26,0.4) 60%, transparent 100%)' }} />
+        
+        <div style={{ position: 'absolute', bottom: '0', left: '0', right: '0', padding: '40px 20px', maxWidth: '980px', margin: '0 auto', color: '#fff' }}>
+          <Link to="/blog" style={{ color: 'var(--gold, #c5a880)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', fontSize: '0.88rem', fontWeight: 800 }}>
+            <ArrowRight size={16} /> العودة لمجلة بيسان
           </Link>
-          <h1 style={{ fontSize: '3rem', margin: '0 0 20px', fontFamily: "'DM Serif Display', serif", lineHeight: 1.2 }}>
+
+          <span style={{ display: 'block', background: 'rgba(197, 168, 128, 0.25)', border: '1px solid rgba(197, 168, 128, 0.4)', color: 'var(--gold, #c5a880)', fontSize: '0.78rem', fontWeight: 800, padding: '4px 14px', borderRadius: '20px', width: 'fit-content', marginBottom: '12px' }}>
+            {post.category || 'نصائح وأناقة'}
+          </span>
+
+          <h1 style={{ fontSize: '2.4rem', fontWeight: 900, margin: '0 0 16px', lineHeight: 1.3, color: '#ffffff' }}>
             {post.title}
           </h1>
-          <div style={{ display: 'flex', gap: '20px', fontSize: '0.95rem', opacity: 0.9 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={16} /> {new Date(post.created_at).toLocaleDateString('ar-JO')}</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><User size={16} /> بقلم {post.author}</span>
+
+          <div style={{ display: 'flex', gap: '20px', fontSize: '0.88rem', opacity: 0.9, flexWrap: 'wrap' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={15} color="var(--gold)" /> {new Date(post.created_at || Date.now()).toLocaleDateString('ar-JO')}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><User size={15} color="var(--gold)" /> {post.author}</span>
           </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '50px 20px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
+      <div style={{ maxWidth: '980px', margin: '0 auto', padding: '50px 20px', display: 'flex', gap: '40px', alignItems: 'flex-start' }}>
         
         {/* Social Share Sidebar (Desktop) */}
         <div style={{ position: 'sticky', top: '120px', display: 'flex', flexDirection: 'column', gap: '15px', color: '#888' }} className="blog-share-sidebar">
@@ -89,20 +111,64 @@ export default function BlogPost() {
           </a>
         </div>
 
-        {/* Post Content */}
-        <div 
-          className="blog-content"
-          style={{ flexGrow: 1, lineHeight: 2, fontSize: '1.15rem', color: '#333' }}
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        {/* Post Content Body */}
+        <div style={{ flexGrow: 1 }}>
+          <div 
+            className="blog-content"
+            style={{ lineHeight: 2, fontSize: '1.1rem', color: '#333' }}
+            dangerouslySetInnerHTML={{ __html: post.content }}
+          />
+
+          {/* 🛍️ Linked Store Product Widget */}
+          {post.productName && (
+            <div style={{
+              marginTop: '50px',
+              padding: '25px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, rgba(197, 168, 128, 0.12) 0%, rgba(197, 168, 128, 0.03) 100%)',
+              border: '1.5px solid rgba(197, 168, 128, 0.35)',
+              display: 'flex',
+              alignItems: 'center',
+              justify: 'space-between',
+              flexWrap: 'wrap',
+              gap: '15px'
+            }}>
+              <div>
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold-dim)', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Sparkles size={14} /> القطعة الموصى بها في هذا المقال
+                </span>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--espresso, #1a1a1a)', margin: '6px 0 0' }}>
+                  {post.productName}
+                </h3>
+              </div>
+              <button
+                onClick={() => navigate(`/product/${post.productId || 1}`)}
+                style={{
+                  background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  padding: '10px 22px',
+                  borderRadius: '24px',
+                  fontSize: '0.85rem',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(197, 168, 128, 0.3)'
+                }}
+              >
+                تسوقي القطعة الآن ✦
+              </button>
+            </div>
+          )}
+        </div>
+
       </div>
 
       <style>{`
-        .blog-content h2 { color: var(--espresso); margin: 40px 0 20px; font-size: 1.8rem; }
-        .blog-content h3 { color: var(--espresso); margin: 30px 0 15px; font-size: 1.4rem; }
-        .blog-content p { margin-bottom: 20px; }
-        .blog-content img { max-width: 100%; border-radius: 12px; margin: 30px 0; }
-        .blog-content blockquote { border-right: 4px solid var(--gold); margin: 30px 0; padding: 20px 30px; background: var(--cream); font-style: italic; color: var(--espresso); font-size: 1.3rem; border-radius: 8px; }
+        .blog-content h2 { color: var(--espresso, #1a1a1a); margin: 35px 0 18px; font-size: 1.7rem; font-weight: 900; }
+        .blog-content h3 { color: var(--espresso, #1a1a1a); margin: 28px 0 14px; font-size: 1.35rem; font-weight: 800; }
+        .blog-content p { margin-bottom: 20px; line-height: 1.95; color: var(--espresso-dim, #4a4a4a); }
+        .blog-content img { max-width: 100%; border-radius: 16px; margin: 30px 0; border: 1px solid rgba(197, 168, 128, 0.25); }
+        .blog-content blockquote { border-right: 4px solid var(--gold, #c5a880); margin: 30px 0; padding: 20px 24px; background: rgba(197, 168, 128, 0.08); font-style: italic; color: var(--espresso, #1a1a1a); font-size: 1.15rem; border-radius: 12px; }
         
         @media (max-width: 768px) {
           .blog-share-sidebar { display: none !important; }
