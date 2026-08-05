@@ -607,12 +607,7 @@ export default function ProductPage() {
                   {(activeSizeChart && activeSizeChart.length > 0 ? activeSizeChart : [
                     { size: '50', chest: '95 سم', hip: '105 سم' },
                     { size: '52', chest: '100 سم', hip: '110 سم' },
-                    { size: '54', chest: '105 سم', hip: '115 سم' },
-                    { size: '56', chest: '110 سم', hip: '120 سم' },
-                    { size: '58', chest: '115 سم', hip: '125 سم' },
-                    { size: '60', chest: '120 سم', hip: '130 سم' }
-                  ]).map((row, idx) => (
-                    <tr key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.2)' : 'none' }}>
+key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.2)' : 'none' }}>
                       <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)', color: 'var(--gold)', fontWeight: 900 }}>{row.size}</td>
                       <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>{row.chest || '—'}</td>
                       <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>{row.hip || row.waist || '—'}</td>
@@ -631,7 +626,7 @@ export default function ProductPage() {
           )}
         </div>
 
-        {/* Complete Outfit Stylist Section */}
+        {/* Complete Outfit Stylist Section (Real Store Products Only) */}
         <div style={{
           marginTop: '50px',
           padding: '30px',
@@ -643,81 +638,70 @@ export default function ProductPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', marginBottom: '24px' }}>
             <div>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-                ✨ التنسيق الملكي الموصى به
+                ✨ التنسيق الملكي الموصى به من المعرض
               </span>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--espresso, #1a1a1a)', margin: '4px 0 0' }}>
-                قطع زهرة بيسان المكملة للأناقة
+                قطع زهرة بيسان المكملة للإطلالة
               </h2>
             </div>
             <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', fontWeight: 600 }}>
-              نصيحة خبيرة الأناقة يافا لتنسيق القطع الملكية
+              نصيحة خبيرة الأناقة يافا لربط هذه العباية / القفطان
             </span>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
-            {[
-              {
-                category: 'عباية بشت مطرزة',
-                name: 'عباية بشت حرير مطرزة (تتناسق مع هذه القطعة)',
-                desc: 'عباية بشت ملكية بتطريز ذهبي يدوي ومظهر فخم للمناسبات والاستقبال.',
-                icon: '👑',
-                price: '90.00 JOD'
-              },
-              {
-                category: 'قفطان ملكي فاخر',
-                name: 'قفطان حريري مطرز بالنقوش العتيقة',
-                desc: 'قفطان ملكي فاخر بحزام مذهب وقماش ناعم يتناسب مع إطلالتك الساحرة.',
-                icon: '✨',
-                price: '110.00 JOD'
-              },
-              {
-                category: 'ثوب استقبال فاخر',
-                name: 'ثوب استقبال عاجي من الكريب',
-                desc: 'ثوب فاخر بقصة واسعة وقماش راقي مناسب لاستقبال الضيوف والأعياد.',
-                icon: '🌸',
-                price: '85.00 JOD'
-              }
-            ].map((styleItem, sIdx) => (
-              <div key={sIdx} style={{
-                background: 'var(--bg-card, #fff)',
-                padding: '20px',
-                borderRadius: '16px',
-                border: '1px solid rgba(197, 168, 128, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                justify: 'space-between'
-              }}>
-                <div>
-                  <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>{styleItem.icon}</div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase' }}>{styleItem.category}</span>
-                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--espresso, #1a1a1a)', margin: '6px 0 8px' }}>{styleItem.name}</h4>
-                  <p style={{ fontSize: '0.83rem', color: 'var(--espresso-dim)', lineHeight: 1.6, margin: 0 }}>{styleItem.desc}</p>
+            {(relatedProducts.length > 0 ? relatedProducts.slice(0, 3) : [
+              { id: 8, name: 'عباية ملكية مطرزة', category: 'عباية كلاسيك', price: '90.00 JOD', image_url: '/8.png' },
+              { id: 13, name: 'عباية بشت فاخرة', category: 'عباية شتوية', price: '110.00 JOD', image_url: '/13.png' },
+              { id: 15, name: 'عباية حرير طبيعي', category: 'قفطان مناسبات', price: '120.00 JOD', image_url: '/15.jpg' }
+            ]).map((styleItem, sIdx) => {
+              const itemImg = styleItem.image_url ? (styleItem.image_url.startsWith('/') || styleItem.image_url.startsWith('http') ? styleItem.image_url : `/images/${styleItem.image_url.toLowerCase()}`) : '/12.png';
+              const itemPrice = styleItem.price_num ? format(parseFloat(styleItem.price_num)) : (styleItem.price || styleItem.price_display || '90.00 JOD');
+              return (
+                <div key={sIdx} style={{
+                  background: 'var(--bg-card, #fff)',
+                  padding: '18px',
+                  borderRadius: '18px',
+                  border: '1px solid rgba(197, 168, 128, 0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justify: 'space-between'
+                }}>
+                  <div>
+                    <div style={{ width: '100%', height: '160px', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px', backgroundColor: '#FAF8F5' }}>
+                      <img src={itemImg} alt={styleItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase' }}>
+                      {styleItem.category || 'عباية ملكية'}
+                    </span>
+                    <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--espresso, #1a1a1a)', margin: '4px 0 8px' }}>
+                      {styleItem.name}
+                    </h4>
+                  </div>
+                  <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid rgba(197,168,128,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--gold, #c5a880)' }}>{itemPrice}</span>
+                    <button 
+                      type="button"
+                      onClick={() => { navigate(`/product/${styleItem.id}`); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                      style={{
+                        background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
+                        color: '#ffffff',
+                        border: 'none',
+                        padding: '8px 18px',
+                        borderRadius: '24px',
+                        fontSize: '0.82rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(197, 168, 128, 0.25)',
+                        transition: 'all 0.25s ease'
+                      }}
+                    >
+                      تسوقي القطعة ✦
+                    </button>
+                  </div>
                 </div>
-                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(197,168,128,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--gold, #c5a880)' }}>{styleItem.price}</span>
-                  <button 
-                    type="button"
-                    onClick={handleAddToCart}
-                    style={{
-                      background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
-                      color: '#ffffff',
-                      border: 'none',
-                      padding: '8px 18px',
-                      borderRadius: '24px',
-                      fontSize: '0.82rem',
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(197, 168, 128, 0.25)',
-                      transition: 'all 0.25s ease'
-                    }}
-                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(197, 168, 128, 0.4)'; }}
-                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(197, 168, 128, 0.25)'; }}
-                  >
-                    إضافة الإطلالة ✦
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
