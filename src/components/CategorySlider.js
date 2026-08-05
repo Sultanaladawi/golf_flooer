@@ -86,6 +86,8 @@ function ProductCard({ item, onOpen }) {
   const discount = oldPrice && oldPrice > price ? Math.round(((oldPrice - price) / oldPrice) * 100) : null;
   const isOutOfStock = !!item.isOutOfStock;
   const rating = parseFloat(item.avg_rating || 5);
+  const rawVideo = item.video_url || item.video;
+  const videoSrc = rawVideo ? (rawVideo.startsWith('/') || rawVideo.startsWith('http') ? rawVideo : `/images/${rawVideo}`) : null;
 
   return (
     <div
@@ -95,15 +97,40 @@ function ProductCard({ item, onOpen }) {
     >
       {/* Image Container */}
       <div className={styles.imageWrap} onClick={() => !isOutOfStock && onOpen(item)}>
-        <img
-          src={imgSrc}
-          alt={item.name}
-          className={styles.productImg}
-          onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
-        />
+        {hovered && videoSrc ? (
+          <video
+            src={videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, zIndex: 2 }}
+          />
+        ) : (
+          <img
+            src={imgSrc}
+            alt={item.name}
+            className={styles.productImg}
+            onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
+          />
+        )}
         {/* Badges */}
         {discount && !isOutOfStock && (
           <span className={styles.discountBadge}>-{discount}%</span>
+        )}
+        {videoSrc && !isOutOfStock && (
+          <span style={{
+            position: 'absolute', top: '12px', right: '12px',
+            background: 'rgba(26, 26, 26, 0.75)', color: 'var(--gold, #c5a36a)',
+            backdropFilter: 'blur(8px)',
+            padding: '4px 10px', borderRadius: '20px',
+            fontSize: '0.72rem', fontWeight: 800,
+            display: 'flex', alignItems: 'center', gap: '4px',
+            zIndex: 3, border: '1px solid rgba(197,163,106,0.4)'
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+            🎥 انسيابية العباية
+          </span>
         )}
         {isOutOfStock && (
           <div className={styles.outOfStockOverlay}>

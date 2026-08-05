@@ -173,10 +173,105 @@ export default function Account() {
           )}
 
           {activeTab === 'points' && (
-            <div className={styles.emptyState}>
-              <Star size={48} color="var(--gold)" style={{ marginBottom: '15px' }} />
-              <h3 style={{color:'var(--gold)'}}>0 نقطة</h3>
-              <p>تسوّق لجمع النقاط واستبدالها بخصومات!</p>
+            <div style={{ animation: 'fadeInUp 0.4s ease' }}>
+              <div style={{
+                background: 'linear-gradient(135deg, #1f1a14 0%, #3a2e21 50%, #1f1a14 100%)',
+                color: '#faf8f5',
+                borderRadius: '24px',
+                padding: '30px',
+                border: '1px solid rgba(197, 163, 106, 0.4)',
+                boxShadow: '0 15px 40px rgba(0,0,0,0.2)',
+                position: 'relative',
+                overflow: 'hidden',
+                marginBottom: '30px'
+              }}>
+                <div style={{ position: 'absolute', top: '-40px', left: '-40px', width: '160px', height: '160px', background: 'rgba(197, 163, 106, 0.1)', borderRadius: '50%', filter: 'blur(30px)' }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px' }}>
+                  <div>
+                    <span style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1.5px', color: 'var(--gold, #c5a36a)' }}>
+                      👑 نادي زهرة بيسان الملكي
+                    </span>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 900, margin: '6px 0 0', color: '#ffffff' }}>
+                      عضوية النادي الملكي (VIP Lounge)
+                    </h2>
+                  </div>
+                  <div style={{ background: 'rgba(197,163,106,0.15)', border: '1px solid rgba(197,163,106,0.4)', padding: '8px 18px', borderRadius: '30px', color: 'var(--gold, #c5a36a)', fontWeight: 800, fontSize: '0.85rem' }}>
+                    ✦ الرتبة المخملية Velvet VIP
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', marginTop: '30px', paddingTop: '20px', borderTop: '1px solid rgba(197,163,106,0.2)' }}>
+                  <div>
+                    <span style={{ fontSize: '0.82rem', opacity: 0.8 }}>رصيد النقاط الملكية</span>
+                    <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--gold, #c5a36a)', marginTop: '4px' }}>
+                      {orders.length * 150 + 100} <span style={{ fontSize: '1rem', fontWeight: 600 }}>نقطة</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.82rem', opacity: 0.8 }}>الرتبة القادمة</span>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', marginTop: '8px' }}>
+                      الرتبة الزمردية Emerald
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.82rem', opacity: 0.8 }}>معدل التجميع</span>
+                    <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#ffffff', marginTop: '8px' }}>
+                      1 دينار = 1 نقطة ملكية
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* VIP Tiers Comparison */}
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', marginBottom: '20px' }}>
+                مزايا وحصريات النادي الملكي (Bisan VIP Lounge)
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+                {[
+                  {
+                    title: 'الرتبة المخملية Velvet',
+                    points: '0 - 500 نقطة',
+                    badge: '💎 الحالية',
+                    active: true,
+                    perks: ['خصم 5% حصري على الطلبات', 'كارت إهداء ملكي معطر', 'خدمة عملاء أولوية']
+                  },
+                  {
+                    title: 'الرتبة الزمردية Emerald',
+                    points: '501 - 1500 نقطة',
+                    badge: '🌟 النادي المتقدم',
+                    active: false,
+                    perks: ['خصم 10% على كل التشكيلات', 'أولوية التجهيز والشحن', 'سحوبات حصرية للأعضاء']
+                  },
+                  {
+                    title: 'الرتبة الماسية Royal Diamond',
+                    points: 'أكثر من 1500 نقطة',
+                    badge: '👑 القمة الملكية',
+                    active: false,
+                    perks: ['خصم 15% دائم ومباشر', 'وصول مبكر حاد للتشكيلات قبل صدورها', 'عينة عطر بيسان الملكي مع كل شحنة']
+                  }
+                ].map((tier, idx) => (
+                  <div key={idx} style={{
+                    background: tier.active ? 'rgba(197, 163, 106, 0.08)' : 'var(--bg-card, #fff)',
+                    border: `1.5px solid ${tier.active ? 'var(--gold, #c5a36a)' : 'rgba(197, 163, 106, 0.2)'}`,
+                    borderRadius: '20px',
+                    padding: '24px',
+                    position: 'relative'
+                  }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 800, color: tier.active ? 'var(--gold)' : 'var(--espresso-dim)', background: tier.active ? 'rgba(197,163,106,0.2)' : 'rgba(0,0,0,0.05)', padding: '4px 10px', borderRadius: '12px' }}>
+                      {tier.badge}
+                    </span>
+                    <h4 style={{ fontSize: '1.1rem', fontWeight: 900, margin: '14px 0 4px', color: 'var(--espresso)' }}>{tier.title}</h4>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--espresso-dim)', fontWeight: 700 }}>{tier.points}</span>
+                    <ul style={{ paddingRight: '18px', marginTop: '16px', fontSize: '0.88rem', color: 'var(--espresso-mid)', lineHeight: 1.7 }}>
+                      {tier.perks.map((p, i) => (
+                        <li key={i} style={{ marginBottom: '6px' }}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
