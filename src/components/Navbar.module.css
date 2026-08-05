@@ -247,10 +247,12 @@
   .burger   { display: flex; }
   .inner { padding: 0.4rem 1.2rem; }
   .logo img { height: 42px !important; }
+  .mobile { padding: 6.5rem 2rem 3rem; gap: 1rem; }
 }
 
 @media (max-width: 480px) {
-  .logo img { height: 36px !important; }
-  .cartBtn { width: 36px; height: 36px; }
-  .mobileLink, .mobileCartLink { font-size: 1.8rem; }
+  .logo img { height: 38px !important; }
+  .cartBtn { width: 38px; height: 38px; }
+  .mobileLink, .mobileCartLink { font-size: 1.4rem; }
+  .mobile { padding: 5.5rem 1.5rem 2rem; gap: 0.8rem; }
 }

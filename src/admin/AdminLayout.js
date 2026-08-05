@@ -491,13 +491,17 @@ const AdminLayout = () => {
         }
         @media (max-width: 1024px) {
           .admin-sidebar {
-            left: -260px;
+            right: -280px !important;
+            left: auto !important;
           }
           .admin-sidebar.open {
-            left: 0;
+            right: 0 !important;
+            left: auto !important;
           }
           .admin-main {
+            margin-right: 0 !important;
             margin-left: 0 !important;
+            width: 100% !important;
           }
           .mobile-menu-btn {
             display: flex !important;
@@ -509,7 +513,7 @@ const AdminLayout = () => {
             padding: 0 15px !important;
           }
           .admin-main main {
-            padding: 20px !important;
+            padding: 15px !important;
           }
           .admin-profile-box {
             display: none !important;

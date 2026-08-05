@@ -1317,7 +1317,43 @@ app.delete('/api/tags/:id', async (req, res) => {
   }
 });
 
-// Royal Gift Cards Purchase API
+// --- Royal Gift Cards Store & APIs ---
+let inMemoryGiftCards = [
+  {
+    id: 1,
+    code: 'BEESAN-VIP-9821',
+    buyer_contact: '+962796697413',
+    recipient_name: 'الأميرة سمو العلا',
+    recipient_phone: '+966501234567',
+    initial_value: 100,
+    balance: 100,
+    message: 'مع أطيب التمنيات بإطلالة ملكية ساحرة من دار زهرة بيسان ✦',
+    status: 'active',
+    created_at: new Date().toISOString()
+  },
+  {
+    id: 2,
+    code: 'BEESAN-VIP-4410',
+    buyer_contact: 'zahratbeesanshop@gmail.com',
+    recipient_name: 'السيدة الجوهرة',
+    recipient_phone: '+962791112233',
+    initial_value: 50,
+    balance: 50,
+    message: 'هدية راقية بمناسبة عيد ميلادكِ السعيد 👑',
+    status: 'active',
+    created_at: new Date().toISOString()
+  }
+];
+
+app.get('/api/admin/gift-cards', async (req, res) => {
+  try {
+    const [rows] = await db.promise().query('SELECT * FROM gift_cards ORDER BY id DESC');
+    res.json(rows.length > 0 ? rows : inMemoryGiftCards);
+  } catch (err) {
+    res.json(inMemoryGiftCards);
+  }
+});
+
 app.post('/api/gift-cards/purchase', async (req, res) => {
   const { amount, buyerContact, recipientPhone, recipientName, message } = req.body;
   if (!amount || (!recipientPhone && !req.body.recipientEmail)) {
@@ -1325,27 +1361,86 @@ app.post('/api/gift-cards/purchase', async (req, res) => {
   }
 
   const randomCode = 'BEESAN-VIP-' + Math.floor(1000 + Math.random() * 9000);
-  
+  const newCard = {
+    id: Date.now(),
+    code: randomCode,
+    buyer_contact: buyerContact || '',
+    recipient_name: recipientName || 'المستلم العزيز',
+    recipient_phone: recipientPhone || req.body.recipientEmail || '',
+    initial_value: parseFloat(amount),
+    balance: parseFloat(amount),
+    message: message || '',
+    status: 'active',
+    created_at: new Date().toISOString()
+  };
+
+  inMemoryGiftCards.unshift(newCard);
+
   try {
-    res.json({
-      success: true,
-      code: randomCode,
-      amount,
-      recipientPhone: recipientPhone || req.body.recipientEmail || '',
-      recipientName: recipientName || 'المستلم العزيز',
-      message: message || '',
-      buyerContact: buyerContact || ''
-    });
-  } catch (err) {
-    res.json({
-      success: true,
-      code: randomCode,
-      amount,
-      recipientPhone: recipientPhone || '',
-      recipientName: recipientName || '',
-      message: message || ''
-    });
+    await db.promise().query(
+      `INSERT INTO gift_cards (code, buyer_contact, recipient_name, recipient_phone, initial_value, balance, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())`,
+      [randomCode, buyerContact || '', recipientName || '', recipientPhone || '', amount, amount, message || '']
+    );
+  } catch (err) { }
+
+  res.json({
+    success: true,
+    code: randomCode,
+    amount,
+    recipientPhone: newCard.recipient_phone,
+    recipientName: newCard.recipient_name,
+    message: newCard.message,
+    buyerContact: newCard.buyer_contact
+  });
+});
+
+app.post('/api/admin/gift-cards', async (req, res) => {
+  const { amount, recipientName, recipientPhone, buyerContact, message } = req.body;
+  if (!amount || !recipientPhone) {
+    return res.status(400).json({ error: 'يرجى إدخال قيمة البطاقة ورقم واتساب المستلم الدولي' });
   }
+
+  const randomCode = 'BEESAN-VIP-' + Math.floor(1000 + Math.random() * 9000);
+  const newCard = {
+    id: Date.now(),
+    code: randomCode,
+    buyer_contact: buyerContact || 'إصدار الأدمن المباشر',
+    recipient_name: recipientName || 'المستلم العزيز',
+    recipient_phone: recipientPhone,
+    initial_value: parseFloat(amount),
+    balance: parseFloat(amount),
+    message: message || '',
+    status: 'active',
+    created_at: new Date().toISOString()
+  };
+
+  inMemoryGiftCards.unshift(newCard);
+
+  try {
+    await db.promise().query(
+      `INSERT INTO gift_cards (code, buyer_contact, recipient_name, recipient_phone, initial_value, balance, message, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'active', NOW())`,
+      [randomCode, newCard.buyer_contact, recipientName || '', recipientPhone, amount, amount, message || '']
+    );
+  } catch (err) { }
+
+  res.json({ success: true, card: newCard });
+});
+
+app.put('/api/admin/gift-cards/:id/status', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+  
+  const card = inMemoryGiftCards.find(c => String(c.id) === String(id));
+  if (card) {
+    card.status = status;
+    if (status === 'used') card.balance = 0;
+  }
+
+  try {
+    await db.promise().query('UPDATE gift_cards SET status = ?, balance = ? WHERE id = ?', [status, status === 'used' ? 0 : card?.initial_value || 0, id]);
+  } catch (err) { }
+
+  res.json({ success: true, status });
 });
 
 
