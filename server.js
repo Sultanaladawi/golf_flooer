@@ -1315,6 +1315,8 @@ app.delete('/api/tags/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
 // Royal Gift Cards Purchase API
 app.post('/api/gift-cards/purchase', async (req, res) => {
   const { amount, buyerContact, recipientPhone, recipientName, message } = req.body;
