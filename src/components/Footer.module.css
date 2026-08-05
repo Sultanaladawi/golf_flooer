@@ -1,215 +1,385 @@
 .footer {
-  background: linear-gradient(180deg, var(--cream-dark) 0%, rgba(197, 168, 128, 0.12) 100%);
-  color: var(--espresso);
-  padding: 70px 0 40px;
+  background: var(--cream-dark, #f2efe9);
+  color: var(--espresso, #1a1a1a);
+  padding: 0 0 30px;
   position: relative;
   overflow: hidden;
+  border-top: 1px solid rgba(197, 168, 128, 0.25);
+  font-family: 'DM Sans', 'Inter', 'Cairo', sans-serif;
 }
 
-.footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(196, 164, 132, 0.3), transparent);
+/* 👑 Top Royal Assurances Banner */
+.topAssuranceBanner {
+  background: linear-gradient(135deg, #1f1a14 0%, #3a2e21 50%, #1f1a14 100%);
+  color: #faf8f5;
+  border-bottom: 1px solid rgba(197, 168, 128, 0.3);
+  padding: 24px 0;
+  margin-bottom: 50px;
 }
 
-.inner {
-  max-width: 1200px;
+.assuranceInner {
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 40px;
+  padding: 0 30px;
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1.5fr;
-  gap: 40px;
-}
-
-.brand {
-  display: flex;
-  flex-direction: column;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 25px;
 }
 
-.logo {
-  text-decoration: none;
+.assuranceItem {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.logoMark {
-  font-family: 'DM Serif Display', serif;
-  font-size: 2.5rem;
-  color: var(--gold-dim);
-  background: var(--gold-glow);
-  padding: 10px 20px;
-  border-radius: 15px;
-  border: 1px solid var(--border);
+.assuranceIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(197, 168, 128, 0.15);
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.logoName {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.8rem;
-  color: var(--espresso);
-  line-height: 1;
+.assuranceTitle {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--gold, #c5a880);
+  margin-bottom: 2px;
 }
 
-.logoCity {
-  color: var(--gold-dim);
-  font-size: 0.8rem;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  margin-top: 5px;
+.assuranceDesc {
+  margin: 0;
+  font-size: 0.78rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Main Grid */
+.inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 30px 40px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr;
+  gap: 35px;
+}
+
+.brandCol {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.logoImg {
+  height: 55px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .brandDesc {
-  color: var(--espresso-mid);
-  font-size: 1rem;
+  color: var(--espresso-mid, #4a4a4a);
+  font-size: 0.88rem;
   line-height: 1.8;
-  max-width: 300px;
+  margin: 0;
 }
 
 .socialGroup {
   display: flex;
-  gap: 15px;
+  gap: 10px;
+  margin-top: 5px;
 }
 
 .socialIcon {
-  width: 45px;
-  height: 45px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  width: 38px;
+  height: 38px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid rgba(197, 168, 128, 0.25);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--espresso);
+  color: var(--espresso-mid, #4a4a4a);
   text-decoration: none;
-  transition: all 0.4s ease;
+  transition: all 0.3s ease;
 }
 
 .socialIcon:hover {
-  background: var(--gold);
-  color: var(--espresso);
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-gold);
+  background: linear-gradient(135deg, var(--gold, #c5a880), var(--gold-dim, #a6865d));
+  color: #ffffff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(197, 168, 128, 0.3);
 }
 
-.col h4 {
-  font-family: 'DM Serif Display', serif;
-  font-size: 1.4rem;
-  color: var(--gold-dim);
-  margin-bottom: 30px;
+.onlineBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: rgba(197, 168, 128, 0.12);
+  border: 1px solid rgba(197, 168, 128, 0.25);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--espresso, #1a1a1a);
+  width: fit-content;
+}
+
+.liveDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+}
+
+.colHeader {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--gold-dim, #a6865d);
+  margin: 0 0 20px;
   position: relative;
-}
-
-.col h4::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  right: 0;
-  width: 35px;
-  height: 2px;
-  background: var(--gold);
-}
-
-.col ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.col ul li a {
-  color: var(--espresso-mid);
-  text-decoration: none;
-  transition: 0.3s;
-  font-size: 0.95rem;
-}
-
-.col ul li a:hover {
-  color: var(--gold);
-  padding-right: 8px;
-}
-
-.hoursRow {
-  display: flex;
-  justify-content: space-between;
-  color: var(--espresso-mid);
-  font-size: 0.9rem;
-  border-bottom: 1px solid var(--divider);
   padding-bottom: 8px;
 }
 
-.time {
-  color: var(--espresso);
-  font-weight: 600;
+.colHeader::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 2px;
+  background: var(--gold, #c5a880);
 }
 
-.mapContainer {
-  width: 100%;
-  height: 150px;
-  border-radius: 20px;
-  overflow: hidden;
-  margin-bottom: 20px;
-  border: 1px solid rgba(196, 164, 132, 0.2);
-  filter: grayscale(0.1) contrast(1.05);
-  transition: 0.5s;
-}
-
-.mapContainer:hover {
-  filter: grayscale(0) invert(0) contrast(1);
-}
-
-.address, .emailLink {
+.linkList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
-  gap: 12px;
-  color: var(--espresso-mid);
+  flex-direction: column;
+  gap: 10px;
+}
+
+.linkList li a {
+  color: var(--espresso-mid, #4a4a4a);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  display: inline-block;
+}
+
+.linkList li a:hover {
+  color: var(--gold, #c5a880);
+  transform: translateX(-4px);
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--espresso-mid, #4a4a4a);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 12px;
+  transition: color 0.2s;
+}
+
+.contactItem:hover {
+  color: var(--gold, #c5a880);
+}
+
+.stylistBox {
+  margin-top: 15px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(197, 168, 128, 0.1);
+  border: 1px solid rgba(197, 168, 128, 0.25);
+}
+
+.stylistHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--gold-dim, #a6865d);
+  margin-bottom: 4px;
+}
+
+.stylistBox p {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--espresso-dim, #7a7a7a);
+  line-height: 1.4;
+}
+
+.newsletterDesc {
+  font-size: 0.82rem;
+  color: var(--espresso-mid, #4a4a4a);
   line-height: 1.6;
-  margin-bottom: 15px;
-  transition: 0.3s;
+  margin: 0 0 14px;
 }
 
-.address i, .emailLink i {
-  color: var(--gold-dim);
-  margin-top: 4px;
+.newsletterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.address:hover, .emailLink:hover {
-  color: var(--gold);
+.inputWrap {
+  display: flex;
+  align-items: center;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  border-radius: 12px;
+  padding: 4px 6px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
 }
 
-.bottom {
-  max-width: 1200px;
-  margin: 50px auto 0;
-  padding: 40px;
-  border-top: 1px solid var(--divider);
+.newsletterInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  outline: none;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  color: var(--espresso, #1a1a1a);
+  font-family: inherit;
+}
+
+.subscribeBtn {
+  background: linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.subscribeBtn:hover {
+  transform: scale(1.05);
+}
+
+.subscribeSuccessMsg {
+  font-size: 0.78rem;
+  color: var(--gold-dim, #a6865d);
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+.paymentSection {
+  margin-top: 20px;
+}
+
+.paymentTitle {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--espresso-dim, #7a7a7a);
+  margin-bottom: 8px;
+}
+
+.paymentBadges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.payChip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid rgba(197, 168, 128, 0.25);
+  color: var(--espresso-mid, #4a4a4a);
+}
+
+/* Bottom Bar */
+.bottomBar {
+  border-top: 1px solid rgba(197, 168, 128, 0.2);
+  padding-top: 25px;
+  margin-top: 20px;
+}
+
+.bottomInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: #666;
-  font-size: 0.85rem;
+  flex-wrap: wrap;
+  gap: 15px;
 }
 
-@media (max-width: 1024px) {
+.copyright {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--espresso-dim, #7a7a7a);
+}
+
+.scrollTopBtn {
+  background: none;
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  color: var(--gold-dim, #a6865d);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.25s ease;
+}
+
+.scrollTopBtn:hover {
+  background: var(--gold, #c5a880);
+  color: #ffffff;
+  border-color: var(--gold, #c5a880);
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
   .inner {
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .inner {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 30px;
+  }
+  .assuranceInner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 500px) {
   .inner {
     grid-template-columns: 1fr;
-    padding: 0 25px;
+    padding: 0 20px 30px;
   }
-  .bottom {
+  .assuranceInner {
+    grid-template-columns: 1fr;
+    padding: 0 20px;
+  }
+  .bottomInner {
     flex-direction: column;
-    gap: 20px;
     text-align: center;
   }
 }

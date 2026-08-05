@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { shopInfo } from '../data/shopData';
 import styles from './Footer.module.css';
-import { Globe, Lock, RefreshCcw } from 'lucide-react';
+import { 
+  Globe, Lock, RefreshCcw, ShieldCheck, Sparkles, Truck, 
+  Crown, Mail, Phone, MessageSquare, ArrowUp, Send, Heart, Award
+} from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 const InstagramIcon = () => (
@@ -34,32 +37,17 @@ const TwitterIcon = () => (
   </svg>
 );
 
-const EnvelopeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'6px',marginLeft:'6px',flexShrink:0,verticalAlign:'middle'}}>
-    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-  </svg>
-);
-
 const WhatsAppIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{marginRight:'6px',marginLeft:'6px',flexShrink:0,verticalAlign:'middle'}}>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}>
     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
   </svg>
 );
 
 export default function Footer() {
-  const { t, currentLang } = useLanguage();
+  const { currentLang } = useLanguage();
   const [email, setEmail] = useState('');
   const [subMsg, setSubMsg] = useState('');
   const [subscribing, setSubscribing] = useState(false);
-
-  const QUICK = [
-    { label: t('home'),         href: '#home' },
-    { label: t('collection'),   href: '#collection' },
-    { label: t('gallery'),      href: '#gallery' },
-    { label: t('aboutUs'),      href: '#about' },
-    { label: t('faq'),          href: '#faq' },
-    { label: t('contactUs'),    href: '#contact' },
-  ];
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -73,36 +61,76 @@ export default function Footer() {
         body: JSON.stringify({ email: email.trim() })
       });
       if (res.ok) {
-        setSubMsg(t('subscribeSuccess'));
+        setSubMsg('تم الاشتراك في النشرة البريدية الملكية بنجاح! ✦');
         setEmail('');
       } else {
-        setSubMsg('Error subscribing.');
+        setSubMsg('حدث خطأ في الاشتراك. حاول مجدداً.');
       }
     } catch (err) {
       console.error(err);
-      setSubMsg('Error subscribing.');
+      setSubMsg('حدث خطأ في الاشتراك. حاول مجدداً.');
     } finally {
       setSubscribing(false);
     }
   };
 
-  const isRtl = currentLang.dir === 'rtl';
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   return (
-    <footer className={styles.footer} style={{ direction: currentLang.dir || 'rtl', background: 'var(--cream-dark)' }}>
+    <footer className={styles.footer} style={{ direction: currentLang.dir || 'rtl' }}>
+      
+      {/* 👑 Top Royal Assurances Banner */}
+      <div className={styles.topAssuranceBanner}>
+        <div className={styles.assuranceInner}>
+          <div className={styles.assuranceItem}>
+            <div className={styles.assuranceIcon}><Crown size={22} color="var(--gold, #c5a880)" /></div>
+            <div>
+              <strong className={styles.assuranceTitle}>تطريز وخامات ملكية</strong>
+              <p className={styles.assuranceDesc}>حرير وصوف كشمير وأقمشة إيطالية مطرزة بعناية</p>
+            </div>
+          </div>
+
+          <div className={styles.assuranceItem}>
+            <div className={styles.assuranceIcon}><Truck size={22} color="var(--gold, #c5a880)" /></div>
+            <div>
+              <strong className={styles.assuranceTitle}>شحن وتوصيل دولي</strong>
+              <p className={styles.assuranceDesc}>تغليف وتوصيل آمن مع التتبع لجميع دول العالم</p>
+            </div>
+          </div>
+
+          <div className={styles.assuranceItem}>
+            <div className={styles.assuranceIcon}><Sparkles size={22} color="var(--gold, #c5a880)" /></div>
+            <div>
+              <strong className={styles.assuranceTitle}>تغليف هدايا فاخر</strong>
+              <p className={styles.assuranceDesc}>صندوق عاجي ملكي معطر بعطر بيسان الخاص</p>
+            </div>
+          </div>
+
+          <div className={styles.assuranceItem}>
+            <div className={styles.assuranceIcon}><ShieldCheck size={22} color="var(--gold, #c5a880)" /></div>
+            <div>
+              <strong className={styles.assuranceTitle}>ضمان الأصالة والتسهيل</strong>
+              <p className={styles.assuranceDesc}>جودة مضمونة 100% وسياسة استبدال ميسرة</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Footer Grid */}
       <div className={styles.inner}>
 
-        {/* Brand */}
-        <div className={styles.brand} style={{ textAlign: isRtl ? 'right' : 'left' }}>
-          <a href="#home" className={styles.logo} aria-label={shopInfo.name}>
-            <img src="/logo.png" alt="زهرة بيسان" style={{ height: '60px', width: 'auto', borderRadius: '10px' }} />
+        {/* Column 1: Brand & Identity */}
+        <div className={styles.brandCol}>
+          <a href="#home" className={styles.logoLink} aria-label={shopInfo.name}>
+            <img src="/logo.png" alt="زهرة بيسان" className={styles.logoImg} />
           </a>
-          <p className={styles.brandDesc} style={{ color: 'var(--text-secondary)', marginTop: '15px' }}>
-            {t('brandTagline')}
+          <p className={styles.brandDesc}>
+            زهرة بيسان — دار أزياء عالمية متخصصة في تصميم العبايا والقفاطين الملكية الفاخرة. تجمع تصاميمنا بين الوقار والأصالة واللمسات العصرية الراقية لتتوج إطلالتكِ بأبهى صورها.
           </p>
 
-          {/* Social */}
-          <div className={styles.socialGroup} style={{ display: 'flex', gap: '10px', marginTop: '18px', flexWrap: 'wrap' }}>
+          <div className={styles.socialGroup}>
             <a href={shopInfo.instagram} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Instagram">
               <InstagramIcon />
             </a>
@@ -119,96 +147,118 @@ export default function Footer() {
               <TwitterIcon />
             </a>
           </div>
-        </div>
 
-        {/* Quick Links */}
-        <div className={styles.col} style={{ textAlign: isRtl ? 'right' : 'left' }}>
-          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>{t('quickLinks')}</h4>
-          <ul style={{ padding: 0 }}>
-            {QUICK.map(({ label, href }) => (
-              <li key={label} style={{ marginBottom: '10px', listStyle: 'none' }}>
-                <a href={href} style={{ color: 'var(--text-secondary)', transition: 'color 0.2s', textDecoration: 'none', fontSize: '0.95rem' }}
-                  onMouseEnter={e => e.currentTarget.style.color = 'var(--gold)'}
-                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-                >
-                  {label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Contact */}
-        <div className={styles.col} style={{ textAlign: isRtl ? 'right' : 'left' }}>
-          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>{t('contactUs')}</h4>
-
-          <a href={`mailto:${shopInfo.email}`} className={styles.emailLink}
-            style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '12px', textDecoration: 'none' }}
-          >
-            <EnvelopeIcon /> {shopInfo.email}
-          </a>
-
-          <a href={`https://wa.me/${shopInfo.phone?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer"
-            style={{ display: 'flex', alignItems: 'center', color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '12px', textDecoration: 'none' }}
-            onMouseEnter={e => e.currentTarget.style.color = '#25D366'}
-            onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}
-          >
-            <WhatsAppIcon /> {t('whatsapp')}: {shopInfo.phone}
-          </a>
-
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '20px' }}>
-            {[
-              { text: t('internationalDelivery'), icon: <Globe size={12} /> },
-              { text: t('secureCheckout'), icon: <Lock size={12} /> },
-              { text: t('easyExchange'), icon: <RefreshCcw size={12} /> }
-            ].map(b => (
-              <span key={b.text} style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '4px',
-                fontSize: '0.75rem',
-                fontWeight: '700',
-                padding: '4px 10px',
-                borderRadius: '20px',
-                background: 'var(--gold-glow)',
-                border: '1px solid var(--border)',
-                color: 'var(--espresso)'
-              }}>{b.icon} {b.text}</span>
-            ))}
+          <div className={styles.onlineBadge}>
+            <span className={styles.liveDot} />
+            <span>متجر إلكتروني عالمي — خدمة 24/7</span>
           </div>
         </div>
 
-        {/* Newsletter & Extra */}
-        <div className={styles.col} style={{ textAlign: isRtl ? 'right' : 'left' }}>
-          <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>{t('newsletter')}</h4>
-          <p style={{ color: 'var(--espresso)', fontSize: '0.85rem', marginBottom: '8px', fontWeight: 'bold' }}>
-            {t('newsletterDesc')}
+        {/* Column 2: Exclusive Collections */}
+        <div className={styles.col}>
+          <h4 className={styles.colHeader}>التشكيلات الحصرية</h4>
+          <ul className={styles.linkList}>
+            <li><a href="/#collection">عبايات كلاسيكية فاخرة</a></li>
+            <li><a href="/#collection">عبايات المناسبات والأعراس</a></li>
+            <li><a href="/#collection">التشكيلة الشتوية الفاخرة</a></li>
+            <li><a href="/#collection">عبايات اليومية والاستقبال</a></li>
+            <li><a href="/#collection">وصل حديثاً (New Arrivals)</a></li>
+            <li><a href="/gift-cards">بطاقات الهدايا الملكية</a></li>
+          </ul>
+        </div>
+
+        {/* Column 3: Customer Care & Policies */}
+        <div className={styles.col}>
+          <h4 className={styles.colHeader}>خدمة العميلات</h4>
+          <ul className={styles.linkList}>
+            <li><a href="/returns">سياسة الاستبدال والإرجاع</a></li>
+            <li><a href="/privacy">سياسة الخصوصية والاستخدام</a></li>
+            <li><a href="/#about">عن دار زهرة بيسان</a></li>
+            <li><a href="/account">حاسبة ومساعد المقاسات الذكي</a></li>
+            <li><a href="/account">نادي العضوية الملكي (VIP Lounge)</a></li>
+            <li><a href="/blog">مجلة زهرة بيسان والأناقة</a></li>
+          </ul>
+        </div>
+
+        {/* Column 4: Direct Royal Contact */}
+        <div className={styles.col}>
+          <h4 className={styles.colHeader}>التواصل والاستشارات</h4>
+          
+          <a href={`mailto:${shopInfo.email}`} className={styles.contactItem}>
+            <Mail size={16} color="var(--gold-dim)" />
+            <span>{shopInfo.email}</span>
+          </a>
+
+          <a href={`https://wa.me/${shopInfo.phone?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className={styles.contactItem} style={{ color: '#25D366' }}>
+            <WhatsAppIcon />
+            <span>واتساب مباشر: {shopInfo.phone}</span>
+          </a>
+
+          <a href={`tel:${shopInfo.phone}`} className={styles.contactItem}>
+            <Phone size={16} color="var(--gold-dim)" />
+            <span>تواصل معنا: {shopInfo.phone}</span>
+          </a>
+
+          <div className={styles.stylistBox}>
+            <div className={styles.stylistHeader}>
+              <Sparkles size={14} color="var(--gold)" />
+              <strong>استشارة موضة مع "يافا"</strong>
+            </div>
+            <p>مستشارتكِ الخاصة لتنسيق العبايات والطرحة والإكسسوارات الماتشينج.</p>
+          </div>
+        </div>
+
+        {/* Column 5: Royal Newsletter & Payments */}
+        <div className={styles.col}>
+          <h4 className={styles.colHeader}>عالم بيسان الملكي</h4>
+          <p className={styles.newsletterDesc}>
+            اشتركي بنشرتنا البريدية ليصلكِ جديد التشكيلات الحصرية وخصومات الأعضاء أولاً بأول:
           </p>
-          <form onSubmit={handleSubscribe} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-            <input
-              type="email" required
-              placeholder={t('emailPlaceholder')}
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              style={{
-                background: 'var(--white)', border: '1px solid var(--border)',
-                color: 'var(--espresso)', padding: '10px 12px',
-                borderRadius: '8px', fontSize: '0.85rem', width: '100%', outline: 'none'
-              }}
-            />
-            <button type="submit" disabled={subscribing}
-              style={{ background: 'var(--gold)', color: 'var(--espresso)', border: 'none', padding: '10px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.85rem', width: '100%' }}
-            >
-              {subscribing ? '...' : t('subscribe')}
-            </button>
-            {subMsg && <p style={{ fontSize: '0.8rem', color: 'var(--gold)', marginTop: '4px' }}>{subMsg}</p>}
+          
+          <form onSubmit={handleSubscribe} className={styles.newsletterForm}>
+            <div className={styles.inputWrap}>
+              <input
+                type="email"
+                required
+                placeholder="أدخلي بريدكِ الإلكتروني..."
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className={styles.newsletterInput}
+              />
+              <button type="submit" disabled={subscribing} className={styles.subscribeBtn} aria-label="اشتراك">
+                {subscribing ? '...' : <Send size={14} />}
+              </button>
+            </div>
+            {subMsg && <p className={styles.subscribeSuccessMsg}>{subMsg}</p>}
           </form>
+
+          {/* Payment Methods Badges */}
+          <div className={styles.paymentSection}>
+            <span className={styles.paymentTitle}>طرق الدفع المعتمَدة والمشفرة:</span>
+            <div className={styles.paymentBadges}>
+              <span className={styles.payChip}>💳 Visa</span>
+              <span className={styles.payChip}>💳 Mastercard</span>
+              <span className={styles.payChip}> Pay</span>
+              <span className={styles.payChip}>mada</span>
+              <span className={styles.payChip}>CliQ</span>
+              <span className={styles.payChip}>💵 عند الاستلام</span>
+            </div>
+          </div>
         </div>
 
       </div>
 
-      <div style={{ textAlign: 'center', padding: '25px 0 0', marginTop: '40px', borderTop: '1px solid var(--divider)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-        {t('allRightsReserved')}
+      {/* Bottom Footer Bar */}
+      <div className={styles.bottomBar}>
+        <div className={styles.bottomInner}>
+          <p className={styles.copyright}>
+            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان</strong> — العلامة الملكية المسجلة للعبايات والأزياء الفاخرة.
+          </p>
+          <button onClick={scrollToTop} className={styles.scrollTopBtn} aria-label="العودة للأعلى">
+            <span>العودة للأعلى</span>
+            <ArrowUp size={14} />
+          </button>
+        </div>
       </div>
     </footer>
   );
