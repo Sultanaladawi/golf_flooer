@@ -33,7 +33,7 @@ export default function ProductPage() {
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { format } = useCurrency();
-  const { toggleWishlist, isInWishlist } = useWishlist();
+  const { toggleWishlist, isWishlisted, isInWishlist } = useWishlist();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -155,7 +155,8 @@ export default function ProductPage() {
   const currentWeight = selectedSizeInfo?.weight || product?.weight || null;
 
   const images = getImages();
-  const wishlisted = product ? isInWishlist(product.id) : false;
+  const checkWishlistFn = isWishlisted || isInWishlist;
+  const wishlisted = product && checkWishlistFn ? checkWishlistFn(product.id) : false;
 
   const handleAddToCart = () => {
     if (!product) return;

@@ -65,6 +65,7 @@ export function WishlistProvider({ children }) {
       removeFromWishlist,
       toggleWishlist,
       isWishlisted,
+      isInWishlist: isWishlisted,
       clearWishlist,
     }}>
       {children}
