@@ -630,6 +630,95 @@ export default function ProductPage() {
           )}
         </div>
 
+        {/* Complete Outfit Stylist Section */}
+        <div style={{
+          marginTop: '50px',
+          padding: '30px',
+          borderRadius: '24px',
+          background: 'linear-gradient(135deg, rgba(197, 163, 106, 0.08) 0%, rgba(197, 163, 106, 0.02) 100%)',
+          border: '1.5px solid rgba(197, 163, 106, 0.3)',
+          boxShadow: '0 10px 30px rgba(0,0,0,0.03)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', marginBottom: '24px' }}>
+            <div>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold, #c5a36a)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
+                ✨ تنسيق الموضة الملكي (Complete The Outfit)
+              </span>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', margin: '4px 0 0' }}>
+                اكتملي أناقتكِ — إطلالة بيسان الكاملة
+              </h2>
+            </div>
+            <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', fontWeight: 600 }}>
+              نصيحة خبيرة الأناقة يافا لربط هذه القطعة
+            </span>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+            {[
+              {
+                category: 'الطرحة المتناسقة',
+                name: `طرحة حرير شيفون فاخرة (متوافقة مع ${product.name})`,
+                desc: 'طرحة شيفون إيطالي ناعم بحواف مطرزة بخيط الحرير الراقية لتكتمل إطلالتك.',
+                icon: '✨',
+                price: '15.00 JOD'
+              },
+              {
+                category: 'الحقيبة والكعب',
+                name: 'حقيبة كليك مخملية وحذاء كعب عاجي',
+                desc: 'تناسق ساحر من جلد الستان اللامع ومقبض كلاسيكي لتسليط الضوء على أنوثتك.',
+                icon: '👝',
+                price: '35.00 JOD'
+              },
+              {
+                category: 'الإكسسوارات والعطر',
+                name: 'عطر بيسان الملكي وطقم إكسسوار مذهب',
+                desc: 'لمسة الثبات الأخيرة بخصلات العود والعنبر المعطر المعتمد لدى دار زهرة بيسان.',
+                icon: '💎',
+                price: '25.00 JOD'
+              }
+            ].map((styleItem, sIdx) => (
+              <div key={sIdx} style={{
+                background: 'var(--bg-card, #fff)',
+                padding: '20px',
+                borderRadius: '16px',
+                border: '1px solid rgba(197, 163, 106, 0.2)',
+                display: 'flex',
+                flexDirection: 'column',
+                justify: 'space-between'
+              }}>
+                <div>
+                  <div style={{ fontSize: '1.8rem', marginBottom: '8px' }}>{styleItem.icon}</div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold)', textTransform: 'uppercase' }}>{styleItem.category}</span>
+                  <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--espresso)', margin: '6px 0 8px' }}>{styleItem.name}</h4>
+                  <p style={{ fontSize: '0.83rem', color: 'var(--espresso-dim)', lineHeight: 1.6, margin: 0 }}>{styleItem.desc}</p>
+                </div>
+                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(197,163,106,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '0.95rem', fontWeight: 900, color: 'var(--gold)' }}>{styleItem.price}</span>
+                  <button 
+                    type="button"
+                    onClick={handleAddToCart}
+                    style={{
+                      background: 'none',
+                      border: '1px solid var(--gold)',
+                      color: 'var(--gold)',
+                      padding: '6px 14px',
+                      borderRadius: '20px',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold)'; e.currentTarget.style.color = '#fff'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--gold)'; }}
+                  >
+                    إضافة الإطلالة ✦
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Related Products Carousel */}
         {relatedProducts.length > 0 && (
           <div style={{ marginTop: '70px' }}>

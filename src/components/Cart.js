@@ -6,6 +6,10 @@ import styles from './Cart.module.css';
 import { useEffect } from 'react';
 
 export default function Cart({ isOpen, onClose, onCheckout }) {
+  const [isGift, setIsGift] = useState(false);
+  const [giftMessage, setGiftMessage] = useState('');
+  const [hidePrice, setHidePrice] = useState(true);
+
   const { 
     items, 
     removeItem, 
@@ -121,6 +125,60 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Luxury Gifting Option */}
+        <div style={{
+          margin: '15px 20px 0',
+          padding: '16px',
+          borderRadius: '16px',
+          background: 'linear-gradient(135deg, rgba(197, 163, 106, 0.1) 0%, rgba(197, 163, 106, 0.03) 100%)',
+          border: '1px solid rgba(197, 163, 106, 0.3)',
+          direction: 'rtl'
+        }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontWeight: 800, color: 'var(--espresso)', fontSize: '0.88rem' }}>
+            <input 
+              type="checkbox"
+              checked={isGift}
+              onChange={e => setIsGift(e.target.checked)}
+              style={{ accentColor: 'var(--gold, #c5a36a)', width: '18px', height: '18px', cursor: 'pointer' }}
+            />
+            <span>🎁 إرسال كهدية ملكية لشخص عزيز (Luxury Gifting)</span>
+          </label>
+          
+          {isGift && (
+            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px', animation: 'fadeInUp 0.3s ease' }}>
+              <p style={{ fontSize: '0.78rem', color: 'var(--espresso-dim)', margin: 0, lineHeight: 1.5 }}>
+                تتضمن الهدية تغليفاً عاجياً فاخراً ومعطراً بعطر بيسان، وإخفاء الأسعار، مع طباعة كارت الإهداء الملكي.
+              </p>
+              <textarea
+                placeholder="اكتبي رسالة الإهداء الخاصة ليتم طباعتها على كارت الإهداء..."
+                value={giftMessage}
+                onChange={e => setGiftMessage(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: '10px',
+                  border: '1px solid rgba(197, 163, 106, 0.3)',
+                  background: 'var(--bg-surface, #fff)',
+                  color: 'var(--espresso)',
+                  fontSize: '0.85rem',
+                  outline: 'none',
+                  resize: 'vertical',
+                  minHeight: '60px'
+                }}
+              />
+              <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--espresso-mid)', cursor: 'pointer' }}>
+                <input 
+                  type="checkbox"
+                  checked={hidePrice}
+                  onChange={e => setHidePrice(e.target.checked)}
+                  style={{ accentColor: 'var(--gold)' }}
+                />
+                <span>إخفاء أسعار المنتجات بالفاتورة عن المستلم</span>
+              </label>
+            </div>
+          )}
         </div>
 
         <div className={styles.summary}>
