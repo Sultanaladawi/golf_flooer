@@ -698,18 +698,19 @@ export default function ProductPage() {
                     type="button"
                     onClick={handleAddToCart}
                     style={{
-                      background: 'none',
-                      border: '1px solid var(--gold)',
-                      color: 'var(--gold)',
-                      padding: '6px 14px',
-                      borderRadius: '20px',
-                      fontSize: '0.78rem',
+                      background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
+                      color: '#ffffff',
+                      border: 'none',
+                      padding: '8px 18px',
+                      borderRadius: '24px',
+                      fontSize: '0.82rem',
                       fontWeight: 800,
                       cursor: 'pointer',
-                      transition: 'all 0.2s'
+                      boxShadow: '0 4px 12px rgba(197, 168, 128, 0.25)',
+                      transition: 'all 0.25s ease'
                     }}
-                    onMouseEnter={e => { e.currentTarget.style.background = 'var(--gold)'; e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--gold)'; }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(197, 168, 128, 0.4)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(197, 168, 128, 0.25)'; }}
                   >
                     إضافة الإطلالة ✦
                   </button>

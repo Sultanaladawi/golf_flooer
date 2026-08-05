@@ -201,7 +201,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
             <span>{formatPrice(totalPrice)}</span>
           </div>
 
-          <button className={styles.checkoutBtn} onClick={() => customer ? onCheckout() : openLoginModal(onCheckout)} style={{ background: 'var(--brown)', border: '1px solid var(--border)', color: 'var(--cream)' }}>
+          <button className={styles.checkoutBtn} onClick={() => customer ? onCheckout() : openLoginModal(onCheckout)} style={{ background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)', border: 'none', color: '#ffffff', boxShadow: '0 6px 20px rgba(197, 168, 128, 0.35)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <i className="fas fa-shield-alt" />
               <span>تأكيد الطلب</span>
