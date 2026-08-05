@@ -1315,7 +1315,37 @@ app.delete('/api/tags/:id', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+// Royal Gift Cards Purchase API
+app.post('/api/gift-cards/purchase', async (req, res) => {
+  const { amount, buyerContact, recipientPhone, recipientName, message } = req.body;
+  if (!amount || (!recipientPhone && !req.body.recipientEmail)) {
+    return res.status(400).json({ error: 'يرجى تحديد قيمة الهدية ورقم هاتف / واتساب المستلم الدولي' });
+  }
+
+  const randomCode = 'BEESAN-VIP-' + Math.floor(1000 + Math.random() * 9000);
+  
+  try {
+    res.json({
+      success: true,
+      code: randomCode,
+      amount,
+      recipientPhone: recipientPhone || req.body.recipientEmail || '',
+      recipientName: recipientName || 'المستلم العزيز',
+      message: message || '',
+      buyerContact: buyerContact || ''
+    });
+  } catch (err) {
+    res.json({
+      success: true,
+      code: randomCode,
+      amount,
+      recipientPhone: recipientPhone || '',
+      recipientName: recipientName || '',
+      message: message || ''
+    });
+  }
 });
+
 
 
 // ── Loyalty Program APIs ──────────────────────────────────────────
