@@ -1,107 +1,135 @@
-import { useEffect, useRef, useState } from 'react';
-import { galleryImages, shopInfo } from '../data/shopData';
-import { useReveal } from '../hooks/useReveal';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { shopInfo } from '../data/shopData';
+import { useCurrency } from '../context/CurrencyContext';
 import styles from './Gallery.module.css';
+import { Sparkles, ArrowLeft, Crown } from 'lucide-react';
 
-function seededRot(id) {
-  const n = typeof id === 'number' ? id : String(id).charCodeAt(0);
-  return (((n * 9301 + 49297) % 233280) / 233280) * 12 - 6;
-}
-
-function seededTapeRot(id) {
-  const n = typeof id === 'number' ? id : String(id).charCodeAt(0);
-  return (((n * 6271 + 31337) % 233280) / 233280) * 6 - 3;
-}
-
-function usePolaroidReveal() {
-  const wallRef = useRef(null);
-  const [visibleIds, setVisibleIds] = useState(new Set());
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const id = entry.target.dataset.polaroidId;
-            setVisibleIds((prev) => new Set([...prev, id]));
-          }
-        });
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
-
-    const cards = wallRef.current?.querySelectorAll('[data-polaroid-id]');
-    cards?.forEach((card) => observer.observe(card));
-
-    return () => observer.disconnect();
-  }, []);
-
-  return [wallRef, visibleIds];
+function getImageUrl(item) {
+  if (!item) return '/12.png';
+  let imagesArray = [];
+  try {
+    imagesArray = typeof item.images === 'string' ? JSON.parse(item.images) : (item.images || []);
+  } catch (e) { imagesArray = []; }
+  let src = '';
+  if (imagesArray.length > 0 && imagesArray[0]) src = imagesArray[0];
+  else if (item.image_url) src = item.image_url;
+  if (!src) return '/12.png';
+  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+  return `/images/${src.toLowerCase()}`;
 }
 
 export default function Gallery() {
-  const [headerRef, headerVis] = useReveal();
-  const [wallRef, visibleIds]  = usePolaroidReveal();
+  const [products, setProducts] = useState([]);
+  const navigate = useNavigate();
+  const { format: formatPrice } = useCurrency();
+
+  useEffect(() => {
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setProducts(data.slice(0, 8));
+        } else {
+          setProducts([
+            { id: 1, name: 'عباية حرير فاخرة', category: 'عبايات المناسبات', price_num: 155, images: ['/15.jpg'] },
+            { id: 2, name: 'عباية بشت شتوية', category: 'التشكيلة الشتوية', price_num: 175, images: ['/13.png'] },
+            { id: 3, name: 'عباية التطريز اليدوي', category: 'عبايات كلاسيك', price_num: 160, images: ['/8.png'] },
+            { id: 4, name: 'عباية الستائر العاجية', category: 'عبايات الاستقبال', price_num: 145, images: ['/13 (1).png'] },
+            { id: 5, name: 'عباية كلاسيكية سوداء', category: 'عبايات كلاسيك', price_num: 150, images: ['/12.png'] },
+            { id: 6, name: 'عباية الأناقة الصيفية', category: 'تشكيلة الصيف', price_num: 135, images: ['/9 (1).png'] },
+          ]);
+        }
+      })
+      .catch(() => {
+        setProducts([
+          { id: 1, name: 'عباية حرير فاخرة', category: 'عبايات المناسبات', price_num: 155, images: ['/15.jpg'] },
+          { id: 2, name: 'عباية بشت شتوية', category: 'التشكيلة الشتوية', price_num: 175, images: ['/13.png'] },
+          { id: 3, name: 'عباية التطريز اليدوي', category: 'عبايات كلاسيك', price_num: 160, images: ['/8.png'] },
+          { id: 4, name: 'عباية الستائر العاجية', category: 'عبايات الاستقبال', price_num: 145, images: ['/13 (1).png'] },
+          { id: 5, name: 'عباية كلاسيكية سوداء', category: 'عبايات كلاسيك', price_num: 150, images: ['/12.png'] },
+          { id: 6, name: 'عباية الأناقة الصيفية', category: 'تشكيلة الصيف', price_num: 135, images: ['/9 (1).png'] },
+        ]);
+      });
+  }, []);
 
   return (
-    <section className={styles.gallery} id="gallery">
-      <div className="section-wrap">
-        <div
-          ref={headerRef}
-          className={`${styles.header} reveal ${headerVis ? 'vis' : ''}`}
-        >
-          <div className="label">المعرض</div>
-          <div className="divider" />
-          <h2 className="h2">معرض زهرة بيسان</h2>
-          <p className={styles.headerSub}>
-            زهرة بيسان للعبايات والأزياء الفاخرة — حيث تلتقي الأصالة بالفخامة والجمال.
+    <section className={styles.gallerySection} id="gallery">
+      <div className={styles.container}>
+        
+        {/* Header */}
+        <div className={styles.header}>
+          <div className={styles.goldBadge}>
+            <Crown size={14} color="var(--gold, #c5a880)" />
+            <span>معرض المنتجات الحقيقية</span>
+          </div>
+          <h2 className={styles.title}>معرض زهرة بيسان الفاخر</h2>
+          <p className={styles.subtitle}>
+            شاهدي تفاصيل الفخامة والتطريز في تشكيلاتنا الملكية المتاحة مباشرة في المتجر
           </p>
         </div>
 
-        <div ref={wallRef} className={styles.wall}>
-          {galleryImages.map((img) => {
-            const rot      = seededRot(img.id);
-            const tapeRot  = seededTapeRot(img.id);
-            const isLarge  = img.size === 'large';
-            const isVis    = visibleIds.has(String(img.id));
+        {/* Gallery Grid */}
+        <div className={styles.grid}>
+          {products.map((item, idx) => {
+            const imgSrc = getImageUrl(item);
+            const price = item.price_num || item.price || 150;
 
             return (
               <div
-                key={img.id}
-                data-polaroid-id={img.id}
-                className={`
-                  ${styles.polaroid}
-                  ${isLarge ? styles.large : styles.normal}
-                  ${isVis   ? styles.visible : ''}
-                `}
-                style={{
-                  '--rot':      `${rot}deg`,
-                  '--tape-rot': `${tapeRot}deg`,
-                }}
+                key={item.id || idx}
+                className={styles.card}
+                onClick={() => navigate(`/product/${item.id}`)}
               >
-                <div className={styles.photo}>
-                  <img src={img.src} alt={img.alt} loading="lazy" />
-                </div>
+                {/* Image Container */}
+                <div className={styles.imageWrap}>
+                  <img
+                    src={imgSrc}
+                    alt={item.name}
+                    className={styles.image}
+                    onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
+                  />
+                  <div className={styles.overlay} />
 
-                <div className={styles.caption}>
-                  <span>{img.caption || img.alt}</span>
+                  {/* Top Badges */}
+                  <span className={styles.categoryBadge}>
+                    <Sparkles size={11} />
+                    {item.category || 'تشكيلة فاخرة'}
+                  </span>
+
+                  <span className={styles.priceChip}>
+                    {formatPrice(price)}
+                  </span>
+
+                  {/* Bottom Info & Action */}
+                  <div className={styles.cardContent}>
+                    <h3 className={styles.productTitle}>{item.name}</h3>
+                    <div className={styles.actionBtn}>
+                      <span>معاينة العباية</span>
+                      <ArrowLeft size={14} />
+                    </div>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
 
-        <p className={styles.galleryNote}>
-          <i className="fab fa-instagram" />
-          تابعونا على{' '}
-          <a
-            href={shopInfo.instagram}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {shopInfo.instagramHandle}
-          </a>
-        </p>
+        {/* Footer Link */}
+        <div className={styles.footerNote}>
+          <p>
+            تابعوا جديد الإطلالات الملكية اليومية عبر حسابنا الرسمي على إنستغرام{' '}
+            <a
+              href={shopInfo.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.instaLink}
+            >
+              {shopInfo.instagramHandle || '@zahratbeesan'}
+            </a>
+          </p>
+        </div>
+
       </div>
     </section>
   );
