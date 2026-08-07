@@ -29,7 +29,7 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prepare complete production release package
+      - name: Prepare complete release zip with production dependencies
         run: |
           mkdir -p release
           cp -r build release/
@@ -50,12 +50,13 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Enable WEBSITE_RUN_FROM_PACKAGE on Azure Web App
+      - name: Configure Azure AppSettings (Clean Oryx Build Mode)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
           if [ -n "$RG" ]; then
-            echo "Setting WEBSITE_RUN_FROM_PACKAGE=1 on $RG..."
-            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+            echo "Configuring AppSettings on $RG..."
+            az webapp config appsettings delete --name zahrat-beesan --resource-group "$RG" --setting-names WEBSITE_RUN_FROM_PACKAGE || true
+            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true ENABLE_ORYX_BUILD=true
           fi
 
       - name: 'Deploy release.zip to Azure Web App'
