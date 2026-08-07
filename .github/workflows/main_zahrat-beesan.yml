@@ -31,16 +31,16 @@ jobs:
 
       - name: Create deployment zip
         run: |
-          mkdir deploy_artifact
-          cp -r build deploy_artifact/
-          cp server.js deploy_artifact/
-          cp package.json deploy_artifact/
-          cp package-lock.json deploy_artifact/
-          if [ -d "public" ]; then cp -r public deploy_artifact/; fi
-          cd deploy_artifact
-          npm install --legacy-peer-deps --omit=dev --ignore-scripts 2>&1 | tail -5
+          mkdir -p release_pkg
+          cp -r build release_pkg/
+          cp server.js release_pkg/
+          cp package.json release_pkg/
+          cp package-lock.json release_pkg/
+          [ -d "public" ] && cp -r public release_pkg/ || true
+          cd release_pkg
+          npm install --legacy-peer-deps --omit=dev --ignore-scripts
           cd ..
-          cd deploy_artifact && zip -r ../release.zip . && cd ..
+          zip -r release.zip release_pkg/
           echo "Zip size: $(du -sh release.zip)"
 
       - name: Login to Azure
@@ -50,11 +50,17 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          slot-name: 'Production'
-          package: release.zip
-          startup-command: 'node server.js'
+      - name: Deploy via Azure CLI
+        run: |
+          RESOURCE_GROUP=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
+          echo "Resource group: $RESOURCE_GROUP"
+          az webapp config appsettings set \
+            --name zahrat-beesan \
+            --resource-group "$RESOURCE_GROUP" \
+            --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false NODE_ENV=production
+          az webapp deploy \
+            --name zahrat-beesan \
+            --resource-group "$RESOURCE_GROUP" \
+            --src-path release.zip \
+            --type zip \
+            --timeout 600
