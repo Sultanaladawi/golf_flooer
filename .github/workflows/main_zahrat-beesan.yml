@@ -26,7 +26,7 @@ jobs:
 
       - name: npm install and build
         run: |
-          npm install --legacy-peer-deps --no-optional
+          npm install --legacy-peer-deps --omit=optional
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
       - name: Login to Azure
