@@ -1093,6 +1093,18 @@ const Products = () => {
                       onClick={() => setFormData({
                         ...formData,
                         size_chart_list: [
+                          { size: 'Free Size (فري سايز)', chest: 'Free / يناسب الجميع (100 - 130 سم)', hip: 'Free / يناسب الجميع', weight: '0.7 كغم' }
+                        ]
+                      })}
+                      style={{ padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 'bold', background: 'linear-gradient(135deg, rgba(197,168,128,0.25), rgba(197,168,128,0.1))', color: colors.crema, border: `1px solid ${colors.crema}`, cursor: 'pointer' }}
+                    >
+                      ✨ + مقاس موحد (Free Size)
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        size_chart_list: [
                           { size: '50', chest: '95 سم', hip: '105 سم', weight: '0.6 كغم' },
                           { size: '52', chest: '100 سم', hip: '110 سم', weight: '0.65 كغم' },
                           { size: '54', chest: '105 سم', hip: '115 سم', weight: '0.7 كغم' },
