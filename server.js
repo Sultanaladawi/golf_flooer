@@ -12,7 +12,12 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const compression = require('compression');
-const ffmpegPath = require('ffmpeg-static');
+let ffmpegPath = null;
+try {
+  ffmpegPath = require('ffmpeg-static');
+} catch (err) {
+  console.warn('[server] ffmpeg-static module load warning:', err.message);
+}
 const { execFile } = require('child_process');
 
 // Ensure the public/images directory exists to prevent upload crashes
