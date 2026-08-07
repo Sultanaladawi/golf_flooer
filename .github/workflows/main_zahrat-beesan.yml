@@ -29,6 +29,20 @@ jobs:
           npm install --legacy-peer-deps
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
+      - name: Create deployment zip
+        run: |
+          mkdir deploy_artifact
+          cp -r build deploy_artifact/
+          cp server.js deploy_artifact/
+          cp package.json deploy_artifact/
+          cp package-lock.json deploy_artifact/
+          if [ -d "public" ]; then cp -r public deploy_artifact/; fi
+          cd deploy_artifact
+          npm install --legacy-peer-deps --omit=dev --ignore-scripts 2>&1 | tail -5
+          cd ..
+          cd deploy_artifact && zip -r ../release.zip . && cd ..
+          echo "Zip size: $(du -sh release.zip)"
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -42,5 +56,5 @@ jobs:
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
-          package: .
+          package: release.zip
           startup-command: 'node server.js'
