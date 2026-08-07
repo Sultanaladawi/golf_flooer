@@ -48,12 +48,12 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Stop App Service (Unlocks all files and prevents 409 Conflict)
+      - name: Configure Azure App Service (Enable WEBSITE_RUN_FROM_PACKAGE)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
           if [ -n "$RG" ]; then
-            echo "Stopping Azure Web App in resource group: $RG..."
-            az webapp stop --name zahrat-beesan --resource-group "$RG" || true
+            echo "Setting WEBSITE_RUN_FROM_PACKAGE=1 in resource group: $RG..."
+            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
           fi
 
       - name: 'Deploy release.zip to Azure Web App'
@@ -64,12 +64,3 @@ jobs:
           slot-name: 'Production'
           package: 'release.zip'
           startup-command: 'node server.js'
-
-      - name: Start App Service
-        if: always()
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
-          if [ -n "$RG" ]; then
-            echo "Starting Azure Web App..."
-            az webapp start --name zahrat-beesan --resource-group "$RG" || true
-          fi
