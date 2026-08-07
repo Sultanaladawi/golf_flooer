@@ -48,19 +48,9 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Restart Azure Web App to release deployment locks (Fix 409 Conflict)
+      - name: Deploy release.zip via Azure CLI ZipDeploy (Bypasses ARM OneDeploy 409 Conflict)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
-          if [ -n "$RG" ]; then
-            echo "Restarting Azure Web App in resource group: $RG..."
-            az webapp restart --name zahrat-beesan --resource-group "$RG"
-          fi
-
-      - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          slot-name: 'Production'
-          package: 'release.zip'
-          startup-command: 'node server.js'
+          echo "Target Resource Group: $RG"
+          az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false WEBSITE_RUN_FROM_PACKAGE=1
+          az webapp deployment source config-zip --name zahrat-beesan --resource-group "$RG" --src release.zip
