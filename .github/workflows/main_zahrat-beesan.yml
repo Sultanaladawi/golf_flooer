@@ -50,6 +50,14 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
+      - name: Stop Azure Web App to release file locks (Fix 409 Conflict)
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Target Resource Group: $RG"
+          az webapp stop --name zahrat-beesan --resource-group "$RG"
+          echo "Web app stopped successfully. File locks released."
+          sleep 5
+
       - name: 'Deploy release.zip to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -58,3 +66,9 @@ jobs:
           slot-name: 'Production'
           package: 'release.zip'
           startup-command: 'node server.js'
+
+      - name: Start Azure Web App
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          az webapp start --name zahrat-beesan --resource-group "$RG"
+          echo "Web app started successfully."
