@@ -29,7 +29,7 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prepare clean source zip for Azure Oryx build
+      - name: Prepare release package with installed production node_modules
         run: |
           mkdir -p release
           cp -r build release/
@@ -38,6 +38,7 @@ jobs:
           cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
           cd release
+          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
           zip -r ../release.zip .
           cd ..
 
@@ -48,12 +49,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Enable Azure Oryx Native Build (SCM_DO_BUILD_DURING_DEPLOYMENT=true)
+      - name: Disable Oryx server build to use pre-packaged Linux node_modules
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
           if [ -n "$RG" ]; then
-            echo "Enabling SCM_DO_BUILD_DURING_DEPLOYMENT=true on $RG..."
-            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true WEBSITE_RUN_FROM_PACKAGE=0
+            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false ENABLE_ORYX_BUILD=false
           fi
 
       - name: 'Deploy release.zip to Azure Web App'
