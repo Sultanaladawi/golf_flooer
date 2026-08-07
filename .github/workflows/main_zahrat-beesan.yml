@@ -26,7 +26,7 @@ jobs:
 
       - name: npm install and build
         run: |
-          npm install --legacy-peer-deps --no-audit --no-fund
+          npm install --legacy-peer-deps --no-optional --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
       - name: Prepare deployment package
@@ -37,10 +37,10 @@ jobs:
           cp package.json deploy_pkg/
           cp -r public deploy_pkg/ 2>/dev/null || true
           cd deploy_pkg
-          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+          npm install --omit=dev --no-optional --legacy-peer-deps --no-audit --no-fund
           zip -r ../deploy.zip . -x "*.git*"
           cd ..
-          ls -lh deploy.zip
+          echo "Package size: $(du -sh deploy.zip)"
 
       - name: Login to Azure
         uses: azure/login@v2
