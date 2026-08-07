@@ -29,12 +29,9 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prune devDependencies and bundle production zip directly from root
+      - name: Create clean production zip artifact
         run: |
-          npm prune --production --legacy-peer-deps
-          zip -r release.zip build server.js package.json package-lock.json public node_modules -x "*.git*"
-          echo "Verifying express module inside release.zip:"
-          unzip -l release.zip | grep "node_modules/express/package.json" || echo "WARNING: express not found in zip"
+          zip -r release.zip build server.js package.json package-lock.json public -x "*.git*"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -43,18 +40,18 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Configure Azure Web App Settings
+      - name: Reset Azure AppSettings for Clean Deploy
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
           if [ -n "$RG" ]; then
-            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false ENABLE_ORYX_BUILD=false
+            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false WEBSITE_RUN_FROM_PACKAGE=0
           fi
 
-      - name: 'Deploy release.zip to Azure Web App'
+      - name: 'Deploy release.zip to Azure Web App with Automated Production Install'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
           package: 'release.zip'
-          startup-command: 'node server.js'
+          startup-command: 'npm install --production && node server.js'
