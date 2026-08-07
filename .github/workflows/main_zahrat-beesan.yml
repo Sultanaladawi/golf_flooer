@@ -26,21 +26,8 @@ jobs:
 
       - name: npm install and build
         run: |
-          npm install --legacy-peer-deps --no-optional --no-audit --no-fund
+          npm install --legacy-peer-deps --no-optional
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
-
-      - name: Prepare deployment package
-        run: |
-          mkdir -p deploy_pkg
-          cp -r build deploy_pkg/
-          cp server.js deploy_pkg/
-          cp package.json deploy_pkg/
-          cp -r public deploy_pkg/ 2>/dev/null || true
-          cd deploy_pkg
-          npm install --omit=dev --no-optional --legacy-peer-deps --no-audit --no-fund
-          zip -r ../deploy.zip . -x "*.git*"
-          cd ..
-          echo "Package size: $(du -sh deploy.zip)"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -49,11 +36,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: 'Deploy to Azure Web App'
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
-          package: deploy.zip
+          package: .
           startup-command: 'node server.js'
