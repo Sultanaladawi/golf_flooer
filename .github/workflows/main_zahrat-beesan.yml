@@ -29,7 +29,7 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prepare lightweight production release
+      - name: Prepare lightweight production release zip
         run: |
           mkdir -p release
           cp -r build release/
@@ -38,6 +38,8 @@ jobs:
           if [ -d "public" ]; then cp -r public release/; fi
           cd release
           npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+          zip -r ../release.zip .
+          cd ..
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -46,11 +48,19 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
+      - name: Restart Azure Web App to release deployment locks (Fix 409 Conflict)
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
+          if [ -n "$RG" ]; then
+            echo "Restarting Azure Web App in resource group: $RG..."
+            az webapp restart --name zahrat-beesan --resource-group "$RG"
+          fi
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
-          package: './release'
+          package: 'release.zip'
           startup-command: 'node server.js'
