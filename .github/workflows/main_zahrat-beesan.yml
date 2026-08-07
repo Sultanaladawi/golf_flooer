@@ -29,20 +29,6 @@ jobs:
           npm install --legacy-peer-deps
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Create deployment zip
-        run: |
-          mkdir -p release_pkg
-          cp -r build release_pkg/
-          cp server.js release_pkg/
-          cp package.json release_pkg/
-          cp package-lock.json release_pkg/
-          [ -d "public" ] && cp -r public release_pkg/ || true
-          cd release_pkg
-          npm install --legacy-peer-deps --omit=dev --ignore-scripts
-          cd ..
-          zip -r release.zip release_pkg/
-          echo "Zip size: $(du -sh release.zip)"
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -50,17 +36,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Deploy via Azure CLI
-        run: |
-          RESOURCE_GROUP=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
-          echo "Resource group: $RESOURCE_GROUP"
-          az webapp config appsettings set \
-            --name zahrat-beesan \
-            --resource-group "$RESOURCE_GROUP" \
-            --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false NODE_ENV=production
-          az webapp deploy \
-            --name zahrat-beesan \
-            --resource-group "$RESOURCE_GROUP" \
-            --src-path release.zip \
-            --type zip \
-            --timeout 600
+      - name: 'Deploy to Azure Web App'
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'zahrat-beesan'
+          slot-name: 'Production'
+          package: .
+          startup-command: 'node server.js'
