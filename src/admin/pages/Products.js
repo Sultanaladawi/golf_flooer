@@ -779,29 +779,31 @@ const Products = () => {
                       />
                     </label>
 
-                    {/* AI Generate via Veo 2 */}
+                    {/* AI Generate Cinematic Video */}
                     <button
                       type="button"
-                      disabled={aiVideoLoading || !(formData.images_list && formData.images_list[0])}
+                      disabled={aiVideoLoading || !((formData.images_list && formData.images_list.length > 0) || formData.image_url)}
                       onClick={async () => {
-                        const mainImg = formData.images_list?.[0] || formData.image_url;
+                        const allImgs = formData.images_list && formData.images_list.length > 0 ? formData.images_list : (formData.image_url ? [formData.image_url] : []);
+                        const mainImg = allImgs[0];
                         if (!mainImg) {
                           showToast('يرجى اختيار صورة للمنتج أولاً', 'error');
                           return;
                         }
                         setAiVideoLoading(true);
-                        showToast('🎬 جاري توليد فيديو بـ Veo 2 - قد يستغرق حتى 3 دقائق...', 'info');
+                        showToast('🎬 جاري معالجة وتوليد فيديو سينمائي مخصص لصورة هذا المنتج...', 'info');
                         try {
                           const res = await axios.post('/api/admin/generate-video', {
                             imageUrl: mainImg,
-                            productName: formData.name
+                            images: allImgs,
+                            productName: formData.name || 'عباية بيسان الملكية'
                           });
                           if (res.data && res.data.videoUrl) {
                             setFormData(prev => {
                               const updated = [...(prev.videos_list || []), res.data.videoUrl];
                               return { ...prev, videos_list: updated, video_url: updated[0] };
                             });
-                            showToast('✓ تم توليد الفيديو بـ Veo 2 وحفظه بنجاح!', 'success');
+                            showToast('✓ تم توليد فيديو HD سينمائي جديد مخصص لصورة هذا المنتج وحفظه بنجاح!', 'success');
                           }
                         } catch(err) {
                           showToast('فشل توليد الفيديو: ' + (err.response?.data?.error || err.message), 'error');
@@ -813,13 +815,13 @@ const Products = () => {
                         background: 'linear-gradient(135deg, #c5a880, #8f6e40)',
                         border: 'none', borderRadius: '8px', color: '#fff',
                         padding: '6px 14px', fontSize: '0.82rem', fontWeight: '800',
-                        cursor: (aiVideoLoading || !(formData.images_list && formData.images_list[0])) ? 'not-allowed' : 'pointer',
-                        opacity: (aiVideoLoading || !(formData.images_list && formData.images_list[0])) ? 0.6 : 1,
+                        cursor: (aiVideoLoading || !((formData.images_list && formData.images_list.length > 0) || formData.image_url)) ? 'not-allowed' : 'pointer',
+                        opacity: (aiVideoLoading || !((formData.images_list && formData.images_list.length > 0) || formData.image_url)) ? 0.6 : 1,
                         display: 'flex', alignItems: 'center', gap: '6px',
                         boxShadow: '0 4px 12px rgba(197,168,128,0.3)'
                       }}
                     >
-                      {aiVideoLoading ? '⏳ جاري التوليد بـ Veo 2...' : '✨ توليد فيديو AI (Veo 2)'}
+                      {aiVideoLoading ? '⏳ جاري التوليد سينمائياً...' : '✨ توليد فيديو جديد لصورة المنتج'}
                     </button>
                   </div>
                 </div>

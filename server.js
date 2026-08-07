@@ -12,6 +12,8 @@ const multer = require('multer');
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
 const compression = require('compression');
+const ffmpegPath = require('ffmpeg-static');
+const { execFile } = require('child_process');
 
 // Ensure the public/images directory exists to prevent upload crashes
 const imgDir = path.join(__dirname, 'public', 'images');
@@ -1825,138 +1827,170 @@ app.post('/api/admin/login', (req, res) => {
 });
 
 // AI Cinematic Video Generator Endpoint (Image-to-Video Engine 12-15s, Watermark-Free)
+// Dynamic HD Motion Video Generator for uploaded product images
+function generateDynamicProductVideo(imagePaths, productName) {
+  return new Promise((resolve, reject) => {
+    if (!ffmpegPath) return reject(new Error('ffmpeg binary not found'));
+    
+    // Ensure all images are absolute local paths
+    const validPaths = (Array.isArray(imagePaths) ? imagePaths : [imagePaths]).map(img => {
+      if (!img || typeof img !== 'string') return null;
+      if (img.startsWith('http')) return null;
+      const localP = path.join(__dirname, 'public', img.startsWith('/') ? img.slice(1) : img);
+      return fs.existsSync(localP) ? localP : null;
+    }).filter(Boolean);
+
+    if (validPaths.length === 0) {
+      return reject(new Error('لم يتم العثور على صورة محلية مضافة للمنتج لمعالجتها إلى فيديو'));
+    }
+
+    const videoFilename = `ai_video_${Date.now()}_${Math.floor(Math.random()*1000)}.mp4`;
+    const outputPath = path.join(__dirname, 'public', 'images', videoFilename);
+    const primaryImg = validPaths[0];
+
+    // Ken Burns slow zoom-in & pan filter in 9:16 vertical HD (1080x1920) format
+    const filterGraph = `[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,zoompan=z='min(zoom+0.0015,1.25)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=180:s=1080x1920,fade=t=in:st=0:d=0.5,fade=t=out:st=5.5:d=0.5[v]`;
+
+    const args = [
+      '-loop', '1',
+      '-i', primaryImg,
+      '-vf', filterGraph,
+      '-map', '[v]',
+      '-t', '6',
+      '-r', '30',
+      '-c:v', 'libx264',
+      '-preset', 'fast',
+      '-pix_fmt', 'yuv420p',
+      '-y',
+      outputPath
+    ];
+
+    execFile(ffmpegPath, args, (error, stdout, stderr) => {
+      if (error) {
+        console.error('[ffmpeg] Video generation error:', stderr || error.message);
+        return reject(error);
+      }
+      resolve(`/images/${videoFilename}`);
+    });
+  });
+}
+
+// AI Cinematic Video Generator Endpoint (Image-to-Video Engine, Watermark-Free)
 app.post('/api/admin/generate-video', async (req, res) => {
-  const { imageUrl, productName } = req.body;
-  const sampleVideos = [
-    '/images/WhatsApp Video 2026-07-28 at 8.45.43 PM.mp4',
-    '/images/WhatsApp Video 2026-07-28 at 8.45.40 PM.mp4',
-    '/images/WhatsApp Video 2026-07-28 at 8.45.43 PM (1).mp4',
-    '/images/WhatsApp Video 2026-07-28 at 8.45.43 PM (2).mp4',
-    '/images/WhatsApp Video 2026-07-28 at 8.45.43 PM (3).mp4',
-    '/images/video_media_01KJYR0Y7G2RRS94QBZ9F8VQWX.mp4'
-  ];
+  const { imageUrl, images, productName } = req.body;
+  const imageList = Array.isArray(images) && images.length > 0 ? images : (imageUrl ? [imageUrl] : []);
+
+  if (imageList.length === 0) {
+    return res.status(400).json({ error: 'يرجى اختيار وتحديد صورة للمنتج أولاً لإنشاء الفيديو' });
+  }
+
+  const primaryImg = imageList[0];
 
   try {
     const GEMINI_KEY = (process.env.GEMINI_API_KEY || '').trim();
-    if (!GEMINI_KEY) {
-      // Automatic HD Fashion Video Generator Fallback
-      const fallbackVideo = sampleVideos[Math.floor(Math.random() * sampleVideos.length)];
-      return res.json({
-        success: true,
-        videoUrl: fallbackVideo,
-        duration: '12 seconds',
-        model: 'AI Fashion Video Generator'
-      });
-    }
-
-    if (!imageUrl) return res.status(400).json({ error: 'Missing imageUrl' });
-
-    // Step 1: Read the image as base64
-    let imageBase64, mimeType;
-    if (imageUrl.startsWith('http')) {
-      const imgFetch = await fetch(imageUrl);
-      if (!imgFetch.ok) throw new Error('Failed to fetch image from URL');
-      const imgBuffer = await imgFetch.arrayBuffer();
-      imageBase64 = Buffer.from(imgBuffer).toString('base64');
-      mimeType = imgFetch.headers.get('content-type') || 'image/jpeg';
-    } else {
-      const localPath = path.join(__dirname, 'public', imageUrl.startsWith('/') ? imageUrl.slice(1) : imageUrl);
-      if (!fs.existsSync(localPath)) throw new Error('Image file not found: ' + localPath);
-      const imgBuffer = fs.readFileSync(localPath);
-      imageBase64 = imgBuffer.toString('base64');
-      const ext = path.extname(imageUrl).toLowerCase().replace('.', '');
-      mimeType = ext === 'jpg' ? 'image/jpeg' : (ext === 'png' ? 'image/png' : 'image/jpeg');
-    }
-
-    // Step 2: Upload image to Gemini Files API
-    const imgBytes = Buffer.from(imageBase64, 'base64');
-    const uploadRes = await fetch(
-      `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': mimeType,
-          'Content-Length': imgBytes.length,
-          'X-Goog-Upload-Protocol': 'raw',
-          'X-Goog-Upload-Command': 'upload, finalize',
-        },
-        body: imgBytes
+    if (GEMINI_KEY) {
+      let imageBase64, mimeType;
+      if (primaryImg.startsWith('http')) {
+        const imgFetch = await fetch(primaryImg);
+        if (imgFetch.ok) {
+          const imgBuffer = await imgFetch.arrayBuffer();
+          imageBase64 = Buffer.from(imgBuffer).toString('base64');
+          mimeType = imgFetch.headers.get('content-type') || 'image/jpeg';
+        }
+      } else {
+        const localPath = path.join(__dirname, 'public', primaryImg.startsWith('/') ? primaryImg.slice(1) : primaryImg);
+        if (fs.existsSync(localPath)) {
+          const imgBuffer = fs.readFileSync(localPath);
+          imageBase64 = imgBuffer.toString('base64');
+          const ext = path.extname(primaryImg).toLowerCase().replace('.', '');
+          mimeType = ext === 'jpg' ? 'image/jpeg' : (ext === 'png' ? 'image/png' : 'image/jpeg');
+        }
       }
-    );
-    const uploadData = await uploadRes.json();
-    if (!uploadData.file || !uploadData.file.uri) {
-      throw new Error('فشل رفع الصورة إلى Gemini: ' + JSON.stringify(uploadData));
-    }
-    const fileUri = uploadData.file.uri;
 
-    // Step 3: Submit video generation job to Veo 2
-    const prompt = `Elegant cinematic product video for a luxury abaya fashion item named "${productName || 'premium product'}". Smooth slow-motion camera pan, professional fashion lighting, ultra-HD quality, no watermark.`;
-
-    const genRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predictLongRunning?key=${GEMINI_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          instances: [{
-            prompt,
-            image: { gcsUri: fileUri, mimeType }
-          }],
-          parameters: {
-            aspectRatio: '9:16',
-            durationSeconds: '8',
-            sampleCount: 1,
-            personGeneration: 'dont_allow'
+      if (imageBase64) {
+        const imgBytes = Buffer.from(imageBase64, 'base64');
+        const uploadRes = await fetch(
+          `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${GEMINI_KEY}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': mimeType,
+              'Content-Length': imgBytes.length,
+              'X-Goog-Upload-Protocol': 'raw',
+              'X-Goog-Upload-Command': 'upload, finalize',
+            },
+            body: imgBytes
           }
-        })
-      }
-    );
-    const genData = await genRes.json();
-    if (!genData.name) throw new Error('فشل بدء عملية توليد الفيديو: ' + JSON.stringify(genData));
+        );
+        const uploadData = await uploadRes.json();
+        if (uploadData.file && uploadData.file.uri) {
+          const fileUri = uploadData.file.uri;
+          const prompt = `Elegant cinematic product video for a luxury abaya fashion item named "${productName || 'premium product'}". Smooth slow-motion camera pan, professional fashion lighting, ultra-HD quality, no watermark.`;
 
-    const operationName = genData.name;
+          const genRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/veo-2.0-generate-001:predictLongRunning?key=${GEMINI_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                instances: [{ prompt, image: { gcsUri: fileUri, mimeType } }],
+                parameters: { aspectRatio: '9:16', durationSeconds: '8', sampleCount: 1, personGeneration: 'dont_allow' }
+              })
+            }
+          );
+          const genData = await genRes.json();
+          if (genData.name) {
+            const operationName = genData.name;
+            let videoBytes = null;
+            for (let i = 0; i < 36; i++) {
+              await new Promise(r => setTimeout(r, 5000));
+              const pollRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${operationName}?key=${GEMINI_KEY}`);
+              const pollData = await pollRes.json();
+              if (pollData.done && !pollData.error) {
+                const videoB64 = pollData.response?.predictions?.[0]?.bytesBase64Encoded;
+                if (videoB64) { videoBytes = Buffer.from(videoB64, 'base64'); break; }
+              }
+            }
 
-    // Step 4: Poll until done (max 3 minutes)
-    let videoBytes = null;
-    for (let i = 0; i < 36; i++) {
-      await new Promise(r => setTimeout(r, 5000));
-      const pollRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/${operationName}?key=${GEMINI_KEY}`
-      );
-      const pollData = await pollRes.json();
-      if (pollData.done) {
-        if (pollData.error) throw new Error('خطأ في توليد الفيديو: ' + JSON.stringify(pollData.error));
-        const videoB64 = pollData.response?.predictions?.[0]?.bytesBase64Encoded;
-        if (videoB64) {
-          videoBytes = Buffer.from(videoB64, 'base64');
-          break;
+            if (videoBytes) {
+              const videoFilename = `veo2_${Date.now()}.mp4`;
+              const videoSavePath = path.join(__dirname, 'public', 'images', videoFilename);
+              fs.writeFileSync(videoSavePath, videoBytes);
+
+              return res.json({
+                success: true,
+                videoUrl: `/images/${videoFilename}`,
+                duration: '8 seconds',
+                model: 'Veo 2 AI'
+              });
+            }
+          }
         }
       }
     }
 
-    if (!videoBytes) throw new Error('انتهى وقت الانتظار - لم يكتمل توليد الفيديو');
-
-    // Step 5: Save generated video locally
-    const videoFilename = `veo2_${Date.now()}.mp4`;
-    const videoSavePath = path.join(__dirname, 'public', 'images', videoFilename);
-    fs.writeFileSync(videoSavePath, videoBytes);
-
-    res.json({
+    // Dynamic HD Motion Video Generation (Guaranteed custom video generated directly from the product image!)
+    const generatedVideoUrl = await generateDynamicProductVideo(imageList, productName || 'عباية بيسان الملكية');
+    return res.json({
       success: true,
-      videoUrl: `/images/${videoFilename}`,
-      duration: '8 seconds',
-      model: 'Veo 2'
+      videoUrl: generatedVideoUrl,
+      duration: '6 seconds',
+      model: 'HD Product Video Engine'
     });
 
   } catch (err) {
-    console.error('[generate-video] Fallback trigger:', err.message);
-    const fallbackVideo = sampleVideos[Math.floor(Math.random() * sampleVideos.length)];
-    res.json({
-      success: true,
-      videoUrl: fallbackVideo,
-      duration: '12 seconds',
-      model: 'AI Fashion Video Engine'
-    });
+    console.error('[generate-video] Engine Error:', err.message);
+    try {
+      const generatedVideoUrl = await generateDynamicProductVideo(imageList, productName || 'عباية بيسان الملكية');
+      return res.json({
+        success: true,
+        videoUrl: generatedVideoUrl,
+        duration: '6 seconds',
+        model: 'HD Product Video Engine'
+      });
+    } catch (synthErr) {
+      return res.status(500).json({ error: 'فشل توليد الفيديو من صورة المنتج: ' + synthErr.message });
+    }
   }
 });
 
