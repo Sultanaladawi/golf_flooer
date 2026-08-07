@@ -24,6 +24,25 @@ jobs:
         with:
           node-version: '20.x'
 
+      - name: Install dependencies and build React app
+        run: |
+          npm install --legacy-peer-deps --no-audit --no-fund
+          CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
+      - name: Prepare complete production release package
+        run: |
+          mkdir -p release
+          cp -r build release/
+          cp server.js release/
+          cp package.json release/
+          cp package-lock.json release/
+          if [ -d "public" ]; then cp -r public release/; fi
+          cd release
+          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+          zip -r ../release.zip .
+          cd ..
+          ls -lh release.zip
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -31,24 +50,19 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Reset Azure AppSettings to Clean Oryx Build State
+      - name: Enable WEBSITE_RUN_FROM_PACKAGE on Azure Web App
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
           if [ -n "$RG" ]; then
-            echo "Resetting Azure AppSettings for zahrat-beesan..."
-            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true ENABLE_ORYX_BUILD=true WEBSITE_RUN_FROM_PACKAGE=0
+            echo "Setting WEBSITE_RUN_FROM_PACKAGE=1 on $RG..."
+            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
           fi
 
-      - name: npm install and build
-        run: |
-          npm install --legacy-peer-deps --no-audit --no-fund
-          CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
-
-      - name: 'Deploy to Azure Web App'
+      - name: 'Deploy release.zip to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
-          package: .
+          package: 'release.zip'
           startup-command: 'node server.js'
