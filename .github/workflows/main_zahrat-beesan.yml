@@ -24,15 +24,6 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Install dependencies and build React app
-        run: |
-          npm install --legacy-peer-deps --no-audit --no-fund
-          CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
-
-      - name: Create clean production zip artifact
-        run: |
-          zip -r release.zip build server.js package.json package-lock.json public -x "*.git*"
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -40,18 +31,24 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Reset Azure AppSettings for Clean Deploy
+      - name: Reset Azure AppSettings to Clean Oryx Build State
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv)
           if [ -n "$RG" ]; then
-            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=false WEBSITE_RUN_FROM_PACKAGE=0
+            echo "Resetting Azure AppSettings for zahrat-beesan..."
+            az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true ENABLE_ORYX_BUILD=true WEBSITE_RUN_FROM_PACKAGE=0
           fi
 
-      - name: 'Deploy release.zip to Azure Web App with Automated Production Install'
+      - name: npm install and build
+        run: |
+          npm install --legacy-peer-deps --no-audit --no-fund
+          CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
+
+      - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
-          package: 'release.zip'
-          startup-command: 'npm install --production && node server.js'
+          package: .
+          startup-command: 'node server.js'
