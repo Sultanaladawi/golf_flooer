@@ -1,0 +1,10 @@
+src/
+public/
+.git/
+.github/
+node_modules/.cache/
+*.log
+*.md
+.env.local
+.env.development
+.env.test
