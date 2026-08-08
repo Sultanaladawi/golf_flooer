@@ -20,8 +20,11 @@ try {
 }
 const { execFile } = require('child_process');
 
+const isAzure = process.env.WEBSITE_SITE_NAME !== undefined;
+const dataDir = isAzure ? path.join(process.env.HOME || '/home', 'data') : __dirname;
+
 // Ensure the public/images directory exists to prevent upload crashes
-const imgDir = path.join(__dirname, 'public', 'images');
+const imgDir = path.join(dataDir, 'public', 'images');
 if (!fs.existsSync(imgDir)) {
   fs.mkdirSync(imgDir, { recursive: true });
 }
@@ -141,6 +144,7 @@ app.use('/images', (req, res, next) => {
 const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
 app.use(express.static(path.resolve(__dirname, 'build'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'public'), cacheOptions));
+app.use('/public/images', express.static(path.resolve(dataDir, 'public', 'images'), cacheOptions));
 
 // 3. Specific favicon and manifest routes for stability
 app.get('/favicon.ico', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.ico')));
@@ -1841,7 +1845,8 @@ function generateDynamicProductVideo(imagePaths, productName) {
     const validPaths = (Array.isArray(imagePaths) ? imagePaths : [imagePaths]).map(img => {
       if (!img || typeof img !== 'string') return null;
       if (img.startsWith('http')) return null;
-      const localP = path.join(__dirname, 'public', img.startsWith('/') ? img.slice(1) : img);
+      // Parse incoming "public/images/file.jpg" back to local path using dataDir
+      const localP = path.join(dataDir, 'public', img.startsWith('/') ? img.slice(1) : img);
       return fs.existsSync(localP) ? localP : null;
     }).filter(Boolean);
 
@@ -1850,7 +1855,7 @@ function generateDynamicProductVideo(imagePaths, productName) {
     }
 
     const videoFilename = `ai_video_${Date.now()}_${Math.floor(Math.random()*1000)}.mp4`;
-    const outputPath = path.join(__dirname, 'public', 'images', videoFilename);
+    const outputPath = path.join(dataDir, 'public', 'images', videoFilename);
     const primaryImg = validPaths[0];
 
     // Ken Burns slow zoom-in & pan filter in 9:16 vertical HD (1080x1920) format
@@ -1903,7 +1908,7 @@ app.post('/api/admin/generate-video', async (req, res) => {
           mimeType = imgFetch.headers.get('content-type') || 'image/jpeg';
         }
       } else {
-        const localPath = path.join(__dirname, 'public', primaryImg.startsWith('/') ? primaryImg.slice(1) : primaryImg);
+        const localPath = path.join(dataDir, 'public', primaryImg.startsWith('/') ? primaryImg.slice(1) : primaryImg);
         if (fs.existsSync(localPath)) {
           const imgBuffer = fs.readFileSync(localPath);
           imageBase64 = imgBuffer.toString('base64');
@@ -1959,7 +1964,7 @@ app.post('/api/admin/generate-video', async (req, res) => {
 
             if (videoBytes) {
               const videoFilename = `veo2_${Date.now()}.mp4`;
-              const videoSavePath = path.join(__dirname, 'public', 'images', videoFilename);
+              const videoSavePath = path.join(dataDir, 'public', 'images', videoFilename);
               fs.writeFileSync(videoSavePath, videoBytes);
 
               return res.json({
@@ -3200,7 +3205,7 @@ app.get('/api/debug-images', (req, res) => {
 
 
 // --- SETTINGS ENDPOINTS ---
-const settingsPath = path.join(__dirname, 'store_settings.json');
+const settingsPath = path.join(dataDir, 'store_settings.json');
 
 app.get('/api/settings', (req, res) => {
   try {
@@ -3287,7 +3292,7 @@ app.post('/api/social/post', async (req, res) => {
   // Load settings for API tokens
   let settings = {};
   try {
-    const settingsPath = path.join(__dirname, 'store_settings.json');
+    const settingsPath = path.join(dataDir, 'store_settings.json');
     if (fs.existsSync(settingsPath)) settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
   } catch (e) {}
 
