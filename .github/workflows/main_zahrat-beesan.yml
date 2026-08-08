@@ -29,7 +29,7 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prepare complete production release package
+      - name: Prepare ultra-light release package (NO node_modules)
         run: |
           mkdir -p release
           cp -r build release/
@@ -38,9 +38,10 @@ jobs:
           cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
           cd release
-          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+          # DO NOT RUN npm install here! We want a tiny ZIP file.
           zip -r ../release.zip .
           cd ..
+          echo "Zip file size:"
           ls -lh release.zip
 
       - name: Login to Azure
@@ -50,42 +51,30 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Disable WEBSITE_RUN_FROM_PACKAGE (Reset to Default)
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Removing WEBSITE_RUN_FROM_PACKAGE..."
-          az webapp config appsettings delete --name zahrat-beesan --resource-group "$RG" --setting-names WEBSITE_RUN_FROM_PACKAGE || true
-
-      - name: Stop App Service to Release ALL File Locks
+      - name: Enable Oryx Build and Wake Up App Service
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
-          az webapp stop --name zahrat-beesan --resource-group "$RG"
-          echo "Waiting 30 seconds for the Node.js container to fully terminate..."
-          sleep 30
+          
+          echo "Enabling SCM_DO_BUILD_DURING_DEPLOYMENT so Kudu runs npm install..."
+          az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true
+          
+          # We must ensure WEBSITE_RUN_FROM_PACKAGE is OFF so Oryx can build
+          az webapp config appsettings delete --name zahrat-beesan --resource-group "$RG" --setting-names WEBSITE_RUN_FROM_PACKAGE || true
+          
+          echo "Ensuring App Service is RUNNING so Kudu is awake to receive the tiny ZIP..."
+          az webapp start --name zahrat-beesan --resource-group "$RG"
+          sleep 10
 
-      - name: Get Publish Profile for Direct Kudu Access
-        id: publishprofile
+      - name: Deploy lightweight release.zip via Azure CLI (Direct Kudu ZipDeploy)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          PROFILE=$(az webapp deployment list-publishing-profiles --name zahrat-beesan --resource-group "$RG" --xml)
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "profile<<$EOF" >> $GITHUB_OUTPUT
-          echo "$PROFILE" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
+          echo "Deploying tiny release.zip. Kudu will run npm install internally!"
+          az webapp deployment source config-zip --name zahrat-beesan --resource-group "$RG" --src release.zip
 
-      - name: Deploy release.zip via official action (using Basic Auth / Direct Kudu)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          slot-name: 'Production'
-          publish-profile: ${{ steps.publishprofile.outputs.profile }}
-          package: 'release.zip'
-          startup-command: 'node server.js'
-
-      - name: Start App Service
+      - name: Restart App Service
         if: always()
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Starting the App Service..."
-          az webapp start --name zahrat-beesan --resource-group "$RG"
+          echo "Restarting the App Service to apply changes..."
+          az webapp restart --name zahrat-beesan --resource-group "$RG"
