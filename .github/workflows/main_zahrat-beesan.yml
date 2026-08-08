@@ -50,7 +50,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Break Crash Loop and Enable Oryx Build
+      - name: STOP App Service and Enable Oryx Build
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
@@ -58,27 +58,22 @@ jobs:
           echo "Setting SCM_DO_BUILD_DURING_DEPLOYMENT to true..."
           az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true WEBSITE_RUN_FROM_PACKAGE=""
           
-          echo "Changing startup command to 'sleep 3600' to KILL the rapid crash loop of node server.js..."
-          az webapp config set --name zahrat-beesan --resource-group "$RG" --startup-file "sleep 3600"
+          echo "STOPPING App Service completely to guarantee ZERO file locks..."
+          az webapp stop --name zahrat-beesan --resource-group "$RG"
           
-          echo "Restarting app to apply the sleep command..."
-          az webapp restart --name zahrat-beesan --resource-group "$RG"
-          
-          echo "Waiting 60 seconds for the container to fully reboot and for all file locks to be dropped..."
-          sleep 60
+          echo "Waiting 30 seconds for the container to fully shut down..."
+          sleep 30
 
       - name: Deploy tiny release.zip via Azure CLI
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Deploying tiny zip. Oryx will run npm install internally!"
+          echo "Deploying tiny zip using config-zip. App is stopped, so NO locks exist. Zip is tiny, so NO timeouts."
           az webapp deployment source config-zip --name zahrat-beesan --resource-group "$RG" --src release.zip
+          echo "Deployment command completed!"
 
-      - name: Restore Application Startup Command
+      - name: Start App Service
         if: always()
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Restoring startup command to 'node server.js'..."
-          az webapp config set --name zahrat-beesan --resource-group "$RG" --startup-file "node server.js"
-          
-          echo "Restarting the App Service to bring the app back online..."
-          az webapp restart --name zahrat-beesan --resource-group "$RG"
+          echo "Starting the App Service to bring the app back online..."
+          az webapp start --name zahrat-beesan --resource-group "$RG"
