@@ -60,38 +60,60 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Prepare app for clean deployment
+      - name: Clear Deployment Lock + Prepare App
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          SUB=$(az account show --query id -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
-
-          echo "Clearing all conflicting deployment settings..."
+          
+          echo "Clearing any stuck OneDeploy lock via Azure REST API..."
+          az rest \
+            --method delete \
+            --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.Web/sites/zahrat-beesan/deployments/latest?api-version=2022-03-01" || true
+          
+          echo "Removing all conflicting settings..."
           az webapp config appsettings delete \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
-
-          echo "Starting app to ensure it is online..."
+          
+          echo "Starting app..."
           az webapp start --name zahrat-beesan --resource-group "$RG"
-          sleep 10
+          
+          echo "Waiting 20 seconds for app to stabilize before deploying..."
+          sleep 20
 
-      - name: Deploy via az webapp deploy with --clean (OIDC auth, cleans old files)
+      - name: Deploy via az webapp deploy (OIDC, no clean flag)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Deploying with az webapp deploy --clean true..."
+          
+          echo "Deploying release.zip..."
           az webapp deploy \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --src-path release.zip \
             --type zip \
-            --clean true \
-            --async false \
-            --timeout 600
-          echo "Deployment done!"
+            --timeout 600 \
+            --verbose 2>&1 | tee /tmp/deploy_log.txt
+          
+          DEPLOY_EXIT=$?
+          echo "Exit code: $DEPLOY_EXIT"
+          
+          if [ $DEPLOY_EXIT -ne 0 ]; then
+            echo "First attempt failed. Waiting 60 seconds and retrying..."
+            sleep 60
+            az webapp deploy \
+              --name zahrat-beesan \
+              --resource-group "$RG" \
+              --src-path release.zip \
+              --type zip \
+              --timeout 600 \
+              --verbose 2>&1
+          fi
 
-      - name: Restart app to apply changes
-        if: success()
+      - name: Restart app
+        if: always()
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           az webapp restart --name zahrat-beesan --resource-group "$RG"
-          echo "App restarted and online!"
+          echo "App restarted!"
