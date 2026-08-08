@@ -29,18 +29,24 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prepare ultra-light release package (NO node_modules)
+      - name: Prepare production release package (GUARANTEED node_modules)
         run: |
+          echo "Removing dev dependencies and installing fresh production node_modules..."
+          rm -rf node_modules
+          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+          
+          echo "Copying exactly what is needed to release folder..."
           mkdir -p release
           cp -r build release/
+          cp -r node_modules release/
           cp server.js release/
           cp package.json release/
-          cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
+          
           cd release
-          # NO npm install here! We want a tiny ZIP file.
           zip -r ../release.zip .
           cd ..
+          echo "Zip file size:"
           ls -lh release.zip
 
       - name: Login to Azure
@@ -50,30 +56,22 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: STOP App Service and Enable Oryx Build
+      - name: Enforce WEBSITE_RUN_FROM_PACKAGE to Bypass Locks
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
           
-          echo "Setting SCM_DO_BUILD_DURING_DEPLOYMENT to true..."
-          az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings SCM_DO_BUILD_DURING_DEPLOYMENT=true WEBSITE_RUN_FROM_PACKAGE=""
+          echo "Setting WEBSITE_RUN_FROM_PACKAGE=1 to completely bypass all extraction and file locks..."
+          az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
           
-          echo "STOPPING App Service completely to guarantee ZERO file locks..."
-          az webapp stop --name zahrat-beesan --resource-group "$RG"
-          
-          echo "Waiting 30 seconds for the container to fully shut down..."
-          sleep 30
-
-      - name: Deploy tiny release.zip via Azure CLI
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Deploying tiny zip using config-zip. App is stopped, so NO locks exist. Zip is tiny, so NO timeouts."
-          az webapp deployment source config-zip --name zahrat-beesan --resource-group "$RG" --src release.zip
-          echo "Deployment command completed!"
-
-      - name: Start App Service
-        if: always()
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Starting the App Service to bring the app back online..."
+          echo "Ensuring the app is running..."
           az webapp start --name zahrat-beesan --resource-group "$RG"
+          sleep 10
+
+      - name: Deploy release.zip via official action
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'zahrat-beesan'
+          slot-name: 'Production'
+          package: 'release.zip'
+          startup-command: 'node server.js'
