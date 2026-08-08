@@ -24,29 +24,35 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Install dependencies and build React app
+      - name: Install ALL dependencies (frontend + backend)
         run: |
           npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Build React app
+        run: |
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Prepare production release package (GUARANTEED node_modules)
+      - name: Create production package with node_modules
         run: |
-          echo "Removing dev dependencies and installing fresh production node_modules..."
-          rm -rf node_modules
-          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
-          
-          echo "Copying exactly what is needed to release folder..."
           mkdir -p release
           cp -r build release/
-          cp -r node_modules release/
           cp server.js release/
           cp package.json release/
+          cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
           
+          echo "Installing PRODUCTION-ONLY node_modules into release folder..."
+          cd release
+          npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
+          echo "Verifying express is present:"
+          ls node_modules | grep express
+          cd ..
+          
+          echo "Creating zip..."
           cd release
           zip -r ../release.zip .
           cd ..
-          echo "Zip file size:"
+          echo "Zip size:"
           ls -lh release.zip
 
       - name: Login to Azure
@@ -56,22 +62,36 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Enforce WEBSITE_RUN_FROM_PACKAGE to Bypass Locks
+      - name: Reset settings and ensure app is RUNNING
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Target Resource Group: $RG"
+          echo "Resource Group: $RG"
           
-          echo "Setting WEBSITE_RUN_FROM_PACKAGE=1 to completely bypass all extraction and file locks..."
-          az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings WEBSITE_RUN_FROM_PACKAGE=1 SCM_DO_BUILD_DURING_DEPLOYMENT=false
+          echo "Removing conflicting settings..."
+          az webapp config appsettings delete --name zahrat-beesan --resource-group "$RG" \
+            --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
           
-          echo "Ensuring the app is running..."
+          echo "Ensuring app is STARTED (Kudu must be alive to accept the zip)..."
           az webapp start --name zahrat-beesan --resource-group "$RG"
-          sleep 10
+          sleep 15
 
-      - name: Deploy release.zip via official action
+      - name: Get Publish Profile (Direct Kudu Access - Bypasses OneDeploy)
+        id: publishprofile
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          PROFILE=$(az webapp deployment list-publishing-profiles \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --xml)
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "profile<<$EOF" >> $GITHUB_OUTPUT
+          echo "$PROFILE" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Deploy via publish-profile (Direct Kudu ZipDeploy - NO OneDeploy)
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
+          publish-profile: ${{ steps.publishprofile.outputs.profile }}
           package: 'release.zip'
-          startup-command: 'node server.js'
