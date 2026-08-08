@@ -60,16 +60,10 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Clear Deployment Lock + Prepare App
+      - name: STEP 1 - Switch to crash-proof startup (releases ALL file locks)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          SUB=$(az account show --query id -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
-          
-          echo "Clearing any stuck OneDeploy lock via Azure REST API..."
-          az rest \
-            --method delete \
-            --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.Web/sites/zahrat-beesan/deployments/latest?api-version=2022-03-01" || true
           
           echo "Removing all conflicting settings..."
           az webapp config appsettings delete \
@@ -77,43 +71,50 @@ jobs:
             --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
           
-          echo "Starting app..."
-          az webapp start --name zahrat-beesan --resource-group "$RG"
+          echo "Setting crash-proof startup command (uses ONLY built-in Node.js, zero file locks)..."
+          az webapp config set \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --startup-file "node -e \"const h=require('http');h.createServer((_,r)=>{r.writeHead(200);r.end('deploying');}).listen(process.env.PORT||8080,()=>console.log('ready'));\""
           
-          echo "Waiting 20 seconds for app to stabilize before deploying..."
-          sleep 20
+          echo "Restarting to apply crash-proof startup..."
+          az webapp restart --name zahrat-beesan --resource-group "$RG"
+          
+          echo "Waiting 45 seconds for the container to start fresh with zero crash loops..."
+          sleep 45
 
-      - name: Deploy via az webapp deploy (OIDC, no clean flag)
+      - name: STEP 2 - Deploy zip SYNCHRONOUSLY (no crash loop = no file locks)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          SUB=$(az account show --query id -o tsv | tr -d '\r\n')
           
-          echo "Deploying release.zip..."
+          echo "Clearing any OneDeploy lock from previous runs..."
+          az rest \
+            --method delete \
+            --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.Web/sites/zahrat-beesan/deployments/latest?api-version=2022-03-01" || true
+          
+          sleep 5
+          
+          echo "Deploying release.zip SYNCHRONOUSLY (waiting for full extraction)..."
           az webapp deploy \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --src-path release.zip \
             --type zip \
-            --timeout 600 \
-            --verbose 2>&1 | tee /tmp/deploy_log.txt
-          
-          DEPLOY_EXIT=$?
-          echo "Exit code: $DEPLOY_EXIT"
-          
-          if [ $DEPLOY_EXIT -ne 0 ]; then
-            echo "First attempt failed. Waiting 60 seconds and retrying..."
-            sleep 60
-            az webapp deploy \
-              --name zahrat-beesan \
-              --resource-group "$RG" \
-              --src-path release.zip \
-              --type zip \
-              --timeout 600 \
-              --verbose 2>&1
-          fi
+            --async false \
+            --timeout 600
 
-      - name: Restart app
+      - name: STEP 3 - Restore real startup command
         if: always()
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          
+          echo "Restoring real startup command: node server.js"
+          az webapp config set \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --startup-file "node server.js"
+          
+          echo "Restarting app with the real startup command..."
           az webapp restart --name zahrat-beesan --resource-group "$RG"
-          echo "App restarted!"
+          echo "Done! App should now be serving real content."
