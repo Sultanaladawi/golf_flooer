@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Install ALL dependencies (frontend + backend)
+      - name: Install ALL dependencies
         run: |
           npm install --legacy-peer-deps --no-audit --no-fund
 
@@ -41,14 +41,12 @@ jobs:
           cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
           
-          echo "Installing PRODUCTION-ONLY node_modules into release folder..."
           cd release
           npm install --omit=dev --legacy-peer-deps --no-audit --no-fund
-          echo "Verifying express is present:"
+          echo "Verifying express:"
           ls node_modules | grep express
           cd ..
           
-          echo "Creating zip..."
           cd release
           zip -r ../release.zip .
           cd ..
@@ -62,55 +60,66 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Reset settings and ensure app is RUNNING
+      - name: Enable Basic Auth + Reset App Settings
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Resource Group: $RG"
+          SUBSCRIPTION=$(az account show --query id -o tsv | tr -d '\r\n')
+          echo "Resource Group: $RG | Subscription: $SUBSCRIPTION"
           
-          echo "Removing conflicting settings..."
+          echo "Enabling Basic Publishing Credentials (SCM auth)..."
+          az resource update \
+            --resource-group "$RG" \
+            --resource-type "Microsoft.Web/sites/basicPublishingCredentialsPolicies" \
+            --name "zahrat-beesan/scm" \
+            --set "properties.allow=true" || true
+          
+          echo "Removing conflicting app settings..."
           az webapp config appsettings delete --name zahrat-beesan --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
           
-          echo "Ensuring app is STARTED (Kudu must be alive to accept the zip)..."
+          echo "Ensuring app is RUNNING..."
           az webapp start --name zahrat-beesan --resource-group "$RG"
-          sleep 15
+          sleep 20
 
-      - name: Get Publish Credentials for Direct Kudu Access
-        id: creds
+      - name: Deploy via Direct Kudu REST API (clean=true)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          # Get publishing credentials directly - these bypass ARM/OneDeploy entirely
+          
           CREDS=$(az webapp deployment list-publishing-credentials \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --query "{user: publishingUserName, pass: publishingPassword}" \
             -o json)
-          KUDU_USER=$(echo $CREDS | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['user'])")
-          KUDU_PASS=$(echo $CREDS | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['pass'])")
-          echo "kudu_user=$KUDU_USER" >> $GITHUB_OUTPUT
-          echo "::add-mask::$KUDU_PASS"
-          echo "kudu_pass=$KUDU_PASS" >> $GITHUB_OUTPUT
-
-      - name: Deploy via Direct Kudu REST API (clean=true to bypass ALL file locks)
-        run: |
-          KUDU_USER="${{ steps.creds.outputs.kudu_user }}"
-          KUDU_PASS="${{ steps.creds.outputs.kudu_pass }}"
+          KUDU_USER=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['user'])")
+          KUDU_PASS=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['pass'])")
           
-          echo "Deploying via Kudu REST API with clean=true to wipe existing files first..."
+          echo "Testing Kudu connectivity..."
+          curl -f -s -o /dev/null \
+            "https://zahrat-beesan.scm.azurewebsites.net/api/settings" \
+            --user "$KUDU_USER:$KUDU_PASS" \
+            --connect-timeout 30 && echo "Kudu is REACHABLE!" || echo "Kudu not reachable via Basic Auth"
+          
+          echo "Deploying via Kudu REST API with clean=true..."
           HTTP_STATUS=$(curl -s -o /tmp/deploy_response.txt -w "%{http_code}" \
             -X POST \
             "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false&clean=true" \
             --user "$KUDU_USER:$KUDU_PASS" \
             --max-time 600 \
+            --connect-timeout 60 \
             -H "Content-Type: application/octet-stream" \
             --data-binary @release.zip)
           
           echo "HTTP Status: $HTTP_STATUS"
           cat /tmp/deploy_response.txt
           
-          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "204" ]; then
-            echo "Deployment failed with status $HTTP_STATUS"
-            exit 1
+          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "204" ]; then
+            echo "SUCCESS! Deployment completed."
+          else
+            echo "Kudu Basic Auth failed, trying alternative approach via az webapp deploy..."
+            az webapp deploy \
+              --name zahrat-beesan \
+              --resource-group "$RG" \
+              --src-path release.zip \
+              --type zip \
+              --async false
           fi
-          
-          echo "Deployment successful!"
