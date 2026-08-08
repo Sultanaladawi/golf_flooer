@@ -32,11 +32,12 @@ jobs:
         run: |
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Create TINY release package (NO node_modules)
+      - name: Create TINY release package (including warmup.js)
         run: |
           mkdir -p release
           cp -r build release/
           cp server.js release/
+          cp warmup.js release/
           cp package.json release/
           cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
@@ -50,7 +51,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Set startup command and increase timeout
+      - name: Set startup command to node warmup.js
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
@@ -61,17 +62,11 @@ jobs:
             --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
           
-          echo "Setting startup timeout to 900 seconds..."
-          az webapp config appsettings set \
-            --name zahrat-beesan \
-            --resource-group "$RG" \
-            --settings WEBSITES_CONTAINER_START_TIME_LIMIT=900
-          
-          echo "Setting SELF-HEALING startup command..."
+          echo "Setting startup command to node warmup.js..."
           az webapp config set \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --startup-file "npm install --omit=dev --legacy-peer-deps --no-audit --no-fund && node server.js"
+            --startup-file "node warmup.js"
 
       - name: Deploy tiny zip
         run: |
@@ -90,5 +85,5 @@ jobs:
             --type zip \
             --timeout 600 || true
           
-          echo "Restarting to trigger npm install at startup..."
+          echo "Restarting app to trigger warmup.js..."
           az webapp restart --name zahrat-beesan --resource-group "$RG"
