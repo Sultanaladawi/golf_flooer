@@ -50,32 +50,28 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Deploy DIRECTLY via Kudu ZipDeploy using cURL
+      - name: Ensure App Service is Started (Recover from previous stops)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
-          
-          echo "Stopping Web App to release file locks..."
-          az webapp stop --name zahrat-beesan --resource-group "$RG"
-          sleep 10
-          
-          echo "Extracting Kudu Publishing Profile credentials..."
-          CREDS=$(az webapp deployment list-publishing-profiles --name zahrat-beesan --resource-group "$RG" --query "[?publishMethod=='ZipDeploy'].{user:userName, pass:userPWD}" -o json)
-          
-          USER=$(echo $CREDS | jq -r '.[0].user')
-          PASS=$(echo $CREDS | jq -r '.[0].pass')
-          
-          echo "Uploading release.zip directly to Kudu ZipDeploy endpoint via cURL..."
-          HTTP_STATUS=$(curl -s -w "%{http_code}" -o deploy_response.txt -X POST -u "$USER:$PASS" --data-binary @"release.zip" "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy")
-          
-          echo "Deployment HTTP Status: $HTTP_STATUS"
-          cat deploy_response.txt
-          
-          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 202 ]; then
-            echo "Direct cURL deployment failed."
-            exit 1
-          fi
-          
-          echo "Starting Web App..."
-          az webapp start --name zahrat-beesan --resource-group "$RG"
-          echo "Web app started successfully."
+          az webapp start --name zahrat-beesan --resource-group "$RG" || true
+          echo "Web app is running."
+
+      - name: Get Publish Profile to Bypass ARM OneDeploy
+        id: publishprofile
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          PROFILE=$(az webapp deployment list-publishing-profiles --name zahrat-beesan --resource-group "$RG" --xml)
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "profile<<$EOF" >> $GITHUB_OUTPUT
+          echo "$PROFILE" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+
+      - name: Deploy release.zip via official action (using Basic Auth / Kudu ZipDeploy)
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'zahrat-beesan'
+          slot-name: 'Production'
+          publish-profile: ${{ steps.publishprofile.outputs.profile }}
+          package: 'release.zip'
+          startup-command: 'node server.js'
