@@ -60,66 +60,38 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Enable Basic Auth + Reset App Settings
+      - name: Prepare app for clean deployment
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          SUBSCRIPTION=$(az account show --query id -o tsv | tr -d '\r\n')
-          echo "Resource Group: $RG | Subscription: $SUBSCRIPTION"
-          
-          echo "Enabling Basic Publishing Credentials (SCM auth)..."
-          az resource update \
-            --resource-group "$RG" \
-            --resource-type "Microsoft.Web/sites/basicPublishingCredentialsPolicies" \
-            --name "zahrat-beesan/scm" \
-            --set "properties.allow=true" || true
-          
-          echo "Removing conflicting app settings..."
-          az webapp config appsettings delete --name zahrat-beesan --resource-group "$RG" \
-            --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
-          
-          echo "Ensuring app is RUNNING..."
-          az webapp start --name zahrat-beesan --resource-group "$RG"
-          sleep 20
+          echo "Resource Group: $RG"
 
-      - name: Deploy via Direct Kudu REST API (clean=true)
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          
-          CREDS=$(az webapp deployment list-publishing-credentials \
+          echo "Clearing all conflicting deployment settings..."
+          az webapp config appsettings delete \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --query "{user: publishingUserName, pass: publishingPassword}" \
-            -o json)
-          KUDU_USER=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['user'])")
-          KUDU_PASS=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['pass'])")
-          
-          echo "Testing Kudu connectivity..."
-          curl -f -s -o /dev/null \
-            "https://zahrat-beesan.scm.azurewebsites.net/api/settings" \
-            --user "$KUDU_USER:$KUDU_PASS" \
-            --connect-timeout 30 && echo "Kudu is REACHABLE!" || echo "Kudu not reachable via Basic Auth"
-          
-          echo "Deploying via Kudu REST API with clean=true..."
-          HTTP_STATUS=$(curl -s -o /tmp/deploy_response.txt -w "%{http_code}" \
-            -X POST \
-            "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false&clean=true" \
-            --user "$KUDU_USER:$KUDU_PASS" \
-            --max-time 600 \
-            --connect-timeout 60 \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @release.zip)
-          
-          echo "HTTP Status: $HTTP_STATUS"
-          cat /tmp/deploy_response.txt
-          
-          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "204" ]; then
-            echo "SUCCESS! Deployment completed."
-          else
-            echo "Kudu Basic Auth failed, trying alternative approach via az webapp deploy..."
-            az webapp deploy \
-              --name zahrat-beesan \
-              --resource-group "$RG" \
-              --src-path release.zip \
-              --type zip \
-              --async false
-          fi
+            --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
+
+          echo "Starting app to ensure it is online..."
+          az webapp start --name zahrat-beesan --resource-group "$RG"
+          sleep 10
+
+      - name: Deploy via az webapp deploy with --clean (OIDC auth, cleans old files)
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Deploying with az webapp deploy --clean true..."
+          az webapp deploy \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --src-path release.zip \
+            --type zip \
+            --clean true \
+            --async false \
+            --timeout 600
+          echo "Deployment done!"
+
+      - name: Restart app to apply changes
+        if: success()
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          az webapp restart --name zahrat-beesan --resource-group "$RG"
+          echo "App restarted and online!"
