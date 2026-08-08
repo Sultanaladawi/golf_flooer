@@ -75,23 +75,42 @@ jobs:
           az webapp start --name zahrat-beesan --resource-group "$RG"
           sleep 15
 
-      - name: Get Publish Profile (Direct Kudu Access - Bypasses OneDeploy)
-        id: publishprofile
+      - name: Get Publish Credentials for Direct Kudu Access
+        id: creds
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          PROFILE=$(az webapp deployment list-publishing-profiles \
+          # Get publishing credentials directly - these bypass ARM/OneDeploy entirely
+          CREDS=$(az webapp deployment list-publishing-credentials \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --xml)
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "profile<<$EOF" >> $GITHUB_OUTPUT
-          echo "$PROFILE" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
+            --query "{user: publishingUserName, pass: publishingPassword}" \
+            -o json)
+          KUDU_USER=$(echo $CREDS | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['user'])")
+          KUDU_PASS=$(echo $CREDS | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['pass'])")
+          echo "kudu_user=$KUDU_USER" >> $GITHUB_OUTPUT
+          echo "::add-mask::$KUDU_PASS"
+          echo "kudu_pass=$KUDU_PASS" >> $GITHUB_OUTPUT
 
-      - name: Deploy via publish-profile (Direct Kudu ZipDeploy - NO OneDeploy)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          slot-name: 'Production'
-          publish-profile: ${{ steps.publishprofile.outputs.profile }}
-          package: 'release.zip'
+      - name: Deploy via Direct Kudu REST API (clean=true to bypass ALL file locks)
+        run: |
+          KUDU_USER="${{ steps.creds.outputs.kudu_user }}"
+          KUDU_PASS="${{ steps.creds.outputs.kudu_pass }}"
+          
+          echo "Deploying via Kudu REST API with clean=true to wipe existing files first..."
+          HTTP_STATUS=$(curl -s -o /tmp/deploy_response.txt -w "%{http_code}" \
+            -X POST \
+            "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false&clean=true" \
+            --user "$KUDU_USER:$KUDU_PASS" \
+            --max-time 600 \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @release.zip)
+          
+          echo "HTTP Status: $HTTP_STATUS"
+          cat /tmp/deploy_response.txt
+          
+          if [ "$HTTP_STATUS" != "200" ] && [ "$HTTP_STATUS" != "204" ]; then
+            echo "Deployment failed with status $HTTP_STATUS"
+            exit 1
+          fi
+          
+          echo "Deployment successful!"
