@@ -50,7 +50,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Deploy via az webapp deployment source config-zip (Bypass OneDeploy)
+      - name: Deploy DIRECTLY via Kudu ZipDeploy using cURL
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
@@ -59,8 +59,22 @@ jobs:
           az webapp stop --name zahrat-beesan --resource-group "$RG"
           sleep 10
           
-          echo "Deploying via Kudu ZipDeploy (config-zip) to avoid 409 Conflict..."
-          az webapp deployment source config-zip --name zahrat-beesan --resource-group "$RG" --src release.zip
+          echo "Extracting Kudu Publishing Profile credentials..."
+          CREDS=$(az webapp deployment list-publishing-profiles --name zahrat-beesan --resource-group "$RG" --query "[?publishMethod=='ZipDeploy'].{user:userName, pass:userPWD}" -o json)
+          
+          USER=$(echo $CREDS | jq -r '.[0].user')
+          PASS=$(echo $CREDS | jq -r '.[0].pass')
+          
+          echo "Uploading release.zip directly to Kudu ZipDeploy endpoint via cURL..."
+          HTTP_STATUS=$(curl -s -w "%{http_code}" -o deploy_response.txt -X POST -u "$USER:$PASS" --data-binary @"release.zip" "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy")
+          
+          echo "Deployment HTTP Status: $HTTP_STATUS"
+          cat deploy_response.txt
+          
+          if [ "$HTTP_STATUS" -ne 200 ] && [ "$HTTP_STATUS" -ne 202 ]; then
+            echo "Direct cURL deployment failed."
+            exit 1
+          fi
           
           echo "Starting Web App..."
           az webapp start --name zahrat-beesan --resource-group "$RG"
