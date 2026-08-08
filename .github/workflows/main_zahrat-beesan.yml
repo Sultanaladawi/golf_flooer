@@ -32,7 +32,7 @@ jobs:
         run: |
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Create TINY release package (NO node_modules - startup handles it)
+      - name: Create TINY release package (NO node_modules)
         run: |
           mkdir -p release
           cp -r build release/
@@ -40,12 +40,8 @@ jobs:
           cp package.json release/
           cp package-lock.json release/
           if [ -d "public" ]; then cp -r public release/; fi
-          
-          cd release
-          zip -r ../release.zip .
-          cd ..
-          echo "Zip size (should be small, no node_modules):"
-          ls -lh release.zip
+          cd release && zip -r ../release.zip . && cd ..
+          echo "Zip size:" && ls -lh release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -54,7 +50,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Set self-healing startup command that installs dependencies at runtime
+      - name: Set startup command and increase timeout
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
@@ -65,34 +61,34 @@ jobs:
             --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
           
-          echo "Setting SELF-HEALING startup: npm install at runtime + node server.js"
+          echo "Setting startup timeout to 900 seconds..."
+          az webapp config appsettings set \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --settings WEBSITES_CONTAINER_START_TIME_LIMIT=900
+          
+          echo "Setting SELF-HEALING startup command..."
           az webapp config set \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --startup-file "cd /home/site/wwwroot && npm install --omit=dev --legacy-peer-deps --no-audit --no-fund 2>&1 && node server.js"
-          
-          echo "Restarting with self-healing startup to break crash loop..."
-          az webapp restart --name zahrat-beesan --resource-group "$RG"
-          sleep 20
+            --startup-file "npm install --omit=dev --legacy-peer-deps --no-audit --no-fund && node server.js"
 
-      - name: Deploy tiny zip (no node_modules - easy to deploy with no lock conflicts)
+      - name: Deploy tiny zip
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           SUB=$(az account show --query id -o tsv | tr -d '\r\n')
           
-          echo "Clearing any stuck deployment..."
           az rest --method delete \
             --url "https://management.azure.com/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.Web/sites/zahrat-beesan/deployments/latest?api-version=2022-03-01" || true
           
           sleep 5
           
-          echo "Deploying tiny zip..."
           az webapp deploy \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --src-path release.zip \
             --type zip \
-            --timeout 600 || echo "Deploy command returned non-zero, checking if async succeeded..."
+            --timeout 600 || true
           
-          echo "Restarting app to apply new files and trigger npm install at startup..."
+          echo "Restarting to trigger npm install at startup..."
           az webapp restart --name zahrat-beesan --resource-group "$RG"
