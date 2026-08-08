@@ -50,22 +50,22 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Enforce WEBSITE_RUN_FROM_PACKAGE to completely eliminate file locks
+      - name: Enforce WEBSITE_RUN_FROM_PACKAGE and Start App
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
           az webapp config appsettings set --name zahrat-beesan --resource-group "$RG" --settings WEBSITE_RUN_FROM_PACKAGE=1
           
-          # Restore startup command in case it was stuck on sleep 3600 from previous failed run
-          az webapp config set --name zahrat-beesan --resource-group "$RG" --startup-file "node server.js"
-          az webapp restart --name zahrat-beesan --resource-group "$RG"
-          echo "Waiting 10 seconds for configuration to apply..."
+          # Ensure the app is RUNNING so Kudu ZipDeploy endpoint is awake
+          az webapp start --name zahrat-beesan --resource-group "$RG"
+          echo "Waiting 10 seconds for configuration to apply and Kudu to wake up..."
           sleep 10
 
-      - name: Deploy release.zip via official action (using OIDC & Package Mount)
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          slot-name: 'Production'
-          package: 'release.zip'
-          startup-command: 'node server.js'
+      - name: Deploy release.zip via Azure CLI (Kudu ZipDeploy directly)
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Deploying release.zip using Azure CLI config-zip (Direct Kudu ZipDeploy)..."
+          az webapp deployment source config-zip --name zahrat-beesan --resource-group "$RG" --src release.zip
+          
+          echo "Deployment successful. Restarting app to ensure new package is mounted..."
+          az webapp restart --name zahrat-beesan --resource-group "$RG"
