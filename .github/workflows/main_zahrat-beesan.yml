@@ -50,28 +50,30 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Ensure App Service is Started (Recover from previous stops)
+      - name: Neutralize File Locks (Change Startup Command)
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Target Resource Group: $RG"
-          az webapp start --name zahrat-beesan --resource-group "$RG" || true
-          echo "Web app is running."
+          echo "Setting startup command to 'sleep 3600' to prevent Node.js from locking files..."
+          az webapp config set --name zahrat-beesan --resource-group "$RG" --startup-file "sleep 3600"
+          echo "Restarting app to apply neutral startup command..."
+          az webapp restart --name zahrat-beesan --resource-group "$RG"
+          echo "Waiting 20 seconds for container to restart without file locks..."
+          sleep 20
 
-      - name: Get Publish Profile to Bypass ARM OneDeploy
-        id: publishprofile
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          PROFILE=$(az webapp deployment list-publishing-profiles --name zahrat-beesan --resource-group "$RG" --xml)
-          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "profile<<$EOF" >> $GITHUB_OUTPUT
-          echo "$PROFILE" >> $GITHUB_OUTPUT
-          echo "$EOF" >> $GITHUB_OUTPUT
-
-      - name: Deploy release.zip via official action (using Basic Auth / Kudu ZipDeploy)
+      - name: Deploy release.zip via official action (No File Locks!)
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           slot-name: 'Production'
-          publish-profile: ${{ steps.publishprofile.outputs.profile }}
           package: 'release.zip'
-          startup-command: 'node server.js'
+
+      - name: Restore Application (Revert Startup Command)
+        if: always()
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Restoring original startup command..."
+          az webapp config set --name zahrat-beesan --resource-group "$RG" --startup-file "node server.js"
+          echo "Restarting app to launch Node.js..."
+          az webapp restart --name zahrat-beesan --resource-group "$RG"
+          echo "Application is back online."
