@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Docker container to Azure Web App - zahrat-beesan
+name: Build and deploy Node.js app to Azure Web App - zahrat-beesan
 
 on:
   push:
@@ -9,17 +9,12 @@ on:
       - main
   workflow_dispatch:
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: read
-      packages: write   # needed to push to GHCR
 
     steps:
       - uses: actions/checkout@v4
@@ -33,23 +28,23 @@ jobs:
         run: |
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
-          echo "React build complete."
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/zahrat-beesan:latest
-            ghcr.io/${{ github.repository_owner }}/zahrat-beesan:${{ github.sha }}
+      - name: Bundle server.js into standalone zero-dependency file
+        run: |
+          mkdir -p release
+          echo "Bundling server.js and express into standalone release/server.js..."
+          npx esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js \
+            --external:mysql2 --external:mysql --external:jimp --external:pdf-lib --external:pdf-parse --external:pptxgenjs --external:ffmpeg-static
+          
+          cp -r build release/
+          cp package.json release/
+          if [ -d "public" ]; then cp -r public release/; fi
+          
+          cd release
+          zip -r ../release.zip .
+          cd ..
+          echo "Standalone release.zip created! Size:"
+          ls -lh release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -58,29 +53,40 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Configure App Service to use Docker image from GHCR
+      - name: Configure Azure App Service
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
           
-          IMAGE="ghcr.io/${{ github.repository_owner }}/zahrat-beesan:latest"
-          echo "Configuring App Service to use image: $IMAGE"
-          
-          # Remove old deployment settings
+          echo "Clearing conflicting package settings..."
           az webapp config appsettings delete \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
           
-          # Configure container settings
-          az webapp config container set \
+          echo "Setting startup file to node server.js..."
+          az webapp config set \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --container-image-name "$IMAGE" \
-            --container-registry-url "https://ghcr.io" \
-            --container-registry-user "${{ github.actor }}" \
-            --container-registry-password "${{ secrets.GITHUB_TOKEN }}"
+            --startup-file "node server.js"
+
+      - name: Clean-target deployment via Azure CLI
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           
-          echo "Restarting app to pull new Docker image..."
+          echo "Deploying release.zip with --clean-target-folder true..."
+          az webapp deploy \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --src-path release.zip \
+            --type zip \
+            --clean-target-folder true \
+            --async false \
+            --timeout 600
+
+      - name: Restart App Service
+        if: always()
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           az webapp restart --name zahrat-beesan --resource-group "$RG"
-          echo "Done! App will pull and run the new Docker image."
+          echo "App restarted!"
