@@ -705,3 +705,81 @@ p {
   66%  { transform: translate(-2%, 2%) scale(0.97); }
   100% { transform: translate(1%, -3%) scale(1.02); }
 }
+
+/* ══════════════════════════════════════════════════════════
+   ✨ ULTRA-LUXURY INTERACTIVE HOVER & PERFORMANCE SYSTEM ✨
+   ══════════════════════════════════════════════════════════ */
+
+/* 1. Global Performance Optimization for Hardware Acceleration */
+video, img, iframe {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+/* 2. Interactive Card Hover & Elevation */
+[class*="productCard"], [class*="badge"], [class*="categoryCard"], [class*="bannerWrap"] {
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.35s ease,
+              background-color 0.35s ease !important;
+}
+
+[class*="productCard"]:hover,
+[class*="categoryCard"]:hover {
+  transform: translateY(-7px) scale(1.015) !important;
+  box-shadow: 0 16px 40px rgba(197, 168, 128, 0.22), 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+  border-color: rgba(197, 168, 128, 0.65) !important;
+}
+
+/* 3. Image Hover Scale Zoom Effect */
+[class*="productImg"], [class*="imageWrap"] img, [class*="bannerImg"] {
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease !important;
+}
+
+[class*="productCard"]:hover [class*="productImg"],
+[class*="imageWrap"]:hover img,
+[class*="bannerWrap"]:hover img {
+  transform: scale(1.08) !important;
+  filter: brightness(1.05) contrast(1.02) !important;
+}
+
+/* 4. Luxury Button Hover Fill & Gold Shimmer */
+button, .btn, [role="button"], a.button {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  position: relative;
+}
+
+button:hover, .btn:hover, [role="button"]:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 8px 24px rgba(197, 168, 128, 0.35);
+}
+
+button:active, .btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* 5. Navigation Links & Text Hover Color Shifts */
+a, nav a, header a, footer a {
+  transition: color 0.25s ease, opacity 0.25s ease, transform 0.25s ease;
+}
+
+a:hover, nav a:hover, header a:hover, footer a:hover {
+  color: var(--gold) !important;
+  text-shadow: 0 0 12px rgba(197, 168, 128, 0.35);
+}
+
+/* 6. Input Focus & Active Glow */
+input:focus, textarea:focus, select:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(197, 168, 128, 0.25) !important;
+  outline: none !important;
+}
+
+/* 7. Icon Pulse & Rotate on Hover */
+svg:hover, [class*="icon"]:hover {
+  transform: scale(1.12);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+

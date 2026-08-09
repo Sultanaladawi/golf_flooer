@@ -64,8 +64,12 @@ export default function Hero() {
             muted
             loop
             playsInline
+            preload="metadata"
+            disablePictureInPicture
+            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
             className={styles.heroVideo}
           />
+
         )}
         <div className={styles.heroOverlay} />
         <div className={styles.heroGradientBottom} />
