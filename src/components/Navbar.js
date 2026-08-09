@@ -72,11 +72,26 @@ const LANGUAGES = [
   { code: 'de', name: 'سويسرا', iso: 'ch' }
 ];
 
+const SITE_LANGUAGES = [
+  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'ur', name: 'اردو', flag: '🇵🇰' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' }
+];
+
 export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, onOpenPolicy }) {
   const [scrolled, setScrolled]   = useState(false);
   const [open, setOpen]           = useState(false);
   const [offers, setOffers]       = useState([]);
   const [bounce, setBounce]       = useState(false);
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const langRef = useRef(null);
+
 
   const { totalItems, totalPrice } = useCart();
   const { wishlist }               = useWishlist();
@@ -517,7 +532,91 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 
+            {/* 🌐 Dedicated Language Translator Dropdown (9 World Languages) */}
+            <div ref={langRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowLangDropdown(v => !v)}
+                style={{
+                  background: scrolled ? 'var(--bg-elevated)' : 'rgba(255,255,255,0.12)',
+                  border: scrolled ? '1px solid var(--border)' : '1px solid rgba(255,255,255,0.25)',
+                  borderRadius: '20px',
+                  padding: '5px 12px',
+                  cursor: 'pointer',
+                  color: textColor,
+                  fontSize: '0.78rem',
+                  fontWeight: '700',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.3s',
+                  letterSpacing: '0.5px'
+                }}
+                aria-label="تغيير لغة الموقع"
+              >
+                <span style={{ fontSize: '0.9rem' }}>🌐</span>
+                <span>{(SITE_LANGUAGES.find(sl => sl.code === langCode) || SITE_LANGUAGES[0]).flag} {(SITE_LANGUAGES.find(sl => sl.code === langCode) || SITE_LANGUAGES[0]).name}</span>
+                <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
+              </button>
+
+              {showLangDropdown && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: '0',
+                  background: 'var(--bg-surface)',
+                  borderRadius: '16px',
+                  border: '1px solid var(--border)',
+                  boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
+                  padding: '10px 0',
+                  minWidth: '190px',
+                  zIndex: 9999,
+                  direction: 'rtl'
+                }}>
+                  <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', borderBottom: '1px solid var(--divider)' }}>
+                    ترجمة المتجر (9 لغات عالمية)
+                  </div>
+                  {SITE_LANGUAGES.map(l => (
+                    <button
+                      key={l.code}
+                      onClick={() => {
+                        setAppLang(l.code);
+                        try {
+                          const sel = document.querySelector('.goog-te-combo');
+                          if (sel) {
+                            sel.value = l.code;
+                            sel.dispatchEvent(new Event('change'));
+                          }
+                        } catch (e) {}
+                        setShowLangDropdown(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '9px 16px',
+                        background: langCode === l.code ? 'var(--gold-glow)' : 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        fontSize: '0.88rem',
+                        color: 'var(--espresso)',
+                        fontWeight: langCode === l.code ? '700' : '400',
+                        textAlign: 'right',
+                        borderRight: langCode === l.code ? '3px solid var(--gold)' : '3px solid transparent'
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                      onMouseLeave={e => e.currentTarget.style.background = langCode === l.code ? 'var(--gold-glow)' : 'transparent'}
+                    >
+                      <span style={{ fontSize: '1.1rem' }}>{l.flag}</span>
+                      <span>{l.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div ref={countryRef} style={{ position: 'relative' }}>
+
               <button
                 onClick={() => setShowCountryDropdown(v => !v)}
                 style={{
