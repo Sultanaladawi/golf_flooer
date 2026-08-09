@@ -581,14 +581,23 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                       onClick={() => {
                         setAppLang(l.code);
                         try {
+                          const host = window.location.hostname;
+                          document.cookie = `googtrans=/ar/${l.code}; path=/; domain=${host}`;
+                          document.cookie = `googtrans=/ar/${l.code}; path=/;`;
+                          
                           const sel = document.querySelector('.goog-te-combo');
                           if (sel) {
                             sel.value = l.code;
                             sel.dispatchEvent(new Event('change'));
+                          } else {
+                            window.location.reload();
                           }
-                        } catch (e) {}
+                        } catch (e) {
+                          console.error('Translation error:', e);
+                        }
                         setShowLangDropdown(false);
                       }}
+
                       style={{
                         width: '100%',
                         padding: '9px 16px',
