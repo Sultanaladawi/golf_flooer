@@ -342,30 +342,6 @@ db.getConnection((err, connection) => {
         SET price_display = CONCAT('JOD ', FORMAT(price_num, 2)) 
         WHERE price_num IS NOT NULL AND (price_display LIKE '£%' OR price_display NOT LIKE 'JOD %')
       `);
-      // FORCE AUTO-ASSIGN UNIQUE HD LUXURY IMAGES TO ALL PRODUCTS IN DATABASE
-      const sampleImages = [
-        '/12.png', '/12 (2).png', '/12 (3).png',
-        '/13.png', '/13 (1).png', '/13 (2).png', '/13 (3).png', '/13 (4).png',
-        '/15.jpg', '/15 (1).jpg', '/15 (2).jpg', '/15 (3).jpg', '/15 (4).jpg', '/15 (5).jpg',
-        '/16.jpg',
-        '/8.png', '/8 (1).png', '/8 (2).png', '/8 (3).png', '/8 (4).png',
-        '/9 (1).png', '/9 (2).png', '/9 (3).png'
-      ];
-      const [allProds] = await promiseDb.query("SELECT id, name, image_url FROM menu_items ORDER BY id ASC");
-      if (Array.isArray(allProds) && allProds.length > 0) {
-        for (let i = 0; i < allProds.length; i++) {
-          const p = allProds[i];
-          const assignedImg = sampleImages[i % sampleImages.length];
-          await promiseDb.query("UPDATE menu_items SET image_url = ?, images = ? WHERE id = ?", [
-            assignedImg,
-            JSON.stringify([assignedImg]),
-            p.id
-          ]);
-        }
-        console.log(`[Migration] Successfully assigned unique images across ${allProds.length} products.`);
-      }
-
-
 
       // Create product_variants table if not exists
       await promiseDb.query(`
