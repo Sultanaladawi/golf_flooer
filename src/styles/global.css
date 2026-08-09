@@ -783,3 +783,19 @@ svg:hover, [class*="icon"]:hover {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* 8. Mobile Bottom Bar Media Queries */
+.mobile-bottom-bar-wrapper {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-bar-wrapper {
+    display: flex !important;
+  }
+  
+  body {
+    padding-bottom: 66px !important;
+  }
+}
+
+

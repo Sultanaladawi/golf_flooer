@@ -24,6 +24,8 @@ import Wishlist           from './components/Wishlist';
 import OrderTracking      from './components/OrderTracking';
 import LoadingScreen      from './components/LoadingScreen';
 import PolicyModal        from './components/PolicyModal';
+import MobileBottomBar    from './components/MobileBottomBar';
+
 
 
 import { lazy, Suspense } from 'react';
@@ -172,8 +174,14 @@ function PublicSite({ defaultPolicy }) {
       <Footer onOpenPolicy={(type) => setPolicyType(type)} />
       <Chatbot />
       <FloatingWidgets />
+      <MobileBottomBar 
+        onOpenCart={() => setCartOpen(true)}
+        onOpenWishlist={() => setWishlistOpen(true)}
+        onOpenTracking={() => setTrackingOpen(true)}
+      />
 
       <Wishlist isOpen={wishlistOpen} onClose={() => setWishlistOpen(false)} />
+
       <OrderTracking isOpen={trackingOpen} onClose={() => setTrackingOpen(false)} />
       <PolicyModal type={policyType} isOpen={!!policyType} onClose={() => setPolicyType(null)} />
 
