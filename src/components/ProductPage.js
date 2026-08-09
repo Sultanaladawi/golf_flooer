@@ -115,8 +115,13 @@ export default function ProductPage() {
     if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
       imgs = selectedVariant.images;
     } else {
-      imgs = Array.isArray(product.images) ? product.images : [];
-      if (imgs.length === 0 && product.image_url) imgs = [product.image_url];
+      if (product.image_url && typeof product.image_url === 'string' && product.image_url.trim()) {
+        imgs.push(product.image_url.trim());
+      }
+      const rawImgs = Array.isArray(product.images) ? product.images : [];
+      rawImgs.forEach(src => {
+        if (src && !imgs.includes(src)) imgs.push(src);
+      });
     }
     imgs = imgs.map(src => {
       if (!src) return '/12.png';
@@ -126,6 +131,7 @@ export default function ProductPage() {
     if (imgs.length === 0) imgs = ['/12.png'];
     return imgs;
   };
+
 
   // Filter size chart to ONLY Chest and Hip/Waist per user directives
   let activeSizeChart = [];

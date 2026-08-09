@@ -49,19 +49,18 @@ export default function ProductModal({ model, onClose }) {
     }
     // Fallback to product images if variant has none
     if (imagesArray.length === 0) {
+      if (model.image_url && typeof model.image_url === 'string' && model.image_url.trim()) {
+        imagesArray.push(model.image_url.trim());
+      }
       try {
         const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
-        imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-      } catch (e) {
-        imagesArray = [];
-      }
-      if (imagesArray.length === 0 && model.image_url) {
-        imagesArray = [model.image_url];
-      }
-      if (imagesArray.length === 0 && model.image) {
-        imagesArray = [model.image];
-      }
+        const extraImgs = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+        extraImgs.forEach(img => {
+          if (img && !imagesArray.includes(img)) imagesArray.push(img);
+        });
+      } catch (e) {}
     }
+
 
     // 2. Variant Video
     if (selectedVariant.video_url) {
@@ -92,18 +91,20 @@ export default function ProductModal({ model, onClose }) {
     }
   } else {
     // Default product images
+    if (model.image_url && typeof model.image_url === 'string' && model.image_url.trim()) {
+      imagesArray.push(model.image_url.trim());
+    }
     try {
       const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
-      imagesArray = Array.isArray(raw) ? raw : (raw ? [raw] : []);
-    } catch (e) {
-      imagesArray = [];
-    }
-    if (imagesArray.length === 0 && model.image_url) {
-      imagesArray = [model.image_url];
-    }
+      const extraImgs = Array.isArray(raw) ? raw : (raw ? [raw] : []);
+      extraImgs.forEach(img => {
+        if (img && !imagesArray.includes(img)) imagesArray.push(img);
+      });
+    } catch (e) {}
     if (imagesArray.length === 0 && model.image) {
       imagesArray = [model.image];
     }
+
 
     // Default product video
     try {

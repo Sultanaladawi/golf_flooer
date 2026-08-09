@@ -187,20 +187,25 @@ export default function Menu() {
 
   const getImageUrl = (item) => {
     if (!item) return '/12.png';
+    if (item.image_url && typeof item.image_url === 'string' && item.image_url.trim()) {
+      let src = item.image_url.trim();
+      if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+      return `/images/${src.toLowerCase()}`;
+    }
     let imagesArray = [];
     try {
       imagesArray = typeof item.images === 'string' ? JSON.parse(item.images) : (item.images || []);
     } catch (e) {
       imagesArray = [];
     }
-    let src = '';
-    if (imagesArray.length > 0 && imagesArray[0]) src = imagesArray[0];
-    else if (item.image_url) src = item.image_url;
-    
-    if (!src) return '/12.png';
-    if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-    return `/images/${src.toLowerCase()}`;
+    if (imagesArray.length > 0 && imagesArray[0]) {
+      let src = imagesArray[0];
+      if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+      return `/images/${src.toLowerCase()}`;
+    }
+    return '/12.png';
   };
+
 
   const handleImageError = (e) => {
     e.target.onerror = null;
