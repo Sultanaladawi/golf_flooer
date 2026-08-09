@@ -342,9 +342,31 @@ db.getConnection((err, connection) => {
         SET price_display = CONCAT('JOD ', FORMAT(price_num, 2)) 
         WHERE price_num IS NOT NULL AND (price_display LIKE '£%' OR price_display NOT LIKE 'JOD %')
       `);
-      if (migrationResult.affectedRows > 0) {
-        console.log(`[Migration] Updated ${migrationResult.affectedRows} legacy price formats to JOD in menu_items.`);
+      // Auto-assign unique high quality images to products that share duplicate /12.png or missing images
+      const sampleImages = [
+        '/12.png', '/12 (2).png', '/12 (3).png',
+        '/13.png', '/13 (1).png', '/13 (2).png', '/13 (3).png', '/13 (4).png',
+        '/15.jpg', '/15 (1).jpg', '/15 (2).jpg', '/15 (3).jpg', '/15 (4).jpg', '/15 (5).jpg',
+        '/16.jpg',
+        '/8.png', '/8 (1).png', '/8 (2).png', '/8 (3).png', '/8 (4).png',
+        '/9 (1).png', '/9 (2).png', '/9 (3).png'
+      ];
+      const [allProds] = await promiseDb.query("SELECT id, image_url, images FROM menu_items ORDER BY id ASC");
+      if (Array.isArray(allProds)) {
+        for (let i = 0; i < allProds.length; i++) {
+          const p = allProds[i];
+          const assignedImg = sampleImages[i % sampleImages.length];
+          // Always distribute unique images across products if missing or duplicated
+          if (!p.image_url || p.image_url === '/12.png' || p.image_url === '12.png' || p.image_url === '/12.jpg') {
+            await promiseDb.query("UPDATE menu_items SET image_url = ?, images = ? WHERE id = ?", [
+              assignedImg,
+              JSON.stringify([assignedImg]),
+              p.id
+            ]);
+          }
+        }
       }
+
 
       // Create product_variants table if not exists
       await promiseDb.query(`
