@@ -53,7 +53,7 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Configure Azure App Service
+      - name: Reset App Settings and Startup
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
@@ -70,23 +70,8 @@ jobs:
             --resource-group "$RG" \
             --startup-file "node server.js"
 
-      - name: Clean-target deployment via Azure CLI
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          
-          echo "Deploying release.zip with --clean-target-folder true..."
-          az webapp deploy \
-            --name zahrat-beesan \
-            --resource-group "$RG" \
-            --src-path release.zip \
-            --type zip \
-            --clean-target-folder true \
-            --async false \
-            --timeout 600
-
-      - name: Restart App Service
-        if: always()
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          az webapp restart --name zahrat-beesan --resource-group "$RG"
-          echo "App restarted!"
+      - name: Deploy to Azure Web App via official Action
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'zahrat-beesan'
+          package: 'release.zip'
