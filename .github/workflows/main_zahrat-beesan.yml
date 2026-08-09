@@ -29,12 +29,11 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Bundle server.js into standalone zero-dependency file
+      - name: Bundle server.js into 100% standalone single file (ZERO external modules)
         run: |
           mkdir -p release
-          echo "Bundling server.js and express into standalone release/server.js..."
-          npx esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js \
-            --external:mysql2 --external:mysql --external:jimp --external:pdf-lib --external:pdf-parse --external:pptxgenjs --external:ffmpeg-static
+          echo "Bundling EVERYTHING into standalone release/server.js..."
+          npx esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js
           
           cp -r build release/
           cp package.json release/
@@ -43,7 +42,7 @@ jobs:
           cd release
           zip -r ../release.zip .
           cd ..
-          echo "Standalone release.zip created! Size:"
+          echo "100% Standalone release.zip created! Size:"
           ls -lh release.zip
 
       - name: Login to Azure
