@@ -92,9 +92,10 @@ function ProductCard({ item, onOpen }) {
   return (
     <div
       className={styles.productCard}
-      onMouseEnter={() => { setHovered(true); if (secondImg) setImgSrc(secondImg); }}
-      onMouseLeave={() => { setHovered(false); setImgSrc(getImageUrl(item)); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
+
       {/* Image Container */}
       <div className={styles.imageWrap} onClick={() => !isOutOfStock && onOpen(item)}>
         {hovered && videoSrc ? (
