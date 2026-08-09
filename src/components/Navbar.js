@@ -72,7 +72,7 @@ const LANGUAGES = [
   { code: 'de', name: 'سويسرا', iso: 'ch' }
 ];
 
-export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen }) {
+export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, onOpenPolicy }) {
   const [scrolled, setScrolled]   = useState(false);
   const [open, setOpen]           = useState(false);
   const [offers, setOffers]       = useState([]);
@@ -311,12 +311,13 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen })
             flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <a href="/privacy" style={{ color: 'var(--espresso-mid)', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستخدام والخصوصية</a>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>سياسة الاستخدام والخصوصية</button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <a href="/about" style={{ color: 'var(--espresso-mid)', textDecoration: 'none', transition: 'color 0.2s' }}>من نحن</a>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>من نحن</button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <a href="/returns" style={{ color: 'var(--espresso-mid)', textDecoration: 'none', transition: 'color 0.2s' }}>سياسة الاستبدال والإرجاع</a>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>سياسة الاستبدال والإرجاع</button>
             </div>
+
 
             <div ref={searchRef} style={{ position: 'relative', flex: '0 1 360px', minWidth: '220px' }}>
               <div style={{

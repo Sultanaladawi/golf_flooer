@@ -23,6 +23,8 @@ import Checkout           from './components/Checkout';
 import Wishlist           from './components/Wishlist';
 import OrderTracking      from './components/OrderTracking';
 import LoadingScreen      from './components/LoadingScreen';
+import PolicyModal        from './components/PolicyModal';
+
 
 import { lazy, Suspense } from 'react';
 
@@ -103,19 +105,22 @@ function ThemeLoader() {
   return null;
 }
 
-function PublicSite() {
+function PublicSite({ defaultPolicy }) {
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [trackingOpen, setTrackingOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [policyType, setPolicyType] = useState(defaultPolicy || null);
+
+  useEffect(() => {
+    if (defaultPolicy) setPolicyType(defaultPolicy);
+  }, [defaultPolicy]);
 
   const { isStoreOpen } = useStore();
 
   const dotRef = useRef(null);
   const ringRef = useRef(null);
-
-
 
   useEffect(() => {
     // Disable smooth scroll on touch/mobile — causes jank and slowness
@@ -152,6 +157,7 @@ function PublicSite() {
         onCartOpen={() => { setCartOpen(true); setCheckoutOpen(false); }}
         onWishlistOpen={() => setWishlistOpen(true)}
         onTrackOrderOpen={() => setTrackingOpen(true)}
+        onOpenPolicy={(type) => setPolicyType(type)}
       />
       
       <main>
@@ -163,12 +169,13 @@ function PublicSite() {
         <Contact />
       </main>
 
-      <Footer />
+      <Footer onOpenPolicy={(type) => setPolicyType(type)} />
       <Chatbot />
       <FloatingWidgets />
 
       <Wishlist isOpen={wishlistOpen} onClose={() => setWishlistOpen(false)} />
       <OrderTracking isOpen={trackingOpen} onClose={() => setTrackingOpen(false)} />
+      <PolicyModal type={policyType} isOpen={!!policyType} onClose={() => setPolicyType(null)} />
 
       {cartOpen && (
         <Cart 
@@ -188,6 +195,7 @@ function PublicSite() {
     </div>
   );
 }
+
 
 import { CustomerAuthProvider } from './context/CustomerAuthContext';
 import LoginModal from './components/LoginModal';
@@ -212,6 +220,10 @@ export default function App() {
                         <Suspense fallback={<LoadingScreen />}>
                           <Routes>
                             <Route path="/" element={<PublicSite />} />
+                            <Route path="/privacy" element={<PublicSite defaultPolicy="privacy" />} />
+                            <Route path="/about" element={<PublicSite defaultPolicy="about" />} />
+                            <Route path="/returns" element={<PublicSite defaultPolicy="returns" />} />
+
                             <Route path="/product/:id" element={<ProductPage />} />
                             <Route path="/account" element={<Account />} />
                             <Route path="/checkout" element={<Checkout />} />

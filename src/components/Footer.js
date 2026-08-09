@@ -43,11 +43,12 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-export default function Footer() {
+export default function Footer({ onOpenPolicy }) {
   const { currentLang } = useLanguage();
   const [email, setEmail] = useState('');
   const [subMsg, setSubMsg] = useState('');
   const [subscribing, setSubscribing] = useState(false);
+
 
   const handleSubscribe = async (e) => {
     e.preventDefault();
@@ -171,14 +172,15 @@ export default function Footer() {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>خدمة العميلات</h4>
           <ul className={styles.linkList}>
-            <li><a href="/returns">سياسة الاستبدال والإرجاع</a></li>
-            <li><a href="/privacy">سياسة الخصوصية والاستخدام</a></li>
-            <li><a href="/#about">عن دار زهرة بيسان</a></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'right' }}>سياسة الاستبدال والإرجاع</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'right' }}>سياسة الخصوصية والاستخدام</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'right' }}>عن دار زهرة بيسان</button></li>
             <li><a href="/account">حاسبة ومساعد المقاسات الذكي</a></li>
             <li><a href="/account">نادي العضوية الملكي (VIP Lounge)</a></li>
             <li><a href="/blog">مجلة زهرة بيسان والأناقة</a></li>
           </ul>
         </div>
+
 
         {/* Column 4: Direct Royal Contact */}
         <div className={styles.col}>
