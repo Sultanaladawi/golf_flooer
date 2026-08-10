@@ -2066,7 +2066,7 @@ const Products = () => {
                           alignItems: 'center', justifyContent: 'center', border: `1px solid ${colors.border}` 
                         }}>
                           <img 
-                            src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') ? item.image_url : `/images/${item.image_url.toLowerCase()}`) : '/12.png'}
+                            src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') || item.image_url.startsWith('data:') ? item.image_url : `/images/${item.image_url.trim()}`) : '/12.png'}
                             alt={item.name} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
@@ -2074,6 +2074,7 @@ const Products = () => {
                               e.target.src = '/12.png';
                             }}
                           />
+
                         </div>
                         <div style={{ overflow: 'hidden' }}>
                           <div style={{ display: 'block', marginBottom: '2px' }}>
@@ -2205,11 +2206,12 @@ const Products = () => {
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                     <div style={{ width: '80px', height: '80px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
                       <img 
-                        src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') ? item.image_url : `/images/${item.image_url.toLowerCase()}`) : '/12.png'}
+                        src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') || item.image_url.startsWith('data:') ? item.image_url : `/images/${item.image_url.trim()}`) : '/12.png'}
                         alt={item.name} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
                       />
+
                     </div>
                     <div style={{ flex: 1 }}>
                       <h4 style={{ color: colors.latte, margin: '0 0 5px 0', fontSize: '1.1rem', fontFamily: "'DM Serif Display', serif", fontWeight: 600 }}>{item.name}</h4>

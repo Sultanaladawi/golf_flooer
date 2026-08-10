@@ -126,8 +126,9 @@ export default function ProductPage() {
     imgs = imgs.map(src => {
       if (!src) return '/12.png';
       if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-      return `/images/${src.toLowerCase()}`;
+      return `/images/${src}`;
     });
+
     if (imgs.length === 0) imgs = ['/12.png'];
     return imgs;
   };

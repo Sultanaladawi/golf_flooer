@@ -134,8 +134,9 @@ export default function ProductModal({ model, onClose }) {
     if (trimmed.startsWith('/')) {
       return trimmed;
     }
-    return `/images/${trimmed.toLowerCase()}`;
+    return `/images/${trimmed}`;
   };
+
 
   imagesArray = imagesArray.map(formatImgUrl).filter(Boolean);
   if (imagesArray.length === 0) {

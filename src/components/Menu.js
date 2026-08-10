@@ -203,7 +203,7 @@ export default function Menu() {
     if (item.image_url && typeof item.image_url === 'string' && item.image_url.trim()) {
       let src = item.image_url.trim();
       if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-      return `/images/${src.toLowerCase()}`;
+      return `/images/${src}`;
     }
     let imagesArray = [];
     try {
@@ -214,10 +214,11 @@ export default function Menu() {
     if (imagesArray.length > 0 && imagesArray[0]) {
       let src = imagesArray[0];
       if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-      return `/images/${src.toLowerCase()}`;
+      return `/images/${src}`;
     }
     return '/12.png';
   };
+
 
 
   const handleImageError = (e) => {
