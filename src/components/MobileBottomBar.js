@@ -2,10 +2,12 @@ import React from 'react';
 import { Home, Grid, ShoppingBag, Heart, PackageSearch } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTracking }) {
   const { totalItems } = useCart();
   const { wishlist } = useWishlist();
+  const { t } = useLanguage();
 
   return (
     <div style={{
@@ -23,8 +25,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
       justifyContent: 'space-around',
       zIndex: 9999,
       padding: '0 8px',
-      boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.5)',
-      direction: 'rtl'
+      boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.5)'
     }} className="mobile-bottom-bar-wrapper">
       
       {/* Home */}
@@ -41,7 +42,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
         fontWeight: 600
       }}>
         <Home size={20} color="#c5a880" />
-        <span>الرئيسية</span>
+        <span>{t('home')}</span>
       </a>
 
       {/* Collection */}
@@ -58,7 +59,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
         fontWeight: 600
       }}>
         <Grid size={20} color="#d4af37" />
-        <span>التشكيلة</span>
+        <span>{t('collection')}</span>
       </a>
 
       {/* Cart (Center Action with Badge) */}
@@ -111,7 +112,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
             </span>
           )}
         </div>
-        <span style={{ color: '#d4af37', marginTop: '2px' }}>السلة</span>
+        <span style={{ color: '#d4af37', marginTop: '2px' }}>{t('cart')}</span>
       </button>
 
       {/* Wishlist */}
@@ -150,7 +151,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
             {wishlist.length}
           </span>
         )}
-        <span>المفضلة</span>
+        <span>{t('wishlist')}</span>
       </button>
 
       {/* Track Order */}
@@ -169,9 +170,10 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
         fontWeight: 600
       }}>
         <PackageSearch size={20} color="#c5a880" />
-        <span>تتبع الطلب</span>
+        <span>{t('trackOrder')}</span>
       </button>
 
     </div>
   );
 }
+

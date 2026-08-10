@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt, Sparkles, CheckCircle2, Share2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './ProductModal.module.css';
 
 export default function ProductModal({ model, onClose }) {
   const navigate = useNavigate();
+  const { t } = useLanguage();
+
 
   useEffect(() => {
     if (model && model.id) {
@@ -563,13 +566,13 @@ export default function ProductModal({ model, onClose }) {
               className={`${styles.infoTab} ${activeInfoTab === 'fabric' ? styles.infoTabActive : ''}`}
               onClick={() => setActiveInfoTab('fabric')}
             >
-              <Shirt size={14} style={{ marginLeft: '4px' }} /> مواصفات القماش
+              <Shirt size={14} style={{ marginLeft: '4px' }} /> {t('productDesc')}
             </button>
             <button
               className={`${styles.infoTab} ${activeInfoTab === 'sizes' ? styles.infoTabActive : ''}`}
               onClick={() => setActiveInfoTab('sizes')}
             >
-              <Ruler size={14} style={{ marginLeft: '4px' }} /> المقاسات
+              <Ruler size={14} style={{ marginLeft: '4px' }} /> {t('selectSize')}
             </button>
           </div>
 
@@ -598,7 +601,7 @@ export default function ProductModal({ model, onClose }) {
           {/* ===== SIZES TAB ===== */}
           {activeInfoTab === 'sizes' && (
             <div className={styles.sizesTab}>
-              <p className={styles.sizesLabel}>اختاري مقاسك</p>
+              <p className={styles.sizesLabel}>{t('selectSize')}</p>
               <div className={styles.sizesGrid}>
                 {(() => {
                   let finalSizes = [];
@@ -621,7 +624,7 @@ export default function ProductModal({ model, onClose }) {
                         className={`${styles.sizeBtn} ${selectedSize === item.size ? styles.sizeBtnActive : ''} ${isOutOfStock ? styles.outOfStock : ''}`}
                         onClick={() => setSelectedSize(item.size)}
                         style={{ opacity: isOutOfStock ? 0.4 : 1, textDecoration: isOutOfStock ? 'line-through' : 'none', cursor: isOutOfStock ? 'not-allowed' : 'pointer' }}
-                        title={isOutOfStock ? 'نفدت الكمية' : ''}
+                        title={isOutOfStock ? t('outOfStock') : ''}
                       >
                         {item.size}
                       </button>
@@ -634,7 +637,7 @@ export default function ProductModal({ model, onClose }) {
                   <table className={styles.sizeTable}>
                     <thead>
                       <tr>
-                        <th>المقاس</th>
+                        <th>{t('sizeLabel')}</th>
                         {Object.keys(sizeChartArray[0])
                           .filter(k => k === 'chest' || k === 'hip' || k === 'waist')
                           .map(key => {
@@ -665,7 +668,7 @@ export default function ProductModal({ model, onClose }) {
                   <table className={styles.sizeTable}>
                     <thead>
                       <tr>
-                        <th>المقاس</th>
+                        <th>{t('sizeLabel')}</th>
                         <th>الصدر (سم)</th>
                         <th>الورك (سم)</th>
                       </tr>
@@ -697,7 +700,7 @@ export default function ProductModal({ model, onClose }) {
             ) : (
               <>
                 {!selectedSize && (
-                  <p className={styles.sizeWarning} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> يرجى اختيار المقاس أولاً</p>
+                  <p className={styles.sizeWarning} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {t('selectSizeFirst')}</p>
                 )}
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button
@@ -708,8 +711,8 @@ export default function ProductModal({ model, onClose }) {
                     <ShoppingBag size={18} style={{ marginLeft: '6px' }} />
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {addedToCart 
-                        ? <><CheckCircle2 size={16} /> {model.pre_order === 1 ? 'تم الحجز' : 'تمت الإضافة'}</> 
-                        : (model.pre_order === 1 ? 'طلب مسبق' : 'أضيفي للسلة')
+                        ? <><CheckCircle2 size={16} /> {model.pre_order === 1 ? t('addedToCart') : t('addedToCart')}</> 
+                        : (model.pre_order === 1 ? t('buyNow') : t('addToCart'))
                       }
                     </span>
                   </button>
@@ -719,14 +722,15 @@ export default function ProductModal({ model, onClose }) {
                     style={{ flex: 1, background: 'linear-gradient(135deg, var(--gold, #c5a880), #a8864d)' }}
                   >
                     <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      اطلب الآن
+                      {t('buyNow')}
                     </span>
                   </button>
                 </div>
               </>
             )}
-            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {model.pre_order === 1 ? 'سيتوفر الطلب المسبق قريباً' : 'تغليف فاخر وشحن لجميع الدول'}</p>
+            <p className={styles.shippingNote} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><Sparkles size={14} /> {t('expressShippingDesc')}</p>
           </div>
+
         </div>
       </div>
 

@@ -3,11 +3,13 @@ import { Heart, X, ShoppingBag, Trash2 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function Wishlist({ isOpen, onClose }) {
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
   const { addItem } = useCart();
   const { format } = useCurrency();
+  const { t } = useLanguage();
 
   // Close on Escape key
   useEffect(() => {
@@ -68,12 +70,12 @@ export default function Wishlist({ isOpen, onClose }) {
               <Heart size={20} fill="#c4a484" color="#c4a484" />
             </div>
             <div>
-              <h2 style={{ margin: 0, color: '#f5ede0', fontSize: '1.3rem', fontWeight: 700, direction: 'rtl' }}>
-                قائمة الأمنيات
+              <h2 style={{ margin: 0, color: '#f5ede0', fontSize: '1.3rem', fontWeight: 700 }}>
+                {t('wishlistTitle')}
               </h2>
               {wishlist.length > 0 && (
                 <p style={{ margin: 0, color: '#c4a484', fontSize: '0.8rem' }}>
-                  {wishlist.length} {wishlist.length === 1 ? 'منتج' : 'منتجات'}
+                  {wishlist.length} {wishlist.length === 1 ? t('productSingular') : t('productPlural')}
                 </p>
               )}
             </div>
@@ -107,11 +109,11 @@ export default function Wishlist({ isOpen, onClose }) {
                 <Heart size={32} color="rgba(196,164,132,0.4)" />
               </div>
               <div>
-                <p style={{ color: '#f5ede0', fontSize: '1.1rem', fontWeight: 600, margin: '0 0 8px', direction: 'rtl' }}>
-                  قائمة الأمنيات فارغة
+                <p style={{ color: '#f5ede0', fontSize: '1.1rem', fontWeight: 600, margin: '0 0 8px' }}>
+                  {t('emptyWishlist')}
                 </p>
-                <p style={{ color: 'rgba(245,237,224,0.5)', fontSize: '0.9rem', margin: 0, direction: 'rtl' }}>
-                  أضف المنتجات التي تعجبك بالضغط على أيقونة القلب ❤️
+                <p style={{ color: 'rgba(245,237,224,0.5)', fontSize: '0.9rem', margin: 0 }}>
+                  {t('emptyWishlistDesc')}
                 </p>
               </div>
             </div>
@@ -122,8 +124,7 @@ export default function Wishlist({ isOpen, onClose }) {
                 border: '1px solid rgba(196,164,132,0.12)',
                 borderRadius: '16px', padding: '16px',
                 display: 'flex', gap: '14px', alignItems: 'center',
-                transition: 'border-color 0.2s ease',
-                direction: 'rtl',
+                transition: 'border-color 0.2s ease'
               }}>
                 {/* Image */}
                 <div style={{
@@ -173,7 +174,7 @@ export default function Wishlist({ isOpen, onClose }) {
                         transition: 'opacity 0.2s ease',
                       }}
                     >
-                      <ShoppingBag size={14} /> أضف للسلة
+                      <ShoppingBag size={14} /> {t('moveToCart')}
                     </button>
                     <button
                       onClick={() => removeFromWishlist(item.id)}
@@ -210,12 +211,12 @@ export default function Wishlist({ isOpen, onClose }) {
                 border: '1px solid rgba(239,68,68,0.2)',
                 color: '#ef4444',
                 fontWeight: 600, fontSize: '0.9rem',
-                cursor: 'pointer', direction: 'rtl',
+                cursor: 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                 transition: 'all 0.2s ease',
               }}
             >
-              <Trash2 size={16} /> مسح القائمة بالكامل
+              <Trash2 size={16} /> {t('clearWishlist')}
             </button>
           </div>
         )}
@@ -223,3 +224,4 @@ export default function Wishlist({ isOpen, onClose }) {
     </>
   );
 }
+
