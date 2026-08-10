@@ -1705,7 +1705,9 @@ app.get('/api/today-feature', async (req, res) => {
 });
 
 app.get('/api/products', async (req, res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
   try {
+
     const promiseDb = db.promise();
     const [offers] = await promiseDb.query("SELECT * FROM offers WHERE active = 1 AND (end_date IS NULL OR end_date >= CURDATE())");
     const [allAddons] = await promiseDb.query('SELECT name, price FROM addons');

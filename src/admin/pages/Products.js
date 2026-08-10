@@ -333,15 +333,20 @@ const Products = () => {
       const computedSizesJson = JSON.stringify(sizeNames.length > 0 ? sizeNames : ["50", "52", "54", "56", "58", "60"]);
       const computedSizeChartJson = JSON.stringify(chartList);
 
-      const imgList = formData.images_list || (formData.image_url ? [formData.image_url] : []);
+      const chosenUrl = (formData.image_url && typeof formData.image_url === 'string') ? formData.image_url.trim() : '';
+      let imgList = formData.images_list || [];
+      if (chosenUrl) {
+        imgList = [chosenUrl, ...imgList.filter(x => x !== chosenUrl)];
+      }
       const vidList = formData.videos_list || (formData.video_url ? [formData.video_url] : []);
 
       const cleanFormData = {
         ...formData,
-        image_url: imgList[0] || formData.image_url || '',
+        image_url: chosenUrl || (imgList[0] || ''),
         images: JSON.stringify(imgList),
         video_url: vidList[0] || formData.video_url || '',
         videos: JSON.stringify(vidList),
+
         addon_ids: [...new Set((formData.addon_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
         tag_ids: [...new Set((formData.tag_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
         sku: formData.sku || null,
@@ -1776,7 +1781,13 @@ const Products = () => {
                   
                   return (
                     <div key={img} 
-                      onClick={() => { setFormData({...formData, image_url: img}); setShowImagePicker(false); }}
+                      onClick={() => { 
+                        const currentList = formData.images_list || [];
+                        const updatedList = [img, ...currentList.filter(x => x !== img)];
+                        setFormData({ ...formData, image_url: img, images_list: updatedList }); 
+                        setShowImagePicker(false); 
+                      }}
+
                       style={{ 
                         cursor: 'pointer', borderRadius: '20px', overflow: 'hidden', 
                         border: formData.image_url === img ? `3px solid ${colors.crema}` : `1px solid ${colors.border}`, 
