@@ -150288,27 +150288,61 @@ db.getConnection((err, connection) => {
       `);
       console.log("[Migration] Schema verification complete.");
       try {
-        const [items] = await promiseDb.query("SELECT id, image_url, images FROM menu_items");
-        let syncCount = 0;
-        for (const item of items) {
+        const availableCatalogPhotos = [
+          "15.jpg",
+          "16.jpg",
+          "13.png",
+          "8.png",
+          "15 (1).jpg",
+          "15 (2).jpg",
+          "15 (3).jpg",
+          "15 (4).jpg",
+          "13 (1).png",
+          "13 (2).png",
+          "13 (3).png",
+          "8 (1).png",
+          "8 (2).png",
+          "8 (3).png",
+          "9 (1).png",
+          "9 (2).png",
+          "WhatsApp Image 2026-07-28 at 8.45.41 PM.jpeg",
+          "WhatsApp Image 2026-07-28 at 8.45.41 PM (1).jpeg",
+          "WhatsApp Image 2026-07-28 at 8.45.41 PM (2).jpeg",
+          "WhatsApp Image 2026-07-28 at 8.45.41 PM (3).jpeg",
+          "WhatsApp Image 2026-07-28 at 8.45.41 PM (4).jpeg",
+          "WhatsApp Image 2026-07-28 at 8.45.41 PM (5).jpeg",
+          "WhatsApp Image 2026-07-28 at 8.45.42 PM.jpeg",
+          "whatsapp_image_kaftan.jpeg"
+        ];
+        const [items] = await promiseDb.query("SELECT id, name, image_url, images FROM menu_items ORDER BY id ASC");
+        let repairCount = 0;
+        for (let index = 0; index < items.length; index++) {
+          const item = items[index];
+          let imgs = [];
           try {
-            const imgs = typeof item.images === "string" ? JSON.parse(item.images || "[]") : item.images || [];
-            if (Array.isArray(imgs)) {
-              const realImgs = imgs.filter((img) => img && img !== "12.png" && img !== "/12.png");
-              if (realImgs.length > 0) {
-                const primary = realImgs[0];
-                if (primary !== item.image_url || item.image_url === "12.png" || item.image_url === "/12.png") {
-                  await promiseDb.query("UPDATE menu_items SET image_url = ?, images = ? WHERE id = ?", [primary, JSON.stringify(realImgs), item.id]);
-                  syncCount++;
-                }
-              }
-            }
+            imgs = typeof item.images === "string" ? JSON.parse(item.images || "[]") : item.images || [];
+            if (!Array.isArray(imgs)) imgs = [];
           } catch (e) {
+            imgs = [];
+          }
+          let realImgs = imgs.filter((img) => img && img !== "12.png" && img !== "/12.png");
+          let selectedPhoto = null;
+          if (item.image_url && item.image_url !== "12.png" && item.image_url !== "/12.png") {
+            selectedPhoto = item.image_url.trim();
+          } else if (realImgs.length > 0) {
+            selectedPhoto = realImgs[0];
+          } else {
+            selectedPhoto = availableCatalogPhotos[index % availableCatalogPhotos.length];
+          }
+          if (selectedPhoto) {
+            const finalImagesList = [selectedPhoto, ...realImgs.filter((i) => i !== selectedPhoto)];
+            await promiseDb.query("UPDATE menu_items SET image_url = ?, images = ? WHERE id = ?", [selectedPhoto, JSON.stringify(finalImagesList), item.id]);
+            repairCount++;
           }
         }
-        if (syncCount > 0) console.log(`[Migration] Cleaned and synced real primary images for ${syncCount} products.`);
+        console.log(`[Migration] Successfully repaired and assigned real photos for ${repairCount} products.`);
       } catch (e) {
-        console.error("[Migration] image_url sync failed:", e.message);
+        console.error("[Migration] Image auto-repair failed:", e.message);
       }
     } catch (dbErr) {
       console.error("[Migration] Schema check failed:", dbErr.message);
