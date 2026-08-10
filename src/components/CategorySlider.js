@@ -15,22 +15,31 @@ function parsePrice(val) {
 
 function getImageUrl(item) {
   if (!item) return '/12.png';
-  if (item.image_url && typeof item.image_url === 'string' && item.image_url.trim()) {
-    let src = item.image_url.trim();
-    if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-    return `/images/${src}`;
-  }
+
   let imagesArray = [];
   try {
     imagesArray = typeof item.images === 'string' ? JSON.parse(item.images) : (item.images || []);
+    if (!Array.isArray(imagesArray)) imagesArray = [];
   } catch (e) { imagesArray = []; }
-  if (imagesArray.length > 0 && imagesArray[0]) {
-    let src = imagesArray[0];
+
+  const realImgs = imagesArray.filter(img => img && img !== '12.png' && img !== '/12.png');
+  if (realImgs.length > 0) {
+    let src = realImgs[0];
     if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
     return `/images/${src}`;
   }
+
+  if (item.image_url && typeof item.image_url === 'string' && item.image_url.trim()) {
+    let src = item.image_url.trim();
+    if (src !== '12.png' && src !== '/12.png') {
+      if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
+      return `/images/${src}`;
+    }
+  }
+
   return '/12.png';
 }
+
 
 
 

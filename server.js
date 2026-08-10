@@ -1794,15 +1794,24 @@ app.get('/api/products', async (req, res) => {
         if (!Array.isArray(parsedImages)) parsedImages = [];
       } catch(e) { parsedImages = []; }
 
-      // Ensure image_url is ALWAYS the canonical primary image
-      // If image_url exists, put it first in images array
-      const canonicalImageUrl = p.image_url && typeof p.image_url === 'string' && p.image_url.trim() 
-        ? p.image_url.trim() 
-        : (parsedImages[0] || null);
-      
-      if (canonicalImageUrl) {
-        parsedImages = [canonicalImageUrl, ...parsedImages.filter(img => img !== canonicalImageUrl)];
+      // Filter out 12.png from parsedImages if real images exist
+      const realParsedImages = parsedImages.filter(img => img && img !== '12.png' && img !== '/12.png');
+
+      let canonicalImageUrl = null;
+      if (p.image_url && typeof p.image_url === 'string' && p.image_url.trim() && p.image_url.trim() !== '12.png' && p.image_url.trim() !== '/12.png') {
+        canonicalImageUrl = p.image_url.trim();
+      } else if (realParsedImages.length > 0) {
+        canonicalImageUrl = realParsedImages[0];
+      } else if (p.image_url) {
+        canonicalImageUrl = p.image_url.trim();
+      } else if (parsedImages.length > 0) {
+        canonicalImageUrl = parsedImages[0];
       }
+
+      if (canonicalImageUrl && realParsedImages.length > 0) {
+        parsedImages = [canonicalImageUrl, ...realParsedImages.filter(img => img !== canonicalImageUrl)];
+      }
+
 
       return { 
         ...p,
