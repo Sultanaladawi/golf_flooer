@@ -104,10 +104,40 @@ function WhatsAppButton() {
 
 
 
-export default function FloatingWidgets() {
+function LoyaltyFloatingButton({ onOpenLoyalty }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onOpenLoyalty}
+      aria-label="نقاط الولاء"
+      title="نقاط الولاء الملكية"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'fixed', bottom: '168px', left: '2rem',
+        width: '50px', height: '50px',
+        background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', color: '#1a1209',
+        borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.4)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        cursor: 'pointer',
+        boxShadow: hovered ? '0 8px 24px rgba(197,168,128,0.6)' : '0 4px 16px rgba(197,168,128,0.35)',
+        transform: hovered ? 'scale(1.08)' : 'scale(1)',
+        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+        zIndex: 8998,
+        fontSize: '1.2rem'
+      }}
+    >
+      🏆
+    </button>
+  );
+}
+
+export default function FloatingWidgets({ onOpenLoyalty }) {
   return (
     <>
+      <LoyaltyFloatingButton onOpenLoyalty={onOpenLoyalty} />
       <WhatsAppButton />
     </>
   );
 }
+

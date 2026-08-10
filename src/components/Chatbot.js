@@ -131,6 +131,29 @@ export default function Chatbot() {
     }
   };
 
+  const getInstantReply = (text) => {
+    const q = text.toLowerCase();
+    if (q.includes('سعر') || q.includes('أسعار') || q.includes('بكم')) {
+      return "أسعار عباياتنا الفاخرة تبدأ من 45 JOD وتصل إلى 150 JOD حسب نوع القماش والتطريز اليدوي ✦ يمكنكِ تصفح التشكيلة الكاملة من الصفحة الرئيسية.";
+    }
+    if (q.includes('مقاس') || q.includes('قياس') || q.includes('سايز')) {
+      return "نوفر جميع المقاسات القياسية: 50، 52، 54، 56، 58، 60 ✦ يمكنكِ استخدام دليل المقاسات الذكي داخل صفحة أي عباية لمعرفة المقاس الأنسب لكِ حسب الطول والوزن.";
+    }
+    if (q.includes('توصيل') || q.includes('شحن') || q.includes('توصل')) {
+      return "نوصل لجميع محافظات الأردن خلال 1-3 أيام، والتوصيل الدولي لجميع دول العالم خلال 5-10 أيام عمل مع شركات الشحن السريع 🚚✦";
+    }
+    if (q.includes('تبديل') || q.includes('ارجاع') || q.includes('إرجاع') || q.includes('استبدال')) {
+      return "التبديل متاح داخل الأردن فقط وبنفس وقت التوصيل — الكابتن يبقى ببابك حتى تقيسي العباءة وتتأكدي من المقاس والجودة. لا يوجد تبديل أو إرجاع خارج الأردن ✦";
+    }
+    if (q.includes('واتساب') || q.includes('تواصل') || q.includes('رقم')) {
+      return "يمكنكِ التواصل معنا مباشرة عبر الواتساب على الرقم +962790000000 💬✦ يسعدنا خدمتكِ دائماً.";
+    }
+    if (q.includes('خصم') || q.includes('عرض') || q.includes('كوبون')) {
+      return "استخدمي كود الخصم BEESAN2026 عند إتمام الطلب للحصول على خصم خاص على التشكيلة الجديدة ✦";
+    }
+    return null;
+  };
+
   const send = async (text) => {
     const t = text.trim();
     if (!t || typing) return;
@@ -140,20 +163,27 @@ export default function Chatbot() {
     setInput('');
     setTyping(true);
 
+    // Check instant match first
+    const instantReply = getInstantReply(t);
+    if (instantReply) {
+      setTimeout(() => {
+        const aiMsg = { id: Date.now() + 1, role: 'sophie', text: instantReply };
+        setMsgs(prev => [...prev, aiMsg]);
+        setTyping(false);
+      }, 300);
+      return;
+    }
+
     try {
       const reply = await callAI(t);
       const aiMsg = { id: Date.now() + 1, role: 'sophie', text: reply };
       setMsgs(prev => [...prev, aiMsg]);
       
-      console.log('[Chatbot] Syncing message to DB...');
       fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_msg: t, ai_msg: reply })
-      })
-      .then(r => r.json())
-      .then(data => console.log('[Chatbot] Sync Success:', data))
-      .catch(err => console.error("[Chatbot] Sync Error:", err));
+      }).catch(err => console.error("[Chatbot] Sync Error:", err));
 
     } catch {
       setMsgs(p => [...p, { id: Date.now() + 1, role: 'sophie', text: `عذراً، تواصلوا معنا مباشرة عبر البريد ${shopInfo.email} ✦` }]);
@@ -161,6 +191,7 @@ export default function Chatbot() {
       setTyping(false);
     }
   };
+
 
   const onKey = e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(input); } };
 
@@ -211,7 +242,15 @@ export default function Chatbot() {
               <div className={`${styles.bubble} ${styles.typing}`}><span /><span /><span /></div>
             </div>
           )}
+          {msgs.length <= 2 && (
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '8px 12px 14px', direction: 'rtl' }}>
+              <button onClick={() => send('الأسعار والمقاسات')} style={{ background: 'rgba(197, 168, 128, 0.12)', border: '1px solid rgba(197, 168, 128, 0.3)', color: 'var(--gold-dim, #a6865d)', borderRadius: '16px', padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>💰 الأسعار والمقاسات</button>
+              <button onClick={() => send('التوصيل والشحن')} style={{ background: 'rgba(197, 168, 128, 0.12)', border: '1px solid rgba(197, 168, 128, 0.3)', color: 'var(--gold-dim, #a6865d)', borderRadius: '16px', padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>🚚 التوصيل والشحن</button>
+              <button onClick={() => send('سياسة التبديل')} style={{ background: 'rgba(197, 168, 128, 0.12)', border: '1px solid rgba(197, 168, 128, 0.3)', color: 'var(--gold-dim, #a6865d)', borderRadius: '16px', padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>🔄 سياسة التبديل</button>
+            </div>
+          )}
           <div ref={endRef} />
+
         </div>
 
         {msgs.length === WELCOME.length && (

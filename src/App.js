@@ -25,6 +25,8 @@ import OrderTracking      from './components/OrderTracking';
 import LoadingScreen      from './components/LoadingScreen';
 import PolicyModal        from './components/PolicyModal';
 import MobileBottomBar    from './components/MobileBottomBar';
+import LoyaltyCard        from './components/LoyaltyCard';
+
 
 
 
@@ -112,8 +114,10 @@ function PublicSite({ defaultPolicy }) {
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [trackingOpen, setTrackingOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [loyaltyOpen, setLoyaltyOpen] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [policyType, setPolicyType] = useState(defaultPolicy || null);
+
 
   useEffect(() => {
     if (defaultPolicy) setPolicyType(defaultPolicy);
@@ -173,7 +177,8 @@ function PublicSite({ defaultPolicy }) {
 
       <Footer onOpenPolicy={(type) => setPolicyType(type)} />
       <Chatbot />
-      <FloatingWidgets />
+      <FloatingWidgets onOpenLoyalty={() => setLoyaltyOpen(true)} />
+
       <MobileBottomBar 
         onOpenCart={() => setCartOpen(true)}
         onOpenWishlist={() => setWishlistOpen(true)}
@@ -184,6 +189,8 @@ function PublicSite({ defaultPolicy }) {
 
       <OrderTracking isOpen={trackingOpen} onClose={() => setTrackingOpen(false)} />
       <PolicyModal type={policyType} isOpen={!!policyType} onClose={() => setPolicyType(null)} />
+      <LoyaltyCard isOpen={loyaltyOpen} onClose={() => setLoyaltyOpen(false)} />
+
 
       {cartOpen && (
         <Cart 

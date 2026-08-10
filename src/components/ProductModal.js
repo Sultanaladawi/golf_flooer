@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt, Sparkles, CheckCircle2, Share2 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import styles from './ProductModal.module.css';
@@ -196,7 +196,25 @@ export default function ProductModal({ model, onClose }) {
   const [selectedSize, setSelectedSize] = useState(null);
   const [addedToCart, setAddedToCart] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
   const videoRef = useRef(null);
+
+  const handleShare = async () => {
+    const url = `${window.location.origin}/product/${model.id}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: model.name, text: model.subtitle || model.name, url });
+      } catch (e) { /* user cancelled */ }
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareCopied(true);
+        setTimeout(() => setShareCopied(false), 2000);
+      } catch (e) {
+        prompt('انسخي الرابط:', url);
+      }
+    }
+  };
 
   // Pre-Order / Express Interest states
   const [showInterestModal, setShowInterestModal] = useState(false);
@@ -463,10 +481,26 @@ export default function ProductModal({ model, onClose }) {
           <div className={styles.infoHeader}>
             {model.badge && <span className={styles.badge}>{model.badge}</span>}
             <p className={styles.subtitle}>{model.subtitle}</p>
-            <h2 className={styles.name}>{model.name}</h2>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+              <h2 className={styles.name} style={{ flex: 1 }}>{model.name}</h2>
+              <button
+                onClick={handleShare}
+                title="مشاركة المنتج"
+                aria-label="مشاركة المنتج"
+                className={styles.shareBtn}
+              >
+                <Share2 size={16} />
+              </button>
+            </div>
             <div className={styles.goldLine} />
             <p className={styles.price}>{format(parseFloat(model.price_num || model.price))}</p>
           </div>
+          {/* Share Toast */}
+          {shareCopied && (
+            <div className={styles.shareToast}>
+              تم النسخ! ✓
+            </div>
+          )}
 
           {/* Color Variants Selection */}
           {variants && variants.length > 0 && (

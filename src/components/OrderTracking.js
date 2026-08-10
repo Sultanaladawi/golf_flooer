@@ -60,25 +60,33 @@ export default function OrderTracking({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  // Determine current active step in timeline
-  // Statuses usually: pending, preparing, ready, completed
+  // Determine current active step in timeline (5 Stages)
   const getActiveStep = (status) => {
     const s = String(status || 'pending').toLowerCase();
-    if (s === 'pending') return 1; // Order Received
-    if (s === 'preparing') return 2; // In preparation
-    if (s === 'ready') return 3; // Out for Delivery / Shipped
-    if (s === 'completed') return 4; // Delivered
+    if (s === 'pending') return 1;       // قيد المراجعة
+    if (s === 'confirmed') return 2;     // تم التأكيد
+    if (s === 'preparing') return 3;     // قيد التجهيز
+    if (s === 'out_for_delivery' || s === 'ready') return 4; // في الطريق إليك
+    if (s === 'delivered' || s === 'completed') return 5;    // تم التسليم
     return 1;
   };
 
   const activeStep = orderData ? getActiveStep(orderData.status) : 0;
 
   const steps = [
-    { label: 'تم استلام الطلب', desc: 'تم تلقي طلبك وتأكيد الدفع بنجاح.', icon: <Clock size={20} /> },
-    { label: 'قيد التحضير والتطريز', desc: 'جاري حياكة وتجهيز طلبك الفاخر بكل حب.', icon: <Package size={20} /> },
-    { label: 'شُحن / جاهز للتوصيل', desc: 'تم تسليم الشحنة لشركة التوصيل في طريقها إليك.', icon: <Truck size={20} /> },
-    { label: 'تم التوصيل', desc: 'تم تسليم الشحنة بنجاح. تتهني فيها يا رب! ❤️', icon: <CheckCircle2 size={20} /> },
+    { label: 'قيد المراجعة', desc: 'تم استقبال طلبك وفي انتظار مراجعة التفاصيل.', icon: <Clock size={18} /> },
+    { label: 'تم التأكيد', desc: 'تم تأكيد طلبك بنجاح واعتماد المقاسات والمواصفات.', icon: <CheckCircle2 size={18} /> },
+    { label: 'قيد التجهيز والتطريز', desc: 'جاري حياكة وتطريز وتجهيز طلبك بكل عناية وفخامة.', icon: <Package size={18} /> },
+    { label: 'في الطريق إليك', desc: 'شحنتك الآن مع كابتن التوصيل وفي طريقها لعنوانك.', icon: <Truck size={18} /> },
+    { label: 'تم التسليم', desc: 'تم تسليم الشحنة بنجاح. تتهنّي بها يا رب! ✨', icon: <CheckCircle2 size={18} /> }
   ];
+
+  const handleWhatsAppInquiry = () => {
+    if (!orderData) return;
+    const msg = `أهلاً دار زهرة بيسان 🌸\nأود الاستفسار عن حالة طلبي رقم *#ORD-${orderData.id}*\nاسم العميل: ${orderData.customer_name}`;
+    window.open(`https://wa.me/962790000000?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
 
   return (
     <>
@@ -263,30 +271,45 @@ export default function OrderTracking({ isOpen, onClose }) {
               </div>
 
               {/* Action buttons */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px' }}>
                 <button
-                  onClick={() => setOrderData(null)}
+                  onClick={handleWhatsAppInquiry}
                   style={{
-                    flex: 1, padding: '14px', borderRadius: '12px',
-                    background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(196,164,132,0.2)',
-                    color: '#f5ede0', fontWeight: 600, fontSize: '0.9rem', cursor: 'pointer',
-                    transition: 'all 0.25s ease'
+                    width: '100%', padding: '12px', borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                    border: 'none', color: '#ffffff', fontWeight: 700, fontSize: '0.9rem',
+                    cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                    boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)'
                   }}
                 >
-                  تتبع طلب آخر
+                  <i className="fab fa-whatsapp" style={{ fontSize: '18px' }}></i>
+                  <span>استفسر عن هذا الطلب عبر الواتساب مباشرة</span>
                 </button>
-                <button
-                  onClick={onClose}
-                  style={{
-                    flex: 1, padding: '14px', borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #c4a484, #a0845c)', border: 'none',
-                    color: '#1a1209', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-                    transition: 'all 0.25s ease'
-                  }}
-                >
-                  حسناً، فهمت
-                </button>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={() => setOrderData(null)}
+                    style={{
+                      flex: 1, padding: '12px', borderRadius: '12px',
+                      background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(196,164,132,0.2)',
+                      color: '#f5ede0', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer'
+                    }}
+                  >
+                    تتبع طلب آخر
+                  </button>
+                  <button
+                    onClick={onClose}
+                    style={{
+                      flex: 1, padding: '12px', borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #c4a484, #a0845c)', border: 'none',
+                      color: '#1a1209', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer'
+                    }}
+                  >
+                    حسناً، إغلاق
+                  </button>
+                </div>
               </div>
+
             </div>
           )}
         </div>

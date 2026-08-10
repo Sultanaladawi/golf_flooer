@@ -2808,7 +2808,71 @@ app.post('/api/newsletter', (req, res) => {
   });
 });
 
+// ════════════════════════════════════════════════════════════════
+// Loyalty Points API & Catalog PDF Stream
+// ════════════════════════════════════════════════════════════════
+app.get('/api/loyalty/:phone', async (req, res) => {
+  try {
+    const cleanPhone = req.params.phone.replace(/\D/g, '');
+    const [rows] = await db.promise().query('SELECT * FROM loyalty_points WHERE phone LIKE ?', [`%${cleanPhone}%`]);
+    if (!rows.length) {
+      return res.json({ phone: cleanPhone, points: 0, tier: 'برونزي', discountValue: 0, history: [] });
+    }
+    const user = rows[0];
+    const tier = user.points >= 300 ? 'ذهب' : (user.points >= 100 ? 'فضة' : 'برونزي');
+    res.json({
+      phone: user.phone,
+      points: user.points,
+      tier,
+      discountValue: user.points * 0.1,
+      history: []
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/catalog/pdf', async (req, res) => {
+  try {
+    const { PDFDocument, rgb, StandardFonts } = require('pdf-lib');
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    const [products] = await db.promise().query('SELECT name, price_display, description FROM menu_items WHERE available = 1 LIMIT 30');
+
+    let page = pdfDoc.addPage([595.28, 841.89]); // A4
+    const { width, height } = page.getSize();
+
+    // Cover Title
+    page.drawText('Zahrat Beesan Luxury Catalog', { x: 50, y: height - 80, size: 22, font: fontBold, color: rgb(0.77, 0.65, 0.50) });
+    page.drawText('Official Luxury Collection 2026', { x: 50, y: height - 105, size: 12, font, color: rgb(0.3, 0.3, 0.3) });
+
+    let y = height - 150;
+    products.forEach((p, idx) => {
+      if (y < 100) {
+        page = pdfDoc.addPage([595.28, 841.89]);
+        y = height - 80;
+      }
+      page.drawText(`${idx + 1}. ${p.name || 'Abaya Item'}`, { x: 50, y, size: 12, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
+      page.drawText(`Price: ${p.price_display || 'JOD 85.00'}`, { x: 420, y, size: 11, font: fontBold, color: rgb(0.77, 0.65, 0.50) });
+      const descSnippet = (p.description || 'Luxury hand-embroidered oriental abaya').substring(0, 70) + '...';
+      page.drawText(descSnippet, { x: 50, y: y - 18, size: 9, font, color: rgb(0.4, 0.4, 0.4) });
+      y -= 55;
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="Zahrat_Beesan_Catalog_2026.pdf"');
+    res.send(Buffer.from(pdfBytes));
+  } catch (err) {
+    console.error('[PDF Catalog Error]:', err);
+    res.status(500).send('Error generating catalog');
+  }
+});
+
 app.delete('/api/newsletter/:id', (req, res) => {
+
   db.query('DELETE FROM newsletter WHERE id = ?', [req.params.id], (err) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ success: true });

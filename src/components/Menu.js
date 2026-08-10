@@ -62,12 +62,17 @@ export default function Menu() {
   const [priceRange, setPriceRange] = useState({ min: '', max: '' });
   const [selectedColors, setSelectedColors] = useState([]);
   const [selectedSizes, setSelectedSizes] = useState([]);
+  const [selectedFabrics, setSelectedFabrics] = useState([]);
+
+  const activeFiltersCount = (priceRange.min ? 1 : 0) + (priceRange.max ? 1 : 0) + selectedColors.length + selectedSizes.length + selectedFabrics.length;
 
   const clearFilters = () => {
     setPriceRange({ min: '', max: '' });
     setSelectedColors([]);
     setSelectedSizes([]);
+    setSelectedFabrics([]);
   };
+
 
   // Fetch categories from DB
   useEffect(() => {
@@ -173,9 +178,17 @@ export default function Menu() {
         if (!hasSize) return false;
       }
 
+      // Fabric Filter
+      if (selectedFabrics.length > 0) {
+        const itemStr = (item.fabric || '' + item.description || '' + item.name || '').toLowerCase();
+        const hasFabric = selectedFabrics.some(f => itemStr.includes(f.toLowerCase()));
+        if (!hasFabric) return false;
+      }
+
       return true;
     })
     .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+
     .map(item => ({
       ...item,
       displayPrice: format(parsePrice(item.price_num || item.price)),
@@ -415,14 +428,31 @@ export default function Menu() {
         </div>
 
         {/* Filter Toggle Button */}
-        <div style={{ padding: '0 20px', display: 'flex', justifyContent: 'flex-start', marginTop: '10px', direction: 'rtl' }}>
+        <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px', direction: 'rtl' }}>
           <button 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className={`${styles.filterToggleBtn} ${isFilterOpen ? styles.filterToggleActive : ''}`}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <SlidersHorizontal size={18} />
             <span>تصفية متقدمة</span>
+            {activeFiltersCount > 0 && (
+              <span style={{
+                backgroundColor: 'var(--gold)',
+                color: '#1a1209',
+                borderRadius: '12px',
+                padding: '2px 8px',
+                fontSize: '0.72rem',
+                fontWeight: 800
+              }}>
+                {activeFiltersCount}
+              </span>
+            )}
           </button>
+          
+          <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', fontWeight: 600 }}>
+            تم العثور على <strong style={{ color: 'var(--gold)' }}>{itemsToShow.length}</strong> قطعة
+          </span>
         </div>
 
         {/* Filter Panel */}
@@ -451,6 +481,25 @@ export default function Menu() {
                     onChange={e => setPriceRange({...priceRange, max: e.target.value})}
                     className={styles.filterInput}
                   />
+                </div>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>نوع القماش</label>
+                <div className={styles.tagsContainer}>
+                  {['حرير', 'كريب', 'بشت', 'مخمل', 'شيفون', 'صوف', 'كشمير'].map(fabric => {
+                    const isSelected = selectedFabrics.includes(fabric);
+                    return (
+                      <button 
+                        key={fabric}
+                        onClick={() => setSelectedFabrics(prev => isSelected ? prev.filter(f => f !== fabric) : [...prev, fabric])}
+                        className={`${styles.filterTag} ${isSelected ? styles.tagSelected : ''}`}
+                      >
+                        {isSelected && <Check size={14} style={{ marginLeft: '4px' }}/>}
+                        {fabric}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -493,6 +542,7 @@ export default function Menu() {
             </div>
           </div>
         )}
+
 
         <div className={styles.itemList} style={{ background: 'var(--cream)' }}>
           {loading ? (

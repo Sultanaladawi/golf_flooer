@@ -178,7 +178,9 @@ export default function Footer({ onOpenPolicy }) {
             <li><a href="/account">حاسبة ومساعد المقاسات الذكي</a></li>
             <li><a href="/account">نادي العضوية الملكي (VIP Lounge)</a></li>
             <li><a href="/blog">مجلة زهرة بيسان والأناقة</a></li>
+            <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>📄 تحميل كتالوج المنتجات (PDF)</a></li>
           </ul>
+
         </div>
 
 
