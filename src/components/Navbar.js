@@ -580,23 +580,29 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                       key={l.code}
                       onClick={() => {
                         setAppLang(l.code);
-                        try {
-                          const host = window.location.hostname;
-                          document.cookie = `googtrans=/ar/${l.code}; path=/; domain=${host}`;
-                          document.cookie = `googtrans=/ar/${l.code}; path=/;`;
-                          
-                          const sel = document.querySelector('.goog-te-combo');
-                          if (sel) {
-                            sel.value = l.code;
-                            sel.dispatchEvent(new Event('change'));
-                          } else {
-                            window.location.reload();
-                          }
-                        } catch (e) {
-                          console.error('Translation error:', e);
-                        }
                         setShowLangDropdown(false);
+                        
+                        // Google Translate works via cookie — set it then reload
+                        const langPair = l.code === 'ar' ? '/ar/ar' : `/ar/${l.code}`;
+                        const host = window.location.hostname;
+                        
+                        // Clear old cookies first
+                        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${host}`;
+                        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+                        
+                        if (l.code === 'ar') {
+                          // Reset to Arabic = clear translation
+                          localStorage.setItem('zahrat_site_lang', 'ar');
+                          window.location.reload();
+                        } else {
+                          // Set new language cookie and reload
+                          document.cookie = `googtrans=${langPair}; path=/; domain=.${host}`;
+                          document.cookie = `googtrans=${langPair}; path=/;`;
+                          localStorage.setItem('zahrat_site_lang', l.code);
+                          window.location.reload();
+                        }
                       }}
+
 
                       style={{
                         width: '100%',
