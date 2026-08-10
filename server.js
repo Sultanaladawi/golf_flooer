@@ -1892,14 +1892,14 @@ app.get('/api/products', async (req, res) => {
       const finalRating = p.avg_rating || (4.7 + ((p.id * 3) % 4) * 0.1);
       const finalReviewsCount = p.total_reviews || (Math.floor((p.id * 7) % 20) + 12);
 
-      // Parse images JSON string to array
+      // Parse images JSON string to array safely
       let parsedImages = [];
       try {
         parsedImages = typeof p.images === 'string' ? JSON.parse(p.images || '[]') : (p.images || []);
         if (!Array.isArray(parsedImages)) parsedImages = [];
       } catch(e) { parsedImages = []; }
 
-      // Filter out 12.png from parsedImages if real images exist
+      // Filter out dummy 12.png if real images exist
       const realParsedImages = parsedImages.filter(img => img && img !== '12.png' && img !== '/12.png');
 
       let canonicalImageUrl = null;
@@ -1913,9 +1913,24 @@ app.get('/api/products', async (req, res) => {
         canonicalImageUrl = parsedImages[0];
       }
 
-      if (canonicalImageUrl && realParsedImages.length > 0) {
-        parsedImages = [canonicalImageUrl, ...realParsedImages.filter(img => img !== canonicalImageUrl)];
+      // Strictly deduplicate images based on normalized file path
+      const normalizeImg = (s) => (s || '').trim().replace(/^\/+/, '').toLowerCase();
+      const normCanonical = normalizeImg(canonicalImageUrl);
+      const seenNorms = new Set();
+      const uniqueImages = [];
+
+      if (canonicalImageUrl) {
+        seenNorms.add(normCanonical);
+        uniqueImages.push(canonicalImageUrl);
       }
+
+      realParsedImages.forEach(img => {
+        const norm = normalizeImg(img);
+        if (norm && !seenNorms.has(norm)) {
+          seenNorms.add(norm);
+          uniqueImages.push(img);
+        }
+      });
 
 
       return { 

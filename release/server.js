@@ -151736,9 +151736,21 @@ app.get("/api/products", async (req, res) => {
       } else if (parsedImages.length > 0) {
         canonicalImageUrl = parsedImages[0];
       }
-      if (canonicalImageUrl && realParsedImages.length > 0) {
-        parsedImages = [canonicalImageUrl, ...realParsedImages.filter((img) => img !== canonicalImageUrl)];
+      const normalizeImg = (s) => (s || "").trim().replace(/^\/+/, "").toLowerCase();
+      const normCanonical = normalizeImg(canonicalImageUrl);
+      const seenNorms = /* @__PURE__ */ new Set();
+      const uniqueImages = [];
+      if (canonicalImageUrl) {
+        seenNorms.add(normCanonical);
+        uniqueImages.push(canonicalImageUrl);
       }
+      realParsedImages.forEach((img) => {
+        const norm = normalizeImg(img);
+        if (norm && !seenNorms.has(norm)) {
+          seenNorms.add(norm);
+          uniqueImages.push(img);
+        }
+      });
       return {
         ...p,
         image_url: canonicalImageUrl || p.image_url || null,
