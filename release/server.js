@@ -152722,6 +152722,18 @@ app.get("/api/images", (req, res) => {
     res.json(files.filter((f) => /\.(png|jpg|jpeg|gif|svg|webp)$/i.test(f)));
   });
 });
+app.post("/api/admin/set-product-image", async (req, res) => {
+  const { productId, imageUrl } = req.body;
+  if (!productId || !imageUrl) return res.status(400).json({ error: "productId and imageUrl are required" });
+  try {
+    const cleanImg = imageUrl.trim();
+    const imagesArray = JSON.stringify([cleanImg]);
+    await db.promise().query("UPDATE menu_items SET image_url = ?, images = ? WHERE id = ?", [cleanImg, imagesArray, productId]);
+    res.json({ success: true, message: `Product ${productId} image locked to ${cleanImg}` });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 app.put("/api/products/reorder", async (req, res) => {
   const { order } = req.body;
   if (!Array.isArray(order)) return res.status(400).json({ error: "Invalid payload" });
