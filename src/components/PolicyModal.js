@@ -85,8 +85,9 @@ export default function PolicyModal({ type, isOpen, onClose }) {
       left: 0,
       width: '100vw',
       height: '100vh',
-      backgroundColor: 'rgba(10, 8, 6, 0.85)',
+      backgroundColor: 'rgba(0, 0, 0, 0.65)',
       backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
       zIndex: 99999,
       display: 'flex',
       alignItems: 'center',
@@ -100,11 +101,11 @@ export default function PolicyModal({ type, isOpen, onClose }) {
         width: '100%',
         maxWidth: '720px',
         maxHeight: '90vh',
-        backgroundColor: '#12100d',
-        border: '1px solid rgba(212, 175, 55, 0.35)',
+        backgroundColor: 'var(--bg-surface, #ffffff)',
+        border: '1px solid var(--border, rgba(212, 175, 55, 0.35))',
         borderRadius: '24px',
-        boxShadow: '0 30px 90px rgba(0, 0, 0, 0.9), 0 0 40px rgba(212, 175, 55, 0.15)',
-        color: '#f8f5ee',
+        boxShadow: '0 30px 90px rgba(0, 0, 0, 0.3), 0 0 40px rgba(212, 175, 55, 0.15)',
+        color: 'var(--espresso, #2c1a0e)',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
@@ -114,7 +115,7 @@ export default function PolicyModal({ type, isOpen, onClose }) {
         {/* Modal Header */}
         <div style={{
           padding: '28px 32px 20px',
-          borderBottom: '1px solid rgba(212, 175, 55, 0.15)',
+          borderBottom: '1px solid var(--border, rgba(212, 175, 55, 0.15))',
           background: 'linear-gradient(180deg, rgba(212, 175, 55, 0.08) 0%, transparent 100%)',
           display: 'flex',
           alignItems: 'flex-start',
@@ -136,22 +137,22 @@ export default function PolicyModal({ type, isOpen, onClose }) {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                <h3 style={{ margin: 0, fontSize: '1.4rem', fontFamily: 'serif', color: '#d4af37' }}>
+                <h3 style={{ margin: 0, fontSize: '1.4rem', fontFamily: 'serif', color: 'var(--gold-dim, #c5a880)' }}>
                   {current.title}
                 </h3>
                 <span style={{
                   fontSize: '0.72rem',
                   padding: '3px 10px',
                   borderRadius: '20px',
-                  background: 'rgba(212, 175, 55, 0.15)',
-                  color: '#d4af37',
+                  background: 'rgba(212, 175, 55, 0.12)',
+                  color: 'var(--gold-dim, #c5a880)',
                   border: '1px solid rgba(212, 175, 55, 0.3)',
                   fontWeight: 600
                 }}>
                   {current.badge}
                 </span>
               </div>
-              <p style={{ margin: 0, fontSize: '0.88rem', color: '#b5a995' }}>
+              <p style={{ margin: 0, fontSize: '0.88rem', color: 'var(--espresso-dim, #665849)' }}>
                 {current.subtitle}
               </p>
             </div>
@@ -160,9 +161,9 @@ export default function PolicyModal({ type, isOpen, onClose }) {
           <button 
             onClick={onClose}
             style={{
-              background: 'rgba(255, 255, 255, 0.05)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              color: '#d4af37',
+              background: 'rgba(197, 168, 128, 0.1)',
+              border: '1px solid rgba(197, 168, 128, 0.25)',
+              color: 'var(--gold-dim, #c5a880)',
               width: '38px',
               height: '38px',
               borderRadius: '50%',
@@ -172,8 +173,8 @@ export default function PolicyModal({ type, isOpen, onClose }) {
               cursor: 'pointer',
               transition: 'all 0.2s ease'
             }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)'}
-            onMouseOut={e => e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)'}
+            onMouseOver={e => e.currentTarget.style.background = 'rgba(212, 175, 55, 0.25)'}
+            onMouseOut={e => e.currentTarget.style.background = 'rgba(197, 168, 128, 0.1)'}
           >
             <X size={20} />
           </button>
@@ -190,25 +191,26 @@ export default function PolicyModal({ type, isOpen, onClose }) {
         }}>
           {current.sections.map((sec, idx) => (
             <div key={idx} style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid rgba(212, 175, 55, 0.1)',
+              background: 'var(--bg-card, rgba(197, 168, 128, 0.05))',
+              border: '1px solid var(--border, rgba(212, 175, 55, 0.15))',
               borderRadius: '16px',
               padding: '20px 22px'
             }}>
               <h4 style={{
                 margin: '0 0 10px 0',
-                color: '#f3ebd9',
+                color: 'var(--espresso, #2c1a0e)',
                 fontSize: '1.05rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                fontWeight: 700
               }}>
-                <CheckCircle2 size={16} color="#d4af37" />
+                <CheckCircle2 size={16} color="var(--gold-dim, #c5a880)" />
                 {sec.heading}
               </h4>
               <p style={{
                 margin: 0,
-                color: '#c9bfae',
+                color: 'var(--espresso-mid, #4a3b30)',
                 fontSize: '0.92rem',
                 lineHeight: '1.7'
               }}>
@@ -221,14 +223,14 @@ export default function PolicyModal({ type, isOpen, onClose }) {
         {/* Modal Footer */}
         <div style={{
           padding: '18px 32px',
-          borderTop: '1px solid rgba(212, 175, 55, 0.15)',
-          background: 'rgba(10, 8, 6, 0.6)',
+          borderTop: '1px solid var(--border, rgba(212, 175, 55, 0.15))',
+          background: 'var(--bg-surface, #ffffff)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#b5a995' }}>
-            <PhoneCall size={14} color="#d4af37" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--espresso-dim, #665849)' }}>
+            <PhoneCall size={14} color="var(--gold-dim, #c5a880)" />
             <span>لأي استفسار إضافي: تواصل مباشر عبر الواتساب الفاخر</span>
           </div>
 
@@ -237,13 +239,13 @@ export default function PolicyModal({ type, isOpen, onClose }) {
             style={{
               padding: '10px 24px',
               borderRadius: '12px',
-              background: 'linear-gradient(135deg, #d4af37 0%, #aa820a 100%)',
-              color: '#000',
+              background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
+              color: '#ffffff',
               fontWeight: 700,
               fontSize: '0.9rem',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 4px 15px rgba(212, 175, 55, 0.3)'
+              boxShadow: '0 4px 15px rgba(197, 168, 128, 0.35)'
             }}
           >
             إغلاق النافذة
@@ -254,3 +256,4 @@ export default function PolicyModal({ type, isOpen, onClose }) {
     </div>
   );
 }
+
