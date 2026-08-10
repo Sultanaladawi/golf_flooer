@@ -150101,7 +150101,7 @@ app.use("/images", (req, res, next) => {
     // repo build/
   ];
   res.set({
-    "Cache-Control": "public, max-age=2592000, immutable",
+    "Cache-Control": "public, max-age=3600, must-revalidate",
     "Access-Control-Allow-Origin": "*",
     "Vary": "Accept-Encoding",
     "X-Content-Type-Options": "nosniff"

@@ -132,11 +132,12 @@ app.use('/images', (req, res, next) => {
   ];
 
   res.set({
-    'Cache-Control': 'public, max-age=2592000, immutable',
+    'Cache-Control': 'public, max-age=3600, must-revalidate',
     'Access-Control-Allow-Origin': '*',
     'Vary': 'Accept-Encoding',
     'X-Content-Type-Options': 'nosniff'
   });
+
 
   // 1. Direct match check across all candidate directories
   for (const dir of searchDirs) {

@@ -128,11 +128,16 @@ const Products = () => {
     }
 
     if (!target) return '/12.png';
-    if (target.startsWith('/') || target.startsWith('http') || target.startsWith('data:')) {
-      return encodeURI(target);
+    let url = (target.startsWith('/') || target.startsWith('http') || target.startsWith('data:')) ? target : `/images/${target}`;
+    url = encodeURI(url);
+    if (!url.startsWith('http') && !url.startsWith('data:')) {
+      const sep = url.includes('?') ? '&' : '?';
+      const version = encodeURIComponent(item.updated_at || item.created_at || item.id || '1');
+      url = `${url}${sep}v=${version}`;
     }
-    return encodeURI(`/images/${target}`);
+    return url;
   };
+
 
   const fetchProducts = async () => {
     try {
