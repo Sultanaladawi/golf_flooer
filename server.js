@@ -106,13 +106,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- CHROME FIX: case-insensitive & space-decoded image serving ---
+// --- CHROME & AZURE MULTI-DIRECTORY IMAGE SERVING ---
 app.use('/images', (req, res, next) => {
   let reqFilename = req.url.replace(/^\//, '').split('?')[0];
   try { reqFilename = decodeURIComponent(reqFilename); } catch (e) {}
 
-  const exactPath = path.resolve(imgDir, reqFilename);
-  const lowerPath = path.resolve(imgDir, reqFilename.toLowerCase());
+  const lowerFilename = reqFilename.toLowerCase();
+  
+  const searchDirs = [
+    imgDir,                                    // /home/data/public/images (runtime uploads)
+    path.join(__dirname, 'public', 'images'),  // repo public/images/
+    path.join(__dirname, 'public'),           // repo public/
+    path.join(__dirname, 'build', 'images'),   // repo build/images/
+    path.join(__dirname, 'build')              // repo build/
+  ];
 
   res.set({
     'Cache-Control': 'public, max-age=2592000, immutable',
@@ -121,22 +128,37 @@ app.use('/images', (req, res, next) => {
     'X-Content-Type-Options': 'nosniff'
   });
 
-  if (fs.existsSync(exactPath) && fs.statSync(exactPath).isFile()) {
-    return res.sendFile(exactPath);
-  } else if (fs.existsSync(lowerPath) && fs.statSync(lowerPath).isFile()) {
-    return res.sendFile(lowerPath);
-  } else {
+  // 1. Direct match check across all candidate directories
+  for (const dir of searchDirs) {
+    if (!dir || !fs.existsSync(dir)) continue;
+    
+    const exactFile = path.resolve(dir, reqFilename);
+    if (fs.existsSync(exactFile) && fs.statSync(exactFile).isFile()) {
+      return res.sendFile(exactFile);
+    }
+    
+    const lowerFile = path.resolve(dir, lowerFilename);
+    if (fs.existsSync(lowerFile) && fs.statSync(lowerFile).isFile()) {
+      return res.sendFile(lowerFile);
+    }
+  }
+
+  // 2. Case-insensitive directory scan across all candidate directories
+  for (const dir of searchDirs) {
+    if (!dir || !fs.existsSync(dir)) continue;
     try {
-      const files = fs.readdirSync(imgDir);
-      const cleanTarget = reqFilename.toLowerCase().trim();
+      const files = fs.readdirSync(dir);
+      const cleanTarget = lowerFilename.trim();
       const match = files.find(f => f.toLowerCase().trim() === cleanTarget);
       if (match) {
-        return res.sendFile(path.join(imgDir, match));
+        return res.sendFile(path.join(dir, match));
       }
     } catch (e) {}
-    next();
   }
+
+  next();
 });
+
 
 
 // --- STATIC FILES SERVING (HARDENED & OPTIMIZED) ---
