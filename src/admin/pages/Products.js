@@ -107,9 +107,36 @@ const Products = () => {
     care_json: '["غسيل يدوي بماء بارد", "كي على حرارة منخفضة"]'
   });
 
+  const getAdminProductImage = (item) => {
+    if (!item) return '/12.png';
+    
+    let imgs = [];
+    try {
+      imgs = typeof item.images === 'string' ? JSON.parse(item.images) : (item.images || []);
+      if (!Array.isArray(imgs)) imgs = [];
+    } catch(e) { imgs = []; }
+
+    const realImgs = imgs.filter(x => x && x !== '12.png' && x !== '/12.png');
+    
+    let target = null;
+    if (item.image_url && item.image_url !== '12.png' && item.image_url !== '/12.png') {
+      target = item.image_url.trim();
+    } else if (realImgs.length > 0) {
+      target = realImgs[0];
+    } else if (item.image_url) {
+      target = item.image_url.trim();
+    }
+
+    if (!target) return '/12.png';
+    if (target.startsWith('/') || target.startsWith('http') || target.startsWith('data:')) {
+      return encodeURI(target);
+    }
+    return encodeURI(`/images/${target}`);
+  };
+
   const fetchProducts = async () => {
     try {
-      const res = await axios.get('/api/products');
+      const res = await axios.get(`/api/products?t=${Date.now()}`);
       const sorted = (res.data || []).sort((a, b) => (a.sort_order ?? 999) - (b.sort_order ?? 999));
       setProducts(sorted);
       setLoading(false);
@@ -121,12 +148,13 @@ const Products = () => {
 
   const fetchImages = async () => {
     try {
-      const res = await axios.get('/api/images');
+      const res = await axios.get(`/api/images?t=${Date.now()}`);
       setImages(res.data || []);
     } catch (err) {
       console.error('Image fetch error:', err);
     }
   };
+
 
   const fetchAddons = async () => {
     try {
@@ -2070,7 +2098,7 @@ const Products = () => {
                           alignItems: 'center', justifyContent: 'center', border: `1px solid ${colors.border}` 
                         }}>
                           <img 
-                            src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') || item.image_url.startsWith('data:') ? item.image_url : `/images/${item.image_url.trim()}`) : '/12.png'}
+                            src={getAdminProductImage(item)}
                             alt={item.name} 
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                             onError={(e) => {
@@ -2210,7 +2238,7 @@ const Products = () => {
                   <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                     <div style={{ width: '80px', height: '80px', borderRadius: '15px', overflow: 'hidden', border: `1px solid ${colors.border}` }}>
                       <img 
-                        src={item.image_url ? (item.image_url.startsWith('/') || item.image_url.startsWith('http') || item.image_url.startsWith('data:') ? item.image_url : `/images/${item.image_url.trim()}`) : '/12.png'}
+                        src={getAdminProductImage(item)}
                         alt={item.name} 
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }}
