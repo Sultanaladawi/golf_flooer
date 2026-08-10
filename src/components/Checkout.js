@@ -1426,10 +1426,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
               </div>
               <ul style={{ margin: 0, paddingRight: '20px', listStyleType: 'disc' }}>
                 <li style={{ marginBottom: '8px' }}>
-                  <strong>الترجيع (الاسترجاع):</strong> خيار الاسترجاع <strong>غير متوفر نهائياً</strong> لجميع الطلبات.
+                  <strong>التبديل والترجيع:</strong> متاح <strong>داخل الأردن فقط</strong> فوراً أثناء تواجد كابتن التوصيل.
                 </li>
                 <li style={{ marginBottom: '8px' }}>
-                  <strong>التبديل (الاستبدال):</strong> التبديل متاح <strong>داخل الأردن فقط</strong>. لا يوجد تبديل للطلبات خارج الأردن.
+                  <strong>أجور التوصيل:</strong> مبلغ ورسوم التوصيل <strong>غير قابلة للاسترداد</strong> وتكون على حساب العميل في حال التبديل أو الترجيع.
+                </li>
+                <li style={{ marginBottom: '8px' }}>
+                  <strong>خارج الأردن:</strong> جميع الشحنات الخارجية نهائية ولا يوجد لها تبديل أو ترجيع.
                 </li>
                 <li>
                   <strong>الدفع عند الاستلام:</strong> متوفر <strong>داخل الأردن فقط</strong>.
