@@ -82,7 +82,31 @@
   <!-- ╔══════════════════════════════════════════════════════╗ -->
   <!-- ║  Google Website Translator — All Languages Support  ║ -->
   <!-- ╚══════════════════════════════════════════════════════╝ -->
+  <!-- Safe DOM Guard for React + Google Translate -->
   <script type="text/javascript">
+    if (typeof window !== 'undefined') {
+      if (Node.prototype.removeChild) {
+        const originalRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function (child) {
+          if (child.parentNode !== this) {
+            if (console) console.warn('React-Translate Guard: Child node already moved', child);
+            return child;
+          }
+          return originalRemoveChild.apply(this, arguments);
+        };
+      }
+      if (Node.prototype.insertBefore) {
+        const originalInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function (newNode, referenceNode) {
+          if (referenceNode && referenceNode.parentNode !== this) {
+            if (console) console.warn('React-Translate Guard: Reference node mismatch', referenceNode);
+            return newNode;
+          }
+          return originalInsertBefore.apply(this, arguments);
+        };
+      }
+    }
+
     function googleTranslateElementInit() {
       new google.translate.TranslateElement({
         pageLanguage: 'ar',

@@ -225,14 +225,18 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
 
   const changeLanguage = (langCode, countryIso) => {
     try {
+      if (setAppLang) {
+        setAppLang(langCode);
+      }
       const selectEl = document.querySelector('.goog-te-combo');
       if (selectEl) {
         selectEl.value = langCode;
         selectEl.dispatchEvent(new Event('change'));
-        setSelectedLanguage(langCode);
-        setSelectedIso(countryIso);
-        localStorage.setItem('zahrat_language', langCode);
-        localStorage.setItem('zahrat_language_iso', countryIso);
+      }
+      setSelectedLanguage(langCode);
+      setSelectedIso(countryIso);
+      localStorage.setItem('zahrat_language', langCode);
+      localStorage.setItem('zahrat_language_iso', countryIso);
 
         let matchingCurr = currencies.find(c => c.iso === countryIso);
         if (!matchingCurr && ['de', 'fr', 'eu', 'ch', 'se', 'no'].includes(countryIso)) {
