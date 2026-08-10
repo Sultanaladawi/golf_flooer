@@ -210,20 +210,21 @@ export default function Menu() {
     const realImgs = imagesArray.filter(img => img && img !== '12.png' && img !== '/12.png');
     if (realImgs.length > 0) {
       let src = realImgs[0];
-      if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-      return `/images/${src}`;
+      if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return encodeURI(src);
+      return encodeURI(`/images/${src}`);
     }
 
     if (item.image_url && typeof item.image_url === 'string' && item.image_url.trim()) {
       let src = item.image_url.trim();
       if (src !== '12.png' && src !== '/12.png') {
-        if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return src;
-        return `/images/${src}`;
+        if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) return encodeURI(src);
+        return encodeURI(`/images/${src}`);
       }
     }
 
     return '/12.png';
   };
+
 
 
 

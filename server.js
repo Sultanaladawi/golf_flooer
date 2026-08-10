@@ -106,14 +106,14 @@ app.use((req, res, next) => {
   next();
 });
 
-// --- CHROME FIX: case-insensitive image serving ---
-// Chrome is stricter than Edge/Brave with URL case. This middleware
-// tries the exact path first, then falls back to the lowercase version.
+// --- CHROME FIX: case-insensitive & space-decoded image serving ---
 app.use('/images', (req, res, next) => {
-  const exactPath = path.resolve(__dirname, 'public/images', req.url.replace(/^\//, ''));
-  const lowerPath = path.resolve(__dirname, 'public/images', req.url.replace(/^\//, '').toLowerCase());
+  let reqFilename = req.url.replace(/^\//, '').split('?')[0];
+  try { reqFilename = decodeURIComponent(reqFilename); } catch (e) {}
 
-  // Set headers that Chrome needs for proper image caching
+  const exactPath = path.resolve(imgDir, reqFilename);
+  const lowerPath = path.resolve(imgDir, reqFilename.toLowerCase());
+
   res.set({
     'Cache-Control': 'public, max-age=2592000, immutable',
     'Access-Control-Allow-Origin': '*',
@@ -121,16 +121,15 @@ app.use('/images', (req, res, next) => {
     'X-Content-Type-Options': 'nosniff'
   });
 
-  if (fs.existsSync(exactPath)) {
+  if (fs.existsSync(exactPath) && fs.statSync(exactPath).isFile()) {
     return res.sendFile(exactPath);
-  } else if (fs.existsSync(lowerPath)) {
+  } else if (fs.existsSync(lowerPath) && fs.statSync(lowerPath).isFile()) {
     return res.sendFile(lowerPath);
   } else {
-    // Try scanning directory for case-insensitive match
-    const filename = req.url.replace(/^\//, '').toLowerCase();
     try {
       const files = fs.readdirSync(imgDir);
-      const match = files.find(f => f.toLowerCase() === filename);
+      const cleanTarget = reqFilename.toLowerCase().trim();
+      const match = files.find(f => f.toLowerCase().trim() === cleanTarget);
       if (match) {
         return res.sendFile(path.join(imgDir, match));
       }
@@ -138,6 +137,7 @@ app.use('/images', (req, res, next) => {
     next();
   }
 });
+
 
 // --- STATIC FILES SERVING (HARDENED & OPTIMIZED) ---
 // Serve static assets from build and public with aggressive caching
