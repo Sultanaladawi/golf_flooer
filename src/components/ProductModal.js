@@ -453,6 +453,8 @@ export default function ProductModal({ model, onClose }) {
                   loop
                   playsInline
                   controls
+                  preload="auto"
+                  crossOrigin="anonymous"
                   className={styles.mainVideo}
                 />
               </div>

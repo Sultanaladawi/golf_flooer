@@ -129,8 +129,8 @@ function ProductCard({ item, onOpen }) {
             loop
             muted
             playsInline
-            preload="metadata"
-            disablePictureInPicture
+            preload="auto"
+            crossOrigin="anonymous"
             style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', inset: 0, zIndex: 2, transform: 'translateZ(0)', willChange: 'transform' }}
           />
 

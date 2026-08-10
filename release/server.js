@@ -150100,36 +150100,72 @@ app.use("/images", (req, res, next) => {
     path.join(__dirname, "build")
     // repo build/
   ];
-  res.set({
-    "Cache-Control": "public, max-age=3600, must-revalidate",
-    "Access-Control-Allow-Origin": "*",
-    "Vary": "Accept-Encoding",
-    "X-Content-Type-Options": "nosniff"
-  });
-  for (const dir of searchDirs) {
+  let foundFile = null;
+  outer: for (const dir of searchDirs) {
     if (!dir || !fs.existsSync(dir)) continue;
-    const exactFile = path.resolve(dir, reqFilename);
-    if (fs.existsSync(exactFile) && fs.statSync(exactFile).isFile()) {
-      return res.sendFile(exactFile);
+    for (const candidate of [reqFilename, lowerFilename]) {
+      const full = path.resolve(dir, candidate);
+      if (fs.existsSync(full) && fs.statSync(full).isFile()) {
+        foundFile = full;
+        break outer;
+      }
     }
-    const lowerFile = path.resolve(dir, lowerFilename);
-    if (fs.existsSync(lowerFile) && fs.statSync(lowerFile).isFile()) {
-      return res.sendFile(lowerFile);
-    }
-  }
-  for (const dir of searchDirs) {
-    if (!dir || !fs.existsSync(dir)) continue;
     try {
       const files = fs.readdirSync(dir);
-      const cleanTarget = lowerFilename.trim();
-      const match = files.find((f) => f.toLowerCase().trim() === cleanTarget);
+      const match = files.find((f) => f.toLowerCase().trim() === lowerFilename.trim());
       if (match) {
-        return res.sendFile(path.join(dir, match));
+        foundFile = path.join(dir, match);
+        break;
       }
     } catch (e) {
     }
   }
-  next();
+  if (!foundFile) return next();
+  const isVideo = /\.(mp4|mov|webm|avi|m4v)$/i.test(foundFile);
+  if (isVideo) {
+    const stat = fs.statSync(foundFile);
+    const fileSize = stat.size;
+    const rangeHeader = req.headers.range;
+    const ext = path.extname(foundFile).toLowerCase();
+    const mimeTypes = { ".mp4": "video/mp4", ".mov": "video/quicktime", ".webm": "video/webm", ".avi": "video/x-msvideo", ".m4v": "video/x-m4v" };
+    const contentType = mimeTypes[ext] || "video/mp4";
+    if (rangeHeader) {
+      const parts = rangeHeader.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + 10 * 1024 * 1024 - 1, fileSize - 1);
+      const chunkSize = end - start + 1;
+      res.writeHead(206, {
+        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+        "Accept-Ranges": "bytes",
+        "Content-Length": chunkSize,
+        "Content-Type": contentType,
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*"
+      });
+      const stream = fs.createReadStream(foundFile, { start, end });
+      stream.on("error", () => res.end());
+      stream.pipe(res);
+    } else {
+      res.writeHead(200, {
+        "Content-Length": fileSize,
+        "Content-Type": contentType,
+        "Accept-Ranges": "bytes",
+        "Cache-Control": "public, max-age=3600",
+        "Access-Control-Allow-Origin": "*"
+      });
+      const stream = fs.createReadStream(foundFile);
+      stream.on("error", () => res.end());
+      stream.pipe(res);
+    }
+  } else {
+    res.set({
+      "Cache-Control": "public, max-age=3600, must-revalidate",
+      "Access-Control-Allow-Origin": "*",
+      "Vary": "Accept-Encoding",
+      "X-Content-Type-Options": "nosniff"
+    });
+    return res.sendFile(foundFile);
+  }
 });
 var cacheOptions = { maxAge: "30d", etag: true, lastModified: true };
 app.use(express.static(path.resolve(__dirname, "build"), cacheOptions));

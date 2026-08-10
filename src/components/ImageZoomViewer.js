@@ -112,7 +112,9 @@ export default function ImageZoomViewer({
               loop 
               muted 
               playsInline 
-              controls 
+              controls
+              preload="auto"
+              crossOrigin="anonymous"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
             <button 
