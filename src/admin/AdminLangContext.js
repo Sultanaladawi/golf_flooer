@@ -4,14 +4,9 @@ import { translations } from './AdminTranslations';
 const AdminLangContext = createContext();
 
 export const AdminLangProvider = ({ children }) => {
-  const [lang, setLang] = useState('en');
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem('admin_lang');
-    if (savedLang) {
-      setLang(savedLang);
-    }
-  }, []);
+  const [lang, setLang] = useState(() => {
+    return localStorage.getItem('admin_lang') || 'ar';
+  });
 
   const toggleLang = () => {
     const newLang = lang === 'en' ? 'ar' : 'en';

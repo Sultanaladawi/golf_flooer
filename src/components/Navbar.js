@@ -238,19 +238,18 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
       localStorage.setItem('zahrat_language', langCode);
       localStorage.setItem('zahrat_language_iso', countryIso);
 
-        let matchingCurr = currencies.find(c => c.iso === countryIso);
-        if (!matchingCurr && ['de', 'fr', 'eu', 'ch', 'se', 'no'].includes(countryIso)) {
-          if (countryIso === 'ch') matchingCurr = currencies.find(c => c.code === 'CHF');
-          else if (countryIso === 'se') matchingCurr = currencies.find(c => c.code === 'SEK');
-          else if (countryIso === 'no') matchingCurr = currencies.find(c => c.code === 'NOK');
-          else matchingCurr = currencies.find(c => c.code === 'EUR');
-        }
-        if (!matchingCurr) {
-          matchingCurr = currencies.find(c => c.code === 'USD');
-        }
-        if (matchingCurr) {
-          setCurrency(matchingCurr);
-        }
+      let matchingCurr = currencies.find(c => c.iso === countryIso);
+      if (!matchingCurr && ['de', 'fr', 'eu', 'ch', 'se', 'no'].includes(countryIso)) {
+        if (countryIso === 'ch') matchingCurr = currencies.find(c => c.code === 'CHF');
+        else if (countryIso === 'se') matchingCurr = currencies.find(c => c.code === 'SEK');
+        else if (countryIso === 'no') matchingCurr = currencies.find(c => c.code === 'NOK');
+        else matchingCurr = currencies.find(c => c.code === 'EUR');
+      }
+      if (!matchingCurr) {
+        matchingCurr = currencies.find(c => c.code === 'USD');
+      }
+      if (matchingCurr) {
+        setCurrency(matchingCurr);
       }
     } catch (err) {
       console.error(err);
