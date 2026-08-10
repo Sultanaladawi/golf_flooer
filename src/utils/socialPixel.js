@@ -103,8 +103,14 @@ export const initSocialPixels = async () => {
               (ttq._o[e] = n || {});
             var o = document.createElement('script');
             (o.type = 'text/javascript'), (o.async = !0), (o.src = i + '?sdkid=' + e + '&lib=' + t);
+            o.onerror = function () {
+              console.warn('[SocialPixel] TikTok Analytics script connection blocked or unavailable.');
+            };
             var a = document.getElementsByTagName('script')[0];
-            a.parentNode.insertBefore(o, a);
+            if (a && a.parentNode) {
+              a.parentNode.insertBefore(o, a);
+            }
+
           });
 
         ttq.load(pixels.tiktok);
