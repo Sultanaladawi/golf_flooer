@@ -118,10 +118,40 @@
   </script>
   <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
   <style>
-    /* Hide the default Google Translate top banner */
-    .goog-te-banner-frame, .goog-te-banner-frame.skiptranslate { display: none !important; }
-    body { top: 0 !important; position: static !important; }
-    /* Style the translate dropdown to match our design */
+    /* Completely hide Google Translate top banner, tooltips, popups, and frames */
+    .goog-te-banner-frame, 
+    .goog-te-banner-frame.skiptranslate,
+    .goog-te-balloon-frame,
+    #goog-gt-tt,
+    .goog-te-spinner-pos,
+    .goog-te-menu-frame,
+    .goog-te-gadget-icon,
+    .VIpgJd-yDfe-b2fsod-v6580d,
+    .goog-tooltip,
+    .goog-tooltip:hover,
+    iframe.skiptranslate,
+    .goog-text-highlight,
+    .skiptranslate {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+      height: 0 !important;
+      width: 0 !important;
+    }
+
+    body {
+      top: 0 !important;
+      position: static !important;
+      margin-top: 0 !important;
+    }
+
+    html {
+      top: 0 !important;
+      position: static !important;
+    }
+
+    /* Style the translate dropdown if present */
     #google_translate_element .goog-te-gadget-simple {
       background: transparent !important;
       border: none !important;

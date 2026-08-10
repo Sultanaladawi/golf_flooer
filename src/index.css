@@ -1,4 +1,37 @@
 
+/* Completely hide Google Translate top banner, tooltips, popups, and frames */
+.goog-te-banner-frame, 
+.goog-te-banner-frame.skiptranslate,
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-spinner-pos,
+.goog-te-menu-frame,
+.goog-te-gadget-icon,
+.VIpgJd-yDfe-b2fsod-v6580d,
+.goog-tooltip,
+.goog-tooltip:hover,
+iframe.skiptranslate,
+.goog-text-highlight,
+.skiptranslate {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  height: 0 !important;
+  width: 0 !important;
+}
+
+body {
+  top: 0 !important;
+  position: static !important;
+  margin-top: 0 !important;
+}
+
+html {
+  top: 0 !important;
+  position: static !important;
+}
+
 /* Custom Luxury Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
