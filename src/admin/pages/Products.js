@@ -334,18 +334,20 @@ const Products = () => {
       const computedSizeChartJson = JSON.stringify(chartList);
 
       const chosenUrl = (formData.image_url && typeof formData.image_url === 'string') ? formData.image_url.trim() : '';
-      let imgList = formData.images_list || [];
-      if (chosenUrl) {
+      let imgList = (formData.images_list || []).filter(x => x && x !== '12.png' && x !== '/12.png');
+      if (chosenUrl && chosenUrl !== '12.png' && chosenUrl !== '/12.png') {
         imgList = [chosenUrl, ...imgList.filter(x => x !== chosenUrl)];
       }
       const vidList = formData.videos_list || (formData.video_url ? [formData.video_url] : []);
+      const primaryImage = (chosenUrl && chosenUrl !== '12.png' && chosenUrl !== '/12.png') ? chosenUrl : (imgList[0] || formData.image_url || '/12.png');
 
       const cleanFormData = {
         ...formData,
-        image_url: chosenUrl || (imgList[0] || ''),
-        images: JSON.stringify(imgList),
+        image_url: primaryImage,
+        images: JSON.stringify(imgList.length > 0 ? imgList : [primaryImage]),
         video_url: vidList[0] || formData.video_url || '',
         videos: JSON.stringify(vidList),
+
 
         addon_ids: [...new Set((formData.addon_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
         tag_ids: [...new Set((formData.tag_ids || []).filter(id => !String(id).includes('legacy') && !isNaN(parseInt(id))).map(id => parseInt(id)))],
@@ -1760,15 +1762,16 @@ const Products = () => {
                         await fetchImages(); // refresh grid
                         if (uploadedNames.length > 0) {
                           setFormData(prev => {
-                            const existing = prev.images_list || [];
-                            const combined = [...existing, ...uploadedNames];
-                            return { ...prev, images_list: combined, image_url: combined[0] };
+                            const existing = (prev.images_list || []).filter(x => x !== '12.png' && x !== '/12.png');
+                            const combined = [...uploadedNames, ...existing];
+                            return { ...prev, images_list: combined, image_url: uploadedNames[0] };
                           });
                         }
                         setUploadLoading(false);
                         setShowImagePicker(false);
                         e.target.value = '';
                       }}
+
                     />
                   </label>
                   <button onClick={() => setShowImagePicker(false)} style={{ background: 'none', border: 'none', color: colors.latte, cursor: 'pointer', padding: '5px' }}><X size={28} /></button>
@@ -1782,11 +1785,12 @@ const Products = () => {
                   return (
                     <div key={img} 
                       onClick={() => { 
-                        const currentList = formData.images_list || [];
+                        const currentList = (formData.images_list || []).filter(x => x !== '12.png' && x !== '/12.png');
                         const updatedList = [img, ...currentList.filter(x => x !== img)];
                         setFormData({ ...formData, image_url: img, images_list: updatedList }); 
                         setShowImagePicker(false); 
                       }}
+
 
                       style={{ 
                         cursor: 'pointer', borderRadius: '20px', overflow: 'hidden', 

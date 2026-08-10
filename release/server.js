@@ -150283,19 +150283,25 @@ db.getConnection((err, connection) => {
       `);
       console.log("[Migration] Schema verification complete.");
       try {
-        const [items] = await promiseDb.query('SELECT id, image_url, images FROM menu_items WHERE images IS NOT NULL AND images != "" AND images != "[]"');
+        const [items] = await promiseDb.query("SELECT id, image_url, images FROM menu_items");
         let syncCount = 0;
         for (const item of items) {
           try {
-            const imgs = typeof item.images === "string" ? JSON.parse(item.images) : item.images;
-            if (Array.isArray(imgs) && imgs.length > 0 && imgs[0] && imgs[0] !== item.image_url) {
-              await promiseDb.query("UPDATE menu_items SET image_url = ? WHERE id = ?", [imgs[0], item.id]);
-              syncCount++;
+            const imgs = typeof item.images === "string" ? JSON.parse(item.images || "[]") : item.images || [];
+            if (Array.isArray(imgs)) {
+              const realImgs = imgs.filter((img) => img && img !== "12.png" && img !== "/12.png");
+              if (realImgs.length > 0) {
+                const primary = realImgs[0];
+                if (primary !== item.image_url || item.image_url === "12.png" || item.image_url === "/12.png") {
+                  await promiseDb.query("UPDATE menu_items SET image_url = ?, images = ? WHERE id = ?", [primary, JSON.stringify(realImgs), item.id]);
+                  syncCount++;
+                }
+              }
             }
           } catch (e) {
           }
         }
-        if (syncCount > 0) console.log(`[Migration] Synced image_url for ${syncCount} products.`);
+        if (syncCount > 0) console.log(`[Migration] Cleaned and synced real primary images for ${syncCount} products.`);
       } catch (e) {
         console.error("[Migration] image_url sync failed:", e.message);
       }
