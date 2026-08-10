@@ -43,6 +43,13 @@ function ProductCard({ item, onOpen }) {
   const [hovered, setHovered] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
   const wishlisted = isWishlisted(item.id);
+
+  // Sync image whenever item data changes (e.g., after admin saves from mobile)
+  useEffect(() => {
+    setImgSrc(getImageUrl(item));
+  }, [item.image_url, item.images, item.id]);
+
+
   const hasVariants = item.variants && item.variants.length > 0;
   const dir = currentLang.dir || 'rtl';
 

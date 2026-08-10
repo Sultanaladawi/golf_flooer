@@ -360,6 +360,28 @@ db.getConnection((err, connection) => {
       `);
 
       console.log('[Migration] Schema verification complete.');
+
+      // ──────────────────────────────────────────────────────────────────
+      // SYNC image_url: For each product, ensure image_url reflects the
+      // first entry in the images JSON array (the admin-selected primary image)
+      // ──────────────────────────────────────────────────────────────────
+      try {
+        const [items] = await promiseDb.query('SELECT id, image_url, images FROM menu_items WHERE images IS NOT NULL AND images != "" AND images != "[]"');
+        let syncCount = 0;
+        for (const item of items) {
+          try {
+            const imgs = typeof item.images === 'string' ? JSON.parse(item.images) : item.images;
+            if (Array.isArray(imgs) && imgs.length > 0 && imgs[0] && imgs[0] !== item.image_url) {
+              await promiseDb.query('UPDATE menu_items SET image_url = ? WHERE id = ?', [imgs[0], item.id]);
+              syncCount++;
+            }
+          } catch(e) { /* skip bad JSON */ }
+        }
+        if (syncCount > 0) console.log(`[Migration] Synced image_url for ${syncCount} products.`);
+      } catch(e) {
+        console.error('[Migration] image_url sync failed:', e.message);
+      }
+
     } catch (dbErr) {
       console.error('[Migration] Schema check failed:', dbErr.message);
     }
@@ -368,6 +390,7 @@ db.getConnection((err, connection) => {
 
   if (connection) connection.release();
 });
+
 
 app.post('/api/orders', async (req, res) => {
   console.log('[Server] Body:', JSON.stringify(req.body, null, 2));
@@ -1756,8 +1779,28 @@ app.get('/api/products', async (req, res) => {
       const prodVariants = variants.filter(v => v.product_id === p.id);
       const finalRating = p.avg_rating || (4.7 + ((p.id * 3) % 4) * 0.1);
       const finalReviewsCount = p.total_reviews || (Math.floor((p.id * 7) % 20) + 12);
+
+      // Parse images JSON string to array
+      let parsedImages = [];
+      try {
+        parsedImages = typeof p.images === 'string' ? JSON.parse(p.images || '[]') : (p.images || []);
+        if (!Array.isArray(parsedImages)) parsedImages = [];
+      } catch(e) { parsedImages = []; }
+
+      // Ensure image_url is ALWAYS the canonical primary image
+      // If image_url exists, put it first in images array
+      const canonicalImageUrl = p.image_url && typeof p.image_url === 'string' && p.image_url.trim() 
+        ? p.image_url.trim() 
+        : (parsedImages[0] || null);
+      
+      if (canonicalImageUrl) {
+        parsedImages = [canonicalImageUrl, ...parsedImages.filter(img => img !== canonicalImageUrl)];
+      }
+
       return { 
-        ...p, 
+        ...p,
+        image_url: canonicalImageUrl || p.image_url || null,
+        images: parsedImages,
         isOutOfStock: !!p.isOutOfStock, 
         linkedAddons: addonsArray, 
         linkedTags: tagsArray, 
@@ -1766,6 +1809,7 @@ app.get('/api/products', async (req, res) => {
         avg_rating: parseFloat(finalRating),
         total_reviews: parseInt(finalReviewsCount)
       };
+
     });
 
     res.status(200).json(products);

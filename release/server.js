@@ -119831,6 +119831,23 @@ db.getConnection((err, connection) => {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
       console.log("[Migration] Schema verification complete.");
+      try {
+        const [items] = await promiseDb.query('SELECT id, image_url, images FROM menu_items WHERE images IS NOT NULL AND images != "" AND images != "[]"');
+        let syncCount = 0;
+        for (const item of items) {
+          try {
+            const imgs = typeof item.images === "string" ? JSON.parse(item.images) : item.images;
+            if (Array.isArray(imgs) && imgs.length > 0 && imgs[0] && imgs[0] !== item.image_url) {
+              await promiseDb.query("UPDATE menu_items SET image_url = ? WHERE id = ?", [imgs[0], item.id]);
+              syncCount++;
+            }
+          } catch (e) {
+          }
+        }
+        if (syncCount > 0) console.log(`[Migration] Synced image_url for ${syncCount} products.`);
+      } catch (e) {
+        console.error("[Migration] image_url sync failed:", e.message);
+      }
     } catch (dbErr) {
       console.error("[Migration] Schema check failed:", dbErr.message);
     }
@@ -121143,8 +121160,21 @@ app.get("/api/products", async (req, res) => {
       const prodVariants = variants.filter((v) => v.product_id === p.id);
       const finalRating = p.avg_rating || 4.7 + p.id * 3 % 4 * 0.1;
       const finalReviewsCount = p.total_reviews || Math.floor(p.id * 7 % 20) + 12;
+      let parsedImages = [];
+      try {
+        parsedImages = typeof p.images === "string" ? JSON.parse(p.images || "[]") : p.images || [];
+        if (!Array.isArray(parsedImages)) parsedImages = [];
+      } catch (e) {
+        parsedImages = [];
+      }
+      const canonicalImageUrl = p.image_url && typeof p.image_url === "string" && p.image_url.trim() ? p.image_url.trim() : parsedImages[0] || null;
+      if (canonicalImageUrl) {
+        parsedImages = [canonicalImageUrl, ...parsedImages.filter((img) => img !== canonicalImageUrl)];
+      }
       return {
         ...p,
+        image_url: canonicalImageUrl || p.image_url || null,
+        images: parsedImages,
         isOutOfStock: !!p.isOutOfStock,
         linkedAddons: addonsArray,
         linkedTags: tagsArray,
