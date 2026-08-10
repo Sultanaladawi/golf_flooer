@@ -216,7 +216,15 @@ const Products = () => {
     fetchAddons();
     fetchTags();
     fetchInventory();
+
+    // Auto-sync products list every 5 seconds so Desktop and Mobile stay 100% in sync live!
+    const syncInterval = setInterval(() => {
+      fetchProducts();
+    }, 5000);
+
+    return () => clearInterval(syncInterval);
   }, []);
+
 
   // Drag & Drop handlers
   const handleDragStart = (index) => { dragItem.current = index; };
@@ -1789,11 +1797,15 @@ const Products = () => {
                         }
                         await fetchImages(); // refresh grid
                         if (uploadedNames.length > 0) {
+                          const newPrimary = uploadedNames[0];
                           setFormData(prev => {
                             const existing = (prev.images_list || []).filter(x => x !== '12.png' && x !== '/12.png');
                             const combined = [...uploadedNames, ...existing];
-                            return { ...prev, images_list: combined, image_url: uploadedNames[0] };
+                            return { ...prev, images_list: combined, image_url: newPrimary };
                           });
+                          if (formData.id) {
+                            axios.post('/api/admin/set-product-image', { productId: formData.id, imageUrl: newPrimary }).then(fetchProducts).catch(() => {});
+                          }
                         }
                         setUploadLoading(false);
                         setShowImagePicker(false);
@@ -1816,8 +1828,12 @@ const Products = () => {
                         const currentList = (formData.images_list || []).filter(x => x !== '12.png' && x !== '/12.png');
                         const updatedList = [img, ...currentList.filter(x => x !== img)];
                         setFormData({ ...formData, image_url: img, images_list: updatedList }); 
+                        if (formData.id) {
+                          axios.post('/api/admin/set-product-image', { productId: formData.id, imageUrl: img }).then(fetchProducts).catch(() => {});
+                        }
                         setShowImagePicker(false); 
                       }}
+
 
 
                       style={{ 
