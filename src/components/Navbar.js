@@ -279,7 +279,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
           transition: 'all 0.3s ease'
         }}>
           <div style={{
-            maxWidth: '1280px',
+            maxWidth: '1400px',
             margin: '0 auto',
             display: 'flex',
             alignItems: 'center',

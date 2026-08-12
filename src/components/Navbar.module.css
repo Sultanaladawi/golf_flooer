@@ -16,12 +16,13 @@
 }
 
 .inner {
-  max-width: 1160px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0.4rem 2rem; /* Reduced from 1.1rem to move words up */
+  padding: 0.4rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .logo {
