@@ -149,7 +149,7 @@ const handleMediaStreaming = async (req, res, next) => {
   }
 
   // If not found on disk, attempt instant auto-recovery from MySQL permanent storage
-  if (!foundFile && !isVideoReq) {
+  if (!foundFile) {
     try {
       const cleanName = reqFilename.replace(/^\/images\//, '').replace(/^\//, '');
       const [rows] = await db.promise().query('SELECT data_uri FROM product_image_store WHERE filename = ?', [cleanName]);
@@ -374,9 +374,30 @@ app.post('/api/upload-image', upload.single('image'), async (req, res) => {
   res.json({ filename, url });
 });
 
-app.post('/api/upload-video', upload.single('video'), (req, res) => {
+// Video upload endpoint with 100% permanent MySQL persistence backup
+app.post('/api/upload-video', upload.single('video'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No video file uploaded' });
-  res.json({ filename: req.file.filename, url: `/images/${req.file.filename}` });
+
+  const filename = req.file.filename;
+  const filePath = req.file.path;
+  const url = `/images/${filename}`;
+
+  try {
+    const fileBuffer = fs.readFileSync(filePath);
+    const ext = path.extname(filename).toLowerCase();
+    const mimeType = ext === '.mov' ? 'video/quicktime' : ext === '.webm' ? 'video/webm' : 'video/mp4';
+    const dataUri = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+
+    await db.promise().query(
+      'INSERT INTO product_image_store (filename, data_uri) VALUES (?, ?) ON DUPLICATE KEY UPDATE data_uri = VALUES(data_uri)',
+      [filename, dataUri]
+    );
+    console.log(`[Permanent Video Storage] Backed up ${filename} into MySQL product_image_store (${fileBuffer.length} bytes).`);
+  } catch (err) {
+    console.error('[Upload Video Persistence Error]:', err.message);
+  }
+
+  res.json({ filename, url });
 });
 
 app.get('/api/ping', (req, res) => {
