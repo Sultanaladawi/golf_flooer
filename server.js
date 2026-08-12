@@ -116,8 +116,8 @@ app.use((req, res, next) => {
 });
 
 
-// --- CHROME & AZURE MULTI-DIRECTORY IMAGE + VIDEO STREAMING ---
-app.use('/images', (req, res, next) => {
+// --- CHROME & AZURE MULTI-DIRECTORY IMAGE + VIDEO STREAMING WITH AUTO-REBOOT RECOVERY ---
+app.use('/images', async (req, res, next) => {
   let reqFilename = req.url.replace(/^\//, '').split('?')[0];
   try { reqFilename = decodeURIComponent(reqFilename); } catch (e) {}
   const lowerFilename = reqFilename.toLowerCase();
@@ -143,6 +143,27 @@ app.use('/images', (req, res, next) => {
       const match = files.find(f => f.toLowerCase().trim() === lowerFilename.trim());
       if (match) { foundFile = path.join(dir, match); break; }
     } catch (e) {}
+  }
+
+  // If not found on disk, attempt instant auto-recovery from MySQL permanent storage
+  if (!foundFile) {
+    try {
+      const cleanName = reqFilename.replace(/^\/images\//, '').replace(/^\//, '');
+      const [rows] = await db.promise().query('SELECT data_uri FROM product_image_store WHERE filename = ?', [cleanName]);
+      if (rows && rows.length > 0 && rows[0].data_uri) {
+        const dataUri = rows[0].data_uri;
+        const matches = dataUri.match(/^data:([^;]+);base64,(.+)$/);
+        if (matches) {
+          const buffer = Buffer.from(matches[2], 'base64');
+          const restorePath = path.join(imgDir, cleanName);
+          fs.writeFileSync(restorePath, buffer);
+          foundFile = restorePath;
+          console.log(`[Auto Recovery] Successfully restored ${cleanName} from MySQL DB back to disk.`);
+        }
+      }
+    } catch (e) {
+      console.error('[Image DB Auto-Recovery Error]:', e.message);
+    }
   }
 
   if (!foundFile) {
@@ -305,10 +326,29 @@ app.post('/api/log-action', (req, res) => {
   }
 });
 
-// Image upload endpoint
-app.post('/api/upload-image', upload.single('image'), (req, res) => {
+// Image upload endpoint with 100% permanent MySQL persistence backup
+app.post('/api/upload-image', upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  res.json({ filename: req.file.filename, url: `/images/${req.file.filename}` });
+
+  const filename = req.file.filename;
+  const filePath = req.file.path;
+  const url = `/images/${filename}`;
+
+  try {
+    const fileBuffer = fs.readFileSync(filePath);
+    const mimeType = req.file.mimetype || 'image/jpeg';
+    const dataUri = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
+
+    await db.promise().query(
+      'INSERT INTO product_image_store (filename, data_uri) VALUES (?, ?) ON DUPLICATE KEY UPDATE data_uri = VALUES(data_uri)',
+      [filename, dataUri]
+    );
+    console.log(`[Permanent Storage] Backed up ${filename} into MySQL product_image_store (${fileBuffer.length} bytes).`);
+  } catch (err) {
+    console.error('[Upload Image Persistence Error]:', err.message);
+  }
+
+  res.json({ filename, url });
 });
 
 app.post('/api/upload-video', upload.single('video'), (req, res) => {
@@ -428,6 +468,15 @@ db.getConnection((err, connection) => {
           sort_order  INT DEFAULT 0,
           created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           FOREIGN KEY (product_id) REFERENCES menu_items(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+      `);
+
+      // Create product_image_store table for 100% permanent image persistence in MySQL
+      await promiseDb.query(`
+        CREATE TABLE IF NOT EXISTS product_image_store (
+          filename  VARCHAR(255) PRIMARY KEY,
+          data_uri  LONGTEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
 
