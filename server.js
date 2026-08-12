@@ -117,16 +117,19 @@ app.use((req, res, next) => {
 
 
 // --- CHROME & AZURE MULTI-DIRECTORY IMAGE + VIDEO STREAMING WITH AUTO-REBOOT RECOVERY ---
-app.use('/images', async (req, res, next) => {
+const handleMediaStreaming = async (req, res, next) => {
   let reqFilename = req.url.replace(/^\//, '').split('?')[0];
   try { reqFilename = decodeURIComponent(reqFilename); } catch (e) {}
   const lowerFilename = reqFilename.toLowerCase();
+  const isVideoReq = /\.(mp4|mov|webm|avi|m4v)$/i.test(reqFilename);
 
   const searchDirs = [
     imgDir,                                   // /home/data/public/images (runtime uploads)
     path.join(__dirname, 'public', 'images'), // repo public/images/
+    path.join(__dirname, 'public', 'videos'), // repo public/videos/
     path.join(__dirname, 'public'),           // repo public/
     path.join(__dirname, 'build', 'images'),  // repo build/images/
+    path.join(__dirname, 'build', 'videos'),  // repo build/videos/
     path.join(__dirname, 'build')             // repo build/
   ];
 
@@ -146,7 +149,7 @@ app.use('/images', async (req, res, next) => {
   }
 
   // If not found on disk, attempt instant auto-recovery from MySQL permanent storage
-  if (!foundFile) {
+  if (!foundFile && !isVideoReq) {
     try {
       const cleanName = reqFilename.replace(/^\/images\//, '').replace(/^\//, '');
       const [rows] = await db.promise().query('SELECT data_uri FROM product_image_store WHERE filename = ?', [cleanName]);
@@ -166,13 +169,30 @@ app.use('/images', async (req, res, next) => {
     }
   }
 
-  if (!foundFile) {
+  // Image Fallback
+  if (!foundFile && !isVideoReq) {
     const fallbackPath = path.join(__dirname, 'public', 'images', '15.jpg');
     if (fs.existsSync(fallbackPath)) {
       foundFile = fallbackPath;
     } else {
       return next();
     }
+  }
+
+  // Video Fallback
+  if (!foundFile && isVideoReq) {
+    for (const dir of searchDirs) {
+      if (!dir || !fs.existsSync(dir)) continue;
+      for (const vName of ['hero_video.mp4', 'lookbook_video.mp4', '8.mp4', '11 (1).mp4']) {
+        const vPath = path.join(dir, vName);
+        if (fs.existsSync(vPath)) {
+          foundFile = vPath;
+          break;
+        }
+      }
+      if (foundFile) break;
+    }
+    if (!foundFile) return next();
   }
 
   const isVideo = /\.(mp4|mov|webm|avi|m4v)$/i.test(foundFile);
@@ -226,7 +246,10 @@ app.use('/images', async (req, res, next) => {
     });
     return res.sendFile(foundFile);
   }
-});
+};
+
+app.use('/images', handleMediaStreaming);
+app.use('/videos', handleMediaStreaming);
 
 
 
