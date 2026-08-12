@@ -317,7 +317,7 @@ function ProductsSlider({ items, onOpen }) {
 
 /* ═══════════ Category Section Block ═══════════ */
 function CategoryBlock({ category, items, onOpen }) {
-  const { t, currentLang } = useLanguage();
+  const { t, tProduct, currentLang } = useLanguage();
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
 
@@ -342,13 +342,13 @@ function CategoryBlock({ category, items, onOpen }) {
       {/* Background Banner */}
       {category.banner_url && (
         <div className={styles.bannerWrap}>
-          <img src={category.banner_url} alt={category.label} className={styles.bannerImg} />
+          <img src={category.banner_url} alt={tProduct(category.label)} className={styles.bannerImg} />
           <div className={styles.bannerOverlay} />
           <div className={styles.bannerText}>
-            <p className={styles.bannerSub}>تشكيلة</p>
-            <h2 className={styles.bannerTitle}>{category.label}</h2>
+            <p className={styles.bannerSub}>{t('collection')}</p>
+            <h2 className={styles.bannerTitle}>{tProduct(category.label)}</h2>
             {category.description && (
-              <p className={styles.bannerDesc}>{category.description}</p>
+              <p className={styles.bannerDesc}>{tProduct(category.description)}</p>
             )}
           </div>
         </div>
@@ -358,7 +358,7 @@ function CategoryBlock({ category, items, onOpen }) {
       {!category.banner_url && (
         <div className={styles.inlineHeader}>
           <div className={styles.headerLine} />
-          <h2 className={styles.inlineTitle}>{category.label}</h2>
+          <h2 className={styles.inlineTitle}>{tProduct(category.label)}</h2>
           <div className={styles.headerLine} />
         </div>
       )}

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Star } from 'lucide-react';
 import { shopInfo } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './Contact.module.css';
 
 const validate = {
@@ -11,6 +12,7 @@ const validate = {
 };
 
 export default function Contact() {
+  const { t, currentLang } = useLanguage();
   const [infoRef, infoVis] = useReveal();
   const [formRef, formVis] = useReveal();
 
@@ -78,55 +80,56 @@ export default function Contact() {
           }),
         });
 
-        if (!response.ok) throw new Error('Failed to send message');
+        if (!response.ok) throw new Error('حدث خطأ في الإرسال');
       } else {
-        const response = await fetch('/api/feedback/general', {
+        const response = await fetch('/api/reviews', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            reviewer_name: fields.name.trim() || 'مجهول',
+            customerName: fields.name.trim() || 'عميلة زهرة بيسان',
             comment: fields.message.trim(),
-            rating: rating
+            rating: rating,
+            productName: 'تقييم عام للمتجر'
           }),
         });
 
-        if (!response.ok) throw new Error('Failed to submit store review');
+        if (!response.ok) throw new Error('حدث خطأ في تقديم التقييم');
       }
       
       setDone(true);
     } catch (error) {
       console.error('Submit error:', error);
-      setSubmitError('حدث خطأ ما. يرجى إعادة المحاولة لاحقاً.');
+      setSubmitError(error.message || 'تعذر الإرسال حالياً. يُرجى المحاولة لاحقاً.');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <section className={styles.contact} id="contact" style={{ direction: 'rtl', background: 'var(--cream-dark)' }}>
+    <section className={styles.section} id="contact" style={{ direction: currentLang.dir || 'rtl' }}>
       <div className="section-wrap">
         <div className={styles.inner}>
           
-          <div ref={infoRef} className={`${styles.info} reveal ${infoVis ? 'vis' : ''}`} style={{ textAlign: 'right' }}>
-            <div className="label" style={{ color: 'var(--gold)' }}>اتصلي بنا</div>
+          <div ref={infoRef} className={`${styles.info} reveal ${infoVis ? 'vis' : ''}`} style={{ textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
+            <div className="label" style={{ color: 'var(--gold)' }}>{t('contactBadge')}</div>
             <div className="divider" style={{ background: 'var(--gold)' }} />
-            <h2 className="h2" style={{ color: 'var(--espresso)' }}>يسعدنا تواصلكِ معنا</h2>
+            <h2 className="h2" style={{ color: 'var(--espresso)' }}>{t('contactTitle')}</h2>
             <p className={styles.infoDesc} style={{ color: 'var(--espresso-mid)' }}>
-              زهرة بيسان — متجر عالمي يصل إلى جميع دول العالم. تواصلي معنا عبر البريد الإلكتروني وسنرد عليكِ في أقرب وقت.
+              {t('contactDescription')}
             </p>
 
             <div className={styles.contactDetails} style={{ display: 'flex', flexDirection: 'column', gap: '20px', margin: '30px 0' }}>
                <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                   <i className="fas fa-globe" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
                   <div>
-                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>متجر عالمي</strong>
-                    <p style={{ color: 'var(--espresso-dim)', margin: 0 }}>نشحن لجميع دول العالم — تسوقي بلا حدود</p>
+                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>{t('globalBoutique')}</strong>
+                    <p style={{ color: 'var(--espresso-dim)', margin: 0 }}>{t('globalBoutiqueDesc')}</p>
                   </div>
                </div>
                <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                   <i className="fas fa-envelope" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
                   <div>
-                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>البريد الإلكتروني</strong>
+                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>{t('emailContact')}</strong>
                     <p style={{ color: 'var(--espresso-dim)', margin: 0 }}>{shopInfo.email}</p>
                   </div>
                </div>
@@ -139,59 +142,57 @@ export default function Contact() {
                </div>
             </div>
 
-            {/* 24/7 Online badge */}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '12px 20px', borderRadius: '20px', background: 'var(--gold-glow)', border: '1px solid var(--border)' }}>
               <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite', display: 'inline-block' }} />
-              <span style={{ fontWeight: '700', color: 'var(--espresso)', fontSize: '0.9rem' }}>متاح دائماً — 24/7 Online</span>
+              <span style={{ fontWeight: '700', color: 'var(--espresso)', fontSize: '0.9rem' }}>{t('online247')}</span>
             </div>
           </div>
 
           <div ref={formRef} className={`${styles.formWrap} reveal ${formVis ? 'vis' : ''}`}>
             {!done ? (
               <form onSubmit={submit} noValidate style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '24px', border: '1px solid var(--border)' }}>
-                {/* Form Type Switcher */}
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', background: 'var(--bg-base)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <button 
                     type="button" 
                     onClick={() => { setFormType('message'); setSubmitError(''); }} 
                     style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: formType === 'message' ? 'var(--gold)' : 'transparent', color: formType === 'message' ? '#000' : 'var(--espresso-dim)', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
                   >
-                    تواصل معنا
+                    {t('contactUs')}
                   </button>
                   <button 
                     type="button" 
                     onClick={() => { setFormType('review'); setSubmitError(''); }} 
                     style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: formType === 'review' ? 'var(--gold)' : 'transparent', color: formType === 'review' ? '#000' : 'var(--espresso-dim)', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
                   >
-                    تقييم المتجر
+                    {t('storeReviewTab')}
                   </button>
                 </div>
 
-                <h3 className={styles.formTitle} style={{ color: 'var(--espresso)', textAlign: 'right', marginBottom: '20px' }}>
-                  {formType === 'message' ? 'أرسلي لنا رسالة' : 'شاركينا تقييمكِ للمتجر'}
+                <h3 className={styles.formTitle} style={{ color: 'var(--espresso)', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right', marginBottom: '20px' }}>
+                  {formType === 'message' ? t('sendMessageTitle') : t('storeReviewTab')}
                 </h3>
                 
-                <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
+                <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
                   <label htmlFor="name" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                    {formType === 'message' ? 'الاسم الكريم' : 'اسمكِ الكريم (اختياري)'}
+                    {t('fullNameLabel')}
                   </label>
                   <input
-                    id="name" name="name" type="text" placeholder="مثال: سارة أحمد"
+                    id="name" name="name" type="text" placeholder={t('namePlaceholder')}
                     value={fields.name} onChange={change} onBlur={blur}
                     className={errors.name && formType === 'message' ? styles.er : ''}
-                    style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
+                    style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}
                   />
                   {errors.name && formType === 'message' && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.name}</span>}
                 </div>
 
                 {formType === 'message' && (
-                  <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
-                    <label htmlFor="email" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>البريد الإلكتروني</label>
+                  <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
+                    <label htmlFor="email" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>{t('emailLabel')}</label>
                     <input
                       id="email" name="email" type="email" placeholder="you@example.com"
                       value={fields.email} onChange={change} onBlur={blur}
                       className={errors.email ? styles.er : ''}
-                      style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
+                      style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}
                     />
                     {errors.email && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.email}</span>}
                   </div>

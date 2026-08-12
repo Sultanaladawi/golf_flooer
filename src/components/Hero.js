@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './Hero.module.css';
 import { Sparkles } from 'lucide-react';
 
 export default function Hero() {
+  const { t } = useLanguage();
   const heroVideoRef = useRef(null);
   const [banners, setBanners] = useState([]);
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -79,19 +81,18 @@ export default function Hero() {
       <div className={styles.heroDecorBR} />
 
       <div className={styles.heroContent}>
-        <span className="section-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sparkles size={14} /> التشكيلة الحصرية 2026 <Sparkles size={14} /></span>
+        <span className="section-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sparkles size={14} /> {t('heroTag')} <Sparkles size={14} /></span>
         <h1 className={styles.heroTitle}>
-          زهرة بيسان
-          <span className={styles.heroTitleAccent}>متجر إلكتروني فاخر</span>
+          {t('heroBrand')}
+          <span className={styles.heroTitleAccent}>{t('heroSubtitleAccent')}</span>
         </h1>
         <p className={styles.heroSubtitle}>
-          حيث تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا
-          <br />المصممة خصيصاً لتتوج إطلالتكِ بأبهى صورها
+          {t('heroDescription')}
         </p>
         <div className={styles.heroCtas}>
-          <a href="#collection" className="btn btn-primary">تسوقي التشكيلة الجديدة</a>
+          <a href="#collection" className="btn btn-primary">{t('shopNewCollection')}</a>
           <a href="#categories" className={styles.heroSecondaryLink}>
-            <span>تصفحي الأقسام</span>
+            <span>{t('browseCategories')}</span>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M3 8H13M13 8L8 3M13 8L8 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
@@ -101,7 +102,6 @@ export default function Hero() {
 
       <div className={styles.scrollIndicator}>
         <div className={styles.scrollLine} />
-        <span>مرري للأسفل</span>
       </div>
     </section>
   );
