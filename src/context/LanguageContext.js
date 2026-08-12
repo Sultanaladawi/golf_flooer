@@ -56,6 +56,22 @@ const translations = {
     securePaymentDesc: 'جميع وسائل الدفع متاحة',
     easyReturns: 'سهولة الإرجاع',
     easyReturnsDesc: 'سياسة إرجاع مرنة وسهلة',
+    // About Section Keys
+    storyBadge: 'قصتنا',
+    storyTitle: 'أصالة توارثناها',
+    storyPara1: 'منذ أكثر من عقدين، نُتقن في زهرة بيسان فن تصميم العبايات والأزياء الفاخرة على أيدي حرفيين مهرة. كل خيط، كل غرزة، كل تفصيل — هو قصيدة نسجناها لكِ لتتوج إطلالتكِ بأرقى المعايير.',
+    storyPara2: 'نحن نؤمن بأن العباية ليست مجرد ملبس، بل هي هوية وأصالة تعكس أناقة المرأة العربية ووقارها. لذلك، نجمع بين عراقة التراث وخطوط الموضة الحديثة لنقدم لكِ قطعاً فريدة تدوم طويلاً.',
+    storyPara3: 'يسعدنا الترحيب بكِ لتصفح تشكيلاتنا المتنوعة من الكلاسيك والمناسبات والشتويات والاستمتاع بتجربة تسوق فريدة ومميزة.',
+    browseCollectionBtn: 'تصفحي التشكيلة',
+    luxuryAbayasBadge: 'عبايات وأزياء فاخرة',
+    exclusiveDesignsBadge: 'تصاميم حصرية',
+    handmadeCraftBadge: 'صناعة يدوية فاخرة',
+    pillar1Title: 'تصاميم حصرية',
+    pillar1Desc: 'كل قطعة مصممة بعناية فائقة لتلائم أسلوب حياتك وتفرد إطلالتك.',
+    pillar2Title: 'تطريز يدوي فاخر',
+    pillar2Desc: 'تطريز أصيل يدوياً بخيوط ذهبية وفضية على أيدي أمهر الحرفيين.',
+    pillar3Title: 'خامات عالمية',
+    pillar3Desc: 'أقمشة كريب مزدوج، حرير طبيعي، وشيفون إيطالي منتقاة بعناية.',
     // Hero & Contact Keys
     heroTag: 'التشكيلة الحصرية 2026',
     heroBrand: 'زهرة بيسان',
@@ -202,6 +218,22 @@ const translations = {
     noProductsFound: 'No matching products found',
     privacyPolicy: 'Terms & Privacy Policy',
     aboutUs: 'About Us',
+    // About Section Keys
+    storyBadge: 'Our Story',
+    storyTitle: 'Heritage Handed Down',
+    storyPara1: 'For over two decades at Zahrat Beesan, we master the art of designing luxury abayas and couture crafted by master artisans. Every thread, stitch, and detail is tailored to elevate your presence to royal standards.',
+    storyPara2: 'We believe an abaya is more than attire — it is an identity of dignity and grace for the modern woman. We blend heritage craftsmanship with modern silhouettes to offer unique timeless creations.',
+    storyPara3: 'We welcome you to explore our diverse collections of classic, occasion, and winter attire, enjoying an exclusive luxury shopping experience.',
+    browseCollectionBtn: 'Explore Collection',
+    luxuryAbayasBadge: 'Luxury Abayas & Couture',
+    exclusiveDesignsBadge: 'Exclusive Designs',
+    handmadeCraftBadge: 'Handmade Craftsmanship',
+    pillar1Title: 'Exclusive Designs',
+    pillar1Desc: 'Each piece is meticulously crafted to fit your refined lifestyle and distinct presence.',
+    pillar2Title: 'Royal Hand Embroidery',
+    pillar2Desc: 'Authentic hand-embroidery with gold and silver threads by master artisans.',
+    pillar3Title: 'World-Class Fabrics',
+    pillar3Desc: 'Double crepe, pure natural silk, and carefully selected Italian chiffon.',
     // Hero & Contact Keys
     heroTag: 'Exclusive Collection 2026',
     heroBrand: 'Zahrat Beesan',
@@ -1009,9 +1041,22 @@ export function LanguageProvider({ children }) {
 
   const productDictionary = {
     en: {
+      'عبايات سهرة': 'Evening Abayas',
+      'عبايات مطرزة': 'Embroidered Abayas',
+      'عبايات يومية': 'Daily Abayas',
+      'عبايات كلاسيك': 'Classic Abayas',
+      'عبايات المناسبات': 'Occasion Abayas',
+      'عبايات الاستقبال': 'Reception Abayas',
+      'التشكيلة الشتوية': 'Winter Collection',
+      'التشكيلة الصيفية': 'Summer Collection',
+      'قفاطين ملكية': 'Royal Kaftans',
+      'أثواب مطرزة': 'Embroidered Thobes',
+      'سهرة': 'Evening',
+      'مطرزة': 'Embroidered',
+      'تراثية': 'Heritage',
       'عباية': 'Abaya', 'عبايات': 'Abayas', 'ثوب': 'Thobe', 'أثواب': 'Thobes', 'قفطان': 'Kaftan', 'قفاطين': 'Kaftans', 'حرير': 'Silk',
       'ملكي': 'Royal', 'الملكي': 'Royal', 'الملكية': 'Royal', 'عرائسي': 'Bridal', 'العرائس': 'Bridal',
-      'فاخر': 'Luxury', 'فاخرة': 'Luxury', 'مطرز': 'Embroidered', 'مطرزة': 'Embroidered',
+      'فاخر': 'Luxury', 'فاخرة': 'Luxury', 'مطرز': 'Embroidered',
       'كلاسيك': 'Classic', 'كلاسيكية': 'Classic', 'عصرية': 'Modern', 'مناسبات': 'Occasions',
       'استقبال': 'Reception', 'يومية': 'Daily', 'شتوية': 'Winter', 'صيفية': 'Summer',
       'بشت': 'Bisht', 'سوداء': 'Black', 'عاجية': 'Ivory', 'الأناقة': 'Elegance',
@@ -1026,11 +1071,18 @@ export function LanguageProvider({ children }) {
     if (!str || typeof str !== 'string' || langCode === 'ar') return str;
     const dict = productDictionary[langCode] || productDictionary['en'];
     let translated = str;
+    
+    // Check exact match first
+    if (dict[str.trim()]) return dict[str.trim()];
+
     Object.keys(dict).forEach(arKey => {
       const regex = new RegExp(arKey, 'g');
       translated = translated.replace(regex, dict[arKey]);
     });
-    return translated;
+
+    // Remove any trailing or orphan Arabic characters if in English mode
+    translated = translated.replace(/[\u0600-\u06FF]/g, '').replace(/\s+/g, ' ').trim();
+    return translated || str;
   };
 
   const t = (key) => {

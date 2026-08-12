@@ -1,44 +1,44 @@
 import { useReveal } from '../hooks/useReveal';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './About.module.css';
 import { Sparkles, Award, ShieldCheck, ArrowLeft } from 'lucide-react';
 
-const PILLARS = [
-  { icon: <Sparkles size={22} />, title: 'تصاميم حصرية', desc: 'كل قطعة مصممة بعناية فائقة لتلائم أسلوب حياتك وتفرد إطلالتك.' },
-  { icon: <Award size={22} />,     title: 'تطريز يدوي فاخر', desc: 'تطريز أصيل يدوياً بخيوط ذهبية وفضية على أيدي أمهر الحرفيين.' },
-  { icon: <ShieldCheck size={22} />, title: 'خامات عالمية', desc: 'أقمشة كريب مزدوج، حرير طبيعي، وشيفون إيطالي منتقاة بعناية.' },
-];
-
 export default function About() {
+  const { t, currentLang } = useLanguage();
   const [imgRef,  imgVis]  = useReveal();
   const [textRef, textVis] = useReveal();
   const [pilRef,  pilVis]  = useReveal();
 
+  const PILLARS = [
+    { icon: <Sparkles size={22} />, title: t('pillar1Title'), desc: t('pillar1Desc') },
+    { icon: <Award size={22} />,     title: t('pillar2Title'), desc: t('pillar2Desc') },
+    { icon: <ShieldCheck size={22} />, title: t('pillar3Title'), desc: t('pillar3Desc') },
+  ];
+
   return (
-    <section className={styles.about} id="about" style={{ direction: 'rtl', background: 'var(--cream)' }}>
+    <section className={styles.about} id="about" style={{ direction: currentLang.dir || 'rtl', background: 'var(--cream)' }}>
       <div className="section-wrap">
         <div className={styles.twoCol}>
           
-          <div ref={textRef} className={`${styles.text} reveal ${textVis ? 'vis' : ''}`} style={{ textAlign: 'right' }}>
-            <div className="label" style={{ color: 'var(--gold)' }}>قصتنا</div>
+          <div ref={textRef} className={`${styles.text} reveal ${textVis ? 'vis' : ''}`} style={{ textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
+            <div className="label" style={{ color: 'var(--gold)' }}>{t('storyBadge')}</div>
             <div className="divider" style={{ background: 'var(--gold)' }} />
-            <h2 className="h2" style={{ color: 'var(--espresso)' }}>أصالة توارثناها</h2>
+            <h2 className="h2" style={{ color: 'var(--espresso)' }}>{t('storyTitle')}</h2>
             
             <p className={styles.body} style={{ color: 'var(--espresso-mid)' }}>
-              منذ أكثر من عقدين، نُتقن في <strong>زهرة بيسان</strong> فن تصميم العبايات والأزياء الفاخرة على أيدي حرفيين مهرة.
-              كل خيط، كل غرزة، كل تفصيل — هو قصيدة نسجناها لكِ لتتوج إطلالتكِ بأرقى المعايير.
+              {t('storyPara1')}
             </p>
             
             <p className={styles.body} style={{ color: 'var(--espresso-mid)' }}>
-              نحن نؤمن بأن العباية ليست مجرد ملبس، بل هي هوية وأصالة تعكس أناقة المرأة العربية ووقارها.
-              لذلك، نجمع بين عراقة التراث وخطوط الموضة الحديثة لنقدم لكِ قطعاً فريدة تدوم طويلاً.
+              {t('storyPara2')}
             </p>
             
             <p className={styles.body} style={{ color: 'var(--espresso-mid)' }}>
-              يسعدنا الترحيب بكِ لتصفح تشكيلاتنا المتنوعة من الكلاسيك والمناسبات والشتويات والاستمتاع بتجربة تسوق فريدة ومميزة.
+              {t('storyPara3')}
             </p>
 
             <a href="#collection" className="btn btn-outline" style={{ marginTop: '1.6rem', display: 'inline-flex', alignItems: 'center', gap: '8px', border: '1.5px solid var(--gold)', color: 'var(--espresso)' }}>
-              <ArrowLeft size={16} /> تصفحي التشكيلة
+              <ArrowLeft size={16} /> {t('browseCollectionBtn')}
             </a>
           </div>
 
@@ -58,9 +58,9 @@ export default function About() {
               />
             </div>
             <div className={styles.badge} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--gold)' }}>
-              <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>عبايات وأزياء فاخرة</span>
-              <span className={styles.badgeMain} style={{ color: 'var(--gold)' }}>تصاميم حصرية</span>
-              <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>صناعة يدوية فاخرة</span>
+              <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>{t('luxuryAbayasBadge')}</span>
+              <span className={styles.badgeMain} style={{ color: 'var(--gold)' }}>{t('exclusiveDesignsBadge')}</span>
+              <span className={styles.badgeText} style={{ color: 'var(--espresso-dim)' }}>{t('handmadeCraftBadge')}</span>
             </div>
           </div>
         </div>

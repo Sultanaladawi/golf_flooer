@@ -63,7 +63,15 @@ export function CurrencyProvider({ children }) {
   };
 
   const format = (jodAmount) => {
-    return `${currency.symbol} ${convert(jodAmount)}`;
+    const lang = localStorage.getItem('app_language') || 'ar';
+    const amount = convert(jodAmount);
+    if (lang === 'en') {
+      if (currency.symbol === '$' || currency.symbol === '€' || currency.symbol === '£') {
+        return `${currency.symbol}${amount}`;
+      }
+      return `${amount} ${currency.code}`;
+    }
+    return `${amount} ${currency.symbol}`;
   };
 
   return (
