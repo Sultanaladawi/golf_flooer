@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './WallOfLove.module.css';
 
 const FALLBACK_REVIEWS = [
@@ -12,6 +13,7 @@ const FALLBACK_REVIEWS = [
 ];
 
 export default function WallOfLove() {
+  const { t } = useLanguage();
   const [reviews, setReviews]     = useState([]);
   const [loading, setLoading]     = useState(true);
   const [active, setActive]       = useState(0);
@@ -63,10 +65,10 @@ export default function WallOfLove() {
         <div className={styles.header}>
           <div className={styles.badge}>
             <Star size={13} fill="#c5a880" color="#c5a880" />
-            <span>تقييمات عميلاتنا</span>
+            <span>{t('reviewsBadge')}</span>
           </div>
           <h2 className={styles.title}>
-            ماذا يقلن عن <em>زهرة بيسان</em>
+            {t('reviewsTitle')}
           </h2>
           <p className={styles.subtitle}>
             آراء حقيقية من نساء يحملن إبداعنا في كل مناسبة

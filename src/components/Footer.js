@@ -44,7 +44,7 @@ const WhatsAppIcon = () => (
 );
 
 export default function Footer({ onOpenPolicy }) {
-  const { currentLang } = useLanguage();
+  const { currentLang, t } = useLanguage();
   const [email, setEmail] = useState('');
   const [subMsg, setSubMsg] = useState('');
   const [subscribing, setSubscribing] = useState(false);
@@ -62,14 +62,14 @@ export default function Footer({ onOpenPolicy }) {
         body: JSON.stringify({ email: email.trim() })
       });
       if (res.ok) {
-        setSubMsg('تم الاشتراك في النشرة البريدية الملكية بنجاح! ✦');
+        setSubMsg(t('subscribeSuccess'));
         setEmail('');
       } else {
-        setSubMsg('حدث خطأ في الاشتراك. حاول مجدداً.');
+        setSubMsg(t('error'));
       }
     } catch (err) {
       console.error(err);
-      setSubMsg('حدث خطأ في الاشتراك. حاول مجدداً.');
+      setSubMsg(t('error'));
     } finally {
       setSubscribing(false);
     }
@@ -88,32 +88,32 @@ export default function Footer({ onOpenPolicy }) {
           <div className={styles.assuranceItem}>
             <div className={styles.assuranceIcon}><Crown size={22} color="var(--gold, #c5a880)" /></div>
             <div>
-              <strong className={styles.assuranceTitle}>تطريز وخامات ملكية</strong>
-              <p className={styles.assuranceDesc}>حرير وصوف كشمير وأقمشة إيطالية مطرزة بعناية</p>
+              <strong className={styles.assuranceTitle}>{t('royalCraftsmanshipTitle')}</strong>
+              <p className={styles.assuranceDesc}>{t('royalCraftsmanshipDesc')}</p>
             </div>
           </div>
 
           <div className={styles.assuranceItem}>
             <div className={styles.assuranceIcon}><Truck size={22} color="var(--gold, #c5a880)" /></div>
             <div>
-              <strong className={styles.assuranceTitle}>شحن وتوصيل دولي</strong>
-              <p className={styles.assuranceDesc}>تغليف وتوصيل آمن مع التتبع لجميع دول العالم</p>
+              <strong className={styles.assuranceTitle}>{t('globalShippingTitle')}</strong>
+              <p className={styles.assuranceDesc}>{t('globalShippingDesc')}</p>
             </div>
           </div>
 
           <div className={styles.assuranceItem}>
             <div className={styles.assuranceIcon}><Sparkles size={22} color="var(--gold, #c5a880)" /></div>
             <div>
-              <strong className={styles.assuranceTitle}>تغليف هدايا فاخر</strong>
-              <p className={styles.assuranceDesc}>صندوق عاجي ملكي معطر بعطر بيسان الخاص</p>
+              <strong className={styles.assuranceTitle}>{t('giftPackagingTitle')}</strong>
+              <p className={styles.assuranceDesc}>{t('giftPackagingDesc')}</p>
             </div>
           </div>
 
           <div className={styles.assuranceItem}>
             <div className={styles.assuranceIcon}><ShieldCheck size={22} color="var(--gold, #c5a880)" /></div>
             <div>
-              <strong className={styles.assuranceTitle}>ضمان الأصالة والتسهيل</strong>
-              <p className={styles.assuranceDesc}>جودة مضمونة 100% وسياسة استبدال ميسرة</p>
+              <strong className={styles.assuranceTitle}>{t('authenticityGuaranteeTitle')}</strong>
+              <p className={styles.assuranceDesc}>{t('authenticityGuaranteeDesc')}</p>
             </div>
           </div>
         </div>
@@ -128,7 +128,7 @@ export default function Footer({ onOpenPolicy }) {
             <img src="/logo.png" alt="زهرة بيسان" className={styles.logoImg} />
           </a>
           <p className={styles.brandDesc}>
-            زهرة بيسان — دار أزياء عالمية متخصصة في تصميم العبايا والقفاطين الملكية الفاخرة. تجمع تصاميمنا بين الوقار والأصالة واللمسات العصرية الراقية لتتوج إطلالتكِ بأبهى صورها.
+            {t('footerBrandDesc')}
           </p>
 
           <div className={styles.socialGroup}>
@@ -151,34 +151,34 @@ export default function Footer({ onOpenPolicy }) {
 
           <div className={styles.onlineBadge}>
             <span className={styles.liveDot} />
-            <span>متجر إلكتروني عالمي — خدمة 24/7</span>
+            <span>{t('globalOnlineStore')}</span>
           </div>
         </div>
 
         {/* Column 2: Exclusive Collections */}
         <div className={styles.col}>
-          <h4 className={styles.colHeader}>التشكيلات الحصرية</h4>
+          <h4 className={styles.colHeader}>{t('exclusiveCollections')}</h4>
           <ul className={styles.linkList}>
-            <li><a href="/#collection">عبايات كلاسيكية فاخرة</a></li>
-            <li><a href="/#collection">عبايات المناسبات والأعراس</a></li>
-            <li><a href="/#collection">التشكيلة الشتوية الفاخرة</a></li>
-            <li><a href="/#collection">عبايات اليومية والاستقبال</a></li>
-            <li><a href="/#collection">وصل حديثاً (New Arrivals)</a></li>
-            <li><a href="/gift-cards">بطاقات الهدايا الملكية</a></li>
+            <li><a href="/#collection">{t('classicAbayas')}</a></li>
+            <li><a href="/#collection">{t('occasionAbayas')}</a></li>
+            <li><a href="/#collection">{t('winterCollection')}</a></li>
+            <li><a href="/#collection">{t('dailyAbayas')}</a></li>
+            <li><a href="/#collection">{t('newArrivals')}</a></li>
+            <li><a href="/gift-cards">{t('royalGiftCards')}</a></li>
           </ul>
         </div>
 
         {/* Column 3: Customer Care & Policies */}
         <div className={styles.col}>
-          <h4 className={styles.colHeader}>خدمة العميلات</h4>
+          <h4 className={styles.colHeader}>{t('customerCare')}</h4>
           <ul className={styles.linkList}>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'right' }}>سياسة الاستبدال والإرجاع</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'right' }}>سياسة الخصوصية والاستخدام</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'right' }}>عن دار زهرة بيسان</button></li>
-            <li><a href="/account">حاسبة ومساعد المقاسات الذكي</a></li>
-            <li><a href="/account">نادي العضوية الملكي (VIP Lounge)</a></li>
-            <li><a href="/blog">مجلة زهرة بيسان والأناقة</a></li>
-            <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>📄 تحميل كتالوج المنتجات (PDF)</a></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'inherit' }}>{t('exchangeReturnPolicy')}</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'inherit' }}>{t('privacyPolicy')}</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'inherit' }}>{t('aboutZahratBeesan')}</button></li>
+            <li><a href="/account">{t('smartSizeGuide')}</a></li>
+            <li><a href="/account">{t('vipLounge')}</a></li>
+            <li><a href="/blog">{t('magazineAndElegance')}</a></li>
+            <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
           </ul>
 
         </div>
@@ -186,7 +186,7 @@ export default function Footer({ onOpenPolicy }) {
 
         {/* Column 4: Direct Royal Contact */}
         <div className={styles.col}>
-          <h4 className={styles.colHeader}>التواصل والاستشارات</h4>
+          <h4 className={styles.colHeader}>{t('consultationContact')}</h4>
           
           <a href={`mailto:${shopInfo.email}`} className={styles.contactItem}>
             <Mail size={16} color="var(--gold-dim)" />
@@ -195,28 +195,20 @@ export default function Footer({ onOpenPolicy }) {
 
           <a href={`https://wa.me/${shopInfo.phone?.replace(/\D/g,'')}`} target="_blank" rel="noopener noreferrer" className={styles.contactItem} style={{ color: '#25D366' }}>
             <WhatsAppIcon />
-            <span>واتساب مباشر: {shopInfo.phone}</span>
+            <span>{t('directWhatsApp')}: {shopInfo.phone}</span>
           </a>
 
           <a href={`tel:${shopInfo.phone}`} className={styles.contactItem}>
             <Phone size={16} color="var(--gold-dim)" />
-            <span>تواصل معنا: {shopInfo.phone}</span>
+            <span>{t('contactUs')}: {shopInfo.phone}</span>
           </a>
-
-          <div className={styles.stylistBox}>
-            <div className={styles.stylistHeader}>
-              <Sparkles size={14} color="var(--gold)" />
-              <strong>استشارة موضة مع "يافا"</strong>
-            </div>
-            <p>مستشارتكِ الخاصة لتنسيق العبايات والطرحة والإكسسوارات الماتشينج.</p>
-          </div>
         </div>
 
         {/* Column 5: Royal Newsletter & Payments */}
         <div className={styles.col}>
-          <h4 className={styles.colHeader}>عالم بيسان الملكي</h4>
+          <h4 className={styles.colHeader}>{t('newsletter')}</h4>
           <p className={styles.newsletterDesc}>
-            اشتركي بنشرتنا البريدية ليصلكِ جديد التشكيلات الحصرية وخصومات الأعضاء أولاً بأول:
+            {t('newsletterDesc')}
           </p>
           
           <form onSubmit={handleSubscribe} className={styles.newsletterForm}>
@@ -224,7 +216,7 @@ export default function Footer({ onOpenPolicy }) {
               <input
                 type="email"
                 required
-                placeholder="أدخلي بريدكِ الإلكتروني..."
+                placeholder={t('emailPlaceholder')}
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 className={styles.newsletterInput}
@@ -238,14 +230,14 @@ export default function Footer({ onOpenPolicy }) {
 
           {/* Payment Methods Badges */}
           <div className={styles.paymentSection}>
-            <span className={styles.paymentTitle}>طرق الدفع المعتمَدة والمشفرة:</span>
+            <span className={styles.paymentTitle}>{t('securePaymentDesc')}</span>
             <div className={styles.paymentBadges}>
               <span className={styles.payChip}>💳 Visa</span>
               <span className={styles.payChip}>💳 Mastercard</span>
               <span className={styles.payChip}> Pay</span>
               <span className={styles.payChip}>mada</span>
               <span className={styles.payChip}>CliQ</span>
-              <span className={styles.payChip}>💵 عند الاستلام</span>
+              <span className={styles.payChip}>💵 Cash</span>
             </div>
           </div>
         </div>

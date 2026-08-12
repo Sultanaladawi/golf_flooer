@@ -288,11 +288,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
             flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>سياسة الاستخدام والخصوصية</button>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>{t('privacyPolicy')}</button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>من نحن</button>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>{t('aboutUs')}</button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>سياسة الاستبدال والإرجاع</button>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>{t('exchangeReturnPolicy')}</button>
             </div>
 
 
@@ -312,8 +312,8 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onFocus={() => setSearchOpen(true)}
-                  placeholder="ادخل كلمة البحث"
-                  dir="rtl"
+                  placeholder={t('searchPlaceholder')}
+                  dir={currentLang.dir || 'rtl'}
                   style={{
                     width: '100%',
                     background: 'transparent',
@@ -468,7 +468,14 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
 
           <nav aria-label="Main navigation">
             <ul style={{ display: 'flex', alignItems: 'center', gap: '1.3rem', listStyle: 'none', margin: 0, padding: 0, flexWrap: 'nowrap' }}>
-              {LINKS.map(({ label, href }) => (
+              {[
+                { label: t('home'), href: '/#home' },
+                { label: t('collection'), href: '/#collection' },
+                { label: t('showcase'), href: '/#gallery' },
+                { label: t('magazine'), href: '/blog' },
+                { label: t('giftCards'), href: '/gift-cards' },
+                { label: t('contact'), href: '/contact' },
+              ].map(({ label, href }) => (
                 <li key={label} style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>
                   <a href={href} className={styles.navLink} style={{ color: textColor, transition: 'color 0.3s', whiteSpace: 'nowrap' }}>
                     {label}
@@ -486,7 +493,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                     padding: 0, whiteSpace: 'nowrap'
                   }}
                 >
-                  تتبع الطلب
+                  {t('trackOrder')}
                 </button>
               </li>
             </ul>
