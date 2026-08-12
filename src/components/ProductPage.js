@@ -955,6 +955,75 @@ export default function ProductPage() {
         </div>
       </div>
 
+      {/* Mobile Floating Sticky Purchase Bar */}
+      <div className="product-mobile-sticky-bar" style={{
+        position: 'fixed',
+        bottom: '66px',
+        left: 0, right: 0,
+        backgroundColor: 'rgba(26, 20, 14, 0.95)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        borderTop: '1px solid rgba(197, 168, 128, 0.3)',
+        padding: '12px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '12px',
+        zIndex: 9990,
+        boxShadow: '0 -8px 25px rgba(0, 0, 0, 0.4)'
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ color: 'var(--gold, #c5a880)', fontSize: '1.15rem', fontWeight: 900 }}>
+            {price}
+          </span>
+          <span style={{ color: '#aaa', fontSize: '0.72rem' }}>
+            المقاس: {selectedSize}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '8px', flex: 1, justifyContent: 'flex-end' }}>
+          <button
+            onClick={handleAddToCart}
+            disabled={!!product.isOutOfStock}
+            style={{
+              padding: '12px 18px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, #a6865d 100%)',
+              color: '#ffffff',
+              border: 'none',
+              fontWeight: 900,
+              fontSize: '0.88rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 4px 15px rgba(197, 168, 128, 0.4)'
+            }}
+          >
+            <ShoppingBag size={16} />
+            <span>{addedToCart ? (t('addedToCart') || 'تمت الإضافة!') : (t('addToCart') || 'أضف للسلة')}</span>
+          </button>
+
+          <button
+            onClick={handleWhatsAppOrder}
+            style={{
+              padding: '12px',
+              borderRadius: '12px',
+              background: '#25D366',
+              color: '#fff',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+            title="واتساب"
+          >
+            <PhoneCall size={18} />
+          </button>
+        </div>
+      </div>
+
     </div>
   );
 }

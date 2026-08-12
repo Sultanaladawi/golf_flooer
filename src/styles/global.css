@@ -783,8 +783,9 @@ svg:hover, [class*="icon"]:hover {
   transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 8. Mobile Bottom Bar Media Queries */
-.mobile-bottom-bar-wrapper {
+/* 8. Mobile Responsiveness & Bottom Bar */
+.mobile-bottom-bar-wrapper,
+.product-mobile-sticky-bar {
   display: none !important;
 }
 
@@ -792,9 +793,31 @@ svg:hover, [class*="icon"]:hover {
   .mobile-bottom-bar-wrapper {
     display: flex !important;
   }
-  
+  .product-mobile-sticky-bar {
+    display: flex !important;
+  }
+
+  /* Prevent iOS automatic input zoom */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Admin Mobile Menu Button & Sidebar Toggle */
+  .mobile-menu-btn {
+    display: flex !important;
+  }
+  .mobile-backdrop {
+    display: block !important;
+  }
+  .admin-sidebar {
+    transform: translateX(100%) !important;
+  }
+  .admin-sidebar.open {
+    transform: translateX(0) !important;
+  }
+
   body {
-    padding-bottom: 66px !important;
+    padding-bottom: 70px !important;
   }
 }
 

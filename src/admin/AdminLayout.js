@@ -284,7 +284,7 @@ const AdminLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
-                onClick={() => { if (item.badge) setNewOrderCount(0); }}
+                onClick={() => { if (item.badge) setNewOrderCount(0); setSidebarOpen(false); }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: '14px', padding: '10px 20px',
                   color: isActive ? 'var(--admin-accent)' : 'var(--admin-text)',
