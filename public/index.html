@@ -79,44 +79,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="زهرة بيسان" />
-  <!-- ╔══════════════════════════════════════════════════════╗ -->
-  <!-- ║  Google Website Translator — All Languages Support  ║ -->
-  <!-- ╚══════════════════════════════════════════════════════╝ -->
-  <!-- Safe DOM Guard for React + Google Translate -->
-  <script type="text/javascript">
-    if (typeof window !== 'undefined') {
-      if (Node.prototype.removeChild) {
-        const originalRemoveChild = Node.prototype.removeChild;
-        Node.prototype.removeChild = function (child) {
-          if (child.parentNode !== this) {
-            if (console) console.warn('React-Translate Guard: Child node already moved', child);
-            return child;
-          }
-          return originalRemoveChild.apply(this, arguments);
-        };
-      }
-      if (Node.prototype.insertBefore) {
-        const originalInsertBefore = Node.prototype.insertBefore;
-        Node.prototype.insertBefore = function (newNode, referenceNode) {
-          if (referenceNode && referenceNode.parentNode !== this) {
-            if (console) console.warn('React-Translate Guard: Reference node mismatch', referenceNode);
-            return newNode;
-          }
-          return originalInsertBefore.apply(this, arguments);
-        };
-      }
-    }
-
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({
-        pageLanguage: 'ar',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false,
-        multilanguagePage: true
-      }, 'google_translate_element');
-    }
-  </script>
-  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  <!-- Native React Multi-Language Engine Activated (Zero External Script Distortion) -->
   <style>
     /* Completely hide Google Translate top banner, tooltips, popups, and frames */
     .goog-te-banner-frame, 

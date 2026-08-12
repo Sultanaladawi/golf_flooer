@@ -823,8 +823,9 @@ export function LanguageProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('app_language', langCode);
     document.documentElement.lang = langCode;
-    document.documentElement.dir = currentLang.dir;
-  }, [langCode, currentLang]);
+    // Maintain 100% stable, unbroken luxury layout structure across all 9 languages
+    document.documentElement.dir = 'rtl';
+  }, [langCode]);
 
   const t = (key) => {
     return translations[langCode]?.[key] || translations['ar']?.[key] || key;

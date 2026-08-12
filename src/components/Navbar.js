@@ -228,11 +228,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
       if (setAppLang) {
         setAppLang(langCode);
       }
-      const selectEl = document.querySelector('.goog-te-combo');
-      if (selectEl) {
-        selectEl.value = langCode;
-        selectEl.dispatchEvent(new Event('change'));
-      }
       setSelectedLanguage(langCode);
       setSelectedIso(countryIso);
       localStorage.setItem('zahrat_language', langCode);
@@ -255,20 +250,6 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
       console.error(err);
     }
   };
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const selectEl = document.querySelector('.goog-te-combo');
-      if (selectEl) {
-        if (selectEl.value !== selectedLanguage) {
-          selectEl.value = selectedLanguage;
-          selectEl.dispatchEvent(new Event('change'));
-        }
-        clearInterval(interval);
-      }
-    }, 500);
-    return () => clearInterval(interval);
-  }, [selectedLanguage]);
 
   useEffect(() => {
     if (currency && currency.iso) {
