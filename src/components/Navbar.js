@@ -288,11 +288,32 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
             flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s', padding: 0 }}>{t('privacyPolicy')}</button>
+              <button 
+                onClick={() => onOpenPolicy && onOpenPolicy('privacy')} 
+                onMouseEnter={e => e.currentTarget.style.color = '#b8966c'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--gold-dim)'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'all 0.2s ease', padding: 0 }}
+              >
+                {t('privacyPolicy')}
+              </button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s', padding: 0 }}>{t('aboutUs')}</button>
+              <button 
+                onClick={() => onOpenPolicy && onOpenPolicy('about')} 
+                onMouseEnter={e => e.currentTarget.style.color = '#b8966c'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--gold-dim)'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'all 0.2s ease', padding: 0 }}
+              >
+                {t('aboutUs')}
+              </button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s', padding: 0 }}>{t('exchangeReturnPolicy')}</button>
+              <button 
+                onClick={() => onOpenPolicy && onOpenPolicy('returns')} 
+                onMouseEnter={e => e.currentTarget.style.color = '#b8966c'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--gold-dim)'}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'all 0.2s ease', padding: 0 }}
+              >
+                {t('exchangeReturnPolicy')}
+              </button>
             </div>
 
 
@@ -402,11 +423,21 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', direction: 'ltr' }}>
-              <a href={`mailto:${shopInfo.email}`} style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s' }}>
+              <a 
+                href={`mailto:${shopInfo.email}`} 
+                onMouseEnter={e => e.currentTarget.style.color = '#b8966c'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--gold-dim)'}
+                style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', transition: 'all 0.2s ease' }}
+              >
                 {shopInfo.email}
               </a>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <a href={`tel:${shopInfo.phone}`} style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', direction: 'rtl', transition: 'color 0.2s' }}>
+              <a 
+                href={`tel:${shopInfo.phone}`} 
+                onMouseEnter={e => e.currentTarget.style.color = '#b8966c'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--gold-dim)'}
+                style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', direction: 'rtl', transition: 'all 0.2s ease' }}
+              >
                 {t('contactUs')}: {shopInfo.phone}
               </a>
             </div>
