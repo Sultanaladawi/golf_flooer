@@ -150120,7 +150120,14 @@ app.use("/images", (req, res, next) => {
     } catch (e) {
     }
   }
-  if (!foundFile) return next();
+  if (!foundFile) {
+    const fallbackPath = path.join(__dirname, "public", "images", "15.jpg");
+    if (fs.existsSync(fallbackPath)) {
+      foundFile = fallbackPath;
+    } else {
+      return next();
+    }
+  }
   const isVideo = /\.(mp4|mov|webm|avi|m4v)$/i.test(foundFile);
   if (isVideo) {
     const stat = fs.statSync(foundFile);
