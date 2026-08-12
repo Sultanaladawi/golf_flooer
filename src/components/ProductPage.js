@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useLanguage } from '../context/LanguageContext';
 import { shopInfo } from '../data/shopData';
 import { trackViewContent } from '../utils/socialPixel';
 import ImageZoomViewer from './ImageZoomViewer';
@@ -34,6 +35,7 @@ export default function ProductPage() {
   const { addItem } = useCart();
   const { format } = useCurrency();
   const { toggleWishlist, isWishlisted, isInWishlist } = useWishlist();
+  const { t, tProduct } = useLanguage();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -321,20 +323,20 @@ export default function ProductPage() {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                 <span style={{ padding: '5px 14px', borderRadius: '20px', background: 'rgba(197,163,106,0.15)', color: 'var(--gold, #c5a36a)', fontSize: '0.8rem', fontWeight: 800 }}>
-                  {product.category || 'تصميم خاص'}
+                  {tProduct(product.category || 'تصميم خاص')}
                 </span>
                 <span style={{ fontSize: '0.8rem', color: '#22c55e', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-                  متوفر في المخزون
+                  {t('inStock') || 'متوفر في المخزون'}
                 </span>
               </div>
 
               <h1 style={{ fontSize: 'clamp(1.7rem, 3.5vw, 2.4rem)', fontWeight: 900, color: 'var(--espresso, #2b2015)', lineHeight: 1.25, margin: 0 }}>
-                {product.name}
+                {tProduct(product.name)}
               </h1>
               {product.subtitle && (
                 <p style={{ color: 'var(--espresso-dim, #776655)', fontSize: '1.05rem', marginTop: '8px', fontWeight: 600 }}>
-                  {product.subtitle}
+                  {tProduct(product.subtitle)}
                 </p>
               )}
             </div>
@@ -344,7 +346,7 @@ export default function ProductPage() {
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <StarRating rating={Math.round(parseFloat(avgRating))} />
                 <span style={{ color: 'var(--espresso-dim, #776655)', fontSize: '0.88rem', fontWeight: 700 }}>
-                  {avgRating} ({reviews.length} {reviews.length === 1 ? 'تقييم' : 'تقييمات متميزة'})
+                  {avgRating} ({reviews.length} {reviews.length === 1 ? (t('reviewSingular') || 'تقييم') : (t('reviewsPlural') || 'تقييمات متميزة')})
                 </span>
               </div>
             )}
@@ -355,7 +357,7 @@ export default function ProductPage() {
                 {price}
               </span>
               <span style={{ fontSize: '0.82rem', color: 'var(--espresso-dim)', fontWeight: 700 }}>
-                (شامل كافة الضرائب المستحقة)
+                ({t('inclusiveTaxes') || 'شامل كافة الضرائب المستحقة'})
               </span>
             </div>
 
@@ -363,10 +365,10 @@ export default function ProductPage() {
             {(product.description || product.desc) && (
               <div>
                 <h3 style={{ fontSize: '0.92rem', fontWeight: 800, color: 'var(--espresso, #2b2015)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  وصف وتفاصيل العباية / القفطان
+                  {t('productDesc') || 'وصف وتفاصيل العباية / القفطان'}
                 </h3>
                 <p style={{ color: 'var(--espresso-dim, #665544)', lineHeight: 1.8, fontSize: '0.96rem', margin: 0 }}>
-                  {product.description || product.desc}
+                  {tProduct(product.description || product.desc)}
                 </p>
               </div>
             )}

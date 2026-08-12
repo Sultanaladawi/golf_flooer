@@ -827,6 +827,60 @@ export function LanguageProvider({ children }) {
     document.documentElement.dir = 'rtl';
   }, [langCode]);
 
+  const productDictionary = {
+    en: {
+      'عباية': 'Abaya', 'عبايات': 'Abayas', 'ثوب': 'Thobe', 'أثواب': 'Thobes', 'قفطان': 'Kaftan', 'قفاطين': 'Kaftans', 'حرير': 'Silk',
+      'ملكي': 'Royal', 'الملكي': 'Royal', 'الملكية': 'Royal', 'عرائسي': 'Bridal', 'العرائس': 'Bridal',
+      'فاخر': 'Luxury', 'فاخرة': 'Luxury', 'مطرز': 'Embroidered', 'مطرزة': 'Embroidered',
+      'كلاسيك': 'Classic', 'كلاسيكية': 'Classic', 'عصرية': 'Modern', 'مناسبات': 'Occasions',
+      'استقبال': 'Reception', 'يومية': 'Daily', 'شتوية': 'Winter', 'صيفية': 'Summer',
+      'بشت': 'Bisht', 'سوداء': 'Black', 'عاجية': 'Ivory', 'الأناقة': 'Elegance',
+      'السلطانة': 'Sultana', 'الأميرة': 'Princess', 'تاج': 'Crown', 'الياقوتة': 'Sapphire',
+      'اللؤلؤة': 'Pearl', 'بيسان': 'Beesan', 'اليشمك': 'Yashmak', 'الأندلس': 'Andalus',
+      'نوع القماش': 'Fabric Type', 'كريب فاخر': 'Luxury Crepe', 'بلد المنشأ': 'Country of Origin',
+      'الأردن': 'Jordan', 'غسيل يدوي بماء بارد': 'Hand wash with cold water', 'كي على حرارة منخفضة': 'Low heat ironing'
+    },
+    tr: {
+      'عباية': 'Abaye', 'ثوب': 'Elbise', 'قفطان': 'Kaftan', 'حرير': 'İpek', 'ملكي': 'Kraliyet',
+      'الملكي': 'Kraliyet', 'فاخر': 'Lüks', 'مطرز': 'İşlemeli', 'كلاسيك': 'Klasik', 'عصرية': 'Modern'
+    },
+    fr: {
+      'عباية': 'Abaya', 'ثوب': 'Robe', 'قفطان': 'Caftan', 'حرير': 'Soie', 'ملكي': 'Royal',
+      'الملكي': 'Royal', 'فاخر': 'De Luxe', 'مطرز': 'Brodé', 'كلاسيك': 'Classique', 'عصرية': 'Moderne'
+    },
+    de: {
+      'عباية': 'Abaya', 'ثوب': 'Kleidung', 'قفطان': 'Kaftan', 'حرير': 'Seide', 'ملكي': 'Königlich',
+      'فاخر': 'Luxus', 'مطرز': 'Gestickt', 'كلاسيك': 'Klassisch', 'عصرية': 'Modern'
+    },
+    ru: {
+      'عباية': 'Абая', 'ثوب': 'Платье', 'قفطان': 'Кафтан', 'حرير': 'Шелк', 'ملكي': 'Королевский',
+      'فاخر': 'Роскошный', 'مطرز': 'Вышитый', 'كلاسيك': 'Классический', 'عصرية': 'Современная'
+    },
+    es: {
+      'عباية': 'Abaya', 'ثوب': 'Túnica', 'قفطان': 'Caftán', 'حرير': 'Seda', 'ملكي': 'Real',
+      'فاخر': 'Lujo', 'مطرز': 'Bordado', 'كلاسيك': 'Clásico', 'عصرية': 'Moderna'
+    },
+    ur: {
+      'عباية': 'عبایا', 'ثوب': 'ثوب', 'قفطان': 'قفطان', 'حرير': 'ریشم', 'ملكي': 'شاہی',
+      'فاخر': 'فاخر', 'مطرز': 'کڑھائی', 'كلاسيك': 'کلاسیکی'
+    },
+    it: {
+      'عباية': 'Abaya', 'ثوب': 'Tuba', 'قفطان': 'Caftano', 'حرير': 'Seta', 'ملكي': 'Reale',
+      'فاخر': 'Lusso', 'مطرز': 'Ricamato', 'كلاسيك': 'Classico'
+    }
+  };
+
+  const tProduct = (str) => {
+    if (!str || typeof str !== 'string' || langCode === 'ar') return str;
+    const dict = productDictionary[langCode] || productDictionary['en'];
+    let translated = str;
+    Object.keys(dict).forEach(arKey => {
+      const regex = new RegExp(arKey, 'g');
+      translated = translated.replace(regex, dict[arKey]);
+    });
+    return translated;
+  };
+
   const t = (key) => {
     return translations[langCode]?.[key] || translations['ar']?.[key] || key;
   };
@@ -838,7 +892,7 @@ export function LanguageProvider({ children }) {
   };
 
   return (
-    <LanguageContext.Provider value={{ langCode, currentLang, changeLanguage, t, LANGUAGES }}>
+    <LanguageContext.Provider value={{ langCode, currentLang, changeLanguage, t, tProduct, LANGUAGES }}>
       {children}
     </LanguageContext.Provider>
   );

@@ -62,6 +62,7 @@ function ProductCard({ item, onOpen }) {
 
 
   const hasVariants = item.variants && item.variants.length > 0;
+  const { t, tProduct, currentLang } = useLanguage();
   const dir = currentLang.dir || 'rtl';
 
   const handleAddToCart = (e) => {
@@ -207,7 +208,7 @@ function ProductCard({ item, onOpen }) {
           )}
         </div>
         <h3 className={styles.productName} onClick={() => !isOutOfStock && onOpen(item)}>
-          {item.name}
+          {tProduct(item.name)}
         </h3>
         <div className={styles.priceRow}>
           <span className={styles.currentPrice}>{format(price)}</span>

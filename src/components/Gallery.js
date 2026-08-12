@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { shopInfo } from '../data/shopData';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './Gallery.module.css';
 import { Sparkles, ArrowLeft, Crown } from 'lucide-react';
 
@@ -30,6 +31,7 @@ export default function Gallery() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
   const { format: formatPrice } = useCurrency();
+  const { t, tProduct } = useLanguage();
 
   useEffect(() => {
     fetch('/api/products')
@@ -68,11 +70,11 @@ export default function Gallery() {
         <div className={styles.header}>
           <div className={styles.goldBadge}>
             <Crown size={14} color="var(--gold, #c5a880)" />
-            <span>معرض المنتجات الحقيقية</span>
+            <span>{t('realGalleryBadge') || 'معرض المنتجات الحقيقية'}</span>
           </div>
-          <h2 className={styles.title}>معرض زهرة بيسان الفاخر</h2>
+          <h2 className={styles.title}>{t('galleryTitle') || 'معرض زهرة بيسان الفاخر'}</h2>
           <p className={styles.subtitle}>
-            شاهدي تفاصيل الفخامة والتطريز في تشكيلاتنا الملكية المتاحة مباشرة في المتجر
+            {t('gallerySubtitle') || 'شاهدي تفاصيل الفخامة والتطريز في تشكيلاتنا الملكية المتاحة مباشرة في المتجر'}
           </p>
         </div>
 
@@ -92,7 +94,7 @@ export default function Gallery() {
                 <div className={styles.imageWrap}>
                   <img
                     src={imgSrc}
-                    alt={item.name}
+                    alt={tProduct(item.name)}
                     className={styles.image}
                     onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
                   />
@@ -101,7 +103,7 @@ export default function Gallery() {
                   {/* Top Badges */}
                   <span className={styles.categoryBadge}>
                     <Sparkles size={11} />
-                    {item.category || 'تشكيلة فاخرة'}
+                    {tProduct(item.category || 'تشكيلة فاخرة')}
                   </span>
 
                   <span className={styles.priceChip}>
@@ -110,9 +112,9 @@ export default function Gallery() {
 
                   {/* Bottom Info & Action */}
                   <div className={styles.cardContent}>
-                    <h3 className={styles.productTitle}>{item.name}</h3>
+                    <h3 className={styles.productTitle}>{tProduct(item.name)}</h3>
                     <div className={styles.actionBtn}>
-                      <span>معاينة العباية</span>
+                      <span>{t('previewAbaya') || 'معاينة العباية'}</span>
                       <ArrowLeft size={14} />
                     </div>
                   </div>
