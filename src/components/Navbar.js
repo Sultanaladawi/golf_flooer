@@ -49,39 +49,17 @@ const LANGUAGES = [
   { code: 'ar', name: 'عُمان', iso: 'om' },
   { code: 'ar', name: 'العراق', iso: 'iq' },
   { code: 'ar', name: 'مصر', iso: 'eg' },
-  { code: 'ar', name: 'اليمن', iso: 'ye' },
-  { code: 'ar', name: 'السودان', iso: 'sd' },
-  { code: 'ar', name: 'المغرب', iso: 'ma' },
-  { code: 'ar', name: 'الجزائر', iso: 'dz' },
-  { code: 'ar', name: 'تونس', iso: 'tn' },
-  { code: 'ar', name: 'ليبيا', iso: 'ly' },
   
-  // ── دول عالمية ──
-  { code: 'en', name: 'الولايات المتحدة', iso: 'us' },
-  { code: 'en', name: 'بريطانيا', iso: 'gb' },
-  { code: 'en', name: 'كندا', iso: 'ca' },
-  { code: 'en', name: 'أستراليا', iso: 'au' },
-  { code: 'tr', name: 'تركيا', iso: 'tr' },
-  { code: 'fr', name: 'فرنسا', iso: 'fr' },
-  { code: 'de', name: 'ألمانيا', iso: 'de' },
-  { code: 'zh-CN', name: 'الصين', iso: 'cn' },
-  { code: 'ja', name: 'اليابان', iso: 'jp' },
-  { code: 'hi', name: 'الهند', iso: 'in' },
-  { code: 'sv', name: 'السويد', iso: 'se' },
-  { code: 'no', name: 'النرويج', iso: 'no' },
-  { code: 'de', name: 'سويسرا', iso: 'ch' }
+  // ── دول إنجليزية ──
+  { code: 'en', name: 'USA', iso: 'us' },
+  { code: 'en', name: 'United Kingdom', iso: 'gb' },
+  { code: 'en', name: 'Canada', iso: 'ca' },
+  { code: 'en', name: 'Australia', iso: 'au' }
 ];
 
 const SITE_LANGUAGES = [
   { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
-  { code: 'es', name: 'Español', flag: '🇪🇸' },
-  { code: 'ur', name: 'اردو', flag: '🇵🇰' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹' }
+  { code: 'en', name: 'English', flag: '🇬🇧' }
 ];
 
 export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, onOpenPolicy }) {
