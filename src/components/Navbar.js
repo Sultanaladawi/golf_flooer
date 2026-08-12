@@ -288,11 +288,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
             flexWrap: 'wrap'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>{t('privacyPolicy')}</button>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s', padding: 0 }}>{t('privacyPolicy')}</button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>{t('aboutUs')}</button>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s', padding: 0 }}>{t('aboutUs')}</button>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
-              <button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--espresso-mid)', fontSize: '0.85rem', transition: 'color 0.2s', padding: 0 }}>{t('exchangeReturnPolicy')}</button>
+              <button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--gold-dim)', fontSize: '0.82rem', fontWeight: '600', transition: 'color 0.2s', padding: 0 }}>{t('exchangeReturnPolicy')}</button>
             </div>
 
 
@@ -407,7 +407,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
               </a>
               <span style={{ opacity: 0.3, color: 'var(--gold-dim)' }}>|</span>
               <a href={`tel:${shopInfo.phone}`} style={{ color: 'var(--gold-dim)', textDecoration: 'none', fontSize: '0.82rem', fontWeight: '600', direction: 'rtl', transition: 'color 0.2s' }}>
-                تواصل معنا: {shopInfo.phone}
+                {t('contactUs')}: {shopInfo.phone}
               </a>
             </div>
           </div>
