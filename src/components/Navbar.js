@@ -257,13 +257,13 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
   };
 
   const formattedTotal = currency ? (totalPrice * (currency.rate || 1)).toFixed(0) : totalPrice.toFixed(0);
-  const currencySymbol = currency ? (currency.symbol || currency.code) : 'JD';
+  const displayCurrency = langCode === 'en' ? (currency?.code || 'JOD') : (currency?.symbol || 'د.أ');
 
   return (
     <>
       <header
         className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}
-        style={{ direction: 'rtl' }}
+        style={{ direction: currentLang.dir || 'rtl' }}
       >
 
 
@@ -274,7 +274,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
           color: 'var(--espresso-mid)',
           fontSize: '0.82rem',
           fontWeight: '600',
-          direction: 'rtl',
+          direction: currentLang.dir || 'rtl',
           backdropFilter: 'blur(10px)',
           transition: 'all 0.3s ease'
         }}>
@@ -740,7 +740,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                 letterSpacing: '0.3px',
                 fontFamily: 'system-ui, -apple-system, sans-serif'
               }}>
-                {currencySymbol} {formattedTotal}
+                {langCode === 'en' ? `${formattedTotal} ${displayCurrency}` : `${displayCurrency} ${formattedTotal}`}
               </span>
 
               <div style={{ position: 'relative' }}>
