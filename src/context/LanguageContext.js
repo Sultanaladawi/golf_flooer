@@ -56,10 +56,12 @@ const translations = {
     securePaymentDesc: 'جميع وسائل الدفع متاحة',
     easyReturns: 'سهولة الإرجاع',
     easyReturnsDesc: 'سياسة إرجاع مرنة وسهلة',
-    // Gallery Keys
+    // Gallery & Card Keys
     realGalleryBadge: 'معرض إبداعاتنا الحقيقية',
     galleryTitle: 'معرض زهرة بيسان الفاخر',
     gallerySubtitle: 'شاهدي تفاصيل الفخامة والتطريز في تشكيلاتنا الملكية المتاحة مباشرة في المتجر',
+    previewAbaya: 'معاينة العباية',
+    featuredTag: 'تشكيلة فاخرة',
     // Footer & Links
     quickLinks: 'روابط سريعة',
     contactUs: 'تواصل معنا',
@@ -181,6 +183,8 @@ const translations = {
     realGalleryBadge: 'Real Creations Showcase',
     galleryTitle: 'Zahrat Beesan Luxury Gallery',
     gallerySubtitle: 'Explore exquisite details and craftsmanship in our royal collections',
+    previewAbaya: 'Preview Abaya',
+    featuredTag: 'Luxury Collection',
     exchangeReturnPolicy: 'Exchange & Return Policy',
     contactUs: 'Contact Us',
     allAbayas: 'All Abayas',
