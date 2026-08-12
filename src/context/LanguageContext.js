@@ -2,14 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export const LANGUAGES = [
   { code: 'ar', name: 'العربية', flag: '🇸🇦', dir: 'rtl' },
-  { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' },
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷', dir: 'ltr' },
-  { code: 'fr', name: 'Français', flag: '🇫🇷', dir: 'ltr' },
-  { code: 'de', name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
-  { code: 'ru', name: 'Русский', flag: '🇷🇺', dir: 'ltr' },
-  { code: 'es', name: 'Español', flag: '🇪🇸', dir: 'ltr' },
-  { code: 'ur', name: 'اردو', flag: '🇵🇰', dir: 'rtl' },
-  { code: 'it', name: 'Italiano', flag: '🇮🇹', dir: 'ltr' },
+  { code: 'en', name: 'English', flag: '🇬🇧', dir: 'ltr' }
 ];
 
 const translations = {
@@ -823,9 +816,8 @@ export function LanguageProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('app_language', langCode);
     document.documentElement.lang = langCode;
-    // Maintain 100% stable, unbroken luxury layout structure across all 9 languages
-    document.documentElement.dir = 'rtl';
-  }, [langCode]);
+    document.documentElement.dir = currentLang ? currentLang.dir : 'rtl';
+  }, [langCode, currentLang]);
 
   const productDictionary = {
     en: {
