@@ -48,7 +48,7 @@ function ProductCard({ item, onOpen }) {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
   const { addItem } = useCart();
-  const { t, currentLang } = useLanguage();
+  const { t, tProduct, currentLang } = useLanguage();
   const navigate = useNavigate();
   const [imgSrc, setImgSrc] = useState(getImageUrl(item));
   const [hovered, setHovered] = useState(false);
@@ -62,7 +62,6 @@ function ProductCard({ item, onOpen }) {
 
 
   const hasVariants = item.variants && item.variants.length > 0;
-  const { t, tProduct, currentLang } = useLanguage();
   const dir = currentLang.dir || 'rtl';
 
   const handleAddToCart = (e) => {
