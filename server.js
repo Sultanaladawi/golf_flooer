@@ -179,20 +179,9 @@ const handleMediaStreaming = async (req, res, next) => {
     }
   }
 
-  // Video Fallback
+  // Strict Video Request Handling -- NO RANDOM FALLBACKS
   if (!foundFile && isVideoReq) {
-    for (const dir of searchDirs) {
-      if (!dir || !fs.existsSync(dir)) continue;
-      for (const vName of ['hero_video.mp4', 'lookbook_video.mp4', '8.mp4', '11 (1).mp4']) {
-        const vPath = path.join(dir, vName);
-        if (fs.existsSync(vPath)) {
-          foundFile = vPath;
-          break;
-        }
-      }
-      if (foundFile) break;
-    }
-    if (!foundFile) return next();
+    return next();
   }
 
   const isVideo = /\.(mp4|mov|webm|avi|m4v)$/i.test(foundFile);
