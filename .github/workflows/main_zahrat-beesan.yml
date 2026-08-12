@@ -37,12 +37,11 @@ jobs:
           
           cp -r build release/
           cp package.json release/
-          if [ -d "public" ]; then cp -r public release/; fi
           
           cd release
           zip -r ../release.zip .
           cd ..
-          echo "100% Standalone release.zip created! Size:"
+          echo "100% Ultra-Lightweight Standalone release.zip created! Size:"
           ls -lh release.zip
 
       - name: Login to Azure
