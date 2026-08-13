@@ -150,6 +150,12 @@ export default function Footer({ onOpenPolicy }) {
             <span className={styles.liveDot} />
             <span>{t('globalOnlineStore')}</span>
           </div>
+
+          {/* 📋 Commercial Register & Business Identity */}
+          <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim, #b8966c)', fontWeight: '700', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(197, 168, 128, 0.08)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
+            <span>📋 السجل التجاري: <strong>398210</strong></span>
+            <span>🏛️ دار زهرة بيسان المسجلة رسمياً</span>
+          </div>
         </div>
 
         {/* Column 2: Exclusive Collections */}
@@ -245,7 +251,7 @@ export default function Footer({ onOpenPolicy }) {
       <div className={styles.bottomBar}>
         <div className={styles.bottomInner}>
           <p className={styles.copyright}>
-            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان</strong> — العلامة الملكية المسجلة للعبايات والأزياء الفاخرة.
+            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان</strong> — العلامة الملكية المسجلة للعبايات والأزياء الفاخرة | سجل تجاري رقم: <strong>398210</strong>.
           </p>
           <button onClick={scrollToTop} className={styles.scrollTopBtn} aria-label="العودة للأعلى">
             <span>العودة للأعلى</span>
