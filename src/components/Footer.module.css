@@ -106,14 +106,39 @@
   justify-content: center;
   color: var(--espresso-mid, #4a4a4a);
   text-decoration: none;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.socialIcon:hover {
-  background: linear-gradient(135deg, var(--gold, #c5a880), var(--gold-dim, #a6865d));
-  color: #ffffff;
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(197, 168, 128, 0.3);
+.socialIconInsta:hover {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 20px rgba(225, 48, 108, 0.4);
+}
+
+.socialIconFb:hover {
+  background: #1877F2 !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 20px rgba(24, 119, 242, 0.4);
+}
+
+.socialIconTikTok:hover {
+  background: #010101 !important;
+  color: #00f2fe !important;
+  border-color: #fe2c55 !important;
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.socialIconSnap:hover {
+  background: #FFFC00 !important;
+  color: #000000 !important;
+  border-color: transparent !important;
+  transform: translateY(-4px) scale(1.1);
+  box-shadow: 0 8px 20px rgba(255, 252, 0, 0.5);
 }
 
 .onlineBadge {

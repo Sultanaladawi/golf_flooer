@@ -132,20 +132,17 @@ export default function Footer({ onOpenPolicy }) {
           </p>
 
           <div className={styles.socialGroup}>
-            <a href={shopInfo.instagram} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Instagram">
+            <a href={shopInfo.instagram} target="_blank" rel="noopener noreferrer" className={`${styles.socialIcon} ${styles.socialIconInsta}`} aria-label="Instagram">
               <InstagramIcon />
             </a>
-            <a href={shopInfo.facebook} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Facebook">
+            <a href={shopInfo.facebook} target="_blank" rel="noopener noreferrer" className={`${styles.socialIcon} ${styles.socialIconFb}`} aria-label="Facebook">
               <FacebookIcon />
             </a>
-            <a href={shopInfo.tiktok} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="TikTok">
+            <a href={shopInfo.tiktok} target="_blank" rel="noopener noreferrer" className={`${styles.socialIcon} ${styles.socialIconTikTok}`} aria-label="TikTok">
               <TikTokIcon />
             </a>
-            <a href={shopInfo.snapchat} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Snapchat">
+            <a href={shopInfo.snapchat} target="_blank" rel="noopener noreferrer" className={`${styles.socialIcon} ${styles.socialIconSnap}`} aria-label="Snapchat">
               <SnapchatIcon />
-            </a>
-            <a href={shopInfo.twitter} target="_blank" rel="noopener noreferrer" className={styles.socialIcon} aria-label="Twitter">
-              <TwitterIcon />
             </a>
           </div>
 
