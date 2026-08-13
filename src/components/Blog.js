@@ -63,6 +63,15 @@ export const DEFAULT_ARTICLES = [
   }
 ];
 
+function getBlogImg(url) {
+  if (!url || typeof url !== 'string') return '/15.jpg';
+  let src = url.trim();
+  if (src.startsWith('/') || src.startsWith('http') || src.startsWith('data:')) {
+    return src;
+  }
+  return `/images/${src}`;
+}
+
 export default function Blog() {
   const [posts, setPosts] = useState(DEFAULT_ARTICLES);
   const [activeCategory, setActiveCategory] = useState('الكل');
@@ -90,7 +99,7 @@ export default function Blog() {
               productId: prod.id,
               productName: prod.name || article.productName,
               productPrice: prod.price || article.productPrice,
-              image_url: prodImg || article.image_url
+              image_url: getBlogImg(prodImg || article.image_url)
             };
           });
           setPosts(updatedArticles);
@@ -109,7 +118,7 @@ export default function Blog() {
   const featuredPost = posts[0] || DEFAULT_ARTICLES[0];
 
   return (
-    <div style={{ minHeight: '90vh', padding: '110px 20px 80px', direction: 'rtl', backgroundColor: 'var(--cream, #faf7f2)', fontFamily: "'DM Sans', 'Inter', 'Cairo', sans-serif" }}>
+    <div style={{ minHeight: '90vh', padding: '160px 20px 80px', direction: 'rtl', backgroundColor: 'var(--cream, #faf7f2)', fontFamily: "'DM Sans', 'Inter', 'Cairo', sans-serif" }}>
       <div style={{ maxWidth: '1240px', margin: '0 auto' }}>
         
         {/* Header */}
@@ -187,7 +196,7 @@ export default function Blog() {
 
             <div style={{ height: '100%', minHeight: '320px', position: 'relative', overflow: 'hidden' }}>
               <img
-                src={featuredPost.image_url || '/15.jpg'}
+                src={getBlogImg(featuredPost.image_url)}
                 alt={featuredPost.title}
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -238,7 +247,7 @@ export default function Blog() {
             >
               <Link to={`/blog/${post.slug || post.id}`} style={{ display: 'block', height: '220px', overflow: 'hidden', position: 'relative' }}>
                 <img 
-                  src={post.image_url || '/12.png'} 
+                  src={getBlogImg(post.image_url)} 
                   alt={post.title} 
                   style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }} 
                   onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
