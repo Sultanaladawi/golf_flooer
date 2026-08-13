@@ -652,12 +652,12 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                 aria-label="تغيير البلد والعملة"
               >
                 <img
-                  src={getFlagUrl(currentLangObj.iso)}
-                  alt={currentLangObj.name}
+                  src={getFlagUrl(currency?.iso || 'jo')}
+                  alt={currency?.name || 'الأردن'}
                   style={{ width: '20px', height: '15px', objectFit: 'cover', borderRadius: '2px', flexShrink: 0 }}
                   onError={e => { e.target.style.display = 'none'; }}
                 />
-                <span>{currentLangObj.name} ({currency.code})</span>
+                <span>{currency?.name || 'الأردن'} ({currency?.symbol || currency?.code || 'د.أ'})</span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.7 }}>▼</span>
               </button>
 
@@ -671,24 +671,22 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                   border: '1px solid var(--border)',
                   boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
                   padding: '10px 0',
-                  minWidth: '220px',
-                  maxHeight: '340px',
+                  minWidth: '240px',
+                  maxHeight: '360px',
                   overflowY: 'auto',
                   zIndex: 9999,
                   direction: 'rtl'
                 }}>
                   <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', letterSpacing: '1px', borderBottom: '1px solid var(--divider)' }}>
-                    اختاري البلد / العملة
+                    اختاري البلد / العملة (40+ دولة)
                   </div>
-                  {LANGUAGES.map(l => {
-                    const isSelected = selectedLanguage === l.code && selectedIso === l.iso;
-                    const cur = currencies.find(c => c.iso === l.iso) || currencies.find(c => c.code === 'USD');
+                  {currencies.map(c => {
+                    const isSelected = currency?.code === c.code;
                     return (
                       <button
-                        key={`${l.code}-${l.iso}`}
+                        key={c.code}
                         onClick={() => {
-                          changeLanguage(l.code, l.iso);
-                          setCurrency(cur);
+                          setCurrency(c);
                           setShowCountryDropdown(false);
                         }}
                         style={{
@@ -711,13 +709,13 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                         onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
                       >
                         <img
-                          src={getFlagUrl(l.iso)}
-                          alt={l.name}
+                          src={getFlagUrl(c.iso)}
+                          alt={c.name}
                           style={{ width: '24px', height: '18px', objectFit: 'cover', borderRadius: '3px', flexShrink: 0, boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }}
                           onError={e => { e.target.style.display = 'none'; }}
                         />
-                        <span style={{ flex: 1 }}>{l.name}</span>
-                        <span style={{ color: 'var(--gold-dim)', fontWeight: '700', fontSize: '0.8rem' }}>{cur.code}</span>
+                        <span style={{ flex: 1 }}>{c.name}</span>
+                        <span style={{ color: 'var(--gold-dim)', fontWeight: '700', fontSize: '0.8rem' }}>{c.symbol || c.code}</span>
                       </button>
                     );
                   })}
@@ -897,14 +895,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
           <div style={{ fontSize: '0.75rem', opacity: 0.6, marginBottom: '10px', color: '#fff', letterSpacing: '1px' }}>البلد / العملة</div>
           <div style={{ position: 'relative' }}>
             <select
-              value={`${selectedLanguage}-${selectedIso}`}
+              value={currency?.code || 'JOD'}
               onChange={(e) => {
-                const [lang, iso] = e.target.value.split('-');
-                const matchingLang = LANGUAGES.find(l => l.code === lang && l.iso === iso);
-                if (matchingLang) {
-                  const cur = currencies.find(c => c.iso === matchingLang.iso) || currencies.find(c => c.code === 'USD');
-                  changeLanguage(matchingLang.code, matchingLang.iso);
-                  setCurrency(cur);
+                const selectedCur = currencies.find(c => c.code === e.target.value);
+                if (selectedCur) {
+                  setCurrency(selectedCur);
                 }
               }}
               style={{
@@ -923,14 +918,11 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                 direction: 'rtl'
               }}
             >
-              {LANGUAGES.map(l => {
-                const cur = currencies.find(c => c.iso === l.iso) || currencies.find(c => c.code === 'USD');
-                return (
-                  <option key={`${l.code}-${l.iso}`} value={`${l.code}-${l.iso}`} style={{ background: '#1a1a1a', color: '#fff' }}>
-                    {l.name} ({cur.code})
-                  </option>
-                );
-              })}
+              {currencies.map(c => (
+                <option key={c.code} value={c.code} style={{ background: '#1a1a1a', color: '#fff' }}>
+                  {c.name} ({c.symbol || c.code})
+                </option>
+              ))}
             </select>
             <span style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', color: '#fff', pointerEvents: 'none', fontSize: '0.7rem' }}>▼</span>
           </div>
