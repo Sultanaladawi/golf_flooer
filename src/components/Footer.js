@@ -175,9 +175,9 @@ export default function Footer({ onOpenPolicy }) {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('customerCare')}</h4>
           <ul className={styles.linkList}>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'inherit' }}>{t('exchangeReturnPolicy')}</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'inherit' }}>{t('privacyPolicy')}</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', fontSize: 'inherit', padding: 0, textAlign: 'inherit' }}>{t('aboutZahratBeesan')}</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')}>{t('exchangeReturnPolicy')}</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy')}</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan')}</button></li>
             <li><a href="/account">{t('smartSizeGuide')}</a></li>
             <li><a href="/account">{t('vipLounge')}</a></li>
             <li><a href="/blog">{t('magazineAndElegance')}</a></li>

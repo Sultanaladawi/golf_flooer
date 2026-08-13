@@ -184,6 +184,15 @@
   box-shadow: 0 0 6px rgba(197, 168, 128, 0.4);
 }
 
+.brandDesc {
+  color: var(--espresso, #2c1d11);
+  font-size: 0.88rem;
+  font-weight: 500;
+  line-height: 1.8;
+  margin: 0;
+  opacity: 0.9;
+}
+
 .linkList {
   list-style: none;
   padding: 0;
@@ -193,16 +202,26 @@
   gap: 10px;
 }
 
-.linkList li a {
-  color: var(--espresso, #2c1d11);
+.linkList li a,
+.linkList li button,
+.footerLink {
+  color: var(--espresso, #2c1d11) !important;
   text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   display: inline-block;
+  text-align: start;
 }
 
-.linkList li a:hover {
+.linkList li a:hover,
+.linkList li button:hover,
+.footerLink:hover {
   color: var(--gold, #b8966c) !important;
   transform: translateX(4px);
 }
@@ -211,10 +230,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--espresso, #2c1d11);
+  color: var(--espresso, #2c1d11) !important;
   text-decoration: none;
-  font-size: 0.88rem;
-  font-weight: 700;
+  font-size: 0.88rem !important;
+  font-weight: 700 !important;
   margin-bottom: 12px;
   transition: all 0.25s ease;
 }
