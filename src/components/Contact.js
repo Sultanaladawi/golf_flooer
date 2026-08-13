@@ -118,30 +118,39 @@ export default function Contact() {
               {t('contactDescription')}
             </p>
 
-            <div className={styles.contactDetails} style={{ display: 'flex', flexDirection: 'column', gap: '20px', margin: '30px 0' }}>
+            <div className={styles.contactDetails} style={{ display: 'flex', flexDirection: 'column', gap: '22px', margin: '30px 0' }}>
                <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                  <i className="fas fa-globe" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
+                  <i className="fas fa-globe" style={{ color: 'var(--gold, #c5a880)', fontSize: '1.25rem', marginTop: '4px' }} />
                   <div>
-                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>{t('globalBoutique')}</strong>
-                    <p style={{ color: 'var(--espresso-dim)', margin: 0 }}>{t('globalBoutiqueDesc')}</p>
+                    <strong style={{ color: 'var(--espresso, #2c1d11)', fontSize: '1.02rem', fontWeight: 800, display: 'block', marginBottom: '4px' }}>{t('globalBoutique')}</strong>
+                    <p style={{ color: 'var(--espresso, #2c1d11)', fontSize: '0.92rem', fontWeight: 700, margin: 0, opacity: 0.9 }}>{t('globalBoutiqueDesc')}</p>
                   </div>
                </div>
                <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                  <i className="fas fa-envelope" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
+                  <i className="fas fa-envelope" style={{ color: 'var(--gold, #c5a880)', fontSize: '1.25rem', marginTop: '4px' }} />
                   <div>
-                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>{t('emailContact')}</strong>
-                    <p style={{ color: 'var(--espresso-dim)', margin: 0, direction: 'ltr', unicodeBidi: 'plaintext' }}>{shopInfo.email}</p>
+                    <strong style={{ color: 'var(--espresso, #2c1d11)', fontSize: '1.02rem', fontWeight: 800, display: 'block', marginBottom: '4px' }}>{t('emailContact')}</strong>
+                    <a 
+                      href={`mailto:${shopInfo.email}`} 
+                      style={{ color: 'var(--espresso, #2c1d11)', fontSize: '0.92rem', fontWeight: 700, margin: 0, textDecoration: 'none', direction: 'ltr', display: 'inline-block', transition: 'color 0.25s ease' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--gold, #b8966c)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--espresso, #2c1d11)'}
+                    >
+                      {shopInfo.email}
+                    </a>
                   </div>
                </div>
                <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                  <i className="fab fa-instagram" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
+                  <i className="fab fa-instagram" style={{ color: 'var(--gold, #c5a880)', fontSize: '1.25rem', marginTop: '4px' }} />
                   <div>
-                    <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>Instagram</strong>
+                    <strong style={{ color: 'var(--espresso, #2c1d11)', fontSize: '1.02rem', fontWeight: 800, display: 'block', marginBottom: '4px' }}>Instagram</strong>
                     <a 
                       href={shopInfo.instagram} 
                       target="_blank" 
                       rel="noopener noreferrer" 
-                      style={{ color: 'var(--gold-dim)', margin: 0, textDecoration: 'none', direction: 'ltr', display: 'inline-block', fontFamily: 'system-ui, sans-serif' }}
+                      style={{ color: 'var(--espresso, #2c1d11)', fontSize: '0.92rem', fontWeight: 700, margin: 0, textDecoration: 'none', direction: 'ltr', display: 'inline-block', fontFamily: 'system-ui, sans-serif', transition: 'color 0.25s ease' }}
+                      onMouseEnter={e => e.currentTarget.style.color = 'var(--gold, #b8966c)'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'var(--espresso, #2c1d11)'}
                     >
                       {shopInfo.instagramHandle}
                     </a>
