@@ -81,7 +81,24 @@ export default function Hero() {
       <div className={styles.heroDecorBR} />
 
       <div className={styles.heroContent}>
-        <span className="section-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}><Sparkles size={14} /> {t('heroTag')} <Sparkles size={14} /></span>
+        <span style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: '8px', 
+          color: 'var(--gold, #c5a880)', 
+          backgroundColor: 'rgba(197, 168, 128, 0.15)', 
+          border: '1px solid rgba(197, 168, 128, 0.35)', 
+          padding: '6px 18px', 
+          borderRadius: '30px', 
+          fontSize: '0.88rem', 
+          fontWeight: 800, 
+          letterSpacing: '0.08em', 
+          marginBottom: '1rem', 
+          boxShadow: '0 4px 15px rgba(0,0,0,0.3)', 
+          backdropFilter: 'blur(6px)' 
+        }}>
+          <Sparkles size={14} color="var(--gold)" /> {t('heroTag')} <Sparkles size={14} color="var(--gold)" />
+        </span>
         <h1 className={styles.heroTitle}>
           {t('heroBrand')}
           <span className={styles.heroTitleAccent}>{t('heroSubtitleAccent')}</span>

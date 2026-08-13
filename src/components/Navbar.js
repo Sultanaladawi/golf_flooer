@@ -573,7 +573,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                   direction: 'rtl'
                 }}>
                   <div style={{ padding: '8px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', borderBottom: '1px solid var(--divider)' }}>
-                    ترجمة المتجر (9 لغات عالمية)
+                    {langCode === 'en' ? 'Store Language (Arabic / English)' : 'لغة المتجر (العربية / English)'}
                   </div>
                   {SITE_LANGUAGES.map(l => (
                     <button
