@@ -761,7 +761,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                 gap: '8px',
                 cursor: 'pointer',
                 userSelect: 'none',
-                direction: 'ltr'
+                direction: langCode === 'en' ? 'ltr' : 'rtl'
               }}
             >
               <span style={{
@@ -771,7 +771,9 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                 letterSpacing: '0.3px',
                 fontFamily: 'system-ui, -apple-system, sans-serif'
               }}>
-                {langCode === 'en' ? `${formattedTotal} ${displayCurrency}` : `${displayCurrency} ${formattedTotal}`}
+                {langCode === 'en' 
+                  ? `${formattedTotal} ${currency?.code || 'JOD'}` 
+                  : `${formattedTotal} ${currency?.symbol || 'د.أ'}`}
               </span>
 
               <div style={{ position: 'relative' }}>
