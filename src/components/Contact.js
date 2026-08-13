@@ -130,14 +130,21 @@ export default function Contact() {
                   <i className="fas fa-envelope" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
                   <div>
                     <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>{t('emailContact')}</strong>
-                    <p style={{ color: 'var(--espresso-dim)', margin: 0 }}>{shopInfo.email}</p>
+                    <p style={{ color: 'var(--espresso-dim)', margin: 0, direction: 'ltr', unicodeBidi: 'plaintext' }}>{shopInfo.email}</p>
                   </div>
                </div>
                <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
                   <i className="fab fa-instagram" style={{ color: 'var(--gold)', fontSize: '1.2rem', marginTop: '4px' }} />
                   <div>
                     <strong style={{ color: 'var(--espresso)', fontSize: '1rem', display: 'block', marginBottom: '4px' }}>Instagram</strong>
-                    <a href={shopInfo.instagram} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold-dim)', margin: 0, textDecoration: 'none' }}>{shopInfo.instagramHandle}</a>
+                    <a 
+                      href={shopInfo.instagram} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      style={{ color: 'var(--gold-dim)', margin: 0, textDecoration: 'none', direction: 'ltr', display: 'inline-block', fontFamily: 'system-ui, sans-serif' }}
+                    >
+                      {shopInfo.instagramHandle}
+                    </a>
                   </div>
                </div>
             </div>
