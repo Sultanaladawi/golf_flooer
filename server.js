@@ -2995,27 +2995,51 @@ app.get('/api/catalog/pdf', async (req, res) => {
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
-    const [products] = await db.promise().query('SELECT name, price_display, description FROM menu_items WHERE available = 1 LIMIT 30');
+    // Fetch products safely via callback
+    const products = await new Promise((resolve) => {
+      db.query('SELECT id, name, price, price_display, description FROM menu_items WHERE available = 1 LIMIT 30', (err, results) => {
+        if (err || !results) resolve([]);
+        else resolve(results);
+      });
+    });
 
     let page = pdfDoc.addPage([595.28, 841.89]); // A4
     const { width, height } = page.getSize();
 
-    // Cover Title
-    page.drawText('Zahrat Beesan Luxury Catalog', { x: 50, y: height - 80, size: 22, font: fontBold, color: rgb(0.77, 0.65, 0.50) });
-    page.drawText('Official Luxury Collection 2026', { x: 50, y: height - 105, size: 12, font, color: rgb(0.3, 0.3, 0.3) });
+    // Helper to strip non-WinAnsi/non-Latin characters so pdf-lib Helvetica never throws
+    const sanitizePdfText = (str) => {
+      if (!str || typeof str !== 'string') return '';
+      // Replace common Arabic numbers or words with Latin equivalents if needed
+      return str.replace(/[^\x20-\x7E]/g, '').trim() || 'Royal Abaya Item';
+    };
 
-    let y = height - 150;
-    products.forEach((p, idx) => {
-      if (y < 100) {
-        page = pdfDoc.addPage([595.28, 841.89]);
-        y = height - 80;
-      }
-      page.drawText(`${idx + 1}. ${p.name || 'Abaya Item'}`, { x: 50, y, size: 12, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
-      page.drawText(`Price: ${p.price_display || 'JOD 85.00'}`, { x: 420, y, size: 11, font: fontBold, color: rgb(0.77, 0.65, 0.50) });
-      const descSnippet = (p.description || 'Luxury hand-embroidered oriental abaya').substring(0, 70) + '...';
-      page.drawText(descSnippet, { x: 50, y: y - 18, size: 9, font, color: rgb(0.4, 0.4, 0.4) });
-      y -= 55;
-    });
+    // Cover Header Banner
+    page.drawText('Zahrat Beesan Luxury Catalog', { x: 50, y: height - 60, size: 22, font: fontBold, color: rgb(0.77, 0.65, 0.50) });
+    page.drawText('Official Royal Abaya Collection 2026', { x: 50, y: height - 85, size: 12, font, color: rgb(0.3, 0.3, 0.3) });
+
+    let y = height - 130;
+    if (products.length === 0) {
+      page.drawText('No items currently available in catalog.', { x: 50, y, size: 12, font, color: rgb(0.5, 0.5, 0.5) });
+    } else {
+      products.forEach((p, idx) => {
+        if (y < 90) {
+          page = pdfDoc.addPage([595.28, 841.89]);
+          y = height - 60;
+        }
+
+        const safeName = sanitizePdfText(p.name) || `Royal Abaya #${p.id || (idx + 1)}`;
+        const safePrice = p.price_display || (p.price ? `${p.price} JOD` : 'JOD 60.00');
+        const rawDesc = p.description || 'Luxury hand-embroidered oriental abaya';
+        const safeDesc = sanitizePdfText(rawDesc) || 'Luxury hand-crafted oriental abaya';
+        const descSnippet = safeDesc.substring(0, 65) + (safeDesc.length > 65 ? '...' : '');
+
+        page.drawText(`${idx + 1}. ${safeName}`, { x: 50, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
+        page.drawText(`Price: ${safePrice}`, { x: 420, y, size: 11, font: fontBold, color: rgb(0.77, 0.65, 0.50) });
+        page.drawText(descSnippet, { x: 50, y: y - 16, size: 9, font, color: rgb(0.4, 0.4, 0.4) });
+
+        y -= 50;
+      });
+    }
 
     const pdfBytes = await pdfDoc.save();
     res.setHeader('Content-Type', 'application/pdf');

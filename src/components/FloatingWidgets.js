@@ -72,37 +72,214 @@ function SocialSidebar() {
 }
 
 /* ── WhatsApp: same size as chatbot (56px circle) ── */
+/* ── Luxury WhatsApp Start Chat Interactive Popup ── */
 function WhatsAppButton() {
+  const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const waUrl = `https://wa.me/962${shopInfo.phone?.replace(/\D/g, '').replace(/^0+/, '')}?text=${encodeURIComponent('مرحباً، أودّ الاستفسار عن المنتجات 🌸')}`;
+  const [msgText, setMsgText] = useState('مرحباً زهرة بيسان 🌸 أودّ الاستفسار عن التشكيلة الفاخرة والمقاسات المتاحة.');
+
+  const handleStartChat = (customMsg) => {
+    const textToSend = customMsg || msgText;
+    const cleanPhone = shopInfo.phone?.replace(/\D/g, '').replace(/^0+/, '') || '962796697413';
+    const waUrl = `https://wa.me/${cleanPhone.startsWith('962') ? cleanPhone : '962' + cleanPhone}?text=${encodeURIComponent(textToSend)}`;
+    window.open(waUrl, '_blank');
+  };
+
   return (
-    <a
-      href={waUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="واتساب"
-      title="واتساب"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        position: 'fixed', bottom: '100px', left: '2rem',
-        width: '56px', height: '56px',
-        background: '#25D366', color: '#fff',
-        borderRadius: '50%',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        textDecoration: 'none',
-        boxShadow: hovered ? '0 8px 24px rgba(37,211,102,0.6)' : '0 4px 16px rgba(37,211,102,0.4)',
-        transform: hovered ? 'scale(1.08)' : 'scale(1)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        zIndex: 8998,
-      }}
-    >
-      <WhatsAppIcon />
-    </a>
+    <>
+      {/* 🟢 Start Chat Interactive Window */}
+      {open && (
+        <div style={{
+          position: 'fixed',
+          bottom: '165px',
+          left: '2rem',
+          width: '340px',
+          maxWidth: '90vw',
+          backgroundColor: 'var(--bg-card, #ffffff)',
+          borderRadius: '24px',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.25), 0 0 0 1px rgba(197,168,128,0.25)',
+          overflow: 'hidden',
+          zIndex: 9999,
+          direction: 'rtl',
+          fontFamily: 'system-ui, -apple-system, sans-serif',
+          animation: 'fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}>
+          {/* Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #075E54 0%, #128C7E 100%)',
+            padding: '16px 20px',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ position: 'relative' }}>
+                <div style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  backgroundColor: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.4rem',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                }}>
+                  🌸
+                </div>
+                <span style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  right: '2px',
+                  width: '12px',
+                  height: '12px',
+                  borderRadius: '50%',
+                  backgroundColor: '#25D366',
+                  border: '2px solid #075E54'
+                }} />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: '800', color: '#ffffff' }}>زهرة بيسان — خدمة العملاء</h4>
+                <span style={{ fontSize: '0.74rem', opacity: 0.9, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  🟢 متصل الآن — رد فوري خلال دقائق
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={() => setOpen(false)}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: 'none',
+                color: '#ffffff',
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                cursor: 'pointer',
+                fontSize: '0.9rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Chat Body */}
+          <div style={{ padding: '20px', backgroundColor: '#efeae2', backgroundImage: 'radial-gradient(#d1c7b7 1px, transparent 1px)', backgroundSize: '16px 16px' }}>
+            <div style={{
+              backgroundColor: '#ffffff',
+              padding: '14px 16px',
+              borderRadius: '16px 16px 4px 16px',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+              marginBottom: '14px',
+              fontSize: '0.86rem',
+              lineHeight: '1.6',
+              color: '#1a1a1a'
+            }}>
+              أهلاً بكِ في <strong>زهرة بيسان</strong> 🌸 يسعدنا تواصلكِ! كيف يمكننا مساعدتكِ اليوم في اختيار عبايتكِ الفاخرة أو الاستفسار عن الشحن؟
+            </div>
+
+            {/* Quick Prompt Chips */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+              {[
+                '💬 استفسار عن الأسعار والتوصيل',
+                '📐 مساعدة في اختيار المقاس المناسب',
+                '👑 طلب تصميم خاص أو تفصيل'
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  onClick={() => handleStartChat(chip)}
+                  style={{
+                    backgroundColor: 'rgba(255,255,255,0.95)',
+                    border: '1px solid rgba(197,168,128,0.4)',
+                    borderRadius: '12px',
+                    padding: '8px 12px',
+                    fontSize: '0.8rem',
+                    color: '#2c1d11',
+                    fontWeight: '600',
+                    textAlign: 'right',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--gold-glow, #fff9f0)'}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.95)'}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+
+            {/* Input & Send Button */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <textarea
+                rows={2}
+                value={msgText}
+                onChange={e => setMsgText(e.target.value)}
+                placeholder="اكتبي استفسارك هنا..."
+                style={{
+                  width: '100%',
+                  borderRadius: '12px',
+                  border: '1px solid #ccc',
+                  padding: '10px',
+                  fontSize: '0.82rem',
+                  outline: 'none',
+                  resize: 'none',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <button
+                onClick={() => handleStartChat()}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #25D366 0%, #128C7E 100%)',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '14px',
+                  padding: '12px',
+                  fontWeight: '800',
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(37,211,102,0.35)'
+                }}
+              >
+                <WhatsAppIcon /> بدء المحادثة المباشرة عبر الواتساب
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Button */}
+      <button
+        onClick={() => setOpen(v => !v)}
+        aria-label="واتساب"
+        title="بدء محادثة الواتساب"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          position: 'fixed', bottom: '100px', left: '2rem',
+          width: '56px', height: '56px',
+          background: '#25D366', color: '#fff',
+          borderRadius: '50%', border: 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          boxShadow: hovered ? '0 8px 24px rgba(37,211,102,0.6)' : '0 4px 16px rgba(37,211,102,0.4)',
+          transform: hovered ? 'scale(1.08)' : 'scale(1)',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+          zIndex: 8998,
+        }}
+      >
+        <WhatsAppIcon />
+      </button>
+    </>
   );
 }
-
-
 
 function LoyaltyFloatingButton({ onOpenLoyalty }) {
   const [hovered, setHovered] = useState(false);
