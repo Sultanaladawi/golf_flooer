@@ -76,7 +76,38 @@ function SocialSidebar() {
 function WhatsAppButton() {
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
-  const [msgText, setMsgText] = useState('مرحباً زهرة بيسان 🌸 أودّ الاستفسار عن التشكيلة الفاخرة والمقاسات المتاحة.');
+  const [msgText, setMsgText] = useState(() => {
+    try {
+      return localStorage.getItem('zb_wa_chat_draft') || 'مرحباً زهرة بيسان 🌸 أودّ الاستفسار عن التشكيلة الفاخرة والمقاسات المتاحة.';
+    } catch(e) {
+      return 'مرحباً زهرة بيسان 🌸 أودّ الاستفسار عن التشكيلة الفاخرة والمقاسات المتاحة.';
+    }
+  });
+
+  // 💾 Persist WhatsApp draft message
+  useEffect(() => {
+    try {
+      localStorage.setItem('zb_wa_chat_draft', msgText);
+    } catch(e) {}
+  }, [msgText]);
+
+  // 🔄 Mutual Exclusion: Close WhatsApp when AI Chatbot opens & listen to close_wa_chat
+  useEffect(() => {
+    const handleCloseWa = () => setOpen(false);
+    window.addEventListener('close_wa_chat', handleCloseWa);
+    return () => window.removeEventListener('close_wa_chat', handleCloseWa);
+  }, []);
+
+  const toggleWaOpen = () => {
+    setOpen(prev => {
+      const nextState = !prev;
+      if (nextState) {
+        // Dispatch event to automatically close AI Chatbot if open!
+        window.dispatchEvent(new Event('close_ai_chat'));
+      }
+      return nextState;
+    });
+  };
 
   const handleStartChat = (customMsg) => {
     const textToSend = customMsg || msgText;
@@ -257,7 +288,7 @@ function WhatsAppButton() {
 
       {/* Floating Button */}
       <button
-        onClick={() => setOpen(v => !v)}
+        onClick={toggleWaOpen}
         aria-label="واتساب"
         title="بدء محادثة الواتساب"
         onMouseEnter={() => setHovered(true)}

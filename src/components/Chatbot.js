@@ -46,7 +46,14 @@ const WELCOME = [
 
 export default function Chatbot() {
   const [open, setOpen]           = useState(false);
-  const [msgs, setMsgs]           = useState(WELCOME);
+  const [msgs, setMsgs]           = useState(() => {
+    try {
+      const saved = localStorage.getItem('zb_ai_chat_history');
+      return saved ? JSON.parse(saved) : WELCOME;
+    } catch(e) {
+      return WELCOME;
+    }
+  });
   const [input, setInput]         = useState('');
   const [typing, setTyping]       = useState(false);
   const [unread, setUnread]       = useState(true);
@@ -56,6 +63,31 @@ export default function Chatbot() {
   const endRef         = useRef(null);
   const inputRef       = useRef(null);
   const recognitionRef = useRef(null);
+
+  // 💾 Persist AI chat history in localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('zb_ai_chat_history', JSON.stringify(msgs));
+    } catch(e) {}
+  }, [msgs]);
+
+  // 🔄 Mutual Exclusion: Close AI Chatbot when WhatsApp opens & listen to close_ai_chat
+  useEffect(() => {
+    const handleCloseAi = () => setOpen(false);
+    window.addEventListener('close_ai_chat', handleCloseAi);
+    return () => window.removeEventListener('close_ai_chat', handleCloseAi);
+  }, []);
+
+  const toggleOpen = () => {
+    setOpen(prev => {
+      const nextState = !prev;
+      if (nextState) {
+        // Dispatch event to automatically close WhatsApp Start Chat popup if open!
+        window.dispatchEvent(new Event('close_wa_chat'));
+      }
+      return nextState;
+    });
+  };
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [msgs, typing]);
   useEffect(() => {
@@ -308,7 +340,7 @@ export default function Chatbot() {
         </div>
       </div>
 
-      <button className={`${styles.fab} ${open ? styles.fabOpen : ''}`} onClick={() => setOpen(v => !v)} style={{ border: '1px solid var(--gold)' }}>
+      <button className={`${styles.fab} ${open ? styles.fabOpen : ''}`} onClick={toggleOpen} style={{ border: '1px solid var(--gold)' }}>
         {open ? <i className="fas fa-times" style={{ color: 'var(--espresso)' }} /> : <i className="fas fa-gem" style={{ color: 'var(--espresso)' }} />}
         {unread && !open && <span className={styles.badge} style={{ background: 'var(--gold)', color: 'var(--espresso)' }}>1</span>}
       </button>
