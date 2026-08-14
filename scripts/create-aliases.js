@@ -6,9 +6,11 @@ if (fs.existsSync(cssDir)) {
   const cssFiles = fs.readdirSync(cssDir).filter(f => f.startsWith('main.') && f.endsWith('.css'));
   if (cssFiles.length > 0) {
     const mainCss = path.join(cssDir, cssFiles[0]);
-    fs.copyFileSync(mainCss, path.join(cssDir, 'main.ff9e555f.css'));
-    fs.copyFileSync(mainCss, path.join(cssDir, 'main.css'));
-    console.log('✅ CSS Aliases created:', cssFiles[0], '-> main.ff9e555f.css & main.css');
+    const cssAliases = ['main.ff9e555f.css', 'main.f978a579.css', 'main.css'];
+    cssAliases.forEach(a => {
+      fs.copyFileSync(mainCss, path.join(cssDir, a));
+    });
+    console.log('✅ CSS Aliases created:', cssAliases.join(', '));
   }
 }
 
@@ -17,9 +19,16 @@ if (fs.existsSync(jsDir)) {
   const jsFiles = fs.readdirSync(jsDir).filter(f => f.startsWith('main.') && f.endsWith('.js'));
   if (jsFiles.length > 0) {
     const mainJs = path.join(jsDir, jsFiles[0]);
-    fs.copyFileSync(mainJs, path.join(jsDir, 'main.2d15e045.js'));
-    fs.copyFileSync(mainJs, path.join(jsDir, 'main.b45cc53b.js'));
-    fs.copyFileSync(mainJs, path.join(jsDir, 'main.js'));
-    console.log('✅ JS Aliases created:', jsFiles[0], '-> main.2d15e045.js, main.b45cc53b.js & main.js');
+    const jsAliases = [
+      'main.d6632411.js',
+      'main.dacf438b.js',
+      'main.2d15e045.js',
+      'main.b45cc53b.js',
+      'main.js'
+    ];
+    jsAliases.forEach(a => {
+      fs.copyFileSync(mainJs, path.join(jsDir, a));
+    });
+    console.log('✅ JS Aliases created:', jsAliases.join(', '));
   }
 }
