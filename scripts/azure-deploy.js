@@ -46,35 +46,26 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function clearDeploymentLocks(scmHost, basicAuth) {
-  ghNotice('Clearing any active deployment locks on Azure...');
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/locks/', 'DELETE', null, { 'If-Match': '*' });
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/active', 'DELETE', null, { 'If-Match': '*' });
+async function deleteOldBrokenServerFile(scmHost, basicAuth) {
+  ghNotice('Deleting old broken server.js from /site/wwwroot/ ...');
+  const res = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', 'DELETE', null, {
+    'If-Match': '*'
+  });
+  ghNotice(`Delete server.js status: HTTP ${res.code} ${res.msg}`);
 }
 
 async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   if (!fs.existsSync(zipPath)) return false;
   const stats = fs.statSync(zipPath);
-  ghNotice(`Deploying clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to Azure via /api/zipdeploy ...`);
+  ghNotice(`Unpacking clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
 
   const stream = fs.createReadStream(zipPath);
-  let res = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy', 'POST', stream, {
-    'Content-Type': 'application/octet-stream',
+  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
+    'Content-Type': 'application/zip',
     'Content-Length': stats.size
   });
 
-  ghNotice(`ZipDeploy status: HTTP ${res.code} ${res.msg}`);
-
-  if (res.code < 200 || res.code >= 300) {
-    ghNotice('Fallback: Trying /api/zip/site/wwwroot/ endpoint...');
-    const stream2 = fs.createReadStream(zipPath);
-    res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream2, {
-      'Content-Type': 'application/zip',
-      'Content-Length': stats.size
-    });
-    ghNotice(`VFS Zip fallback status: HTTP ${res.code} ${res.msg}`);
-  }
-
+  ghNotice(`Release ZIP unpack status: HTTP ${res.code} ${res.msg}`);
   return res.code >= 200 && res.code < 300;
 }
 
@@ -120,10 +111,10 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Step 1: Clear locks
-  await clearDeploymentLocks(scmHost, basicAuth);
+  // Step 1: Explicitly delete any old broken server.js
+  await deleteOldBrokenServerFile(scmHost, basicAuth);
 
-  // Step 2: Extract clean zip without .bin symlinks
+  // Step 2: Extract clean release.zip
   const releaseZip = path.resolve(process.cwd(), 'release.zip');
   const ok = await uploadZipToWwwroot(scmHost, basicAuth, releaseZip);
   if (!ok) {
@@ -131,7 +122,7 @@ async function main() {
     process.exit(1);
   }
 
-  ghNotice('🎉 CLEAN RELEASE DEPLOYED WITH FULL NODE_MODULES!');
+  ghNotice('🎉 CLEAN SELF-CONTAINED RELEASE DEPLOYED!');
 }
 
 main().catch(err => {

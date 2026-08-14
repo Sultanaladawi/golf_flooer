@@ -24,44 +24,15 @@ jobs:
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
 
-      - name: Prepare clean production release package with real server.js and node_modules
+      - name: Bundle server.js and prepare clean release ZIP
         run: |
           node scripts/embed-html.js
           mkdir -p release
-          cp server.js release/
+          npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
+          cp package.json release/
           cp -r build release/
           find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
-          
-          node -e "
-          const fs = require('fs');
-          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          const prodDeps = {
-            '@google/generative-ai': pkg.dependencies['@google/generative-ai'] || '^0.24.1',
-            'compression': pkg.dependencies['compression'] || '^1.8.1',
-            'cors': pkg.dependencies['cors'] || '^2.8.6',
-            'dotenv': pkg.dependencies['dotenv'] || '^17.4.2',
-            'express': pkg.dependencies['express'] || '^5.2.1',
-            'multer': pkg.dependencies['multer'] || '^2.1.1',
-            'mysql2': pkg.dependencies['mysql2'] || '^3.22.2',
-            'node-cron': pkg.dependencies['node-cron'] || '^4.6.0',
-            'nodemailer': pkg.dependencies['nodemailer'] || '^9.0.3',
-            'openai': pkg.dependencies['openai'] || '^6.34.0',
-            'pdf-lib': pkg.dependencies['pdf-lib'] || '^1.17.1',
-            'stripe': pkg.dependencies['stripe'] || '^22.3.2'
-          };
-          const prodPkg = {
-            name: pkg.name,
-            version: pkg.version,
-            main: 'server.js',
-            scripts: { start: 'node server.js' },
-            dependencies: prodDeps
-          };
-          fs.writeFileSync('release/package.json', JSON.stringify(prodPkg, null, 2));
-          "
-          
           cd release
-          npm install --omit=dev --no-audit --no-fund --legacy-peer-deps
-          rm -rf node_modules/.bin
           zip -r -q ../release.zip *
           cd ..
           echo "Release ZIP size: $(du -sh release.zip | cut -f1)"
