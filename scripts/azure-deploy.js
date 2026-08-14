@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Direct-Sync/3.0',
+        'User-Agent': 'Antigravity-Direct-Sync/4.0',
         ...headers
       },
       timeout: 120000
@@ -56,12 +56,21 @@ async function ensureRemoteDir(scmHost, basicAuth, remoteDirPath) {
 async function uploadDirectFile(scmHost, basicAuth, localPath, remotePath) {
   if (!fs.existsSync(localPath)) return false;
   const content = fs.readFileSync(localPath);
+  const mime = remotePath.endsWith('.css')
+    ? 'text/css'
+    : (remotePath.endsWith('.js') ? 'application/javascript' : (remotePath.endsWith('.html') ? 'text/html' : 'application/octet-stream'));
+
+  // Delete before PUT to eliminate 409 conflict
+  await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'DELETE', null, {
+    'If-Match': '*'
+  });
+
   const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'PUT', content, {
-    'If-Match': '*',
-    'Content-Type': 'application/octet-stream',
+    'Content-Type': mime,
     'Content-Length': Buffer.byteLength(content)
   });
-  ghNotice(`Uploaded ${remotePath} -> HTTP ${res.code} ${res.msg}`);
+
+  ghNotice(`Uploaded ${remotePath} (${(content.length / 1024).toFixed(1)} KB) -> HTTP ${res.code} ${res.msg}`);
   return res.code >= 200 && res.code < 300;
 }
 
@@ -107,34 +116,29 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Step 1: Ensure directories exist
+  // Step 1: Ensure directory structure
   await ensureRemoteDir(scmHost, basicAuth, 'build');
   await ensureRemoteDir(scmHost, basicAuth, 'build/static');
   await ensureRemoteDir(scmHost, basicAuth, 'build/static/css');
   await ensureRemoteDir(scmHost, basicAuth, 'build/static/js');
-  await ensureRemoteDir(scmHost, basicAuth, 'static');
-  await ensureRemoteDir(scmHost, basicAuth, 'static/css');
-  await ensureRemoteDir(scmHost, basicAuth, 'static/js');
 
-  // Step 2: Upload CSS bundle and all hash aliases
+  // Step 2: Upload CSS bundle and ALL hash aliases
   const buildCssDir = path.resolve(process.cwd(), 'build', 'static', 'css');
   if (fs.existsSync(buildCssDir)) {
     const cssFiles = fs.readdirSync(buildCssDir);
     for (const cf of cssFiles) {
       const fullP = path.join(buildCssDir, cf);
       await uploadDirectFile(scmHost, basicAuth, fullP, `build/static/css/${cf}`);
-      await uploadDirectFile(scmHost, basicAuth, fullP, `static/css/${cf}`);
     }
   }
 
-  // Step 3: Upload JS bundle and all hash aliases
+  // Step 3: Upload JS bundle and ALL hash aliases
   const buildJsDir = path.resolve(process.cwd(), 'build', 'static', 'js');
   if (fs.existsSync(buildJsDir)) {
     const jsFiles = fs.readdirSync(buildJsDir);
     for (const jf of jsFiles) {
       const fullP = path.join(buildJsDir, jf);
       await uploadDirectFile(scmHost, basicAuth, fullP, `build/static/js/${jf}`);
-      await uploadDirectFile(scmHost, basicAuth, fullP, `static/js/${jf}`);
     }
   }
 
@@ -146,18 +150,6 @@ async function main() {
   const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
   if (fs.existsSync(serverPath)) {
     await uploadDirectFile(scmHost, basicAuth, serverPath, 'server.js');
-  }
-
-  // Step 5: Direct full Zip extraction
-  const zipPath = path.resolve(process.cwd(), 'release.zip');
-  if (fs.existsSync(zipPath)) {
-    const zipStats = fs.statSync(zipPath);
-    ghNotice(`Unpacking full release.zip (${(zipStats.size / (1024 * 1024)).toFixed(2)} MB) to /site/wwwroot/ ...`);
-    const stream = fs.createReadStream(zipPath);
-    await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
-      'Content-Type': 'application/zip',
-      'Content-Length': zipStats.size
-    });
   }
 
   ghNotice('🎉 ALL CRITICAL CSS, JS, HTML AND CODE SYNCHRONIZED DIRECTLY TO AZURE!');
