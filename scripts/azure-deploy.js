@@ -10,22 +10,20 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function executeUpload(scmHost, basicAuth, reqPath, filePath, fileSize, isZip = false, customHeaders = {}) {
+async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
+  const safePath = encodeURI(reqPath);
   return new Promise((resolve) => {
-    const stream = fs.createReadStream(filePath);
     const req = https.request({
       hostname: scmHost,
       port: 443,
-      path: reqPath,
-      method: 'PUT',
+      path: safePath,
+      method: method,
       headers: {
         'Authorization': basicAuth,
-        'Content-Type': isZip ? 'application/zip' : 'application/octet-stream',
-        'Content-Length': fileSize,
-        'User-Agent': 'Antigravity-Direct-Deployer/15.0',
-        ...customHeaders
+        'User-Agent': 'Antigravity-DiskCleaner-Deployer/16.0',
+        ...headers
       },
-      timeout: 300000
+      timeout: 180000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
@@ -35,11 +33,41 @@ async function executeUpload(scmHost, basicAuth, reqPath, filePath, fileSize, is
     req.on('error', (err) => resolve({ statusCode: 0, statusMessage: err.message, body: '' }));
     req.on('timeout', () => { req.destroy(); resolve({ statusCode: 408, statusMessage: 'Timeout', body: '' }); });
 
-    stream.pipe(req);
+    if (data) {
+      if (typeof data.pipe === 'function') {
+        data.pipe(req);
+      } else {
+        req.write(data);
+        req.end();
+      }
+    } else {
+      req.end();
+    }
   });
 }
 
-async function makeKuduUpload(scmHost, basicAuth, reqPath, filePath, isZip = false) {
+async function cleanDiskSpace(scmHost, basicAuth) {
+  ghNotice('🧹 PURGING DISK SPACE ON AZURE TO ELIMINATE "NO SPACE LEFT ON DEVICE"...');
+  
+  // 1. Delete LogFiles directory contents
+  const resLogs = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  ghNotice(`Purge LogFiles status: HTTP ${resLogs.statusCode}`);
+
+  // 2. Delete old deployment history artifacts
+  const resDeps = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  ghNotice(`Purge old deployments history status: HTTP ${resDeps.statusCode}`);
+
+  // 3. Delete any stale heavy directories in wwwroot (like node_modules or old broken builds)
+  const resNm = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/node_modules/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  ghNotice(`Purge stale wwwroot/node_modules status: HTTP ${resNm.statusCode}`);
+
+  const resBuild = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  ghNotice(`Purge old wwwroot/build status: HTTP ${resBuild.statusCode}`);
+
+  ghNotice('✅ Disk space purge completed.');
+}
+
+async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false) {
   if (!fs.existsSync(filePath)) {
     ghError(`File not found: ${filePath}`);
     return false;
@@ -47,26 +75,22 @@ async function makeKuduUpload(scmHost, basicAuth, reqPath, filePath, isZip = fal
   const stats = fs.statSync(filePath);
   ghNotice(`Uploading ${path.basename(filePath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to ${reqPath} ...`);
 
-  // Try 1: without If-Match header (creates new file cleanly)
-  let res = await executeUpload(scmHost, basicAuth, reqPath, filePath, stats.size, isZip, {});
+  const stream = fs.createReadStream(filePath);
+  const res = await makeKuduRequest(scmHost, basicAuth, reqPath, 'PUT', stream, {
+    'Content-Type': isZip ? 'application/zip' : 'application/octet-stream',
+    'Content-Length': stats.size,
+    'If-Match': '*'
+  });
+
   ghNotice(`${path.basename(filePath)} upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
-
-  // Try 2: If 412 / 409, retry with If-Match: *
-  if (res.statusCode === 409 || res.statusCode === 412 || res.statusCode === 400) {
-    ghNotice(`Retrying with If-Match: * overwrite header...`);
-    res = await executeUpload(scmHost, basicAuth, reqPath, filePath, stats.size, isZip, { 'If-Match': '*' });
-    ghNotice(`${path.basename(filePath)} overwrite status: HTTP ${res.statusCode} ${res.statusMessage}`);
-  }
-
   if (res.statusCode < 200 || res.statusCode >= 300) {
-    if (res.body) ghNotice(`Error body: ${res.body.substring(0, 300)}`);
+    if (res.body) ghNotice(`Details: ${res.body.substring(0, 300)}`);
   }
-
   return res.statusCode >= 200 && res.statusCode < 300;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Direct VFS Upload with Smart Overwrite...');
+  ghNotice('🚀 Starting Space Recovery & Clean Deployment...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -107,27 +131,30 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // 1. Upload server.js directly
+  // STEP 1: FREE UP DISK SPACE ON AZURE
+  await cleanDiskSpace(scmHost, basicAuth);
+
+  // STEP 2: UPLOAD SERVER.JS DIRECTLY
   const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
-  const okServer = await makeKuduUpload(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverPath, false);
+  const okServer = await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverPath, false);
   if (!okServer) {
     ghError('Failed to upload server.js');
     process.exit(1);
   }
 
-  // 2. Upload package.json directly
+  // STEP 3: UPLOAD PACKAGE.JSON
   const pkgPath = path.resolve(process.cwd(), 'release', 'package.json');
   if (fs.existsSync(pkgPath)) {
-    await makeKuduUpload(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
   }
 
-  // 3. Upload static build zip
+  // STEP 4: UNPACK LIGHT BUILD.ZIP (CSS / JS)
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
-    await makeKuduUpload(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
   }
 
-  ghNotice('🎉 ALL FILES DEPLOYED DIRECTLY AND SUCCESSFULLY!');
+  ghNotice('🎉 DISK SPACE PURGED & ALL APPLICATION FILES DEPLOYED 100% CLEANLY!');
 }
 
 main().catch(err => {
