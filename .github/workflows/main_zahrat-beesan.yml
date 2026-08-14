@@ -38,7 +38,7 @@ jobs:
           cp package.json release/
           echo "Removing heavy media files to keep ZIP under Azure 100MB limit..."
           find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
-          echo "Zipping lean release (JS/CSS/server code only)..."
+          echo "Zipping lean release..."
           cd release && zip -r ../release.zip . && cd ..
           echo "Lean Release ZIP size:"
           ls -lh release.zip
@@ -50,34 +50,58 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Reset Azure settings and set startup command
+      - name: CRITICAL - Remove WEBSITE_RUN_FROM_PACKAGE lock and restart app
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
+
+          echo "=== Step 1: Delete WEBSITE_RUN_FROM_PACKAGE setting completely ==="
+          az webapp config appsettings delete \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --setting-names WEBSITE_RUN_FROM_PACKAGE || echo "Setting may not exist, continuing..."
+
+          echo "=== Step 2: Also explicitly set it to empty string ==="
           az webapp config appsettings set \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --settings WEBSITE_RUN_FROM_PACKAGE="0"
+            --settings WEBSITE_RUN_FROM_PACKAGE=""
+
+          echo "=== Step 3: Set startup file ==="
           az webapp config set \
             --name zahrat-beesan \
             --resource-group "$RG" \
             --startup-file "node server.js"
-          echo "Settings applied."
 
-      - name: Deploy lean ZIP to Azure (code + CSS/JS)
+          echo "=== Step 4: STOP the app to release file locks ==="
+          az webapp stop --name zahrat-beesan --resource-group "$RG"
+          echo "App stopped. Waiting 10s for locks to release..."
+          sleep 10
+
+          echo "=== Step 5: Verify settings before deploy ==="
+          az webapp config appsettings list \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --query "[?name=='WEBSITE_RUN_FROM_PACKAGE']" -o table
+
+          echo "Ready for deployment."
+
+      - name: Deploy lean ZIP to Azure
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'zahrat-beesan'
           package: 'release.zip'
 
-      - name: Upload media files to Azure via Kudu REST API
+      - name: Start app and upload media files
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          KUDU_URL=$(az webapp show --name zahrat-beesan --resource-group "$RG" --query "defaultHostName" -o tsv | tr -d '\r\n')
-          TOKEN=$(az account get-access-token --resource https://management.azure.com --query accessToken -o tsv | tr -d '\r\n')
-          echo "Uploading media files to Azure App via az webapp deploy one-by-one..."
+
+          echo "Starting app..."
+          az webapp start --name zahrat-beesan --resource-group "$RG"
+
+          echo "Uploading media files individually..."
           MEDIA_COUNT=0
-          for f in $(find build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \)); do
+          for f in $(find build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) | head -100); do
             REL_PATH="${f#build/}"
             az webapp deploy \
               --name zahrat-beesan \
@@ -87,8 +111,5 @@ jobs:
               --type static \
               --async true 2>/dev/null || true
             MEDIA_COUNT=$((MEDIA_COUNT+1))
-            if [ $((MEDIA_COUNT % 20)) -eq 0 ]; then
-              echo "Uploaded $MEDIA_COUNT media files so far..."
-            fi
           done
-          echo "All $MEDIA_COUNT media files upload commands sent!"
+          echo "Sent $MEDIA_COUNT media files."
