@@ -1,3 +1,11 @@
+process.on('uncaughtException', (err) => {
+  console.error('🔥 [CRITICAL UNCAUGHT EXCEPTION]:', err ? (err.stack || err) : 'Unknown error');
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('🔥 [CRITICAL UNHANDLED REJECTION]:', reason);
+});
+console.log('⚡ [BOOT] Zahrat Beesan server.js started executing on Node', process.version);
+
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');

@@ -1,6 +1,7 @@
 {
   "name": "gp-main",
   "version": "1.0.0",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "client": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
