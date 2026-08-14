@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Release-Deployer/8.0',
+        'User-Agent': 'Antigravity-Release-Deployer/9.0',
         ...headers
       },
       timeout: 180000
@@ -46,10 +46,18 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
+async function deleteOldBrokenServerFile(scmHost, basicAuth) {
+  ghNotice('Deleting old broken server.js from /site/wwwroot/ ...');
+  const res = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', 'DELETE', null, {
+    'If-Match': '*'
+  });
+  ghNotice(`Delete server.js status: HTTP ${res.code} ${res.msg}`);
+}
+
 async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   if (!fs.existsSync(zipPath)) return false;
   const stats = fs.statSync(zipPath);
-  ghNotice(`Unpacking full ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
+  ghNotice(`Unpacking clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
 
   const stream = fs.createReadStream(zipPath);
   const res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
@@ -61,19 +69,8 @@ async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   return res.code >= 200 && res.code < 300;
 }
 
-async function triggerZipDeployRecycle(scmHost, basicAuth, zipPath) {
-  ghNotice('Triggering official Azure Linux container recycle via /api/zipdeploy...');
-  const stats = fs.statSync(zipPath);
-  const stream = fs.createReadStream(zipPath);
-  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', stream, {
-    'Content-Type': 'application/octet-stream',
-    'Content-Length': stats.size
-  });
-  ghNotice(`ZipDeploy recycle status: HTTP ${res.code} ${res.msg}`);
-}
-
 async function main() {
-  ghNotice('🚀 Starting Full Release ZIP Deployment to wwwroot...');
+  ghNotice('🚀 Starting Clean Deployment to wwwroot...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -114,7 +111,10 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Step 1: Upload and extract full release.zip to /site/wwwroot/
+  // Step 1: Explicitly delete the corrupted server.js
+  await deleteOldBrokenServerFile(scmHost, basicAuth);
+
+  // Step 2: Upload and extract clean release.zip
   const releaseZip = path.resolve(process.cwd(), 'release.zip');
   const ok = await uploadZipToWwwroot(scmHost, basicAuth, releaseZip);
   if (!ok) {
@@ -122,10 +122,7 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 2: Trigger official container recycle via zipdeploy
-  await triggerZipDeployRecycle(scmHost, basicAuth, releaseZip);
-
-  ghNotice('🎉 FULL RELEASE ZIP UNPACKED AND CONTAINER RECYCLE SIGNALED!');
+  ghNotice('🎉 CLEAN RELEASE DEPLOYED! Ready for container boot.');
 }
 
 main().catch(err => {
