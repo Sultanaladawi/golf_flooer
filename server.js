@@ -83,7 +83,12 @@ if (GEMINI_KEY) {
 }
 
 const app = express();
-const PORT = process.env.PORT || process.env.SERVER_PORT || 5000;
+const PORT = process.env.PORT || process.env.SERVER_PORT || 8080;
+
+// Immediately open port 8080 for Azure container health probes
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 [Zahrat Beesan] Server is LIVE and listening immediately on port: ${PORT}`);
+});
 
 // Enable Gzip/Brotli response compression for ultra-fast network transfers
 app.use(compression());
@@ -4074,8 +4079,4 @@ app.get(/.*/, (req, res) => {
   }
 
   res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server is LIVE on port: ${PORT}`);
 });
