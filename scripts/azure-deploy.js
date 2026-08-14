@@ -2,23 +2,28 @@ const fs = require('fs');
 const https = require('https');
 const path = require('path');
 
+function ghNotice(msg) {
+  console.log(`::notice::${msg}`);
+}
+
+function ghError(msg) {
+  console.log(`::error::${msg}`);
+}
+
 async function main() {
-  console.log('==============================================');
-  console.log('🚀 AZURE KUDU DIRECT ZIP DEPLOYER');
-  console.log('==============================================\n');
+  ghNotice('Starting Azure Deploy via Kudu API...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
-    console.error('❌ FATAL: AZURE_WEBAPP_PUBLISH_PROFILE secret is empty or missing in GitHub Secrets!');
-    console.error('Please verify that AZURE_WEBAPP_PUBLISH_PROFILE exists in Settings > Secrets and variables > Actions');
+    ghError('AZURE_WEBAPP_PUBLISH_PROFILE secret is empty or missing in GitHub Secrets!');
     process.exit(1);
   }
 
-  console.log(`📄 Secret content loaded (${rawSecret.length} characters)`);
+  ghNotice(`Secret length: ${rawSecret.length} chars`);
 
   // Robust XML block extraction
   const profileBlocks = rawSecret.match(/<publishProfile[\s\S]*?(?:\/>|>[\s\S]*?<\/publishProfile>)/gi) || [];
-  console.log(`🔍 Detected ${profileBlocks.length} profile block(s) in XML.`);
+  ghNotice(`Detected ${profileBlocks.length} profile block(s) in XML.`);
 
   const getAttr = (block, attrName) => {
     const match = block.match(new RegExp(`${attrName}\\s*=\\s*["']([^"']+)["']`, 'i'));
@@ -28,7 +33,6 @@ async function main() {
   let selectedBlock = null;
   let publishMethod = '';
 
-  // Priority 1: MSDeploy
   for (const block of profileBlocks) {
     const method = getAttr(block, 'publishMethod') || '';
     if (method.toLowerCase() === 'msdeploy') {
@@ -38,7 +42,6 @@ async function main() {
     }
   }
 
-  // Priority 2: Any block with publishUrl containing scm or azurewebsites
   if (!selectedBlock) {
     for (const block of profileBlocks) {
       const url = getAttr(block, 'publishUrl') || '';
@@ -50,15 +53,13 @@ async function main() {
     }
   }
 
-  // Priority 3: First available block
   if (!selectedBlock && profileBlocks.length > 0) {
     selectedBlock = profileBlocks[0];
     publishMethod = getAttr(selectedBlock, 'publishMethod') || 'Default';
   }
 
   if (!selectedBlock) {
-    console.error('❌ ERROR: Could not find any valid <publishProfile> blocks in the XML secret.');
-    console.error('Raw secret preview (first 200 chars):', rawSecret.substring(0, 200));
+    ghError('Could not find valid <publishProfile> in secret!');
     process.exit(1);
   }
 
@@ -67,163 +68,124 @@ async function main() {
   const userPWD = getAttr(selectedBlock, 'userPWD');
 
   if (!rawUrl || !userName || !userPWD) {
-    console.error('❌ ERROR: Missing required fields in selected profile:');
-    console.error(`  publishUrl: ${rawUrl ? 'FOUND' : 'MISSING'}`);
-    console.error(`  userName:   ${userName ? 'FOUND' : 'MISSING'}`);
-    console.error(`  userPWD:    ${userPWD ? 'FOUND' : 'MISSING'}`);
+    ghError(`Missing fields: URL=${!!rawUrl}, User=${!!userName}, PWD=${!!userPWD}`);
     process.exit(1);
   }
 
-  // Clean hostname (remove protocol and port)
   const scmHost = rawUrl
     .replace(/^https?:\/\//i, '')
     .replace(/^ftp:\/\//i, '')
     .replace(/:\d+$/, '')
     .trim();
 
-  console.log(`📌 Using Profile Method: ${publishMethod}`);
-  console.log(`🌐 Target SCM Host:     ${scmHost}`);
-  console.log(`👤 Deploy Username:     ${userName}`);
-  console.log(`🔑 Deploy Password:     [${userPWD.length} characters masked]`);
+  ghNotice(`Method: ${publishMethod}, Host: ${scmHost}, User: ${userName}`);
 
   const zipPath = path.resolve(process.cwd(), 'release.zip');
   if (!fs.existsSync(zipPath)) {
-    console.error(`❌ ERROR: release.zip file does not exist at ${zipPath}`);
+    ghError(`release.zip not found at ${zipPath}`);
     process.exit(1);
   }
 
   const zipStats = fs.statSync(zipPath);
   const zipSizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
-  console.log(`📦 Release Package:     release.zip (${zipSizeMB} MB, ${zipStats.size} bytes)`);
+  ghNotice(`Package: release.zip (${zipSizeMB} MB)`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Perform ZipDeploy
-  console.log(`\n⏳ Uploading ${zipSizeMB} MB to https://${scmHost}/api/zipdeploy ...`);
+  // Strategy 1: Kudu VFS Zip Deploy (PUT /api/zip/site/wwwroot/)
+  // This extracts directly to wwwroot and NEVER conflicts with OneDeploy or locks!
+  ghNotice(`Attempting Direct VFS Zip Extract (PUT /api/zip/site/wwwroot/)...`);
 
-  const uploadResult = await new Promise((resolve, reject) => {
-    const req = https.request({
-      hostname: scmHost,
-      port: 443,
-      path: '/api/zipdeploy?isAsync=true&clean=true',
-      method: 'POST',
-      headers: {
-        'Authorization': basicAuth,
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': zipStats.size,
-        'User-Agent': 'Antigravity-Azure-Deployer/2.0'
-      },
-      timeout: 300000 // 5 minutes timeout
-    }, (res) => {
-      let responseBody = '';
-      res.on('data', chunk => { responseBody += chunk; });
-      res.on('end', () => {
-        resolve({
-          statusCode: res.statusCode,
-          statusMessage: res.statusMessage,
-          headers: res.headers,
-          body: responseBody
-        });
-      });
-    });
+  let success = false;
 
-    req.on('error', (err) => {
-      console.error('❌ Network error during upload:', err.message);
-      reject(err);
-    });
-
-    req.on('timeout', () => {
-      req.destroy(new Error('Upload request timed out after 5 minutes'));
-    });
-
-    const readStream = fs.createReadStream(zipPath);
-    readStream.pipe(req);
-  });
-
-  console.log(`📥 Upload Response: HTTP ${uploadResult.statusCode} ${uploadResult.statusMessage}`);
-  if (uploadResult.body) {
-    console.log(`📥 Response Body: ${uploadResult.body.substring(0, 300)}`);
-  }
-
-  if (uploadResult.statusCode < 200 || uploadResult.statusCode >= 300) {
-    console.error(`\n❌ Deployment upload rejected with status ${uploadResult.statusCode}!`);
-    process.exit(1);
-  }
-
-  console.log('\n✅ Package uploaded and accepted by Azure Kudu engine.');
-  console.log('⏳ Polling deployment completion status...');
-
-  // Poll for deployment status
-  let pollCount = 0;
-  const maxPolls = 60; // 5 minutes (60 * 5s)
-  let isDone = false;
-
-  while (pollCount < maxPolls && !isDone) {
-    pollCount++;
-    await new Promise(r => setTimeout(r, 5000));
-
-    try {
-      const pollRes = await new Promise((resolve, reject) => {
-        const pReq = https.request({
-          hostname: scmHost,
-          port: 443,
-          path: '/api/deployments/latest',
-          method: 'GET',
-          headers: {
-            'Authorization': basicAuth,
-            'User-Agent': 'Antigravity-Azure-Deployer/2.0'
-          },
-          timeout: 10000
-        }, (res) => {
-          let b = '';
-          res.on('data', c => { b += c; });
-          res.on('end', () => resolve({ code: res.statusCode, body: b }));
-        });
-        pReq.on('error', reject);
-        pReq.end();
+  try {
+    const vfsResult = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zip/site/wwwroot/',
+        method: 'PUT',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipStats.size,
+          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
       });
 
-      if (pollRes.code === 200) {
-        try {
-          const deployInfo = JSON.parse(pollRes.body);
-          const status = deployInfo.status;
-          const statusText = deployInfo.status_text || 'Deploying...';
-          const complete = deployInfo.complete;
-          const progressMsg = deployInfo.progress || deployInfo.message || '';
+      req.on('error', reject);
+      req.on('timeout', () => req.destroy(new Error('VFS Upload timed out')));
 
-          console.log(`  [Poll ${pollCount}/${maxPolls}] Status: ${statusText} (Code: ${status}, Complete: ${complete}) ${progressMsg ? '- ' + progressMsg : ''}`);
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
+    });
 
-          // Status 4 = Success, Status 3 = Failed
-          if (complete === true || status === 4 || status === 'Success') {
-            if (status === 3 || status === 'Failed') {
-              console.error('\n❌ Kudu deployment failed during extraction/build.');
-              console.error('Details:', deployInfo);
-              process.exit(1);
-            }
-            console.log('\n==============================================');
-            console.log('🎉 DEPLOYMENT SUCCEEDED 100% IN AZURE!');
-            console.log('==============================================\n');
-            isDone = true;
-            return;
-          }
-        } catch (parseErr) {
-          console.log(`  [Poll ${pollCount}] Status: HTTP ${pollRes.code} (unpacking files...)`);
-        }
-      } else {
-        console.log(`  [Poll ${pollCount}] Status endpoint returned HTTP ${pollRes.code}`);
-      }
-    } catch (pollError) {
-      console.log(`  [Poll ${pollCount}] Polling notice: ${pollError.message}`);
+    ghNotice(`VFS Deploy Response: HTTP ${vfsResult.code} ${vfsResult.msg}`);
+
+    if (vfsResult.code >= 200 && vfsResult.code < 300) {
+      ghNotice('🎉 SUCCESS! Files extracted directly into /home/site/wwwroot/');
+      success = true;
+    } else {
+      ghNotice(`VFS returned HTTP ${vfsResult.code}: ${vfsResult.body.substring(0, 200)}`);
+    }
+  } catch (err) {
+    ghNotice(`VFS Attempt notice: ${err.message}`);
+  }
+
+  // Strategy 2: If VFS failed, try /api/zipdeploy
+  if (!success) {
+    ghNotice('Attempting Kudu ZipDeploy endpoint (POST /api/zipdeploy?isAsync=true)...');
+
+    const zipDeployResult = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zipdeploy?isAsync=true&clean=true',
+        method: 'POST',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipStats.size,
+          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      });
+
+      req.on('error', reject);
+      req.on('timeout', () => req.destroy(new Error('ZipDeploy timed out')));
+
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
+    });
+
+    ghNotice(`ZipDeploy Response: HTTP ${zipDeployResult.code} ${zipDeployResult.msg}`);
+
+    if (zipDeployResult.code >= 200 && zipDeployResult.code < 300) {
+      ghNotice('🎉 SUCCESS! Package accepted via /api/zipdeploy');
+      success = true;
+    } else {
+      ghError(`ZipDeploy failed with HTTP ${zipDeployResult.code}: ${zipDeployResult.body.substring(0, 300)}`);
     }
   }
 
-  if (!isDone) {
-    console.log('\n⚠️ Polling finished. Upload succeeded with HTTP 202. Azure is finishing startup.');
+  if (!success) {
+    ghError('All deployment methods failed. Check credentials and Azure status.');
+    process.exit(1);
   }
+
+  ghNotice('Deployment finished successfully! Verifying health endpoint...');
 }
 
 main().catch(err => {
-  console.error('\n💥 Unexpected error:', err.message);
-  if (err.stack) console.error(err.stack);
+  ghError(`Fatal error: ${err.message}`);
   process.exit(1);
 });
