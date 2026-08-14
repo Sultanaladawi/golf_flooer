@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Azure-Deployer/11.0',
+        'User-Agent': 'Antigravity-Direct-Zip/1.0',
         ...headers
       },
       timeout: 300000
@@ -46,67 +46,33 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function waitForDeploymentCompletion(scmHost, basicAuth) {
-  ghNotice('Waiting for Azure Kudu background extraction to complete...');
-  for (let i = 1; i <= 30; i++) {
-    await new Promise(r => setTimeout(r, 5000));
-    const res = await makeKuduRequest(scmHost, basicAuth, '/api/deployments/latest', 'GET');
-    if (res.code === 200) {
-      try {
-        const info = JSON.parse(res.body);
-        ghNotice(`[Deploy Status ${i}/30] Status: ${info.status_text || info.status} (Complete: ${info.complete})`);
-        if (info.complete === true) {
-          if (info.status === 4 || (info.status_text && info.status_text.toLowerCase().includes('success'))) {
-            ghNotice('🎉 SUCCESS! Azure deployment completed and verified.');
-            return true;
-          } else {
-            ghNotice(`Deployment finalized with status: ${info.status_text}`);
-            return true;
-          }
-        }
-      } catch (e) {
-        // Continue waiting
-      }
-    }
-  }
-  return true;
-}
-
-async function doZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
-  ghNotice(`Initializing Clean ZipDeploy (${(zipSize / (1024 * 1024)).toFixed(2)} MB)...`);
-
-  const maxAttempts = 6;
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    ghNotice(`[Attempt ${attempt}/${maxAttempts}] Sending release.zip to /api/zipdeploy?isAsync=true&clean=true ...`);
+async function deployDirectToWwwroot(scmHost, basicAuth, zipPath, zipSize) {
+  const maxRetries = 5;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    ghNotice(`[Attempt ${attempt}/${maxRetries}] Direct Extraction: PUT /api/zip/site/wwwroot/ (${(zipSize / (1024 * 1024)).toFixed(2)} MB)...`);
 
     const stream = fs.createReadStream(zipPath);
-    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=true', 'POST', stream, {
-      'Content-Type': 'application/octet-stream',
+    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
+      'Content-Type': 'application/zip',
       'Content-Length': zipSize
     });
 
-    ghNotice(`ZipDeploy Status: HTTP ${result.code} ${result.msg}`);
+    ghNotice(`Direct Zip Result: HTTP ${result.code} ${result.msg}`);
 
     if (result.code >= 200 && result.code < 300) {
-      ghNotice('Package uploaded. Now monitoring extraction...');
-      await waitForDeploymentCompletion(scmHost, basicAuth);
+      ghNotice('🎉 SUCCESS! All files extracted directly into /home/site/wwwroot/ on Azure!');
       return true;
     }
 
-    if (result.code === 409) {
-      ghNotice(`⏳ Deployment lock active (409). Waiting 25s before retry...`);
-      await new Promise(r => setTimeout(r, 25000));
-    } else {
-      ghNotice(`Response: ${result.body.substring(0, 150)}`);
-      await new Promise(r => setTimeout(r, 10000));
-    }
+    ghNotice(`Response detail: ${result.body.substring(0, 200)}`);
+    await new Promise(r => setTimeout(r, 10000));
   }
 
   return false;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Azure Deploy Engine...');
+  ghNotice('🚀 Starting Azure Direct wwwroot Deployment...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -155,13 +121,13 @@ async function main() {
 
   const zipStats = fs.statSync(zipPath);
 
-  const ok = await doZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
+  const ok = await deployDirectToWwwroot(scmHost, basicAuth, zipPath, zipStats.size);
   if (!ok) {
-    ghError('ZipDeploy failed after all attempts.');
+    ghError('Direct wwwroot extraction failed.');
     process.exit(1);
   }
 
-  ghNotice('🎉 ALL ASSETS & CODE EXTRACTED, APPLIED AND LIVE IN AZURE!');
+  ghNotice('🎉 ALL ASSETS & CODE EXTRACTED DIRECTLY INTO WWWROOT SUCCESSFULLY!');
 }
 
 main().catch(err => {
