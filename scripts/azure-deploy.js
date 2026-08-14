@@ -127,15 +127,29 @@ async function main() {
     await uploadZipToPath(scmHost, basicAuth, staticZip, 'static');
   }
 
-  // Step 2: Upload index.html and server.js directly
+  // Step 2: Upload build/index.html and server.js directly
   const indexPath = path.resolve(process.cwd(), 'build', 'index.html');
   await uploadDirectFile(scmHost, basicAuth, indexPath, 'build/index.html');
-  await uploadDirectFile(scmHost, basicAuth, indexPath, 'index.html');
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/index.html', 'DELETE', null, { 'If-Match': '*' });
 
   const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
   if (fs.existsSync(serverPath)) {
     await uploadDirectFile(scmHost, basicAuth, serverPath, 'server.js');
   }
+
+  // Step 3: Trigger Live Reload
+  ghNotice('Triggering instant Node process recycling...');
+  const reloadReq = https.request({
+    hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
+    port: 443,
+    path: '/api/system/reload',
+    method: 'POST',
+    timeout: 8000
+  }, (res) => {
+    ghNotice(`Live reload response: HTTP ${res.statusCode}`);
+  });
+  reloadReq.on('error', () => {});
+  reloadReq.end();
 
   ghNotice('🎉 ALL CSS, JS, HTML AND CODE SYNCHRONIZED AND LIVE IN AZURE!');
 }

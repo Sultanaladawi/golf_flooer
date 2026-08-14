@@ -266,11 +266,33 @@ app.use((req, res, next) => {
 
 const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
 app.use('/static', express.static(path.resolve(__dirname, 'build', 'static'), cacheOptions));
-app.use('/static', express.static(path.resolve(__dirname, 'static'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'build'), cacheOptions));
-app.use(express.static(path.resolve(__dirname, 'public'), cacheOptions));
-app.use(express.static(path.resolve(__dirname), cacheOptions));
 app.use('/public/images', express.static(path.resolve(dataDir, 'public', 'images'), cacheOptions));
+
+// Explicit route for Root GET / to serve the verified build/index.html
+app.get('/', (req, res) => {
+  const indexCandidates = [
+    path.join(__dirname, 'build', 'index.html'),
+    path.join(__dirname, 'public', 'index.html')
+  ];
+
+  for (const idx of indexCandidates) {
+    if (fs.existsSync(idx)) {
+      try {
+        const html = fs.readFileSync(idx, 'utf8');
+        if (html && html.trim().length > 50) {
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+          return res.send(html);
+        }
+      } catch (e) {}
+    }
+  }
+
+  res.status(503).send('Zahrat Beesan is starting up... Please refresh in a moment.');
+});
 
 // 3. Specific favicon and manifest routes for stability
 app.get('/favicon.ico', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.ico')));
