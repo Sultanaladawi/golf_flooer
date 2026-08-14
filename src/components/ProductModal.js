@@ -209,7 +209,7 @@ export default function ProductModal({ model, onClose }) {
   const hasImages = imagesArray.length > 0;
   const hasVideos = videosArray.length > 0;
 
-  const [activeTab, setActiveTab] = useState(hasImages ? 'photos' : 'video');
+  const [activeTab, setActiveTab] = useState(model.defaultMediaTab || (hasImages ? 'photos' : 'video'));
   const [activeInfoTab, setActiveInfoTab] = useState('fabric');
   const [activeImg, setActiveImg] = useState(0);
   const [activeVideo, setActiveVideo] = useState(0);

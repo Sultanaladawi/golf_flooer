@@ -45,7 +45,7 @@ export default function Hero() {
       <div className={styles.heroVideoWrap}>
         <video
           ref={heroVideoRef}
-          src="/hero_video.mp4"
+          src="/hero_video.mp4?v=sultana_royal_2026"
           autoPlay
           muted
           loop

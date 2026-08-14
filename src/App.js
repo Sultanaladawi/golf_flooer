@@ -84,6 +84,16 @@ import { initSocialPixels } from './utils/socialPixel';
 function ThemeLoader() {
   useEffect(() => {
     initSocialPixels();
+    
+    // Dynamically set favicon to force browser tab update
+    try {
+      const link = document.querySelector("link[rel*='icon']") || document.createElement('link');
+      link.type = 'image/png';
+      link.rel = 'shortcut icon';
+      link.href = '/logo.png?v=zahrat_2026';
+      document.getElementsByTagName('head')[0].appendChild(link);
+    } catch (_) {}
+
     axios.get('/api/settings/theme').then(res => {
       const data = res.data;
       if (data) {

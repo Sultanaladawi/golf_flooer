@@ -147,15 +147,22 @@ function ProductCard({ item, onOpen }) {
           <span className={styles.discountBadge}>-{discount}%</span>
         )}
         {videoSrc && !isOutOfStock && (
-          <span style={{
-            position: 'absolute', top: '12px', right: '12px',
-            background: 'rgba(26, 26, 26, 0.75)', color: 'var(--gold, #c5a36a)',
-            backdropFilter: 'blur(8px)',
-            padding: '4px 10px', borderRadius: '20px',
-            fontSize: '0.72rem', fontWeight: 800,
-            display: 'flex', alignItems: 'center', gap: '4px',
-            zIndex: 3, border: '1px solid rgba(197,163,106,0.4)'
-          }}>
+          <span 
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpen({ ...item, defaultMediaTab: 'video' });
+            }}
+            style={{
+              position: 'absolute', top: '12px', right: '12px',
+              background: 'rgba(26, 26, 26, 0.75)', color: 'var(--gold, #c5a36a)',
+              backdropFilter: 'blur(8px)',
+              padding: '4px 10px', borderRadius: '20px',
+              fontSize: '0.72rem', fontWeight: 800,
+              display: 'flex', alignItems: 'center', gap: '4px',
+              zIndex: 3, border: '1px solid rgba(197,163,106,0.4)',
+              cursor: 'pointer'
+            }}
+          >
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
             🎥 انسيابية العباية
           </span>
