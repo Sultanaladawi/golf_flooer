@@ -47,14 +47,19 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
 }
 
 async function ensureRemoteDir(scmHost, basicAuth, remoteDirPath) {
-  await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remoteDirPath}/`, 'PUT', null, { 'If-Match': '*' });
+  await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remoteDirPath}/`, 'PUT', null, {
+    'If-Match': '*',
+    'Content-Length': 0
+  });
 }
 
 async function uploadDirectFile(scmHost, basicAuth, localPath, remotePath) {
   if (!fs.existsSync(localPath)) return false;
   const content = fs.readFileSync(localPath);
   const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'PUT', content, {
-    'If-Match': '*'
+    'If-Match': '*',
+    'Content-Type': 'application/octet-stream',
+    'Content-Length': Buffer.byteLength(content)
   });
   ghNotice(`Uploaded ${remotePath} -> HTTP ${res.code} ${res.msg}`);
   return res.code >= 200 && res.code < 300;
