@@ -29,21 +29,9 @@ jobs:
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
           cp -r build release/
           cp package.json release/
-          
-          # Create media.zip for images and videos
-          mkdir -p /tmp/media_pkg
-          cp -r build/images /tmp/media_pkg/ 2>/dev/null || true
-          cp -r build/videos /tmp/media_pkg/ 2>/dev/null || true
-          cd /tmp/media_pkg && zip -r -q $GITHUB_WORKSPACE/media.zip . 2>/dev/null || true
-          cd $GITHUB_WORKSPACE
-          
-          # Remove media from core release.zip
           find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
           cd release && zip -r ../release.zip . && cd ..
           echo "Release ZIP size: $(du -sh release.zip | cut -f1)"
-          if [ -f media.zip ]; then
-            echo "Media ZIP size: $(du -sh media.zip | cut -f1)"
-          fi
 
       - name: Deploy to Azure Web App via Kudu API
         env:
