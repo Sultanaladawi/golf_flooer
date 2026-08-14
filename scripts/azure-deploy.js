@@ -55,15 +55,26 @@ async function clearDeploymentLocks(scmHost, basicAuth) {
 async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   if (!fs.existsSync(zipPath)) return false;
   const stats = fs.statSync(zipPath);
-  ghNotice(`Unpacking clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
+  ghNotice(`Deploying clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to Azure via /api/zipdeploy ...`);
 
   const stream = fs.createReadStream(zipPath);
-  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
-    'Content-Type': 'application/zip',
+  let res = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy', 'POST', stream, {
+    'Content-Type': 'application/octet-stream',
     'Content-Length': stats.size
   });
 
-  ghNotice(`Release ZIP unpack status: HTTP ${res.code} ${res.msg}`);
+  ghNotice(`ZipDeploy status: HTTP ${res.code} ${res.msg}`);
+
+  if (res.code < 200 || res.code >= 300) {
+    ghNotice('Fallback: Trying /api/zip/site/wwwroot/ endpoint...');
+    const stream2 = fs.createReadStream(zipPath);
+    res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream2, {
+      'Content-Type': 'application/zip',
+      'Content-Length': stats.size
+    });
+    ghNotice(`VFS Zip fallback status: HTTP ${res.code} ${res.msg}`);
+  }
+
   return res.code >= 200 && res.code < 300;
 }
 
