@@ -23,6 +23,8 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
+          cd build/static && zip -r -q ../../static.zip * && cd ../..
+          echo "static.zip size: $(du -sh static.zip | cut -f1)"
 
       - name: Bundle server.js and prepare clean release ZIP
         run: |
