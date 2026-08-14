@@ -33,75 +33,60 @@ jobs:
           cd release && zip -r ../release.zip . && cd ..
           echo "ZIP size: $(du -sh release.zip | cut -f1)"
 
-      - name: Extract credentials from publish profile and deploy via Kudu
+      - name: Debug and deploy via Kudu
         env:
           PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
-          echo "$PUBLISH_PROFILE" > /tmp/profile.xml
-          echo "--- Profile preview (first 200 chars) ---"
-          head -c 200 /tmp/profile.xml
+          # Write profile
+          printf '%s' "$PUBLISH_PROFILE" > /tmp/profile.xml
+          echo "Profile length: $(wc -c < /tmp/profile.xml)"
+          echo "First 300 chars:"
+          head -c 300 /tmp/profile.xml
+          echo ""
 
-          # Extract SCM URL, username, and password from publish profile
-          python3 << 'PYEOF'
-          import xml.etree.ElementTree as ET
-          import os
+          # Extract with grep (simpler than Python XML)
+          SCM_URL=$(grep -o 'publishUrl="[^"]*"' /tmp/profile.xml | head -1 | cut -d'"' -f2)
+          SCM_USER=$(grep -o 'userName="\$[^"]*"' /tmp/profile.xml | head -1 | cut -d'"' -f2)
+          SCM_PWD=$(grep -o 'userPWD="[^"]*"' /tmp/profile.xml | head -1 | cut -d'"' -f2)
 
-          with open('/tmp/profile.xml', 'r') as f:
-              content = f.read()
+          echo "SCM_URL found: $SCM_URL"
+          echo "SCM_USER found: $SCM_USER"
+          echo "PWD length: ${#SCM_PWD}"
 
-          tree = ET.fromstring(content)
-          profiles = tree.findall('publishProfile')
-          
-          msdeploy = None
-          for p in profiles:
-              if p.get('publishMethod') == 'MSDeploy':
-                  msdeploy = p
-                  break
-          
-          if not msdeploy:
-              print("ERROR: No MSDeploy profile found!")
-              print("Available profiles:")
-              for p in profiles:
-                  print(f"  - {p.get('publishMethod')}: {p.get('publishUrl')}")
-              exit(1)
-          
-          scm_url = msdeploy.get('publishUrl')
-          username = msdeploy.get('userName')
-          password = msdeploy.get('userPWD')
-          
-          print(f"SCM URL: {scm_url}")
-          print(f"Username: {username}")
-          
-          with open('/tmp/kudu_creds.sh', 'w') as f:
-              f.write(f'export SCM_URL="{scm_url}"\n')
-              f.write(f'export SCM_USER="{username}"\n')
-              f.write(f'export SCM_PWD="{password}"\n')
-          PYEOF
+          # Remove port from URL if present
+          SCM_HOST=$(echo "$SCM_URL" | sed 's/:[0-9]*$//')
+          echo "SCM_HOST: $SCM_HOST"
 
-          source /tmp/kudu_creds.sh
           echo "::add-mask::$SCM_PWD"
-          echo "SCM URL: $SCM_URL"
-          echo "Username: $SCM_USER"
 
-          # Build full Kudu zipdeploy URL
-          KUDU_URL="https://${SCM_URL}/api/zipdeploy?isAsync=false&clean=true"
+          KUDU_URL="https://${SCM_HOST}/api/zipdeploy?isAsync=false&clean=true"
           echo "Deploying to: $KUDU_URL"
 
-          HTTP_CODE=$(curl -s -o /tmp/deploy_out.txt -w "%{http_code}" \
+          HTTP_CODE=$(curl -v -s -o /tmp/deploy_out.txt -w "%{http_code}" \
+            --max-time 300 \
+            -X POST \
+            -u "${SCM_USER}:${SCM_PWD}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @release.zip \
+            "$KUDU_URL" 2>&1 || true)
+
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response:"
+          cat /tmp/deploy_out.txt || true
+
+          # Get actual HTTP code
+          CODE=$(curl -s -o /dev/null -w "%{http_code}" \
             --max-time 300 \
             -X POST \
             -u "${SCM_USER}:${SCM_PWD}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @release.zip \
             "$KUDU_URL")
+          echo "Final HTTP Code: $CODE"
 
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response:"
-          cat /tmp/deploy_out.txt || true
-
-          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ] || [ "$HTTP_CODE" = "204" ]; then
-            echo "Deployment SUCCESSFUL!"
+          if [ "$CODE" = "200" ] || [ "$CODE" = "202" ] || [ "$CODE" = "204" ]; then
+            echo "SUCCESS!"
           else
-            echo "Deployment FAILED with HTTP $HTTP_CODE"
+            echo "FAILED: $CODE"
             exit 1
           fi
