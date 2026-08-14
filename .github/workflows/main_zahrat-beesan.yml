@@ -1,4 +1,5 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy Node.js app to Azure Web App - zahrat-beesan
 
@@ -28,7 +29,7 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Bundle server.js and prepare lean release (no heavy media)
+      - name: Bundle server.js and create lean release ZIP
         run: |
           mkdir -p release
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
@@ -45,39 +46,13 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Fix Azure settings and deploy via az CLI
-        run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Resource Group: $RG"
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'zahrat-beesan'
+          package: 'release.zip'
 
-          # Remove the lock completely
-          az webapp config appsettings delete \
-            --name zahrat-beesan --resource-group "$RG" \
-            --setting-names WEBSITE_RUN_FROM_PACKAGE 2>/dev/null || true
-
-          # Set startup
-          az webapp config set \
-            --name zahrat-beesan --resource-group "$RG" \
-            --startup-file "node server.js"
-
-          # Stop app to release file lock
-          az webapp stop --name zahrat-beesan --resource-group "$RG"
-          sleep 15
-
-          # Deploy using az webapp deploy (not the GitHub Action)
-          az webapp deploy \
-            --name zahrat-beesan \
-            --resource-group "$RG" \
-            --src-path release.zip \
-            --type zip \
-            --async false \
-            --timeout 300
-
-          # Start app
-          az webapp start --name zahrat-beesan --resource-group "$RG"
-          echo "Deployment done!"
-
-      - name: Upload media files via az webapp deploy
+      - name: Upload media files
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           N=0
