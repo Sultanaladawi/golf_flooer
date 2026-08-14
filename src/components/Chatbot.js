@@ -340,9 +340,13 @@ export default function Chatbot() {
         </div>
       </div>
 
-      <button className={`${styles.fab} ${open ? styles.fabOpen : ''}`} onClick={toggleOpen} style={{ border: '1px solid var(--gold)' }}>
-        {open ? <i className="fas fa-times" style={{ color: 'var(--espresso)' }} /> : <i className="fas fa-gem" style={{ color: 'var(--espresso)' }} />}
-        {unread && !open && <span className={styles.badge} style={{ background: 'var(--gold)', color: 'var(--espresso)' }}>1</span>}
+      <button className={`${styles.fab} ${open ? styles.fabOpen : ''}`} onClick={toggleOpen} style={{ border: '1.5px solid rgba(255,255,255,0.4)', background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {open ? (
+          <span style={{ fontSize: '1.3rem', color: '#1a1209', fontWeight: 'bold' }}>✕</span>
+        ) : (
+          <span style={{ fontSize: '1.3rem' }} title="مستشارة الأناقة يافا">💎</span>
+        )}
+        {unread && !open && <span className={styles.badge} style={{ background: '#111827', color: '#f3ebd9', border: '1px solid #c5a880' }}>1</span>}
       </button>
     </>
   );
