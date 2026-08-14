@@ -10,14 +10,7 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function makeKuduUpload(scmHost, basicAuth, reqPath, filePath, isZip = false) {
-  if (!fs.existsSync(filePath)) {
-    ghError(`File not found: ${filePath}`);
-    return false;
-  }
-  const stats = fs.statSync(filePath);
-  ghNotice(`Uploading ${path.basename(filePath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to ${reqPath} ...`);
-
+async function executeUpload(scmHost, basicAuth, reqPath, filePath, fileSize, isZip = false, customHeaders = {}) {
   return new Promise((resolve) => {
     const stream = fs.createReadStream(filePath);
     const req = https.request({
@@ -28,37 +21,52 @@ async function makeKuduUpload(scmHost, basicAuth, reqPath, filePath, isZip = fal
       headers: {
         'Authorization': basicAuth,
         'Content-Type': isZip ? 'application/zip' : 'application/octet-stream',
-        'Content-Length': stats.size,
-        'If-Match': '*',
-        'User-Agent': 'Antigravity-Direct-Deployer/14.0'
+        'Content-Length': fileSize,
+        'User-Agent': 'Antigravity-Direct-Deployer/15.0',
+        ...customHeaders
       },
       timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
-      res.on('end', () => {
-        ghNotice(`${path.basename(filePath)} upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
-        resolve(res.statusCode >= 200 && res.statusCode < 300);
-      });
+      res.on('end', () => resolve({ statusCode: res.statusCode, statusMessage: res.statusMessage, body }));
     });
 
-    req.on('error', (err) => {
-      ghError(`Upload network error for ${path.basename(filePath)}: ${err.message}`);
-      resolve(false);
-    });
-
-    req.on('timeout', () => {
-      req.destroy();
-      ghError(`Upload timed out for ${path.basename(filePath)}`);
-      resolve(false);
-    });
+    req.on('error', (err) => resolve({ statusCode: 0, statusMessage: err.message, body: '' }));
+    req.on('timeout', () => { req.destroy(); resolve({ statusCode: 408, statusMessage: 'Timeout', body: '' }); });
 
     stream.pipe(req);
   });
 }
 
+async function makeKuduUpload(scmHost, basicAuth, reqPath, filePath, isZip = false) {
+  if (!fs.existsSync(filePath)) {
+    ghError(`File not found: ${filePath}`);
+    return false;
+  }
+  const stats = fs.statSync(filePath);
+  ghNotice(`Uploading ${path.basename(filePath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to ${reqPath} ...`);
+
+  // Try 1: without If-Match header (creates new file cleanly)
+  let res = await executeUpload(scmHost, basicAuth, reqPath, filePath, stats.size, isZip, {});
+  ghNotice(`${path.basename(filePath)} upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
+
+  // Try 2: If 412 / 409, retry with If-Match: *
+  if (res.statusCode === 409 || res.statusCode === 412 || res.statusCode === 400) {
+    ghNotice(`Retrying with If-Match: * overwrite header...`);
+    res = await executeUpload(scmHost, basicAuth, reqPath, filePath, stats.size, isZip, { 'If-Match': '*' });
+    ghNotice(`${path.basename(filePath)} overwrite status: HTTP ${res.statusCode} ${res.statusMessage}`);
+  }
+
+  if (res.statusCode < 200 || res.statusCode >= 300) {
+    if (res.body) ghNotice(`Error body: ${res.body.substring(0, 300)}`);
+  }
+
+  return res.statusCode >= 200 && res.statusCode < 300;
+}
+
 async function main() {
-  ghNotice('🚀 Starting Direct VFS File Upload to Azure wwwroot...');
+  ghNotice('🚀 Starting Direct VFS Upload with Smart Overwrite...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
