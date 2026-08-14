@@ -273,44 +273,65 @@ app.use((req, res, next) => {
   next();
 });
 
-// Robust static file serving with multiple directory fallbacks
+// Robust static file serving with zero-byte protection and multiple directory fallbacks
 app.use('/static', (req, res, next) => {
   const relPath = req.path.replace(/^\//, '');
-  const candidates = [
-    path.resolve(__dirname, 'build', 'static', relPath),
-    path.resolve(__dirname, 'static', relPath),
-    path.resolve(__dirname, 'public', 'static', relPath)
+  const isJs = relPath.endsWith('.js');
+  const isCss = relPath.endsWith('.css');
+
+  // Search all possible directories for a valid non-empty file (> 500 bytes)
+  const candidateDirs = [
+    path.resolve(__dirname, 'build', 'static'),
+    path.resolve(__dirname, 'static'),
+    path.resolve(__dirname, 'public', 'static')
   ];
-  for (const c of candidates) {
-    if (fs.existsSync(c) && fs.statSync(c).size > 0) {
-      if (relPath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-      if (relPath.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=utf-8');
-      return res.sendFile(c);
+
+  for (const dir of candidateDirs) {
+    const fullPath = path.join(dir, relPath);
+    if (fs.existsSync(fullPath)) {
+      try {
+        const sz = fs.statSync(fullPath).size;
+        if (sz > 500) {
+          if (isJs) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          if (isCss) res.setHeader('Content-Type', 'text/css; charset=utf-8');
+          return res.sendFile(fullPath);
+        }
+      } catch (_) {}
     }
   }
 
-  // Graceful fallback for main.js hash mismatch
-  if (relPath.startsWith('js/main.') && relPath.endsWith('.js')) {
-    for (const d of [path.resolve(__dirname, 'build', 'static', 'js'), path.resolve(__dirname, 'static', 'js')]) {
-      if (fs.existsSync(d)) {
-        const files = fs.readdirSync(d).filter(f => f.startsWith('main.') && f.endsWith('.js'));
-        if (files.length > 0) {
-          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          return res.sendFile(path.join(d, files[0]));
-        }
+  // Fallback for ANY JS file to the newest valid main.*.js (> 50KB)
+  if (isJs) {
+    for (const dir of [path.resolve(__dirname, 'build', 'static', 'js'), path.resolve(__dirname, 'static', 'js')]) {
+      if (fs.existsSync(dir)) {
+        try {
+          const files = fs.readdirSync(dir)
+            .filter(f => f.startsWith('main.') && f.endsWith('.js'))
+            .map(f => ({ name: f, full: path.join(dir, f), sz: fs.statSync(path.join(dir, f)).size }))
+            .filter(f => f.sz > 50000);
+          if (files.length > 0) {
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+            return res.sendFile(files[0].full);
+          }
+        } catch (_) {}
       }
     }
   }
 
-  // Graceful fallback for main.css hash mismatch
-  if (relPath.startsWith('css/main.') && relPath.endsWith('.css')) {
-    for (const d of [path.resolve(__dirname, 'build', 'static', 'css'), path.resolve(__dirname, 'static', 'css')]) {
-      if (fs.existsSync(d)) {
-        const files = fs.readdirSync(d).filter(f => f.startsWith('main.') && f.endsWith('.css'));
-        if (files.length > 0) {
-          res.setHeader('Content-Type', 'text/css; charset=utf-8');
-          return res.sendFile(path.join(d, files[0]));
-        }
+  // Fallback for ANY CSS file to the newest valid main.*.css (> 5KB)
+  if (isCss) {
+    for (const dir of [path.resolve(__dirname, 'build', 'static', 'css'), path.resolve(__dirname, 'static', 'css')]) {
+      if (fs.existsSync(dir)) {
+        try {
+          const files = fs.readdirSync(dir)
+            .filter(f => f.startsWith('main.') && f.endsWith('.css'))
+            .map(f => ({ name: f, full: path.join(dir, f), sz: fs.statSync(path.join(dir, f)).size }))
+            .filter(f => f.sz > 5000);
+          if (files.length > 0) {
+            res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            return res.sendFile(files[0].full);
+          }
+        } catch (_) {}
       }
     }
   }
@@ -319,8 +340,6 @@ app.use('/static', (req, res, next) => {
 });
 
 const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
-app.use('/static', express.static(path.resolve(__dirname, 'build', 'static'), cacheOptions));
-app.use('/static', express.static(path.resolve(__dirname, 'static'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'build'), { ...cacheOptions, index: false }));
 app.use(express.static(path.resolve(__dirname), { ...cacheOptions, index: false }));
 app.use('/public/images', express.static(path.resolve(dataDir, 'public', 'images'), cacheOptions));
