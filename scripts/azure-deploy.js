@@ -10,67 +10,54 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
-  const safePath = encodeURI(reqPath);
+async function uploadZipBuffer(scmHost, basicAuth, zipPath) {
+  if (!fs.existsSync(zipPath)) return false;
+  const buffer = fs.readFileSync(zipPath);
+  ghNotice(`Sending raw atomic zip buffer (${(buffer.length / (1024 * 1024)).toFixed(2)} MB) to /api/zip/site/wwwroot/ ...`);
+
   return new Promise((resolve) => {
     const req = https.request({
       hostname: scmHost,
       port: 443,
-      path: safePath,
-      method: method,
+      path: '/api/zip/site/wwwroot/',
+      method: 'PUT',
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Release-Deployer/10.0',
-        ...headers
+        'Content-Type': 'application/zip',
+        'Content-Length': buffer.length,
+        'User-Agent': 'Antigravity-Deployer/11.0'
       },
-      timeout: 180000
+      timeout: 240000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
-      res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      res.on('end', () => {
+        ghNotice(`Zip upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          ghError(`Zip upload error body: ${body}`);
+        }
+        resolve(res.statusCode >= 200 && res.statusCode < 300);
+      });
     });
 
-    req.on('error', (err) => resolve({ code: 0, msg: err.message, body: '' }));
-    req.on('timeout', () => { req.destroy(); resolve({ code: 408, msg: 'Timeout', body: '' }); });
+    req.on('error', (err) => {
+      ghError(`Zip upload network error: ${err.message}`);
+      resolve(false);
+    });
 
-    if (data) {
-      if (typeof data.pipe === 'function') {
-        data.pipe(req);
-      } else {
-        req.write(data);
-        req.end();
-      }
-    } else {
-      req.end();
-    }
+    req.on('timeout', () => {
+      req.destroy();
+      ghError('Zip upload timed out');
+      resolve(false);
+    });
+
+    req.write(buffer);
+    req.end();
   });
-}
-
-async function deleteOldBrokenServerFile(scmHost, basicAuth) {
-  ghNotice('Deleting old broken server.js from /site/wwwroot/ ...');
-  const res = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', 'DELETE', null, {
-    'If-Match': '*'
-  });
-  ghNotice(`Delete server.js status: HTTP ${res.code} ${res.msg}`);
-}
-
-async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
-  if (!fs.existsSync(zipPath)) return false;
-  const stats = fs.statSync(zipPath);
-  ghNotice(`Unpacking clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
-
-  const stream = fs.createReadStream(zipPath);
-  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
-    'Content-Type': 'application/zip',
-    'Content-Length': stats.size
-  });
-
-  ghNotice(`Release ZIP unpack status: HTTP ${res.code} ${res.msg}`);
-  return res.code >= 200 && res.code < 300;
 }
 
 async function main() {
-  ghNotice('🚀 Starting 100% Clean Direct Deployment to wwwroot...');
+  ghNotice('🚀 Starting 100% Clean Atomic Deployment to Azure wwwroot...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -110,19 +97,15 @@ async function main() {
   ghNotice(`Target: ${scmHost} (User: ${userName})`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
-
-  // Step 1: Explicitly delete any old broken server.js
-  await deleteOldBrokenServerFile(scmHost, basicAuth);
-
-  // Step 2: Extract clean release.zip
   const releaseZip = path.resolve(process.cwd(), 'release.zip');
-  const ok = await uploadZipToWwwroot(scmHost, basicAuth, releaseZip);
+
+  const ok = await uploadZipBuffer(scmHost, basicAuth, releaseZip);
   if (!ok) {
-    ghError('Release ZIP deployment failed.');
+    ghError('Deployment failed.');
     process.exit(1);
   }
 
-  ghNotice('🎉 CLEAN SELF-CONTAINED RELEASE DEPLOYED!');
+  ghNotice('🎉 100% ATOMIC RELEASE DEPLOYED SUCCESSFULLY TO AZURE!');
 }
 
 main().catch(err => {
