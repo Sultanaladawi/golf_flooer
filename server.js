@@ -4072,7 +4072,7 @@ app.post('/api/settings/theme', async (req, res) => {
 });
 
 // --- ZAHRAT BEESAN TECH & SOFTWARE LEADS API ---
-app.post('/api/tech/lead', async (req, res) => {
+app.post(['/api/tech/lead', '/api/tech-lead', '/api/tech-leads'], async (req, res) => {
   try {
     const { name, phone, email, company, service, budget, details, estimated_quote, calculator_details } = req.body;
     if (!name || !phone) {
@@ -4104,7 +4104,7 @@ app.post('/api/tech/lead', async (req, res) => {
   }
 });
 
-app.get('/api/admin/tech-leads', async (req, res) => {
+app.get(['/api/admin/tech-leads', '/api/admin/tech-lead'], async (req, res) => {
   try {
     const promiseDb = db.promise();
     const [rows] = await promiseDb.query("SELECT * FROM tech_leads ORDER BY id DESC");
