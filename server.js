@@ -4039,15 +4039,20 @@ app.get(/.*/, (req, res) => {
 
   for (const idx of indexCandidates) {
     if (fs.existsSync(idx)) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      return res.sendFile(idx);
+      try {
+        const html = fs.readFileSync(idx, 'utf8');
+        if (html && html.trim().length > 50) {
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
+          return res.send(html);
+        }
+      } catch (e) {}
     }
   }
 
-  res.send('Zahrat Beesan Server is LIVE. Loading app...');
+  res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');
 });
 
 app.listen(PORT, () => {

@@ -66,13 +66,10 @@ async function uploadDirectFile(scmHost, basicAuth, localPath, remotePath) {
   const content = fs.readFileSync(localPath);
   const mime = remotePath.endsWith('.css')
     ? 'text/css'
-    : (remotePath.endsWith('.js') ? 'application/javascript' : (remotePath.endsWith('.html') ? 'text/html' : 'application/octet-stream'));
-
-  await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'DELETE', null, {
-    'If-Match': '*'
-  });
+    : (remotePath.endsWith('.js') ? 'application/javascript' : (remotePath.endsWith('.html') ? 'text/html; charset=utf-8' : 'application/octet-stream'));
 
   const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'PUT', content, {
+    'If-Match': '*',
     'Content-Type': mime,
     'Content-Length': Buffer.byteLength(content)
   });
