@@ -1,5 +1,4 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy Node.js app to Azure Web App - zahrat-beesan
 
@@ -46,11 +45,22 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          package: 'release.zip'
+      - name: Deploy via az webapp deploy CLI (not GitHub Action)
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Resource Group: $RG"
+          echo "App status:"
+          az webapp show --name zahrat-beesan --resource-group "$RG" --query "state" -o tsv
+
+          echo "Deploying ZIP..."
+          az webapp deploy \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --src-path release.zip \
+            --type zip \
+            --async false \
+            --timeout 600
+          echo "Deploy complete!"
 
       - name: Upload media files
         run: |
