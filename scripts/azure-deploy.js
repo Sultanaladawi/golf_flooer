@@ -20,10 +20,10 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Universal-Deployer/1.0',
+        'User-Agent': 'Antigravity-Azure-Deployer/10.0',
         ...headers
       },
-      timeout: 180000
+      timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
@@ -46,45 +46,40 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function deployZipArchive(scmHost, basicAuth, zipPath, zipSize) {
-  ghNotice(`Uploading full release package (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to Azure...`);
+async function doZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
+  ghNotice(`Initializing Clean ZipDeploy (${(zipSize / (1024 * 1024)).toFixed(2)} MB)...`);
 
-  // Method 1: Kudu VFS Zip Extract API
-  ghNotice('Method 1: PUT /api/zip/site/wwwroot/ with Content-Type: application/zip ...');
-  const stream1 = fs.createReadStream(zipPath);
-  const vfsRes = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream1, {
-    'Content-Type': 'application/zip',
-    'Content-Length': zipSize
-  });
+  const maxAttempts = 6;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    ghNotice(`[Attempt ${attempt}/${maxAttempts}] Sending release.zip to /api/zipdeploy?isAsync=true&clean=true ...`);
 
-  ghNotice(`VFS Zip API Result: HTTP ${vfsRes.code} ${vfsRes.msg}`);
-  if (vfsRes.code >= 200 && vfsRes.code < 300) {
-    ghNotice('🎉 Successfully unpacked entire application to /site/wwwroot/ !');
-    return true;
-  }
-
-  // Method 2: ZipDeploy API fallback
-  ghNotice('Method 2: POST /api/zipdeploy?isAsync=true&clean=false ...');
-  for (let i = 1; i <= 3; i++) {
-    const stream2 = fs.createReadStream(zipPath);
-    const zdRes = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=false', 'POST', stream2, {
-      'Content-Type': 'application/zip',
+    const stream = fs.createReadStream(zipPath);
+    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=true', 'POST', stream, {
+      'Content-Type': 'application/octet-stream',
       'Content-Length': zipSize
     });
 
-    ghNotice(`ZipDeploy Attempt ${i}: HTTP ${zdRes.code} ${zdRes.msg}`);
-    if (zdRes.code >= 200 && zdRes.code < 300) {
-      ghNotice('🎉 ZipDeploy accepted and extraction queued successfully!');
+    ghNotice(`ZipDeploy Status: HTTP ${result.code} ${result.msg}`);
+
+    if (result.code >= 200 && result.code < 300) {
+      ghNotice('🎉 SUCCESS! Azure ZipDeploy accepted the package and initiated container reload.');
       return true;
     }
-    await new Promise(r => setTimeout(r, 15000));
+
+    if (result.code === 409) {
+      ghNotice(`⏳ Azure deployment engine is busy (409). Waiting 25s before retry...`);
+      await new Promise(r => setTimeout(r, 25000));
+    } else {
+      ghNotice(`Response: ${result.body.substring(0, 150)}`);
+      await new Promise(r => setTimeout(r, 10000));
+    }
   }
 
   return false;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Comprehensive Azure Deployment...');
+  ghNotice('🚀 Starting Azure Deploy Engine...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -133,16 +128,13 @@ async function main() {
 
   const zipStats = fs.statSync(zipPath);
 
-  const ok = await deployZipArchive(scmHost, basicAuth, zipPath, zipStats.size);
+  const ok = await doZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
   if (!ok) {
-    ghError('Zip package deployment failed.');
+    ghError('ZipDeploy failed after all attempts.');
     process.exit(1);
   }
 
-  // Touch restart file
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/restart.txt', 'PUT', new Date().toISOString(), { 'If-Match': '*' });
-
-  ghNotice('🎉 DEPLOYMENT COMPLETED 100% SUCCESSFULLY!');
+  ghNotice('🎉 DEPLOYMENT AND CONTAINER REBOOT SIGNALED SUCCESSFULLY IN AZURE!');
 }
 
 main().catch(err => {
