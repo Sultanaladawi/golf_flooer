@@ -20,9 +20,10 @@ async function uploadZipFile(scmHost, basicAuth, zipFilePath, targetPath = '/api
   const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
   const baseName = path.basename(zipFilePath);
 
-  ghNotice(`Uploading ${baseName} (${sizeMB} MB) to https://${scmHost}${targetPath} ...`);
+  // Attempt 1: Direct VFS Zip Upload (PUT)
+  ghNotice(`[Method 1: VFS] Uploading ${baseName} (${sizeMB} MB) to https://${scmHost}${targetPath} ...`);
 
-  return new Promise((resolve, reject) => {
+  let vfsOk = await new Promise((resolve) => {
     const req = https.request({
       hostname: scmHost,
       port: 443,
@@ -34,33 +35,78 @@ async function uploadZipFile(scmHost, basicAuth, zipFilePath, targetPath = '/api
         'Content-Length': stats.size,
         'User-Agent': 'Antigravity-Azure-Deployer/3.0'
       },
-      timeout: 300000 // 5 minutes timeout
+      timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
       res.on('end', () => {
-        ghNotice(`${baseName} HTTP ${res.statusCode} ${res.statusMessage}`);
+        ghNotice(`${baseName} VFS Response: HTTP ${res.statusCode} ${res.statusMessage}`);
         if (res.statusCode >= 200 && res.statusCode < 300) {
           resolve(true);
         } else {
-          ghError(`${baseName} failed with HTTP ${res.statusCode}: ${body.substring(0, 200)}`);
+          ghNotice(`${baseName} VFS notice (${res.statusCode}): ${body.substring(0, 150)}`);
           resolve(false);
         }
       });
     });
 
     req.on('error', (err) => {
-      ghError(`Network error uploading ${baseName}: ${err.message}`);
-      reject(err);
+      ghNotice(`VFS connection error: ${err.message}`);
+      resolve(false);
     });
 
     req.on('timeout', () => {
-      req.destroy(new Error(`Upload timed out for ${baseName}`));
+      req.destroy();
+      resolve(false);
     });
 
     const stream = fs.createReadStream(zipFilePath);
     stream.pipe(req);
   });
+
+  if (vfsOk) return true;
+
+  // Attempt 2: ZipDeploy (POST /api/zipdeploy?isAsync=false)
+  ghNotice(`[Method 2: ZipDeploy] Uploading ${baseName} via /api/zipdeploy ...`);
+  await new Promise(r => setTimeout(r, 2000));
+
+  let zipDeployOk = await new Promise((resolve) => {
+    const req = https.request({
+      hostname: scmHost,
+      port: 443,
+      path: '/api/zipdeploy?isAsync=false&clean=false',
+      method: 'POST',
+      headers: {
+        'Authorization': basicAuth,
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': stats.size,
+        'User-Agent': 'Antigravity-Azure-Deployer/3.0'
+      },
+      timeout: 300000
+    }, (res) => {
+      let body = '';
+      res.on('data', c => { body += c; });
+      res.on('end', () => {
+        ghNotice(`${baseName} ZipDeploy Response: HTTP ${res.statusCode} ${res.statusMessage}`);
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(true);
+        } else {
+          ghError(`${baseName} ZipDeploy failed (${res.statusCode}): ${body.substring(0, 200)}`);
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      ghError(`ZipDeploy connection error: ${err.message}`);
+      resolve(false);
+    });
+
+    const stream = fs.createReadStream(zipFilePath);
+    stream.pipe(req);
+  });
+
+  return zipDeployOk;
 }
 
 function getAllFiles(dirPath, arrayOfFiles = []) {
@@ -105,7 +151,6 @@ async function packageAndUploadMediaChunks(scmHost, basicAuth) {
   for (const filePath of allFiles) {
     const size = fs.statSync(filePath).size;
     if (currentChunkSize + size > CHUNK_LIMIT && currentChunkFiles.length > 0) {
-      // Create zip for current chunk
       const zipName = path.join(chunkDir, `media_part_${chunkIndex}.zip`);
       const fileListTxt = path.join(chunkDir, `files_${chunkIndex}.txt`);
       fs.writeFileSync(fileListTxt, currentChunkFiles.map(f => path.relative(process.cwd(), f)).join('\n'));
@@ -188,7 +233,7 @@ async function main() {
   // Step 1: Upload Core App release.zip
   const coreOk = await uploadZipFile(scmHost, basicAuth, path.resolve(process.cwd(), 'release.zip'));
   if (!coreOk) {
-    ghError('Core release.zip deployment failed!');
+    ghError('Core release.zip deployment failed on both VFS and ZipDeploy!');
     process.exit(1);
   }
 
