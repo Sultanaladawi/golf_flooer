@@ -1,4 +1,4 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# Deploy to Azure via FTP (direct, reliable, no API conflicts)
 
 name: Build and deploy Node.js app to Azure Web App - zahrat-beesan
 
@@ -28,7 +28,7 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Bundle server.js and create lean release ZIP
+      - name: Bundle server.js and prepare release folder
         run: |
           mkdir -p release
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
@@ -45,34 +45,40 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Deploy via az webapp deploy CLI (not GitHub Action)
+      - name: Get publish profile credentials
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "Resource Group: $RG"
-          echo "App status:"
-          az webapp show --name zahrat-beesan --resource-group "$RG" --query "state" -o tsv
-
-          echo "Deploying ZIP..."
-          az webapp deploy \
+          echo "RG=$RG" >> $GITHUB_ENV
+          CREDS=$(az webapp deployment list-publishing-credentials \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --src-path release.zip \
-            --type zip \
-            --async false \
-            --timeout 600
-          echo "Deploy complete!"
+            --output json)
+          FTP_URL=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['ftpsUri'])")
+          FTP_USER=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['publishingUserName'])")
+          FTP_PWD=$(echo "$CREDS" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['publishingPassword'])")
+          echo "FTP_URL=$FTP_URL" >> $GITHUB_ENV
+          echo "FTP_USER=$FTP_USER" >> $GITHUB_ENV
+          echo "::add-mask::$FTP_PWD"
+          echo "FTP_PWD=$FTP_PWD" >> $GITHUB_ENV
+          echo "Got FTP credentials."
 
-      - name: Upload media files
+      - name: Deploy via Kudu REST API zipdeploy
         run: |
-          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          N=0
-          for f in $(find build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) 2>/dev/null); do
-            REL="${f#build/}"
-            az webapp deploy \
-              --name zahrat-beesan --resource-group "$RG" \
-              --src-path "$f" \
-              --target-path "/home/site/wwwroot/build/$REL" \
-              --type static --async true 2>/dev/null || true
-            N=$((N+1))
-          done
-          echo "Uploaded $N media files"
+          echo "Deploying via Kudu zipdeploy..."
+          KUDU_URL="https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false&clean=true"
+          HTTP=$(curl -v -s -w "\n%{http_code}" \
+            --max-time 300 \
+            -X POST \
+            -u "${FTP_USER}:${FTP_PWD}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @release.zip \
+            "$KUDU_URL" 2>&1)
+          echo "$HTTP"
+          CODE=$(echo "$HTTP" | tail -1)
+          echo "HTTP Status: $CODE"
+          if [ "$CODE" = "200" ] || [ "$CODE" = "202" ] || [ "$CODE" = "204" ]; then
+            echo "Deployment SUCCESSFUL!"
+          else
+            echo "ERROR: Deployment returned status $CODE"
+            exit 1
+          fi
