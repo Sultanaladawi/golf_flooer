@@ -10,54 +10,93 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function uploadZipBuffer(scmHost, basicAuth, zipPath) {
-  if (!fs.existsSync(zipPath)) return false;
-  const buffer = fs.readFileSync(zipPath);
-  ghNotice(`Sending raw atomic zip buffer (${(buffer.length / (1024 * 1024)).toFixed(2)} MB) to /api/zip/site/wwwroot/ ...`);
-
+async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
+  const safePath = encodeURI(reqPath);
   return new Promise((resolve) => {
     const req = https.request({
       hostname: scmHost,
       port: 443,
-      path: '/api/zip/site/wwwroot/',
-      method: 'PUT',
+      path: safePath,
+      method: method,
       headers: {
         'Authorization': basicAuth,
-        'Content-Type': 'application/zip',
-        'Content-Length': buffer.length,
-        'User-Agent': 'Antigravity-Deployer/11.0'
+        'User-Agent': 'Antigravity-ZipDeployer/12.0',
+        ...headers
       },
-      timeout: 240000
+      timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
-      res.on('end', () => {
-        ghNotice(`Zip upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
-        if (res.statusCode < 200 || res.statusCode >= 300) {
-          ghError(`Zip upload error body: ${body}`);
-        }
-        resolve(res.statusCode >= 200 && res.statusCode < 300);
-      });
+      res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body, headers: res.headers }));
     });
 
-    req.on('error', (err) => {
-      ghError(`Zip upload network error: ${err.message}`);
-      resolve(false);
-    });
+    req.on('error', (err) => resolve({ code: 0, msg: err.message, body: '' }));
+    req.on('timeout', () => { req.destroy(); resolve({ code: 408, msg: 'Timeout', body: '' }); });
 
-    req.on('timeout', () => {
-      req.destroy();
-      ghError('Zip upload timed out');
-      resolve(false);
-    });
-
-    req.write(buffer);
-    req.end();
+    if (data) {
+      req.write(data);
+      req.end();
+    } else {
+      req.end();
+    }
   });
 }
 
+async function deployZipViaZipDeploy(scmHost, basicAuth, zipPath) {
+  if (!fs.existsSync(zipPath)) {
+    ghError(`Zip file not found: ${zipPath}`);
+    return false;
+  }
+
+  const buffer = fs.readFileSync(zipPath);
+  ghNotice(`Deploying ${path.basename(zipPath)} (${(buffer.length / (1024 * 1024)).toFixed(2)} MB) via POST /api/zipdeploy?isAsync=false ...`);
+
+  const res = await makeKuduRequest(
+    scmHost,
+    basicAuth,
+    '/api/zipdeploy?isAsync=false',
+    'POST',
+    buffer,
+    {
+      'Content-Type': 'application/zip',
+      'Content-Length': buffer.length
+    }
+  );
+
+  ghNotice(`ZipDeploy response: HTTP ${res.code} ${res.msg}`);
+  if (res.body && res.body.trim().length > 0) {
+    ghNotice(`Response details: ${res.body.substring(0, 300)}`);
+  }
+
+  if (res.code >= 200 && res.code < 300) {
+    ghNotice('✅ ZipDeploy succeeded with 2xx status!');
+    return true;
+  }
+
+  // Fallback: If 409 or other conflict, try VFS PUT
+  ghNotice('Attempting VFS /api/zip/site/wwwroot/ fallback...');
+  const vfsRes = await makeKuduRequest(
+    scmHost,
+    basicAuth,
+    '/api/zip/site/wwwroot/',
+    'PUT',
+    buffer,
+    {
+      'Content-Type': 'application/zip',
+      'Content-Length': buffer.length
+    }
+  );
+
+  ghNotice(`VFS fallback response: HTTP ${vfsRes.code} ${vfsRes.msg}`);
+  if (vfsRes.body) {
+    ghNotice(`VFS details: ${vfsRes.body.substring(0, 300)}`);
+  }
+
+  return vfsRes.code >= 200 && vfsRes.code < 300;
+}
+
 async function main() {
-  ghNotice('🚀 Starting 100% Clean Atomic Deployment to Azure wwwroot...');
+  ghNotice('🚀 Starting Official Azure ZipDeploy...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -99,13 +138,13 @@ async function main() {
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
   const releaseZip = path.resolve(process.cwd(), 'release.zip');
 
-  const ok = await uploadZipBuffer(scmHost, basicAuth, releaseZip);
+  const ok = await deployZipViaZipDeploy(scmHost, basicAuth, releaseZip);
   if (!ok) {
-    ghError('Deployment failed.');
+    ghError('Deployment failed on both ZipDeploy and VFS fallback.');
     process.exit(1);
   }
 
-  ghNotice('🎉 100% ATOMIC RELEASE DEPLOYED SUCCESSFULLY TO AZURE!');
+  ghNotice('🎉 DEPLOYMENT FINISHED SUCCESSFULLY!');
 }
 
 main().catch(err => {
