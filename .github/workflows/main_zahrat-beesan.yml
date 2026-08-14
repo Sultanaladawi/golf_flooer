@@ -51,16 +51,16 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Reset App Settings and Startup
+      - name: Configure Azure App Settings and Startup
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
           echo "Resource Group: $RG"
           
-          echo "Clearing conflicting package settings..."
-          az webapp config appsettings delete \
+          echo "Enabling WEBSITE_RUN_FROM_PACKAGE=1 for atomic package execution..."
+          az webapp config appsettings set \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
+            --settings WEBSITE_RUN_FROM_PACKAGE="1"
           
           echo "Setting startup file to node server.js..."
           az webapp config set \
