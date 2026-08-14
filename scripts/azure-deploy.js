@@ -1,7 +1,6 @@
 const fs = require('fs');
 const https = require('https');
 const path = require('path');
-const { execSync } = require('child_process');
 
 function ghNotice(msg) {
   console.log(`::notice::${msg}`);
@@ -11,180 +10,8 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function uploadZipFile(scmHost, basicAuth, zipFilePath, targetPath = '/api/zip/site/wwwroot/') {
-  if (!fs.existsSync(zipFilePath)) {
-    return false;
-  }
-
-  const stats = fs.statSync(zipFilePath);
-  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
-  const baseName = path.basename(zipFilePath);
-
-  // Attempt 1: Direct VFS Zip Upload (PUT)
-  ghNotice(`[Method 1: VFS] Uploading ${baseName} (${sizeMB} MB) to https://${scmHost}${targetPath} ...`);
-
-  let vfsOk = await new Promise((resolve) => {
-    const req = https.request({
-      hostname: scmHost,
-      port: 443,
-      path: targetPath,
-      method: 'PUT',
-      headers: {
-        'Authorization': basicAuth,
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': stats.size,
-        'User-Agent': 'Antigravity-Azure-Deployer/3.0'
-      },
-      timeout: 300000
-    }, (res) => {
-      let body = '';
-      res.on('data', c => { body += c; });
-      res.on('end', () => {
-        ghNotice(`${baseName} VFS Response: HTTP ${res.statusCode} ${res.statusMessage}`);
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(true);
-        } else {
-          ghNotice(`${baseName} VFS notice (${res.statusCode}): ${body.substring(0, 150)}`);
-          resolve(false);
-        }
-      });
-    });
-
-    req.on('error', (err) => {
-      ghNotice(`VFS connection error: ${err.message}`);
-      resolve(false);
-    });
-
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(false);
-    });
-
-    const stream = fs.createReadStream(zipFilePath);
-    stream.pipe(req);
-  });
-
-  if (vfsOk) return true;
-
-  // Attempt 2: ZipDeploy (POST /api/zipdeploy?isAsync=false)
-  ghNotice(`[Method 2: ZipDeploy] Uploading ${baseName} via /api/zipdeploy ...`);
-  await new Promise(r => setTimeout(r, 2000));
-
-  let zipDeployOk = await new Promise((resolve) => {
-    const req = https.request({
-      hostname: scmHost,
-      port: 443,
-      path: '/api/zipdeploy?isAsync=false&clean=false',
-      method: 'POST',
-      headers: {
-        'Authorization': basicAuth,
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': stats.size,
-        'User-Agent': 'Antigravity-Azure-Deployer/3.0'
-      },
-      timeout: 300000
-    }, (res) => {
-      let body = '';
-      res.on('data', c => { body += c; });
-      res.on('end', () => {
-        ghNotice(`${baseName} ZipDeploy Response: HTTP ${res.statusCode} ${res.statusMessage}`);
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(true);
-        } else {
-          ghError(`${baseName} ZipDeploy failed (${res.statusCode}): ${body.substring(0, 200)}`);
-          resolve(false);
-        }
-      });
-    });
-
-    req.on('error', (err) => {
-      ghError(`ZipDeploy connection error: ${err.message}`);
-      resolve(false);
-    });
-
-    const stream = fs.createReadStream(zipFilePath);
-    stream.pipe(req);
-  });
-
-  return zipDeployOk;
-}
-
-function getAllFiles(dirPath, arrayOfFiles = []) {
-  if (!fs.existsSync(dirPath)) return arrayOfFiles;
-  const files = fs.readdirSync(dirPath);
-  files.forEach((file) => {
-    const fullPath = path.join(dirPath, file);
-    if (fs.statSync(fullPath).isDirectory()) {
-      arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
-    } else {
-      arrayOfFiles.push(fullPath);
-    }
-  });
-  return arrayOfFiles;
-}
-
-async function packageAndUploadMediaChunks(scmHost, basicAuth) {
-  const mediaDir = path.resolve(process.cwd(), 'build');
-  if (!fs.existsSync(mediaDir)) return;
-
-  const allFiles = getAllFiles(mediaDir).filter(f => {
-    const ext = path.extname(f).toLowerCase();
-    return ['.png', '.jpg', '.jpeg', '.webp', '.mp4', '.gif', '.svg'].includes(ext);
-  });
-
-  if (allFiles.length === 0) {
-    ghNotice('No media files found in build to upload.');
-    return;
-  }
-
-  ghNotice(`Found ${allFiles.length} media files. Chunking into <35MB packages...`);
-
-  const chunkDir = path.resolve('/tmp/media_chunks');
-  if (!fs.existsSync(chunkDir)) fs.mkdirSync(chunkDir, { recursive: true });
-
-  const CHUNK_LIMIT = 35 * 1024 * 1024; // 35 MB safe limit
-  let currentChunkFiles = [];
-  let currentChunkSize = 0;
-  let chunkIndex = 1;
-  const createdZips = [];
-
-  for (const filePath of allFiles) {
-    const size = fs.statSync(filePath).size;
-    if (currentChunkSize + size > CHUNK_LIMIT && currentChunkFiles.length > 0) {
-      const zipName = path.join(chunkDir, `media_part_${chunkIndex}.zip`);
-      const fileListTxt = path.join(chunkDir, `files_${chunkIndex}.txt`);
-      fs.writeFileSync(fileListTxt, currentChunkFiles.map(f => path.relative(process.cwd(), f)).join('\n'));
-      execSync(`zip -q -@ "${zipName}" < "${fileListTxt}"`, { cwd: process.cwd() });
-      createdZips.push(zipName);
-      chunkIndex++;
-      currentChunkFiles = [];
-      currentChunkSize = 0;
-    }
-    currentChunkFiles.push(filePath);
-    currentChunkSize += size;
-  }
-
-  if (currentChunkFiles.length > 0) {
-    const zipName = path.join(chunkDir, `media_part_${chunkIndex}.zip`);
-    const fileListTxt = path.join(chunkDir, `files_${chunkIndex}.txt`);
-    fs.writeFileSync(fileListTxt, currentChunkFiles.map(f => path.relative(process.cwd(), f)).join('\n'));
-    execSync(`zip -q -@ "${zipName}" < "${fileListTxt}"`, { cwd: process.cwd() });
-    createdZips.push(zipName);
-  }
-
-  ghNotice(`Created ${createdZips.length} media chunk(s). Uploading to Azure...`);
-
-  for (let i = 0; i < createdZips.length; i++) {
-    const zipFile = createdZips[i];
-    ghNotice(`[Chunk ${i + 1}/${createdZips.length}] Uploading ${path.basename(zipFile)}...`);
-    await uploadZipFile(scmHost, basicAuth, zipFile);
-  }
-
-  ghNotice('🎉 All media assets deployed successfully!');
-}
-
 async function main() {
-  ghNotice('🚀 Starting Azure Deploy via Kudu API...');
+  ghNotice('Starting Azure Deploy via Kudu API...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -192,7 +19,10 @@ async function main() {
     process.exit(1);
   }
 
+  ghNotice(`Secret length: ${rawSecret.length} chars`);
+
   const profileBlocks = rawSecret.match(/<publishProfile[\s\S]*?(?:\/>|>[\s\S]*?<\/publishProfile>)/gi) || [];
+  ghNotice(`Detected ${profileBlocks.length} profile block(s) in XML.`);
 
   const getAttr = (block, attrName) => {
     const match = block.match(new RegExp(`${attrName}\\s*=\\s*["']([^"']+)["']`, 'i'));
@@ -211,14 +41,35 @@ async function main() {
     }
   }
 
+  if (!selectedBlock) {
+    for (const block of profileBlocks) {
+      const url = getAttr(block, 'publishUrl') || '';
+      if (url.includes('scm') || url.includes('azurewebsites')) {
+        selectedBlock = block;
+        publishMethod = getAttr(block, 'publishMethod') || 'SCM';
+        break;
+      }
+    }
+  }
+
   if (!selectedBlock && profileBlocks.length > 0) {
     selectedBlock = profileBlocks[0];
     publishMethod = getAttr(selectedBlock, 'publishMethod') || 'Default';
   }
 
+  if (!selectedBlock) {
+    ghError('Could not find valid <publishProfile> in secret!');
+    process.exit(1);
+  }
+
   const rawUrl = getAttr(selectedBlock, 'publishUrl');
   const userName = getAttr(selectedBlock, 'userName');
   const userPWD = getAttr(selectedBlock, 'userPWD');
+
+  if (!rawUrl || !userName || !userPWD) {
+    ghError(`Missing fields: URL=${!!rawUrl}, User=${!!userName}, PWD=${!!userPWD}`);
+    process.exit(1);
+  }
 
   const scmHost = rawUrl
     .replace(/^https?:\/\//i, '')
@@ -226,25 +77,108 @@ async function main() {
     .replace(/:\d+$/, '')
     .trim();
 
-  ghNotice(`Deploying to ${scmHost} (User: ${userName})`);
+  ghNotice(`Method: ${publishMethod}, Host: ${scmHost}, User: ${userName}`);
 
-  const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
-
-  // Step 1: Upload Core App release.zip
-  const coreOk = await uploadZipFile(scmHost, basicAuth, path.resolve(process.cwd(), 'release.zip'));
-  if (!coreOk) {
-    ghError('Core release.zip deployment failed on both VFS and ZipDeploy!');
+  const zipPath = path.resolve(process.cwd(), 'release.zip');
+  if (!fs.existsSync(zipPath)) {
+    ghError(`release.zip not found at ${zipPath}`);
     process.exit(1);
   }
 
-  // Step 2: Chunk and upload all media assets safely under 35MB limits
+  const zipStats = fs.statSync(zipPath);
+  const zipSizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
+  ghNotice(`Package: release.zip (${zipSizeMB} MB)`);
+
+  const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
+
+  ghNotice(`Attempting Direct VFS Zip Extract (PUT /api/zip/site/wwwroot/)...`);
+
+  let success = false;
+
   try {
-    await packageAndUploadMediaChunks(scmHost, basicAuth);
-  } catch (mediaErr) {
-    ghNotice(`Media upload notice: ${mediaErr.message}`);
+    const vfsResult = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zip/site/wwwroot/',
+        method: 'PUT',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipStats.size,
+          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      });
+
+      req.on('error', reject);
+      req.on('timeout', () => req.destroy(new Error('VFS Upload timed out')));
+
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
+    });
+
+    ghNotice(`VFS Deploy Response: HTTP ${vfsResult.code} ${vfsResult.msg}`);
+
+    if (vfsResult.code >= 200 && vfsResult.code < 300) {
+      ghNotice('🎉 SUCCESS! Files extracted directly into /home/site/wwwroot/');
+      success = true;
+    } else {
+      ghNotice(`VFS returned HTTP ${vfsResult.code}: ${vfsResult.body.substring(0, 200)}`);
+    }
+  } catch (err) {
+    ghNotice(`VFS Attempt notice: ${err.message}`);
   }
 
-  ghNotice('🎉 ALL DEPLOYMENT TASKS COMPLETED SUCCESSFULLY!');
+  if (!success) {
+    ghNotice('Attempting Kudu ZipDeploy endpoint (POST /api/zipdeploy?isAsync=true)...');
+
+    const zipDeployResult = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zipdeploy?isAsync=true&clean=true',
+        method: 'POST',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipStats.size,
+          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      });
+
+      req.on('error', reject);
+      req.on('timeout', () => req.destroy(new Error('ZipDeploy timed out')));
+
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
+    });
+
+    ghNotice(`ZipDeploy Response: HTTP ${zipDeployResult.code} ${zipDeployResult.msg}`);
+
+    if (zipDeployResult.code >= 200 && zipDeployResult.code < 300) {
+      ghNotice('🎉 SUCCESS! Package accepted via /api/zipdeploy');
+      success = true;
+    } else {
+      ghError(`ZipDeploy failed with HTTP ${zipDeployResult.code}: ${zipDeployResult.body.substring(0, 300)}`);
+    }
+  }
+
+  if (!success) {
+    ghError('All deployment methods failed. Check credentials and Azure status.');
+    process.exit(1);
+  }
+
+  ghNotice('🎉 Deployment finished successfully!');
 }
 
 main().catch(err => {
