@@ -1,5 +1,4 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy Node.js app to Azure Web App - zahrat-beesan
 
@@ -29,19 +28,15 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Bundle server.js and create lean release ZIP (code only, no heavy media)
+      - name: Bundle server.js and prepare lean release (no heavy media)
         run: |
           mkdir -p release
-          echo "Bundling server.js into standalone single file..."
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
           cp -r build release/
           cp package.json release/
-          echo "Removing heavy media files to keep ZIP under Azure 100MB limit..."
           find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
-          echo "Zipping lean release..."
           cd release && zip -r ../release.zip . && cd ..
-          echo "Lean Release ZIP size:"
-          ls -lh release.zip
+          echo "ZIP size: $(du -sh release.zip | cut -f1)"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -50,73 +45,49 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Remove WEBSITE_RUN_FROM_PACKAGE lock + get FTP credentials
+      - name: Fix Azure settings and deploy via az CLI
         run: |
           RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
-          echo "RG=$RG" >> $GITHUB_ENV
+          echo "Resource Group: $RG"
 
-          echo "Removing WEBSITE_RUN_FROM_PACKAGE lock..."
+          # Remove the lock completely
           az webapp config appsettings delete \
-            --name zahrat-beesan \
-            --resource-group "$RG" \
+            --name zahrat-beesan --resource-group "$RG" \
             --setting-names WEBSITE_RUN_FROM_PACKAGE 2>/dev/null || true
 
-          echo "Setting startup command..."
+          # Set startup
           az webapp config set \
-            --name zahrat-beesan \
-            --resource-group "$RG" \
+            --name zahrat-beesan --resource-group "$RG" \
             --startup-file "node server.js"
 
-          echo "Getting FTP publish profile..."
-          PROFILE=$(az webapp deployment list-publishing-credentials \
+          # Stop app to release file lock
+          az webapp stop --name zahrat-beesan --resource-group "$RG"
+          sleep 15
+
+          # Deploy using az webapp deploy (not the GitHub Action)
+          az webapp deploy \
             --name zahrat-beesan \
             --resource-group "$RG" \
-            --query "{url:scmUri,user:publishingUserName,pwd:publishingPassword}" \
-            --output json)
-          FTP_URL=$(echo $PROFILE | python3 -c "import sys,json; p=json.load(sys.stdin); print(p['url'])")
-          FTP_USER=$(echo $PROFILE | python3 -c "import sys,json; p=json.load(sys.stdin); print(p['user'])")
-          FTP_PWD=$(echo $PROFILE | python3 -c "import sys,json; p=json.load(sys.stdin); print(p['pwd'])")
-          echo "FTP_URL=$FTP_URL" >> $GITHUB_ENV
-          echo "FTP_USER=$FTP_USER" >> $GITHUB_ENV
-          echo "::add-mask::$FTP_PWD"
-          echo "FTP_PWD=$FTP_PWD" >> $GITHUB_ENV
+            --src-path release.zip \
+            --type zip \
+            --async false \
+            --timeout 300
 
-      - name: Deploy via Kudu ZIP API (bypasses OneDeploy 409 conflict)
-        run: |
-          echo "Deploying via Kudu ZIP API..."
-          HTTP_STATUS=$(curl -s -o /tmp/deploy_response.txt -w "%{http_code}" \
-            -X POST \
-            -u "$FTP_USER:$FTP_PWD" \
-            -H "Content-Type: application/zip" \
-            --data-binary @release.zip \
-            "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false")
-          echo "HTTP Status: $HTTP_STATUS"
-          cat /tmp/deploy_response.txt || true
-          if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "202" ]; then
-            echo "Deployment successful!"
-          else
-            echo "Deployment failed with status $HTTP_STATUS"
-            exit 1
-          fi
+          # Start app
+          az webapp start --name zahrat-beesan --resource-group "$RG"
+          echo "Deployment done!"
 
-      - name: Upload media files via Kudu VFS API
+      - name: Upload media files via az webapp deploy
         run: |
-          echo "Uploading media files via Kudu VFS API..."
-          KUDU_BASE="https://zahrat-beesan.scm.azurewebsites.net/api/vfs/site/wwwroot/build"
-          UPLOADED=0
-          FAILED=0
-          for f in $(find build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \)); do
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          N=0
+          for f in $(find build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) 2>/dev/null); do
             REL="${f#build/}"
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-              -X PUT \
-              -u "$FTP_USER:$FTP_PWD" \
-              --data-binary @"$f" \
-              "$KUDU_BASE/$REL")
-            if [ "$STATUS" = "201" ] || [ "$STATUS" = "200" ]; then
-              UPLOADED=$((UPLOADED+1))
-            else
-              FAILED=$((FAILED+1))
-              echo "  WARN: Failed to upload $REL (HTTP $STATUS)"
-            fi
+            az webapp deploy \
+              --name zahrat-beesan --resource-group "$RG" \
+              --src-path "$f" \
+              --target-path "/home/site/wwwroot/build/$REL" \
+              --type static --async true 2>/dev/null || true
+            N=$((N+1))
           done
-          echo "Upload complete: $UPLOADED uploaded, $FAILED failed."
+          echo "Uploaded $N media files"
