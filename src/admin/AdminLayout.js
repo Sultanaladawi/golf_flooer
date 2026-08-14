@@ -8,7 +8,7 @@ import {
   LayoutGrid, ShoppingBag, ShoppingCart, Box,
   BarChart3, MessageSquare, BotMessageSquare, LogOut, User, Coffee, Sparkles,
   FileText, MessagesSquare, Volume2, VolumeX, Briefcase, BellRing,
-  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe, Truck, Crown, Gift
+  Power, Store, Mail, Activity, Menu, X, Ticket, Settings, Share2, Globe, Truck, Crown, Gift, Code2
 } from 'lucide-react';
 
 // Setup global axios interceptor to attach admin identity for Audit Logs
@@ -226,6 +226,7 @@ const AdminLayout = () => {
     { path: '/admin/leader', name: t('Team Activity'), icon: <Activity size={18} /> },
     { path: '/admin/settings', name: t('Store Settings'), icon: <Settings size={18} /> },
     { path: '/admin/theme', name: t('Theme Settings') || 'إعدادات المظهر', icon: <Settings size={18} /> },
+    { path: '/admin/tech-leads', name: 'طلبات البرمجة (Tech)', icon: <Code2 size={18} /> },
     { path: '/admin/social', name: 'القسم الإعلامي', icon: <Share2 size={18} /> },
   ];
 

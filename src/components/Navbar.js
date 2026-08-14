@@ -32,6 +32,7 @@ const LINKS = [
   { label: 'الرئيسية',  href: '/#home' },
   { label: 'التشكيلة',  href: '/#collection' },
   { label: 'معرضنا',    href: '/#gallery' },
+  { label: '💻 زهرة بيسان تك', href: '/tech' },
   { label: 'مجلة زهرة بيسان', href: '/blog' },
   { label: 'بطاقات الهدايا', href: '/gift-cards' },
   { label: 'اتصلي بنا', href: '/#contact' }
@@ -503,6 +504,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
                 { label: t('home'), href: '/#home' },
                 { label: t('collection'), href: '/#collection' },
                 { label: t('showcase'), href: '/#gallery' },
+                { label: '💻 زهرة بيسان تك', href: '/tech' },
                 { label: t('magazine'), href: '/blog' },
                 { label: t('giftCards'), href: '/gift-cards' },
                 { label: t('contact'), href: '/contact' },

@@ -2,12 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useLanguage } from '../context/LanguageContext';
 import styles from './Hero.module.css';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, ArrowLeft, Layers } from 'lucide-react';
 
 export default function Hero() {
   const { t } = useLanguage();
   const heroVideoRef = useRef(null);
-  const [heroVideoUrl, setHeroVideoUrl] = useState('/hero_video.mp4?v=sultana_royal_2026');
+  const [heroVideoUrl, setHeroVideoUrl] = useState('/images/1786522915955-411348681_1782578082455351.mp4');
   const [heroMediaType, setHeroMediaType] = useState('video');
   const [banners, setBanners] = useState([]);
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -94,31 +94,17 @@ export default function Hero() {
       <div className={styles.heroDecorBR} />
 
       <div className={styles.heroContent}>
-        <span style={{ 
-          display: 'inline-flex', 
-          alignItems: 'center', 
-          gap: '8px', 
-          color: 'var(--gold, #c5a880)', 
-          backgroundColor: 'rgba(197, 168, 128, 0.15)', 
-          border: '1px solid rgba(197, 168, 128, 0.35)', 
-          padding: '6px 18px', 
-          borderRadius: '30px', 
-          fontSize: '0.88rem', 
-          fontWeight: '700',
-          marginBottom: '15px',
-          backdropFilter: 'blur(8px)',
-          letterSpacing: '1px'
-        }}>
-          <Sparkles size={16} /> التشكيلة الحصرية 2026
-        </span>
+        <div className={styles.heroBadge}>
+          <Sparkles size={16} /> التشكيلة الملكية الحصرية 2026
+        </div>
         
         <h1 className={styles.heroTitle}>
           زهرة بيسان
-          <span className={styles.heroSubtitle}>متجر إلكتروني فاخر</span>
+          <span className={styles.heroSubtitle}>للعبايات والأزياء الفاخرة</span>
         </h1>
         
         <p className={styles.heroDesc}>
-          حيثُ تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا المصممة خصيصاً لتتوج إطلالتكِ بأبهى صورها
+          حيثُ تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا المصممة خصيصاً لتتوج إطلالتكِ بأبهى صور الأناقة الملكية.
         </p>
 
         <div className={styles.heroActions}>
@@ -126,8 +112,8 @@ export default function Hero() {
             <span>تسوقي التشكيلة الجديدة</span>
             <span className={styles.btnArrow}>←</span>
           </a>
-          <a href="#categories" className={styles.heroBtnSecondary}>
-            <span>تصفحي الأقسام</span>
+          <a href="#gallery" className={styles.heroBtnSecondary}>
+            <span>معرض الأناقة الملكية</span>
             <span className={styles.btnArrow}>←</span>
           </a>
         </div>

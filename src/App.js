@@ -48,10 +48,12 @@ const ProductPage      = lazy(() => import('./components/ProductPage'));
 const Blog             = lazy(() => import('./components/Blog'));
 const BlogPost         = lazy(() => import('./components/BlogPost'));
 const GiftCards        = lazy(() => import('./components/GiftCards'));
+const TechAgency       = lazy(() => import('./components/TechAgency'));
 
 const AdminLogin       = lazy(() => import('./admin/AdminLogin'));
 const AdminLayout      = lazy(() => import('./admin/AdminLayout'));
 const Dashboard        = lazy(() => import('./admin/pages/Dashboard'));
+const TechLeads        = lazy(() => import('./admin/pages/TechLeads'));
 const Orders           = lazy(() => import('./admin/pages/Orders'));
 const Products         = lazy(() => import('./admin/pages/Products'));
 const Analytics        = lazy(() => import('./admin/pages/Analytics'));
@@ -254,6 +256,9 @@ export default function App() {
                             <Route path="/blog" element={<Blog />} />
                             <Route path="/blog/:slug" element={<BlogPost />} />
                             <Route path="/gift-cards" element={<GiftCards />} />
+                            <Route path="/tech" element={<TechAgency />} />
+                            <Route path="/agency" element={<TechAgency />} />
+                            <Route path="/software" element={<TechAgency />} />
                             <Route path="/admin/*" element={
                               <AdminProvider>
                                 <AdminLangProvider>
@@ -283,6 +288,7 @@ export default function App() {
                                       <Route path="blog" element={<BlogManagement />} />
                                       <Route path="abandoned-carts" element={<AbandonedCarts />} />
                                       <Route path="gift-cards" element={<AdminGiftCards />} />
+                                      <Route path="tech-leads" element={<TechLeads />} />
                                       <Route index element={<Navigate to="dashboard" replace />} />
                                     </Route>
                                   </Routes>

@@ -1136,7 +1136,20 @@ db.query(`CREATE TABLE IF NOT EXISTS admin_logs (id INT AUTO_INCREMENT PRIMARY K
 db.query(`CREATE TABLE IF NOT EXISTS blog_posts (id INT AUTO_INCREMENT PRIMARY KEY, title VARCHAR(255) NOT NULL, slug VARCHAR(255) UNIQUE NOT NULL, content TEXT, excerpt TEXT, image_url VARCHAR(1024), author VARCHAR(100) DEFAULT 'إدارة زهرة بيسان', status VARCHAR(50) DEFAULT 'published', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure blog_posts table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS ai_assistant_logs (id INT AUTO_INCREMENT PRIMARY KEY, admin_query TEXT, ai_response TEXT, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure ai_assistant_logs table error:', err); });
 db.query(`CREATE TABLE IF NOT EXISTS abandoned_carts (id INT AUTO_INCREMENT PRIMARY KEY, email VARCHAR(255), phone VARCHAR(60), cart_items JSON, total_price DECIMAL(10,2), status VARCHAR(50) DEFAULT 'pending', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure abandoned_carts table error:', err); });
-db.query(`CREATE TABLE IF NOT EXISTS gift_cards (id INT AUTO_INCREMENT PRIMARY KEY, code VARCHAR(50) UNIQUE, initial_value DECIMAL(10,2), balance DECIMAL(10,2), buyer_email VARCHAR(255), recipient_email VARCHAR(255), message TEXT, status VARCHAR(20) DEFAULT 'active', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure gift_cards table error:', err); });
+db.query(`CREATE TABLE IF NOT EXISTS tech_leads (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  phone VARCHAR(100) NOT NULL,
+  email VARCHAR(255) DEFAULT '',
+  company VARCHAR(255) DEFAULT '',
+  service VARCHAR(255) DEFAULT '',
+  budget VARCHAR(100) DEFAULT '',
+  details TEXT,
+  estimated_quote VARCHAR(100) DEFAULT '',
+  calculator_details TEXT,
+  status VARCHAR(50) DEFAULT 'new',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`, (err) => { if (err) console.error('Ensure tech_leads table error:', err); });
 
 db.query(`CREATE TABLE IF NOT EXISTS admin_users (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -4053,6 +4066,72 @@ app.post('/api/settings/theme', async (req, res) => {
     }
 
     res.json({ success: true, message: 'Theme settings updated successfully' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- ZAHRAT BEESAN TECH & SOFTWARE LEADS API ---
+app.post('/api/tech/lead', async (req, res) => {
+  try {
+    const { name, phone, email, company, service, budget, details, estimated_quote, calculator_details } = req.body;
+    if (!name || !phone) {
+      return res.status(400).json({ error: 'Name and phone are required' });
+    }
+
+    const promiseDb = db.promise();
+    const [result] = await promiseDb.query(
+      `INSERT INTO tech_leads (name, phone, email, company, service, budget, details, estimated_quote, calculator_details, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')`,
+      [
+        name.trim(),
+        phone.trim(),
+        (email || '').trim(),
+        (company || '').trim(),
+        service || 'متجر إلكتروني متكامل',
+        budget || '',
+        details || '',
+        estimated_quote || '',
+        calculator_details || ''
+      ]
+    );
+
+    console.log(`[Tech Leads] Received new project request from ${name} (${phone}) for ${service}`);
+    res.json({ success: true, id: result.insertId, message: 'Lead received successfully' });
+  } catch (err) {
+    console.error('[Tech Lead Error]:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/tech-leads', async (req, res) => {
+  try {
+    const promiseDb = db.promise();
+    const [rows] = await promiseDb.query("SELECT * FROM tech_leads ORDER BY id DESC");
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/tech-leads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const promiseDb = db.promise();
+    await promiseDb.query("UPDATE tech_leads SET status = ? WHERE id = ?", [status, id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/tech-leads/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const promiseDb = db.promise();
+    await promiseDb.query("DELETE FROM tech_leads WHERE id = ?", [id]);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
