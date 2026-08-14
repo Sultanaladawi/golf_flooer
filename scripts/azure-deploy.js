@@ -10,94 +10,66 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function uploadZipVFS(scmHost, basicAuth, zipPath, zipSize) {
-  ghNotice(`Attempting VFS Zip Extract (PUT /api/zip/site/wwwroot/)...`);
-
-  return new Promise((resolve) => {
-    const req = https.request({
-      hostname: scmHost,
-      port: 443,
-      path: '/api/zip/site/wwwroot/',
-      method: 'PUT',
-      headers: {
-        'Authorization': basicAuth,
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': zipSize,
-        'User-Agent': 'Antigravity-Azure-Deployer/6.0'
-      },
-      timeout: 300000
-    }, (res) => {
-      let body = '';
-      res.on('data', c => { body += c; });
-      res.on('end', () => {
-        ghNotice(`VFS Response: HTTP ${res.statusCode} ${res.statusMessage}`);
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(true);
-        } else {
-          ghNotice(`VFS info (${res.statusCode}): ${body.substring(0, 150)}`);
-          resolve(false);
-        }
-      });
-    });
-
-    req.on('error', (err) => {
-      ghNotice(`VFS error: ${err.message}`);
-      resolve(false);
-    });
-
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(false);
-    });
-
-    const stream = fs.createReadStream(zipPath);
-    stream.pipe(req);
-  });
-}
-
 async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
-  ghNotice(`Attempting ZipDeploy (POST /api/zipdeploy?isAsync=true&clean=true)...`);
+  const maxRetries = 6;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    ghNotice(`[Attempt ${attempt}/${maxRetries}] Posting release.zip to /api/zipdeploy?isAsync=true&clean=true ...`);
 
-  return new Promise((resolve) => {
-    const req = https.request({
-      hostname: scmHost,
-      port: 443,
-      path: '/api/zipdeploy?isAsync=true&clean=true',
-      method: 'POST',
-      headers: {
-        'Authorization': basicAuth,
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': zipSize,
-        'User-Agent': 'Antigravity-Azure-Deployer/6.0'
-      },
-      timeout: 300000
-    }, (res) => {
-      let body = '';
-      res.on('data', c => { body += c; });
-      res.on('end', () => {
-        ghNotice(`ZipDeploy Response: HTTP ${res.statusCode} ${res.statusMessage}`);
-        if (res.statusCode >= 200 && res.statusCode < 300) {
-          resolve(true);
-        } else {
-          ghNotice(`ZipDeploy info (${res.statusCode}): ${body.substring(0, 150)}`);
-          resolve(false);
-        }
+    const result = await new Promise((resolve) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zipdeploy?isAsync=true&clean=true',
+        method: 'POST',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipSize,
+          'User-Agent': 'Antigravity-Azure-Deployer/7.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => {
+          ghNotice(`ZipDeploy Status: HTTP ${res.statusCode} ${res.statusMessage}`);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            resolve({ ok: true, code: res.statusCode });
+          } else {
+            ghNotice(`ZipDeploy message (${res.statusCode}): ${body.substring(0, 150)}`);
+            resolve({ ok: false, code: res.statusCode, body });
+          }
+        });
       });
+
+      req.on('error', (err) => {
+        ghNotice(`ZipDeploy network error: ${err.message}`);
+        resolve({ ok: false, code: 0, err: err.message });
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({ ok: false, code: 408 });
+      });
+
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
     });
 
-    req.on('error', (err) => {
-      ghNotice(`ZipDeploy error: ${err.message}`);
-      resolve(false);
-    });
+    if (result.ok) {
+      ghNotice('🎉 SUCCESS! Azure accepted release.zip for deployment.');
+      return true;
+    }
 
-    req.on('timeout', () => {
-      req.destroy();
-      resolve(false);
-    });
+    if (result.code === 409) {
+      ghNotice(`⏳ Azure has a background task in progress. Waiting 20s before attempt ${attempt + 1}...`);
+      await new Promise(r => setTimeout(r, 20000));
+    } else {
+      await new Promise(r => setTimeout(r, 5000));
+    }
+  }
 
-    const stream = fs.createReadStream(zipPath);
-    stream.pipe(req);
-  });
+  return false;
 }
 
 async function main() {
@@ -157,21 +129,13 @@ async function main() {
   const sizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
   ghNotice(`Package: release.zip (${sizeMB} MB)`);
 
-  // Try Method 1: VFS
-  let ok = await uploadZipVFS(scmHost, basicAuth, zipPath, zipStats.size);
-
-  // Try Method 2: ZipDeploy if VFS didn't succeed
+  const ok = await uploadZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
   if (!ok) {
-    ghNotice('VFS was busy, falling back to ZipDeploy...');
-    ok = await uploadZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
-  }
-
-  if (!ok) {
-    ghError('All deployment methods failed.');
+    ghError('ZipDeploy failed after all retry attempts.');
     process.exit(1);
   }
 
-  ghNotice('🎉 ALL FILES & CSS/JS BUNDLES DEPLOYED SUCCESSFULLY!');
+  ghNotice('🎉 DEPLOYMENT ACCEPTED AND EXTRACTED IN AZURE!');
 }
 
 main().catch(err => {
