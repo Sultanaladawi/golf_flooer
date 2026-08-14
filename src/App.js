@@ -99,17 +99,13 @@ function ThemeLoader() {
       if (data) {
         if (data.theme_primary) {
           document.documentElement.style.setProperty('--primary-color', data.theme_primary);
-          document.documentElement.style.setProperty('--admin-accent', data.theme_primary);
         }
         if (data.theme_bg) {
           document.documentElement.style.setProperty('--bg-dark', data.theme_bg);
-          document.documentElement.style.setProperty('--admin-bg', data.theme_bg);
         }
         if (data.theme_text) {
           document.documentElement.style.setProperty('--text-primary', data.theme_text);
-          document.documentElement.style.setProperty('--admin-text', data.theme_text);
         }
-        // Hover color could be injected globally or stored in window
         if (data.theme_hover) {
           document.documentElement.style.setProperty('--primary-hover', data.theme_hover);
         }

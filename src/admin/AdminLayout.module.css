@@ -1,11 +1,19 @@
 :root {
-  --adm-bg:       var(--admin-bg);
-  --adm-surface:  var(--admin-card);
-  --adm-border:   var(--admin-border);
-  --adm-gold:     var(--admin-accent);
+  --admin-bg:       #faf8f5;
+  --admin-card:     #ffffff;
+  --admin-surface:  #ffffff;
+  --admin-border:   rgba(197, 168, 128, 0.25);
+  --admin-accent:   #c5a880;
+  --admin-text:     #1a1a1a;
+  --admin-text-secondary: #666666;
+
+  --adm-bg:       var(--admin-bg, #faf8f5);
+  --adm-surface:  var(--admin-card, #ffffff);
+  --adm-border:   var(--admin-border, rgba(197, 168, 128, 0.25));
+  --adm-gold:     var(--admin-accent, #c5a880);
   --adm-gold-dim: rgba(197, 168, 128, 0.10);
-  --adm-text:     var(--admin-text);
-  --adm-muted:    var(--text-muted);
+  --adm-text:     var(--admin-text, #1a1a1a);
+  --adm-muted:    var(--admin-text-secondary, #666666);
   --adm-sidebar-w: 260px;
   --adm-topbar-h:  80px;
 }
