@@ -167,6 +167,12 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', videosZip, true);
   }
 
+  // STEP 8: TRIGGER INSTANT CONTAINER PROCESS RECYCLE FOR ZERO-DOWNTIME UPDATE
+  try {
+    ghNotice('🔄 Triggering instant live server recycle...');
+    await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
+  } catch (e) {}
+
   ghNotice('🎉 COMPLETE DEPLOYMENT: SULTANA HERO VIDEO, FAVICON, & ALL ABAYA VIDEOS 100% READY!');
 }
 

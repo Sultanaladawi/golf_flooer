@@ -116,6 +116,9 @@ export default function ProductModal({ model, onClose }) {
     } catch (e) {
       videosArray = [];
     }
+    if (videosArray.length === 0 && (model.video_url || model.video)) {
+      videosArray = [model.video_url || model.video];
+    }
 
     // Default product sizes
     try {
@@ -140,11 +143,24 @@ export default function ProductModal({ model, onClose }) {
     return `/images/${trimmed}`;
   };
 
+  const formatVideoUrl = (vid) => {
+    if (!vid || typeof vid !== 'string') return null;
+    const trimmed = vid.trim();
+    if (!trimmed) return null;
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('blob:')) {
+      return trimmed;
+    }
+    if (trimmed.startsWith('/')) {
+      return trimmed;
+    }
+    return `/images/${trimmed}`;
+  };
 
   imagesArray = imagesArray.map(formatImgUrl).filter(Boolean);
   if (imagesArray.length === 0) {
     imagesArray = ['/12.png'];
   }
+  videosArray = videosArray.map(formatVideoUrl).filter(Boolean);
 
   // Fabric and Care arrays (fallbacks)
   let fabricArray = [];

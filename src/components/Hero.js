@@ -43,36 +43,18 @@ export default function Hero() {
   return (
     <section className={styles.hero} id="home">
       <div className={styles.heroVideoWrap}>
-        {banners.length > 0 ? (
-          banners.map((url, idx) => (
-            <img 
-              key={idx}
-              src={url}
-              alt={`Hero Banner ${idx}`}
-              className={styles.heroVideo}
-              style={{ 
-                opacity: currentBanner === idx ? 1 : 0, 
-                transition: 'opacity 1s ease-in-out',
-                position: 'absolute',
-                top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover'
-              }}
-            />
-          ))
-        ) : (
-          <video
-            ref={heroVideoRef}
-            src="/hero_video.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            disablePictureInPicture
-            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-            className={styles.heroVideo}
-          />
-
-        )}
+        <video
+          ref={heroVideoRef}
+          src="/hero_video.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          disablePictureInPicture
+          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+          className={styles.heroVideo}
+        />
         <div className={styles.heroOverlay} />
         <div className={styles.heroGradientBottom} />
       </div>
