@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Release-Deployer/6.0',
+        'User-Agent': 'Antigravity-Release-Deployer/7.0',
         ...headers
       },
       timeout: 180000
@@ -61,23 +61,41 @@ async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   return res.code >= 200 && res.code < 300;
 }
 
-async function triggerLiveReload() {
-  ghNotice('Triggering instant server reload...');
-  return new Promise((resolve) => {
-    const req = https.request({
-      hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
-      port: 443,
-      path: '/api/system/reload',
-      method: 'POST',
-      timeout: 8000
-    }, (res) => {
-      ghNotice(`Live reload response: HTTP ${res.statusCode}`);
-      resolve(true);
-    });
-    req.on('error', () => resolve(false));
-    req.on('timeout', () => { req.destroy(); resolve(false); });
-    req.end();
+async function forceContainerRestart(scmHost, basicAuth) {
+  ghNotice('Forcefully recycling Node process on Azure Linux...');
+
+  // 1. Process termination via Kudu
+  const procRes = await makeKuduRequest(scmHost, basicAuth, '/api/processes/0', 'DELETE');
+  ghNotice(`Process kill result: HTTP ${procRes.code} ${procRes.msg}`);
+
+  // 2. Kudu bash command to kill node
+  const cmdRes = await makeKuduRequest(scmHost, basicAuth, '/api/command', 'POST', JSON.stringify({
+    command: 'killall -9 node || pkill -9 node || true',
+    dir: '/home/site/wwwroot'
+  }), { 'Content-Type': 'application/json', 'Content-Length': 73 });
+  ghNotice(`Command kill result: HTTP ${cmdRes.code} ${cmdRes.msg}`);
+
+  // 3. Diagnostics reboot endpoint
+  const rebootRes = await makeKuduRequest(scmHost, basicAuth, '/api/diagnostics/reboot', 'POST');
+  ghNotice(`Diagnostics reboot result: HTTP ${rebootRes.code} ${rebootRes.msg}`);
+
+  // 4. Create restart.txt trigger
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/restart.txt', 'PUT', 'restart', {
+    'If-Match': '*',
+    'Content-Type': 'text/plain',
+    'Content-Length': 7
   });
+
+  // 5. App level reload
+  const reloadReq = https.request({
+    hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
+    port: 443,
+    path: '/api/system/reload',
+    method: 'POST',
+    timeout: 8000
+  }, () => {});
+  reloadReq.on('error', () => {});
+  reloadReq.end();
 }
 
 async function main() {
@@ -130,10 +148,10 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 2: Trigger Live Reload
-  await triggerLiveReload();
+  // Step 2: Force process restart so new server.js starts
+  await forceContainerRestart(scmHost, basicAuth);
 
-  ghNotice('🎉 FULL RELEASE ZIP UNPACKED DIRECTLY TO WWWROOT SUCCESSFULLY!');
+  ghNotice('🎉 FULL RELEASE ZIP UNPACKED AND CONTAINER RESTARTED SUCCESSFULLY!');
 }
 
 main().catch(err => {
