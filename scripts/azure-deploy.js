@@ -147,7 +147,12 @@ async function main() {
     await syncDirectoryDirect(scmHost, basicAuth, buildDir, 'build');
   }
 
-  ghNotice('🎉 ALL ASSETS & CODE DEPLOYED DIRECTLY TO AZURE!');
+  // Step 3: Trigger Node App Restart to load latest assets and code immediately
+  ghNotice('Restarting Azure Web App service to load fresh assets...');
+  const restartRes = await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
+  ghNotice(`Restart status: HTTP ${restartRes.code} ${restartRes.msg}`);
+
+  ghNotice('🎉 ALL ASSETS & CODE DEPLOYED AND APP RESTARTED SUCCESSFULLY IN AZURE!');
 }
 
 main().catch(err => {
