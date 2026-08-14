@@ -29,14 +29,19 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Bundle server.js into 100% standalone single file (ZERO external modules)
+      - name: Bundle server.js and create release ZIP
         run: |
           mkdir -p release
-          echo "Bundling EVERYTHING into standalone release/server.js..."
+          echo "Bundling server.js into standalone single file..."
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
-          
           cp -r build release/
           cp package.json release/
+          echo "Creating release.zip..."
+          cd release
+          zip -r ../release.zip .
+          cd ..
+          echo "Release ZIP size:"
+          ls -lh release.zip
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -45,8 +50,28 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
-      - name: Deploy to Azure Web App via official Action
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          package: './release'
+      - name: Clear WEBSITE_RUN_FROM_PACKAGE and set startup command
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Resource Group: $RG"
+          az webapp config appsettings delete \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT 2>/dev/null || true
+          az webapp config set \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --startup-file "node server.js"
+          echo "Settings cleared and startup command set."
+
+      - name: Deploy ZIP to Azure using Azure CLI
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Deploying release.zip to Azure via az webapp deploy..."
+          az webapp deploy \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --src-path release.zip \
+            --type zip \
+            --async false
+          echo "Deployment complete!"
