@@ -19,10 +19,10 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Azure-Deployer/8.0',
+        'User-Agent': 'Antigravity-Azure-Deployer/9.0',
         ...headers
       },
-      timeout: 120000
+      timeout: 180000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
@@ -45,22 +45,41 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function clearDeploymentLocks(scmHost, basicAuth) {
-  ghNotice('Clearing any stale Azure deployment locks...');
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/locks/deployment.lock', 'DELETE', null, { 'If-Match': '*' });
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/data/locks/deployment.lock', 'DELETE', null, { 'If-Match': '*' });
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/locks/', 'DELETE', null, { 'If-Match': '*' });
+async function waitForKuduIdle(scmHost, basicAuth) {
+  ghNotice('Checking Azure Kudu engine readiness...');
+  for (let i = 1; i <= 12; i++) {
+    const statusRes = await makeKuduRequest(scmHost, basicAuth, '/api/deployments/latest', 'GET');
+    if (statusRes.code === 200) {
+      try {
+        const info = JSON.parse(statusRes.body);
+        if (info.complete === true || info.status === 4 || info.status === 3) {
+          ghNotice(`Kudu engine is IDLE and ready for deployment. (Last status: ${info.status_text || info.status})`);
+          return true;
+        }
+        ghNotice(`[Wait ${i}/12] Azure is still finalizing previous task (${info.status_text || 'Processing'}). Waiting 15s...`);
+      } catch (e) {
+        return true;
+      }
+    } else if (statusRes.code === 404) {
+      ghNotice('No previous deployment found. Kudu is ready.');
+      return true;
+    } else {
+      ghNotice(`[Wait ${i}/12] Status check returned HTTP ${statusRes.code}. Waiting 10s...`);
+    }
+    await new Promise(r => setTimeout(r, 15000));
+  }
+  return true;
 }
 
 async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
-  await clearDeploymentLocks(scmHost, basicAuth);
+  await waitForKuduIdle(scmHost, basicAuth);
 
-  const maxRetries = 8;
+  const maxRetries = 6;
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    ghNotice(`[Attempt ${attempt}/${maxRetries}] Posting release.zip (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to /api/zipdeploy ...`);
+    ghNotice(`[Attempt ${attempt}/${maxRetries}] Uploading release.zip (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to /api/zipdeploy ...`);
 
     const stream = fs.createReadStream(zipPath);
-    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=true', 'POST', stream, {
+    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=false', 'POST', stream, {
       'Content-Type': 'application/octet-stream',
       'Content-Length': zipSize
     });
@@ -73,12 +92,11 @@ async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
     }
 
     if (result.code === 409) {
-      ghNotice(`⏳ Waiting 25s for existing task to release (Attempt ${attempt}/${maxRetries})...`);
-      await new Promise(r => setTimeout(r, 25000));
-      await clearDeploymentLocks(scmHost, basicAuth);
+      ghNotice(`⏳ Received 409 Conflict. Waiting 30s before retry attempt ${attempt + 1}...`);
+      await new Promise(r => setTimeout(r, 30000));
     } else {
-      ghNotice(`Response: ${result.body.substring(0, 150)}`);
-      await new Promise(r => setTimeout(r, 5000));
+      ghNotice(`Response detail: ${result.body.substring(0, 150)}`);
+      await new Promise(r => setTimeout(r, 8000));
     }
   }
 
@@ -128,7 +146,7 @@ async function main() {
     .replace(/:\d+$/, '')
     .trim();
 
-  ghNotice(`Target Host: ${scmHost} (User: ${userName})`);
+  ghNotice(`Deploying to ${scmHost} (User: ${userName})`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
@@ -142,11 +160,11 @@ async function main() {
 
   const ok = await uploadZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
   if (!ok) {
-    ghError('ZipDeploy failed after all retry attempts.');
+    ghError('Deployment failed after all attempts.');
     process.exit(1);
   }
 
-  ghNotice('🎉 DEPLOYMENT FINISHED 100% SUCCESSFULLY!');
+  ghNotice('🎉 DEPLOYMENT FINISHED 100% SUCCESSFULLY IN AZURE!');
 }
 
 main().catch(err => {
