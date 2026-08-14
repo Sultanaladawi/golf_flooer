@@ -273,9 +273,56 @@ app.use((req, res, next) => {
   next();
 });
 
+// Robust static file serving with multiple directory fallbacks
+app.use('/static', (req, res, next) => {
+  const relPath = req.path.replace(/^\//, '');
+  const candidates = [
+    path.resolve(__dirname, 'build', 'static', relPath),
+    path.resolve(__dirname, 'static', relPath),
+    path.resolve(__dirname, 'public', 'static', relPath)
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c) && fs.statSync(c).size > 0) {
+      if (relPath.endsWith('.js')) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      if (relPath.endsWith('.css')) res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      return res.sendFile(c);
+    }
+  }
+
+  // Graceful fallback for main.js hash mismatch
+  if (relPath.startsWith('js/main.') && relPath.endsWith('.js')) {
+    for (const d of [path.resolve(__dirname, 'build', 'static', 'js'), path.resolve(__dirname, 'static', 'js')]) {
+      if (fs.existsSync(d)) {
+        const files = fs.readdirSync(d).filter(f => f.startsWith('main.') && f.endsWith('.js'));
+        if (files.length > 0) {
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          return res.sendFile(path.join(d, files[0]));
+        }
+      }
+    }
+  }
+
+  // Graceful fallback for main.css hash mismatch
+  if (relPath.startsWith('css/main.') && relPath.endsWith('.css')) {
+    for (const d of [path.resolve(__dirname, 'build', 'static', 'css'), path.resolve(__dirname, 'static', 'css')]) {
+      if (fs.existsSync(d)) {
+        const files = fs.readdirSync(d).filter(f => f.startsWith('main.') && f.endsWith('.css'));
+        if (files.length > 0) {
+          res.setHeader('Content-Type', 'text/css; charset=utf-8');
+          return res.sendFile(path.join(d, files[0]));
+        }
+      }
+    }
+  }
+
+  next();
+});
+
 const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
 app.use('/static', express.static(path.resolve(__dirname, 'build', 'static'), cacheOptions));
+app.use('/static', express.static(path.resolve(__dirname, 'static'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'build'), { ...cacheOptions, index: false }));
+app.use(express.static(path.resolve(__dirname), { ...cacheOptions, index: false }));
 app.use('/public/images', express.static(path.resolve(dataDir, 'public', 'images'), cacheOptions));
 
 // Explicit route for Root GET / to serve the verified compiled React index.html directly
