@@ -10,6 +10,60 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
+async function uploadZipFile(scmHost, basicAuth, zipFilePath, targetPath = '/api/zip/site/wwwroot/') {
+  if (!fs.existsSync(zipFilePath)) {
+    console.log(`ℹ️ Optional file not found, skipping: ${zipFilePath}`);
+    return true;
+  }
+
+  const stats = fs.statSync(zipFilePath);
+  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+  const baseName = path.basename(zipFilePath);
+
+  ghNotice(`Uploading ${baseName} (${sizeMB} MB) to https://${scmHost}${targetPath} ...`);
+
+  return new Promise((resolve, reject) => {
+    const req = https.request({
+      hostname: scmHost,
+      port: 443,
+      path: targetPath,
+      method: 'PUT',
+      headers: {
+        'Authorization': basicAuth,
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': stats.size,
+        'User-Agent': 'Antigravity-Azure-Deployer/3.0'
+      },
+      timeout: 600000 // 10 minutes timeout for larger files
+    }, (res) => {
+      let body = '';
+      res.on('data', c => { body += c; });
+      res.on('end', () => {
+        ghNotice(`${baseName} Upload Response: HTTP ${res.statusCode} ${res.statusMessage}`);
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          ghNotice(`🎉 ${baseName} deployed and extracted successfully!`);
+          resolve(true);
+        } else {
+          ghError(`${baseName} failed with HTTP ${res.statusCode}: ${body.substring(0, 300)}`);
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      ghError(`Network error uploading ${baseName}: ${err.message}`);
+      reject(err);
+    });
+
+    req.on('timeout', () => {
+      req.destroy(new Error(`Upload timed out for ${baseName}`));
+    });
+
+    const stream = fs.createReadStream(zipFilePath);
+    stream.pipe(req);
+  });
+}
+
 async function main() {
   ghNotice('Starting Azure Deploy via Kudu API...');
 
@@ -19,9 +73,6 @@ async function main() {
     process.exit(1);
   }
 
-  ghNotice(`Secret length: ${rawSecret.length} chars`);
-
-  // Robust XML block extraction
   const profileBlocks = rawSecret.match(/<publishProfile[\s\S]*?(?:\/>|>[\s\S]*?<\/publishProfile>)/gi) || [];
   ghNotice(`Detected ${profileBlocks.length} profile block(s) in XML.`);
 
@@ -78,111 +129,25 @@ async function main() {
     .replace(/:\d+$/, '')
     .trim();
 
-  ghNotice(`Method: ${publishMethod}, Host: ${scmHost}, User: ${userName}`);
-
-  const zipPath = path.resolve(process.cwd(), 'release.zip');
-  if (!fs.existsSync(zipPath)) {
-    ghError(`release.zip not found at ${zipPath}`);
-    process.exit(1);
-  }
-
-  const zipStats = fs.statSync(zipPath);
-  const zipSizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
-  ghNotice(`Package: release.zip (${zipSizeMB} MB)`);
+  ghNotice(`Target Host: ${scmHost}, User: ${userName}`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Strategy 1: Kudu VFS Zip Deploy (PUT /api/zip/site/wwwroot/)
-  // This extracts directly to wwwroot and NEVER conflicts with OneDeploy or locks!
-  ghNotice(`Attempting Direct VFS Zip Extract (PUT /api/zip/site/wwwroot/)...`);
-
-  let success = false;
-
-  try {
-    const vfsResult = await new Promise((resolve, reject) => {
-      const req = https.request({
-        hostname: scmHost,
-        port: 443,
-        path: '/api/zip/site/wwwroot/',
-        method: 'PUT',
-        headers: {
-          'Authorization': basicAuth,
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': zipStats.size,
-          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
-        },
-        timeout: 300000
-      }, (res) => {
-        let body = '';
-        res.on('data', c => { body += c; });
-        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
-      });
-
-      req.on('error', reject);
-      req.on('timeout', () => req.destroy(new Error('VFS Upload timed out')));
-
-      const stream = fs.createReadStream(zipPath);
-      stream.pipe(req);
-    });
-
-    ghNotice(`VFS Deploy Response: HTTP ${vfsResult.code} ${vfsResult.msg}`);
-
-    if (vfsResult.code >= 200 && vfsResult.code < 300) {
-      ghNotice('🎉 SUCCESS! Files extracted directly into /home/site/wwwroot/');
-      success = true;
-    } else {
-      ghNotice(`VFS returned HTTP ${vfsResult.code}: ${vfsResult.body.substring(0, 200)}`);
-    }
-  } catch (err) {
-    ghNotice(`VFS Attempt notice: ${err.message}`);
-  }
-
-  // Strategy 2: If VFS failed, try /api/zipdeploy
-  if (!success) {
-    ghNotice('Attempting Kudu ZipDeploy endpoint (POST /api/zipdeploy?isAsync=true)...');
-
-    const zipDeployResult = await new Promise((resolve, reject) => {
-      const req = https.request({
-        hostname: scmHost,
-        port: 443,
-        path: '/api/zipdeploy?isAsync=true&clean=true',
-        method: 'POST',
-        headers: {
-          'Authorization': basicAuth,
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': zipStats.size,
-          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
-        },
-        timeout: 300000
-      }, (res) => {
-        let body = '';
-        res.on('data', c => { body += c; });
-        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
-      });
-
-      req.on('error', reject);
-      req.on('timeout', () => req.destroy(new Error('ZipDeploy timed out')));
-
-      const stream = fs.createReadStream(zipPath);
-      stream.pipe(req);
-    });
-
-    ghNotice(`ZipDeploy Response: HTTP ${zipDeployResult.code} ${zipDeployResult.msg}`);
-
-    if (zipDeployResult.code >= 200 && zipDeployResult.code < 300) {
-      ghNotice('🎉 SUCCESS! Package accepted via /api/zipdeploy');
-      success = true;
-    } else {
-      ghError(`ZipDeploy failed with HTTP ${zipDeployResult.code}: ${zipDeployResult.body.substring(0, 300)}`);
-    }
-  }
-
-  if (!success) {
-    ghError('All deployment methods failed. Check credentials and Azure status.');
+  // Step 1: Upload Core App release.zip (server.js, build JS/CSS, package.json)
+  const coreOk = await uploadZipFile(scmHost, basicAuth, path.resolve(process.cwd(), 'release.zip'));
+  if (!coreOk) {
+    ghError('Core release.zip deployment failed!');
     process.exit(1);
   }
 
-  ghNotice('Deployment finished successfully! Verifying health endpoint...');
+  // Step 2: Upload media.zip if available
+  const mediaZipPath = path.resolve(process.cwd(), 'media.zip');
+  if (fs.existsSync(mediaZipPath)) {
+    ghNotice('Media package found. Uploading images & videos...');
+    await uploadZipFile(scmHost, basicAuth, mediaZipPath);
+  }
+
+  ghNotice('🎉 All deployment tasks completed successfully!');
 }
 
 main().catch(err => {
