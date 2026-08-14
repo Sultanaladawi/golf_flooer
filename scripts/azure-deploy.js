@@ -164,20 +164,15 @@ async function main() {
   ghNotice('Restarting Azure Web App service to load fresh assets...');
   await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/restart.txt', 'PUT', new Date().toISOString(), { 'If-Match': '*' });
 
-  const procRes = await makeKuduRequest(scmHost, basicAuth, '/api/processes', 'GET');
-  if (procRes.code === 200) {
-    try {
-      const list = JSON.parse(procRes.body);
-      for (const p of list) {
-        if (p.name && (p.name.toLowerCase().includes('node') || p.name.toLowerCase().includes('server'))) {
-          ghNotice(`Recycling Node process ${p.id} (${p.name})...`);
-          await makeKuduRequest(scmHost, basicAuth, `/api/processes/${p.id}`, 'DELETE');
-        }
-      }
-    } catch (e) {
-      ghNotice(`Process parse note: ${e.message}`);
-    }
-  }
+  // Send Kudu Command to restart Node server cleanly
+  const cmdPayload = JSON.stringify({
+    command: 'kill -9 $(pgrep -f server.js) || pkill -9 -f node || pm2 restart all || true',
+    dir: '/home/site/wwwroot'
+  });
+  const cmdRes = await makeKuduRequest(scmHost, basicAuth, '/api/command', 'POST', cmdPayload, {
+    'Content-Type': 'application/json'
+  });
+  ghNotice(`Kudu command restart result: HTTP ${cmdRes.code} ${cmdRes.msg}`);
 
   ghNotice('🎉 ALL ASSETS & CODE DEPLOYED AND APP RESTARTED SUCCESSFULLY IN AZURE!');
 }
