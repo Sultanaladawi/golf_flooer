@@ -162,8 +162,22 @@ async function main() {
 
   // Step 3: Trigger Node App Restart to load latest assets and code immediately
   ghNotice('Restarting Azure Web App service to load fresh assets...');
-  const restartRes = await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
-  ghNotice(`Restart status: HTTP ${restartRes.code} ${restartRes.msg}`);
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/restart.txt', 'PUT', new Date().toISOString(), { 'If-Match': '*' });
+
+  const procRes = await makeKuduRequest(scmHost, basicAuth, '/api/processes', 'GET');
+  if (procRes.code === 200) {
+    try {
+      const list = JSON.parse(procRes.body);
+      for (const p of list) {
+        if (p.name && (p.name.toLowerCase().includes('node') || p.name.toLowerCase().includes('server'))) {
+          ghNotice(`Recycling Node process ${p.id} (${p.name})...`);
+          await makeKuduRequest(scmHost, basicAuth, `/api/processes/${p.id}`, 'DELETE');
+        }
+      }
+    } catch (e) {
+      ghNotice(`Process parse note: ${e.message}`);
+    }
+  }
 
   ghNotice('🎉 ALL ASSETS & CODE DEPLOYED AND APP RESTARTED SUCCESSFULLY IN AZURE!');
 }

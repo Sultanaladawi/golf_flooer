@@ -265,8 +265,11 @@ app.use((req, res, next) => {
 });
 
 const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
+app.use('/static', express.static(path.resolve(__dirname, 'build', 'static'), cacheOptions));
+app.use('/static', express.static(path.resolve(__dirname, 'static'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'build'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'public'), cacheOptions));
+app.use(express.static(path.resolve(__dirname), cacheOptions));
 app.use('/public/images', express.static(path.resolve(dataDir, 'public', 'images'), cacheOptions));
 
 // 3. Specific favicon and manifest routes for stability
