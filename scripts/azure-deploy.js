@@ -10,8 +10,93 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
+async function doZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
+  const maxAttempts = 5;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    ghNotice(`[Attempt ${attempt}/${maxAttempts}] Sending release.zip (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to /api/zipdeploy ...`);
+
+    const result = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zipdeploy?isAsync=false&clean=false',
+        method: 'POST',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipSize,
+          'User-Agent': 'Antigravity-Azure-Deployer/4.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      });
+
+      req.on('error', reject);
+      req.on('timeout', () => req.destroy(new Error('ZipDeploy timeout')));
+
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
+    });
+
+    ghNotice(`ZipDeploy HTTP Status: ${result.code} ${result.msg}`);
+
+    if (result.code >= 200 && result.code < 300) {
+      ghNotice('🎉 SUCCESS! Deployment extracted and applied in Azure.');
+      return true;
+    }
+
+    if (result.code === 409) {
+      ghNotice('⏳ Azure reported deployment in progress (409). Waiting 15s before retry...');
+      await new Promise(r => setTimeout(r, 15000));
+    } else {
+      ghNotice(`Response detail: ${result.body.substring(0, 200)}`);
+      await new Promise(r => setTimeout(r, 5000));
+    }
+  }
+
+  // Fallback to VFS
+  ghNotice('Trying VFS direct zip unpack as fallback (PUT /api/zip/site/wwwroot/)...');
+  try {
+    const vfsResult = await new Promise((resolve, reject) => {
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zip/site/wwwroot/',
+        method: 'PUT',
+        headers: {
+          'Authorization': basicAuth,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': zipSize,
+          'User-Agent': 'Antigravity-Azure-Deployer/4.0'
+        },
+        timeout: 300000
+      }, (res) => {
+        let body = '';
+        res.on('data', c => { body += c; });
+        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      });
+      req.on('error', reject);
+      const stream = fs.createReadStream(zipPath);
+      stream.pipe(req);
+    });
+
+    ghNotice(`VFS fallback status: ${vfsResult.code} ${vfsResult.msg}`);
+    if (vfsResult.code >= 200 && vfsResult.code < 300) {
+      ghNotice('🎉 VFS Fallback SUCCEEDED!');
+      return true;
+    }
+  } catch (e) {
+    ghNotice(`VFS fallback notice: ${e.message}`);
+  }
+
+  return false;
+}
+
 async function main() {
-  ghNotice('Starting Azure Deploy via Kudu API...');
+  ghNotice('🚀 Starting Azure Deploy via Kudu API...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -19,10 +104,7 @@ async function main() {
     process.exit(1);
   }
 
-  ghNotice(`Secret length: ${rawSecret.length} chars`);
-
   const profileBlocks = rawSecret.match(/<publishProfile[\s\S]*?(?:\/>|>[\s\S]*?<\/publishProfile>)/gi) || [];
-  ghNotice(`Detected ${profileBlocks.length} profile block(s) in XML.`);
 
   const getAttr = (block, attrName) => {
     const match = block.match(new RegExp(`${attrName}\\s*=\\s*["']([^"']+)["']`, 'i'));
@@ -41,35 +123,14 @@ async function main() {
     }
   }
 
-  if (!selectedBlock) {
-    for (const block of profileBlocks) {
-      const url = getAttr(block, 'publishUrl') || '';
-      if (url.includes('scm') || url.includes('azurewebsites')) {
-        selectedBlock = block;
-        publishMethod = getAttr(block, 'publishMethod') || 'SCM';
-        break;
-      }
-    }
-  }
-
   if (!selectedBlock && profileBlocks.length > 0) {
     selectedBlock = profileBlocks[0];
     publishMethod = getAttr(selectedBlock, 'publishMethod') || 'Default';
   }
 
-  if (!selectedBlock) {
-    ghError('Could not find valid <publishProfile> in secret!');
-    process.exit(1);
-  }
-
   const rawUrl = getAttr(selectedBlock, 'publishUrl');
   const userName = getAttr(selectedBlock, 'userName');
   const userPWD = getAttr(selectedBlock, 'userPWD');
-
-  if (!rawUrl || !userName || !userPWD) {
-    ghError(`Missing fields: URL=${!!rawUrl}, User=${!!userName}, PWD=${!!userPWD}`);
-    process.exit(1);
-  }
 
   const scmHost = rawUrl
     .replace(/^https?:\/\//i, '')
@@ -77,7 +138,9 @@ async function main() {
     .replace(/:\d+$/, '')
     .trim();
 
-  ghNotice(`Method: ${publishMethod}, Host: ${scmHost}, User: ${userName}`);
+  ghNotice(`Deploying to ${scmHost} (User: ${userName})`);
+
+  const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
   const zipPath = path.resolve(process.cwd(), 'release.zip');
   if (!fs.existsSync(zipPath)) {
@@ -86,99 +149,14 @@ async function main() {
   }
 
   const zipStats = fs.statSync(zipPath);
-  const zipSizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
-  ghNotice(`Package: release.zip (${zipSizeMB} MB)`);
 
-  const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
-
-  ghNotice(`Attempting Direct VFS Zip Extract (PUT /api/zip/site/wwwroot/)...`);
-
-  let success = false;
-
-  try {
-    const vfsResult = await new Promise((resolve, reject) => {
-      const req = https.request({
-        hostname: scmHost,
-        port: 443,
-        path: '/api/zip/site/wwwroot/',
-        method: 'PUT',
-        headers: {
-          'Authorization': basicAuth,
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': zipStats.size,
-          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
-        },
-        timeout: 300000
-      }, (res) => {
-        let body = '';
-        res.on('data', c => { body += c; });
-        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
-      });
-
-      req.on('error', reject);
-      req.on('timeout', () => req.destroy(new Error('VFS Upload timed out')));
-
-      const stream = fs.createReadStream(zipPath);
-      stream.pipe(req);
-    });
-
-    ghNotice(`VFS Deploy Response: HTTP ${vfsResult.code} ${vfsResult.msg}`);
-
-    if (vfsResult.code >= 200 && vfsResult.code < 300) {
-      ghNotice('🎉 SUCCESS! Files extracted directly into /home/site/wwwroot/');
-      success = true;
-    } else {
-      ghNotice(`VFS returned HTTP ${vfsResult.code}: ${vfsResult.body.substring(0, 200)}`);
-    }
-  } catch (err) {
-    ghNotice(`VFS Attempt notice: ${err.message}`);
-  }
-
-  if (!success) {
-    ghNotice('Attempting Kudu ZipDeploy endpoint (POST /api/zipdeploy?isAsync=true)...');
-
-    const zipDeployResult = await new Promise((resolve, reject) => {
-      const req = https.request({
-        hostname: scmHost,
-        port: 443,
-        path: '/api/zipdeploy?isAsync=true&clean=true',
-        method: 'POST',
-        headers: {
-          'Authorization': basicAuth,
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': zipStats.size,
-          'User-Agent': 'Antigravity-Azure-Deployer/3.0'
-        },
-        timeout: 300000
-      }, (res) => {
-        let body = '';
-        res.on('data', c => { body += c; });
-        res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
-      });
-
-      req.on('error', reject);
-      req.on('timeout', () => req.destroy(new Error('ZipDeploy timed out')));
-
-      const stream = fs.createReadStream(zipPath);
-      stream.pipe(req);
-    });
-
-    ghNotice(`ZipDeploy Response: HTTP ${zipDeployResult.code} ${zipDeployResult.msg}`);
-
-    if (zipDeployResult.code >= 200 && zipDeployResult.code < 300) {
-      ghNotice('🎉 SUCCESS! Package accepted via /api/zipdeploy');
-      success = true;
-    } else {
-      ghError(`ZipDeploy failed with HTTP ${zipDeployResult.code}: ${zipDeployResult.body.substring(0, 300)}`);
-    }
-  }
-
-  if (!success) {
-    ghError('All deployment methods failed. Check credentials and Azure status.');
+  const ok = await doZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
+  if (!ok) {
+    ghError('Deployment failed after all attempts.');
     process.exit(1);
   }
 
-  ghNotice('🎉 Deployment finished successfully!');
+  ghNotice('🎉 All deployment tasks completed successfully!');
 }
 
 main().catch(err => {
