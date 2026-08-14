@@ -33,39 +33,72 @@ jobs:
           cd release && zip -r ../release.zip . && cd ..
           echo "ZIP size: $(du -sh release.zip | cut -f1)"
 
-      - name: Deploy via Kudu REST API (bypasses azure/webapps-deploy 409 bug)
+      - name: Extract credentials from publish profile and deploy via Kudu
         env:
           PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
           echo "$PUBLISH_PROFILE" > /tmp/profile.xml
-          SCM_USER=$(python3 -c "
+          echo "--- Profile preview (first 200 chars) ---"
+          head -c 200 /tmp/profile.xml
+
+          # Extract SCM URL, username, and password from publish profile
+          python3 << 'PYEOF'
           import xml.etree.ElementTree as ET
-          tree = ET.parse('/tmp/profile.xml')
-          root = tree.getroot()
-          p = [x for x in root.findall('publishProfile') if x.get('publishMethod') == 'MSDeploy'][0]
-          print(p.get('userName'))
-          ")
-          SCM_PWD=$(python3 -c "
-          import xml.etree.ElementTree as ET
-          tree = ET.parse('/tmp/profile.xml')
-          root = tree.getroot()
-          p = [x for x in root.findall('publishProfile') if x.get('publishMethod') == 'MSDeploy'][0]
-          print(p.get('userPWD'))
-          ")
+          import os
+
+          with open('/tmp/profile.xml', 'r') as f:
+              content = f.read()
+
+          tree = ET.fromstring(content)
+          profiles = tree.findall('publishProfile')
+          
+          msdeploy = None
+          for p in profiles:
+              if p.get('publishMethod') == 'MSDeploy':
+                  msdeploy = p
+                  break
+          
+          if not msdeploy:
+              print("ERROR: No MSDeploy profile found!")
+              print("Available profiles:")
+              for p in profiles:
+                  print(f"  - {p.get('publishMethod')}: {p.get('publishUrl')}")
+              exit(1)
+          
+          scm_url = msdeploy.get('publishUrl')
+          username = msdeploy.get('userName')
+          password = msdeploy.get('userPWD')
+          
+          print(f"SCM URL: {scm_url}")
+          print(f"Username: {username}")
+          
+          with open('/tmp/kudu_creds.sh', 'w') as f:
+              f.write(f'export SCM_URL="{scm_url}"\n')
+              f.write(f'export SCM_USER="{username}"\n')
+              f.write(f'export SCM_PWD="{password}"\n')
+          PYEOF
+
+          source /tmp/kudu_creds.sh
           echo "::add-mask::$SCM_PWD"
-          echo "SCM User: $SCM_USER"
-          echo "Deploying via Kudu /api/zipdeploy..."
-          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+          echo "SCM URL: $SCM_URL"
+          echo "Username: $SCM_USER"
+
+          # Build full Kudu zipdeploy URL
+          KUDU_URL="https://${SCM_URL}/api/zipdeploy?isAsync=false&clean=true"
+          echo "Deploying to: $KUDU_URL"
+
+          HTTP_CODE=$(curl -s -o /tmp/deploy_out.txt -w "%{http_code}" \
             --max-time 300 \
             -X POST \
             -u "${SCM_USER}:${SCM_PWD}" \
             -H "Content-Type: application/octet-stream" \
             --data-binary @release.zip \
-            "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false&clean=true")
-          HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -1)
-          BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
-          echo "Response: $BODY"
+            "$KUDU_URL")
+
           echo "HTTP Status: $HTTP_CODE"
+          echo "Response:"
+          cat /tmp/deploy_out.txt || true
+
           if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ] || [ "$HTTP_CODE" = "204" ]; then
             echo "Deployment SUCCESSFUL!"
           else
