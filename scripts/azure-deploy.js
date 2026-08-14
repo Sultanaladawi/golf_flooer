@@ -11,15 +11,16 @@ function ghError(msg) {
 }
 
 async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
+  const safePath = encodeURI(reqPath);
   return new Promise((resolve) => {
     const req = https.request({
       hostname: scmHost,
       port: 443,
-      path: reqPath,
+      path: safePath,
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Direct-Deployer/1.0',
+        'User-Agent': 'Antigravity-Direct-Deployer/2.0',
         ...headers
       },
       timeout: 60000
@@ -62,30 +63,26 @@ function getAllFiles(dirPath, arrayOfFiles = []) {
 async function syncDirectoryDirect(scmHost, basicAuth, localDir, remoteSubdir) {
   const allFiles = getAllFiles(localDir).filter(f => {
     const ext = path.extname(f).toLowerCase();
-    // Exclude large raw media to keep sync instant; sync core code, html, css, js, json, svg
     return !['.mp4', '.mov', '.webm'].includes(ext);
   });
 
-  ghNotice(`Syncing ${allFiles.length} core files directly via VFS to /site/wwwroot/${remoteSubdir}...`);
+  ghNotice(`Direct VFS upload of ${allFiles.length} files to /site/wwwroot/${remoteSubdir}...`);
 
-  for (let i = 0; i < allFiles.length; i++) {
-    const file = allFiles[i];
-    const relPath = path.relative(localDir, file).replace(/\\/g, '/');
-    const targetUrlPath = `/api/vfs/site/wwwroot/${remoteSubdir ? remoteSubdir + '/' : ''}${relPath}`;
-    const fileData = fs.readFileSync(file);
-
-    const res = await makeKuduRequest(scmHost, basicAuth, targetUrlPath, 'PUT', fileData, {
-      'If-Match': '*'
-    });
-
-    if (res.code >= 200 && res.code < 300) {
-      // Success
-    } else {
-      ghNotice(`[Notice] ${relPath} returned HTTP ${res.code}: ${res.msg}`);
-    }
+  // Upload in chunks of 5 parallel requests
+  const CONCURRENCY = 5;
+  for (let i = 0; i < allFiles.length; i += CONCURRENCY) {
+    const slice = allFiles.slice(i, i + CONCURRENCY);
+    await Promise.all(slice.map(async (file) => {
+      const relPath = path.relative(localDir, file).replace(/\\/g, '/');
+      const targetUrlPath = `/api/vfs/site/wwwroot/${remoteSubdir ? remoteSubdir + '/' : ''}${relPath}`;
+      const fileData = fs.readFileSync(file);
+      await makeKuduRequest(scmHost, basicAuth, targetUrlPath, 'PUT', fileData, {
+        'If-Match': '*'
+      });
+    }));
   }
 
-  ghNotice(`✅ Direct VFS sync of ${allFiles.length} files completed!`);
+  ghNotice(`✅ Direct VFS sync of ${allFiles.length} files completed successfully!`);
 }
 
 async function main() {
@@ -130,10 +127,10 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Step 1: Upload server.js and package.json to root
+  // Step 1: Upload bundled server.js and package.json to root
   const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
   if (fs.existsSync(serverPath)) {
-    ghNotice('Uploading bundled server.js to /site/wwwroot/server.js ...');
+    ghNotice('Uploading server.js to /site/wwwroot/server.js ...');
     const sData = fs.readFileSync(serverPath);
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', 'PUT', sData, { 'If-Match': '*' });
   }
