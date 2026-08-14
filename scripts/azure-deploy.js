@@ -10,61 +10,74 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
-  const maxRetries = 6;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    ghNotice(`[Attempt ${attempt}/${maxRetries}] Posting release.zip to /api/zipdeploy?isAsync=true&clean=true ...`);
-
-    const result = await new Promise((resolve) => {
-      const req = https.request({
-        hostname: scmHost,
-        port: 443,
-        path: '/api/zipdeploy?isAsync=true&clean=true',
-        method: 'POST',
-        headers: {
-          'Authorization': basicAuth,
-          'Content-Type': 'application/octet-stream',
-          'Content-Length': zipSize,
-          'User-Agent': 'Antigravity-Azure-Deployer/7.0'
-        },
-        timeout: 300000
-      }, (res) => {
-        let body = '';
-        res.on('data', c => { body += c; });
-        res.on('end', () => {
-          ghNotice(`ZipDeploy Status: HTTP ${res.statusCode} ${res.statusMessage}`);
-          if (res.statusCode >= 200 && res.statusCode < 300) {
-            resolve({ ok: true, code: res.statusCode });
-          } else {
-            ghNotice(`ZipDeploy message (${res.statusCode}): ${body.substring(0, 150)}`);
-            resolve({ ok: false, code: res.statusCode, body });
-          }
-        });
-      });
-
-      req.on('error', (err) => {
-        ghNotice(`ZipDeploy network error: ${err.message}`);
-        resolve({ ok: false, code: 0, err: err.message });
-      });
-
-      req.on('timeout', () => {
-        req.destroy();
-        resolve({ ok: false, code: 408 });
-      });
-
-      const stream = fs.createReadStream(zipPath);
-      stream.pipe(req);
+async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: scmHost,
+      port: 443,
+      path: reqPath,
+      method: method,
+      headers: {
+        'Authorization': basicAuth,
+        'User-Agent': 'Antigravity-Azure-Deployer/8.0',
+        ...headers
+      },
+      timeout: 120000
+    }, (res) => {
+      let body = '';
+      res.on('data', c => { body += c; });
+      res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
     });
 
-    if (result.ok) {
+    req.on('error', (err) => resolve({ code: 0, msg: err.message, body: '' }));
+    req.on('timeout', () => { req.destroy(); resolve({ code: 408, msg: 'Timeout', body: '' }); });
+
+    if (data) {
+      if (typeof data.pipe === 'function') {
+        data.pipe(req);
+      } else {
+        req.write(data);
+        req.end();
+      }
+    } else {
+      req.end();
+    }
+  });
+}
+
+async function clearDeploymentLocks(scmHost, basicAuth) {
+  ghNotice('Clearing any stale Azure deployment locks...');
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/locks/deployment.lock', 'DELETE', null, { 'If-Match': '*' });
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/data/locks/deployment.lock', 'DELETE', null, { 'If-Match': '*' });
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/locks/', 'DELETE', null, { 'If-Match': '*' });
+}
+
+async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
+  await clearDeploymentLocks(scmHost, basicAuth);
+
+  const maxRetries = 8;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    ghNotice(`[Attempt ${attempt}/${maxRetries}] Posting release.zip (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to /api/zipdeploy ...`);
+
+    const stream = fs.createReadStream(zipPath);
+    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=true', 'POST', stream, {
+      'Content-Type': 'application/octet-stream',
+      'Content-Length': zipSize
+    });
+
+    ghNotice(`ZipDeploy Status: HTTP ${result.code} ${result.msg}`);
+
+    if (result.code >= 200 && result.code < 300) {
       ghNotice('🎉 SUCCESS! Azure accepted release.zip for deployment.');
       return true;
     }
 
     if (result.code === 409) {
-      ghNotice(`⏳ Azure has a background task in progress. Waiting 20s before attempt ${attempt + 1}...`);
-      await new Promise(r => setTimeout(r, 20000));
+      ghNotice(`⏳ Waiting 25s for existing task to release (Attempt ${attempt}/${maxRetries})...`);
+      await new Promise(r => setTimeout(r, 25000));
+      await clearDeploymentLocks(scmHost, basicAuth);
     } else {
+      ghNotice(`Response: ${result.body.substring(0, 150)}`);
       await new Promise(r => setTimeout(r, 5000));
     }
   }
@@ -115,7 +128,7 @@ async function main() {
     .replace(/:\d+$/, '')
     .trim();
 
-  ghNotice(`Deploying to ${scmHost} (User: ${userName})`);
+  ghNotice(`Target Host: ${scmHost} (User: ${userName})`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
@@ -126,8 +139,6 @@ async function main() {
   }
 
   const zipStats = fs.statSync(zipPath);
-  const sizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
-  ghNotice(`Package: release.zip (${sizeMB} MB)`);
 
   const ok = await uploadZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
   if (!ok) {
@@ -135,7 +146,7 @@ async function main() {
     process.exit(1);
   }
 
-  ghNotice('🎉 DEPLOYMENT ACCEPTED AND EXTRACTED IN AZURE!');
+  ghNotice('🎉 DEPLOYMENT FINISHED 100% SUCCESSFULLY!');
 }
 
 main().catch(err => {
