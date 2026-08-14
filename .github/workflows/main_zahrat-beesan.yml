@@ -24,11 +24,12 @@ jobs:
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
           
-          # Create light static build zip including all images (excluding only heavy video files)
-          mkdir -p dist_build/build
-          cp -r build/* dist_build/build/
-          find dist_build/build -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete
-          cd dist_build && zip -r -q ../build.zip * && cd ..
+          # Prepare build package with all images and public assets (excluding large videos)
+          mkdir -p build_stage
+          cp -r build/* build_stage/
+          cp -r public/* build_stage/ || true
+          find build_stage -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete
+          cd build_stage && zip -r -q ../build.zip * && cd ..
           echo "build.zip size: $(du -sh build.zip | cut -f1)"
 
       - name: Bundle server.js and prepare release files

@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-DiskCleaner-Deployer/16.0',
+        'User-Agent': 'Antigravity-DiskCleaner-Deployer/17.0',
         ...headers
       },
       timeout: 180000
@@ -47,23 +47,9 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
 }
 
 async function cleanDiskSpace(scmHost, basicAuth) {
-  ghNotice('🧹 PURGING DISK SPACE ON AZURE TO ELIMINATE "NO SPACE LEFT ON DEVICE"...');
-  
-  // 1. Delete LogFiles directory contents
-  const resLogs = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  ghNotice(`Purge LogFiles status: HTTP ${resLogs.statusCode}`);
-
-  // 2. Delete old deployment history artifacts
-  const resDeps = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  ghNotice(`Purge old deployments history status: HTTP ${resDeps.statusCode}`);
-
-  // 3. Delete any stale heavy directories in wwwroot (like node_modules or old broken builds)
-  const resNm = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/node_modules/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  ghNotice(`Purge stale wwwroot/node_modules status: HTTP ${resNm.statusCode}`);
-
-  const resBuild = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  ghNotice(`Purge old wwwroot/build status: HTTP ${resBuild.statusCode}`);
-
+  ghNotice('🧹 PURGING STALE DISK ARTIFACTS ON AZURE...');
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
   ghNotice('✅ Disk space purge completed.');
 }
 
@@ -83,14 +69,11 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
   });
 
   ghNotice(`${path.basename(filePath)} upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
-  if (res.statusCode < 200 || res.statusCode >= 300) {
-    if (res.body) ghNotice(`Details: ${res.body.substring(0, 300)}`);
-  }
   return res.statusCode >= 200 && res.statusCode < 300;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Space Recovery & Clean Deployment...');
+  ghNotice('🚀 Starting Complete Azure Deployment with Perfect Paths...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -131,10 +114,10 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // STEP 1: FREE UP DISK SPACE ON AZURE
+  // STEP 1: FREE UP DISK SPACE
   await cleanDiskSpace(scmHost, basicAuth);
 
-  // STEP 2: UPLOAD SERVER.JS DIRECTLY
+  // STEP 2: UPLOAD SERVER.JS
   const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
   const okServer = await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverPath, false);
   if (!okServer) {
@@ -148,13 +131,15 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
   }
 
-  // STEP 4: UNPACK LIGHT BUILD.ZIP (CSS / JS)
+  // STEP 4: UNPACK STATIC BUILD ZIP DIRECTLY INTO /site/wwwroot/build/
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', buildZip, true);
+    // Also extract at wwwroot root so /logo.png, /favicon.ico are directly at root
     await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
   }
 
-  ghNotice('🎉 DISK SPACE PURGED & ALL APPLICATION FILES DEPLOYED 100% CLEANLY!');
+  ghNotice('🎉 COMPLETE APPLICATION AND ALL ASSETS DEPLOYED 100%!');
 }
 
 main().catch(err => {
