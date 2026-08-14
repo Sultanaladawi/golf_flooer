@@ -3977,20 +3977,67 @@ app.get('/api/catalog.json', (req, res) => {
   });
 });
 
-// For any other GET request (that isn't an API), serve React's index.html without caching index.html
+// For any other GET request (that isn't an API), serve React's index.html or fallback static assets gracefully
 app.get(/.*/, (req, res) => {
-  // If a request for static assets (JS, CSS, images) reached here, it means the file wasn't found in build/ -> return 404, DO NOT return index.html
-  if (req.path.startsWith('/static/') || req.path.startsWith('/public/') || /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$/i.test(req.path)) {
+  // 1. Graceful fallback for CSS bundles if old hash requested
+  if (req.path.startsWith('/static/css/') || (req.path.includes('.css') && req.path.startsWith('/static/'))) {
+    const cssDirs = [
+      path.join(__dirname, 'build', 'static', 'css'),
+      path.join(__dirname, 'static', 'css'),
+      path.join(__dirname, 'build', 'css')
+    ];
+    for (const cDir of cssDirs) {
+      if (fs.existsSync(cDir)) {
+        const cssFiles = fs.readdirSync(cDir).filter(f => f.startsWith('main.') && f.endsWith('.css'));
+        if (cssFiles.length > 0) {
+          res.setHeader('Content-Type', 'text/css; charset=utf-8');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          return res.sendFile(path.join(cDir, cssFiles[0]));
+        }
+      }
+    }
+  }
+
+  // 2. Graceful fallback for JS bundles if old hash requested
+  if (req.path.startsWith('/static/js/') || (req.path.includes('.js') && req.path.startsWith('/static/'))) {
+    const jsDirs = [
+      path.join(__dirname, 'build', 'static', 'js'),
+      path.join(__dirname, 'static', 'js'),
+      path.join(__dirname, 'build', 'js')
+    ];
+    for (const jDir of jsDirs) {
+      if (fs.existsSync(jDir)) {
+        const jsFiles = fs.readdirSync(jDir).filter(f => f.startsWith('main.') && f.endsWith('.js'));
+        if (jsFiles.length > 0) {
+          res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          res.setHeader('Cache-Control', 'public, max-age=86400');
+          return res.sendFile(path.join(jDir, jsFiles[0]));
+        }
+      }
+    }
+  }
+
+  // If a request for images/media reached here and was missing
+  if (req.path.startsWith('/public/') || /\.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$/i.test(req.path)) {
     return res.status(404).send('Asset not found');
   }
 
-  const indexPath = path.join(__dirname, 'build', 'index.html');
-  if (fs.existsSync(indexPath)) {
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    return res.sendFile(indexPath);
+  const indexCandidates = [
+    path.join(__dirname, 'build', 'index.html'),
+    path.join(__dirname, 'index.html'),
+    path.join(__dirname, 'public', 'index.html')
+  ];
+
+  for (const idx of indexCandidates) {
+    if (fs.existsSync(idx)) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      return res.sendFile(idx);
+    }
   }
+
   res.send('Zahrat Beesan Server is LIVE. Loading app...');
 });
 
