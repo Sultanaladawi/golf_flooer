@@ -153563,6 +153563,9 @@ app.get("/api/catalog.json", (req, res) => {
   });
 });
 app.get(/.*/, (req, res) => {
+  if (req.path.startsWith("/static/") || req.path.startsWith("/public/") || /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$/i.test(req.path)) {
+    return res.status(404).send("Asset not found");
+  }
   const indexPath = path.join(__dirname, "build", "index.html");
   if (fs.existsSync(indexPath)) {
     res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
