@@ -1,5 +1,3 @@
-# Deploy to Azure via Kudu zipdeploy using publish profile
-
 name: Build and deploy Node.js app to Azure Web App - zahrat-beesan
 
 on:
@@ -11,9 +9,6 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -38,9 +33,42 @@ jobs:
           cd release && zip -r ../release.zip . && cd ..
           echo "ZIP size: $(du -sh release.zip | cut -f1)"
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'zahrat-beesan'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: 'release.zip'
+      - name: Deploy via Kudu REST API (bypasses azure/webapps-deploy 409 bug)
+        env:
+          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        run: |
+          echo "$PUBLISH_PROFILE" > /tmp/profile.xml
+          SCM_USER=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('/tmp/profile.xml')
+          root = tree.getroot()
+          p = [x for x in root.findall('publishProfile') if x.get('publishMethod') == 'MSDeploy'][0]
+          print(p.get('userName'))
+          ")
+          SCM_PWD=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('/tmp/profile.xml')
+          root = tree.getroot()
+          p = [x for x in root.findall('publishProfile') if x.get('publishMethod') == 'MSDeploy'][0]
+          print(p.get('userPWD'))
+          ")
+          echo "::add-mask::$SCM_PWD"
+          echo "SCM User: $SCM_USER"
+          echo "Deploying via Kudu /api/zipdeploy..."
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            --max-time 300 \
+            -X POST \
+            -u "${SCM_USER}:${SCM_PWD}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary @release.zip \
+            "https://zahrat-beesan.scm.azurewebsites.net/api/zipdeploy?isAsync=false&clean=true")
+          HTTP_CODE=$(echo "$HTTP_RESPONSE" | tail -1)
+          BODY=$(echo "$HTTP_RESPONSE" | head -n -1)
+          echo "Response: $BODY"
+          echo "HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "202" ] || [ "$HTTP_CODE" = "204" ]; then
+            echo "Deployment SUCCESSFUL!"
+          else
+            echo "Deployment FAILED with HTTP $HTTP_CODE"
+            exit 1
+          fi
