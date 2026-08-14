@@ -245,7 +245,16 @@ app.use('/videos', handleMediaStreaming);
 
 
 // --- STATIC FILES SERVING (HARDENED & OPTIMIZED) ---
-// Serve static assets from build and public with aggressive caching
+// Prevent caching index.html so browsers always fetch the latest JS/CSS hashes
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path === '/index.html') {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+  next();
+});
+
 const cacheOptions = { maxAge: '30d', etag: true, lastModified: true };
 app.use(express.static(path.resolve(__dirname, 'build'), cacheOptions));
 app.use(express.static(path.resolve(__dirname, 'public'), cacheOptions));
