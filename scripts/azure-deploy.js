@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Release-Deployer/9.0',
+        'User-Agent': 'Antigravity-Release-Deployer/10.0',
         ...headers
       },
       timeout: 180000
@@ -46,12 +46,10 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function deleteOldBrokenServerFile(scmHost, basicAuth) {
-  ghNotice('Deleting old broken server.js from /site/wwwroot/ ...');
-  const res = await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', 'DELETE', null, {
-    'If-Match': '*'
-  });
-  ghNotice(`Delete server.js status: HTTP ${res.code} ${res.msg}`);
+async function clearDeploymentLocks(scmHost, basicAuth) {
+  ghNotice('Clearing any active deployment locks on Azure...');
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/locks/', 'DELETE', null, { 'If-Match': '*' });
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/active', 'DELETE', null, { 'If-Match': '*' });
 }
 
 async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
@@ -70,7 +68,7 @@ async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
 }
 
 async function main() {
-  ghNotice('🚀 Starting Clean Deployment to wwwroot...');
+  ghNotice('🚀 Starting 100% Clean Direct Deployment to wwwroot...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -111,10 +109,10 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Step 1: Explicitly delete the corrupted server.js
-  await deleteOldBrokenServerFile(scmHost, basicAuth);
+  // Step 1: Clear locks
+  await clearDeploymentLocks(scmHost, basicAuth);
 
-  // Step 2: Upload and extract clean release.zip
+  // Step 2: Extract clean zip without .bin symlinks
   const releaseZip = path.resolve(process.cwd(), 'release.zip');
   const ok = await uploadZipToWwwroot(scmHost, basicAuth, releaseZip);
   if (!ok) {
@@ -122,7 +120,7 @@ async function main() {
     process.exit(1);
   }
 
-  ghNotice('🎉 CLEAN RELEASE DEPLOYED! Ready for container boot.');
+  ghNotice('🎉 CLEAN RELEASE DEPLOYED WITH FULL NODE_MODULES!');
 }
 
 main().catch(err => {
