@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Direct-Zip/1.0',
+        'User-Agent': 'Antigravity-Direct-Zip/2.0',
         ...headers
       },
       timeout: 300000
@@ -43,6 +43,25 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
     } else {
       req.end();
     }
+  });
+}
+
+async function triggerLiveReload() {
+  ghNotice('Sending reload signal to live application...');
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
+      port: 443,
+      path: '/api/system/reload',
+      method: 'POST',
+      timeout: 10000
+    }, (res) => {
+      ghNotice(`Live reload response: HTTP ${res.statusCode}`);
+      resolve(true);
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.end();
   });
 }
 
@@ -126,6 +145,9 @@ async function main() {
     ghError('Direct wwwroot extraction failed.');
     process.exit(1);
   }
+
+  // Trigger live reload
+  await triggerLiveReload();
 
   ghNotice('🎉 ALL ASSETS & CODE EXTRACTED DIRECTLY INTO WWWROOT SUCCESSFULLY!');
 }

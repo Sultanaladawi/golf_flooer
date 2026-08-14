@@ -277,6 +277,15 @@ app.get('/favicon.ico', (req, res) => res.sendFile(path.resolve(__dirname, 'publ
 app.get('/favicon.jpg', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.jpg')));
 app.get('/manifest.json', (req, res) => res.sendFile(path.resolve(__dirname, 'public/manifest.json')));
 
+// Instant Server Reload endpoint
+app.all('/api/system/reload', (req, res) => {
+  res.json({ success: true, message: 'Server recycling immediately...' });
+  setTimeout(() => {
+    console.log('🔄 Recycling Node process for fresh assets deployment...');
+    process.exit(0);
+  }, 300);
+});
+
 // Dynamic XML Sitemap Endpoint for Google Search Engine Indexing (Bilingual Arabic/English)
 app.get('/sitemap.xml', (req, res) => {
   const baseUrl = process.env.BASE_URL || 'https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net';
