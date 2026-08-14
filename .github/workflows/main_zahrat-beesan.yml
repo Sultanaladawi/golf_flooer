@@ -37,49 +37,8 @@ jobs:
           cd ..
           echo "Release ZIP size: $(du -sh release.zip | cut -f1)"
 
-      - name: Deploy to Azure Web App via Kudu curl
+      - name: Deploy to Azure Web App via Safe Node Deployer
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
-          node -e "
-          const fs = require('fs');
-          const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE;
-          const profileBlocks = rawSecret.match(/<publishProfile[\s\S]*?(?:\/>|>[\s\S]*?<\/publishProfile>)/gi) || [];
-          const getAttr = (b, a) => { const m = b.match(new RegExp(a + '=\\\"([^\\\"]+)\\\"', 'i')); return m ? m[1] : null; };
-          const block = profileBlocks.find(b => (getAttr(b, 'publishMethod') || '').toLowerCase() === 'msdeploy') || profileBlocks[0];
-          const scmUrl = getAttr(block, 'publishUrl').replace(/^https?:\/\//i, '').replace(/:\d+$/, '').trim();
-          const user = getAttr(block, 'userName');
-          const pass = getAttr(block, 'userPWD');
-          
-          fs.writeFileSync('kudu_auth.env', 'SCM_HOST=' + scmUrl + '\nSCM_USER=' + user + '\nSCM_PASS=' + pass);
-          "
-          source kudu_auth.env
-          echo "Deploying release.zip ($(du -sh release.zip | cut -f1)) directly to https://$SCM_HOST/api/zipdeploy ..."
-          
-          HTTP_STATUS=$(curl -s -o deploy_output.txt -w "%{http_code}" -X POST \
-            -u "$SCM_USER:$SCM_PASS" \
-            --data-binary "@release.zip" \
-            -H "Content-Type: application/zip" \
-            "https://$SCM_HOST/api/zipdeploy?isAsync=false")
-          
-          echo "ZipDeploy HTTP Status: $HTTP_STATUS"
-          cat deploy_output.txt
-          
-          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
-            echo "✅ Deployment Succeeded via ZipDeploy!"
-          else
-            echo "Falling back to /api/zip/site/wwwroot/ ..."
-            HTTP_STATUS_VFS=$(curl -s -o vfs_output.txt -w "%{http_code}" -X PUT \
-              -u "$SCM_USER:$SCM_PASS" \
-              --data-binary "@release.zip" \
-              -H "Content-Type: application/zip" \
-              "https://$SCM_HOST/api/zip/site/wwwroot/")
-            echo "VFS HTTP Status: $HTTP_STATUS_VFS"
-            cat vfs_output.txt
-            if [ "$HTTP_STATUS_VFS" -ge 200 ] && [ "$HTTP_STATUS_VFS" -lt 300 ]; then
-              echo "✅ VFS Deployment Succeeded!"
-            else
-              echo "❌ Deployment Failed"
-              exit 1
-            fi
-          fi
+          node scripts/azure-deploy.js
