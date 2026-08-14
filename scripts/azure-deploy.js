@@ -10,59 +10,55 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
-  const safePath = encodeURI(reqPath);
+async function makeKuduUpload(scmHost, basicAuth, reqPath, filePath, isZip = false) {
+  if (!fs.existsSync(filePath)) {
+    ghError(`File not found: ${filePath}`);
+    return false;
+  }
+  const stats = fs.statSync(filePath);
+  ghNotice(`Uploading ${path.basename(filePath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to ${reqPath} ...`);
+
   return new Promise((resolve) => {
+    const stream = fs.createReadStream(filePath);
     const req = https.request({
       hostname: scmHost,
       port: 443,
-      path: safePath,
-      method: method,
+      path: reqPath,
+      method: 'PUT',
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Release-Deployer/9.0',
-        ...headers
+        'Content-Type': isZip ? 'application/zip' : 'application/octet-stream',
+        'Content-Length': stats.size,
+        'If-Match': '*',
+        'User-Agent': 'Antigravity-Direct-Deployer/14.0'
       },
-      timeout: 240000
+      timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
-      res.on('end', () => resolve({ code: res.statusCode, msg: res.statusMessage, body }));
+      res.on('end', () => {
+        ghNotice(`${path.basename(filePath)} upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
+        resolve(res.statusCode >= 200 && res.statusCode < 300);
+      });
     });
 
-    req.on('error', (err) => resolve({ code: 0, msg: err.message, body: '' }));
-    req.on('timeout', () => { req.destroy(); resolve({ code: 408, msg: 'Timeout', body: '' }); });
+    req.on('error', (err) => {
+      ghError(`Upload network error for ${path.basename(filePath)}: ${err.message}`);
+      resolve(false);
+    });
 
-    if (data) {
-      if (typeof data.pipe === 'function') {
-        data.pipe(req);
-      } else {
-        req.write(data);
-        req.end();
-      }
-    } else {
-      req.end();
-    }
+    req.on('timeout', () => {
+      req.destroy();
+      ghError(`Upload timed out for ${path.basename(filePath)}`);
+      resolve(false);
+    });
+
+    stream.pipe(req);
   });
-}
-
-async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
-  if (!fs.existsSync(zipPath)) return false;
-  const stats = fs.statSync(zipPath);
-  ghNotice(`Unpacking clean ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
-
-  const stream = fs.createReadStream(zipPath);
-  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
-    'Content-Type': 'application/zip',
-    'Content-Length': stats.size
-  });
-
-  ghNotice(`Release ZIP unpack status: HTTP ${res.code} ${res.msg}`);
-  return res.code >= 200 && res.code < 300;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Clean Stream Deployment to Azure wwwroot...');
+  ghNotice('🚀 Starting Direct VFS File Upload to Azure wwwroot...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -102,15 +98,28 @@ async function main() {
   ghNotice(`Target: ${scmHost} (User: ${userName})`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
-  const releaseZip = path.resolve(process.cwd(), 'release.zip');
 
-  const ok = await uploadZipToWwwroot(scmHost, basicAuth, releaseZip);
-  if (!ok) {
-    ghError('Release ZIP deployment failed.');
+  // 1. Upload server.js directly
+  const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
+  const okServer = await makeKuduUpload(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverPath, false);
+  if (!okServer) {
+    ghError('Failed to upload server.js');
     process.exit(1);
   }
 
-  ghNotice('🎉 CLEAN RELEASE DEPLOYED! Ready for instant container boot.');
+  // 2. Upload package.json directly
+  const pkgPath = path.resolve(process.cwd(), 'release', 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    await makeKuduUpload(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
+  }
+
+  // 3. Upload static build zip
+  const buildZip = path.resolve(process.cwd(), 'build.zip');
+  if (fs.existsSync(buildZip)) {
+    await makeKuduUpload(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
+  }
+
+  ghNotice('🎉 ALL FILES DEPLOYED DIRECTLY AND SUCCESSFULLY!');
 }
 
 main().catch(err => {

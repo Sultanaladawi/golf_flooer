@@ -23,21 +23,23 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
+          
+          # Create light static build zip without large media
+          mkdir -p dist_build/build
+          cp -r build/* dist_build/build/
+          find dist_build/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
+          cd dist_build && zip -r -q ../build.zip * && cd ..
+          echo "build.zip size: $(du -sh build.zip | cut -f1)"
 
-      - name: Bundle server.js and prepare clean release ZIP
+      - name: Bundle server.js and prepare release files
         run: |
           node scripts/embed-html.js
           mkdir -p release
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
           cp package.json release/
-          cp -r build release/
-          find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
-          cd release
-          zip -r -q ../release.zip *
-          cd ..
-          echo "Release ZIP size: $(du -sh release.zip | cut -f1)"
+          echo "release/server.js size: $(du -sh release/server.js | cut -f1)"
 
-      - name: Deploy to Azure Web App via Safe Node Deployer
+      - name: Deploy to Azure Web App via Direct VFS Upload
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
