@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Direct-Deployer/5.0',
+        'User-Agent': 'Antigravity-Release-Deployer/6.0',
         ...headers
       },
       timeout: 180000
@@ -46,40 +46,42 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function uploadZipToPath(scmHost, basicAuth, zipPath, remotePath) {
+async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   if (!fs.existsSync(zipPath)) return false;
   const stats = fs.statSync(zipPath);
-  ghNotice(`Unpacking ${path.basename(zipPath)} (${(stats.size / 1024).toFixed(1)} KB) into /site/wwwroot/${remotePath} ...`);
+  ghNotice(`Unpacking full ${path.basename(zipPath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) directly to /site/wwwroot/ ...`);
 
   const stream = fs.createReadStream(zipPath);
-  const res = await makeKuduRequest(scmHost, basicAuth, `/api/zip/site/wwwroot/${remotePath}/`, 'PUT', stream, {
+  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
     'Content-Type': 'application/zip',
     'Content-Length': stats.size
   });
 
-  ghNotice(`Unpack Result for ${remotePath}: HTTP ${res.code} ${res.msg}`);
+  ghNotice(`Release ZIP unpack status: HTTP ${res.code} ${res.msg}`);
   return res.code >= 200 && res.code < 300;
 }
 
-async function uploadDirectFile(scmHost, basicAuth, localPath, remotePath) {
-  if (!fs.existsSync(localPath)) return false;
-  const content = fs.readFileSync(localPath);
-  const mime = remotePath.endsWith('.css')
-    ? 'text/css'
-    : (remotePath.endsWith('.js') ? 'application/javascript' : (remotePath.endsWith('.html') ? 'text/html; charset=utf-8' : 'application/octet-stream'));
-
-  const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'PUT', content, {
-    'If-Match': '*',
-    'Content-Type': mime,
-    'Content-Length': Buffer.byteLength(content)
+async function triggerLiveReload() {
+  ghNotice('Triggering instant server reload...');
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
+      port: 443,
+      path: '/api/system/reload',
+      method: 'POST',
+      timeout: 8000
+    }, (res) => {
+      ghNotice(`Live reload response: HTTP ${res.statusCode}`);
+      resolve(true);
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.end();
   });
-
-  ghNotice(`Uploaded ${remotePath} (${(content.length / 1024).toFixed(1)} KB) -> HTTP ${res.code} ${res.msg}`);
-  return res.code >= 200 && res.code < 300;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Direct ZIP-Based Asset Synchronization...');
+  ghNotice('🚀 Starting Full Release ZIP Deployment to wwwroot...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -120,38 +122,18 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // Step 1: Unpack static assets (CSS, JS, Aliases) to BOTH /build/static and /static
-  const staticZip = path.resolve(process.cwd(), 'static.zip');
-  if (fs.existsSync(staticZip)) {
-    await uploadZipToPath(scmHost, basicAuth, staticZip, 'build/static');
-    await uploadZipToPath(scmHost, basicAuth, staticZip, 'static');
+  // Step 1: Upload and extract full release.zip to /site/wwwroot/
+  const releaseZip = path.resolve(process.cwd(), 'release.zip');
+  const ok = await uploadZipToWwwroot(scmHost, basicAuth, releaseZip);
+  if (!ok) {
+    ghError('Release ZIP deployment failed.');
+    process.exit(1);
   }
 
-  // Step 2: Upload build/index.html and server.js directly
-  const indexPath = path.resolve(process.cwd(), 'build', 'index.html');
-  await uploadDirectFile(scmHost, basicAuth, indexPath, 'build/index.html');
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/index.html', 'DELETE', null, { 'If-Match': '*' });
+  // Step 2: Trigger Live Reload
+  await triggerLiveReload();
 
-  const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
-  if (fs.existsSync(serverPath)) {
-    await uploadDirectFile(scmHost, basicAuth, serverPath, 'server.js');
-  }
-
-  // Step 3: Trigger Live Reload
-  ghNotice('Triggering instant Node process recycling...');
-  const reloadReq = https.request({
-    hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
-    port: 443,
-    path: '/api/system/reload',
-    method: 'POST',
-    timeout: 8000
-  }, (res) => {
-    ghNotice(`Live reload response: HTTP ${res.statusCode}`);
-  });
-  reloadReq.on('error', () => {});
-  reloadReq.end();
-
-  ghNotice('🎉 ALL CSS, JS, HTML AND CODE SYNCHRONIZED AND LIVE IN AZURE!');
+  ghNotice('🎉 FULL RELEASE ZIP UNPACKED DIRECTLY TO WWWROOT SUCCESSFULLY!');
 }
 
 main().catch(err => {
