@@ -14,7 +14,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Node.js version
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20.x'
 
@@ -31,62 +31,10 @@ jobs:
           cp package.json release/
           find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
           cd release && zip -r ../release.zip . && cd ..
-          echo "ZIP size: $(du -sh release.zip | cut -f1)"
+          echo "Release ZIP size: $(du -sh release.zip | cut -f1)"
 
-      - name: Debug and deploy via Kudu
+      - name: Deploy to Azure Web App via Kudu API
         env:
-          PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
-          # Write profile
-          printf '%s' "$PUBLISH_PROFILE" > /tmp/profile.xml
-          echo "Profile length: $(wc -c < /tmp/profile.xml)"
-          echo "First 300 chars:"
-          head -c 300 /tmp/profile.xml
-          echo ""
-
-          # Extract with grep (simpler than Python XML)
-          SCM_URL=$(grep -o 'publishUrl="[^"]*"' /tmp/profile.xml | head -1 | cut -d'"' -f2)
-          SCM_USER=$(grep -o 'userName="\$[^"]*"' /tmp/profile.xml | head -1 | cut -d'"' -f2)
-          SCM_PWD=$(grep -o 'userPWD="[^"]*"' /tmp/profile.xml | head -1 | cut -d'"' -f2)
-
-          echo "SCM_URL found: $SCM_URL"
-          echo "SCM_USER found: $SCM_USER"
-          echo "PWD length: ${#SCM_PWD}"
-
-          # Remove port from URL if present
-          SCM_HOST=$(echo "$SCM_URL" | sed 's/:[0-9]*$//')
-          echo "SCM_HOST: $SCM_HOST"
-
-          echo "::add-mask::$SCM_PWD"
-
-          KUDU_URL="https://${SCM_HOST}/api/zipdeploy?isAsync=false&clean=true"
-          echo "Deploying to: $KUDU_URL"
-
-          HTTP_CODE=$(curl -v -s -o /tmp/deploy_out.txt -w "%{http_code}" \
-            --max-time 300 \
-            -X POST \
-            -u "${SCM_USER}:${SCM_PWD}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @release.zip \
-            "$KUDU_URL" 2>&1 || true)
-
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response:"
-          cat /tmp/deploy_out.txt || true
-
-          # Get actual HTTP code
-          CODE=$(curl -s -o /dev/null -w "%{http_code}" \
-            --max-time 300 \
-            -X POST \
-            -u "${SCM_USER}:${SCM_PWD}" \
-            -H "Content-Type: application/octet-stream" \
-            --data-binary @release.zip \
-            "$KUDU_URL")
-          echo "Final HTTP Code: $CODE"
-
-          if [ "$CODE" = "200" ] || [ "$CODE" = "202" ] || [ "$CODE" = "204" ]; then
-            echo "SUCCESS!"
-          else
-            echo "FAILED: $CODE"
-            exit 1
-          fi
+          node scripts/azure-deploy.js
