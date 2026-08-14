@@ -7,6 +7,8 @@ import { Sparkles } from 'lucide-react';
 export default function Hero() {
   const { t } = useLanguage();
   const heroVideoRef = useRef(null);
+  const [heroVideoUrl, setHeroVideoUrl] = useState('/hero_video.mp4?v=sultana_royal_2026');
+  const [heroMediaType, setHeroMediaType] = useState('video');
   const [banners, setBanners] = useState([]);
   const [currentBanner, setCurrentBanner] = useState(0);
 
@@ -15,46 +17,75 @@ export default function Hero() {
       heroVideoRef.current.playbackRate = 0.75;
     }
     
-    // Fetch theme settings for banners
+    // Fetch theme settings for dynamic hero video & banners
     axios.get('/api/settings/theme').then(res => {
       const data = res.data;
-      if (data && data.hero_banners) {
-        try {
-          const parsed = JSON.parse(data.hero_banners);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setBanners(parsed);
+      if (data) {
+        if (data.hero_video_url) {
+          const vUrl = data.hero_video_url.startsWith('/') || data.hero_video_url.startsWith('http') 
+            ? data.hero_video_url 
+            : `/images/${data.hero_video_url}`;
+          setHeroVideoUrl(vUrl);
+        }
+        if (data.hero_media_type) {
+          setHeroMediaType(data.hero_media_type);
+        }
+        if (data.hero_banners) {
+          try {
+            const parsed = JSON.parse(data.hero_banners);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setBanners(parsed);
+            }
+          } catch(e) {
+            if (data.hero_banners) setBanners([data.hero_banners]);
           }
-        } catch(e) {
-          if (data.hero_banners) setBanners([data.hero_banners]);
         }
       }
     }).catch(err => console.error(err));
   }, []);
 
   useEffect(() => {
-    if (banners.length > 1) {
+    if (banners.length > 1 && heroMediaType === 'slider') {
       const interval = setInterval(() => {
         setCurrentBanner(prev => (prev + 1) % banners.length);
-      }, 5000); // Change banner every 5 seconds
+      }, 5000);
       return () => clearInterval(interval);
     }
-  }, [banners]);
+  }, [banners, heroMediaType]);
 
   return (
     <section className={styles.hero} id="home">
       <div className={styles.heroVideoWrap}>
-        <video
-          ref={heroVideoRef}
-          src="/hero_video.mp4?v=sultana_royal_2026"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-          className={styles.heroVideo}
-        />
+        {heroMediaType === 'slider' && banners.length > 0 ? (
+          banners.map((url, idx) => (
+            <img 
+              key={idx}
+              src={url}
+              alt={`Hero Banner ${idx}`}
+              className={styles.heroVideo}
+              style={{ 
+                opacity: currentBanner === idx ? 1 : 0, 
+                transition: 'opacity 1s ease-in-out',
+                position: 'absolute',
+                top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover'
+              }}
+            />
+          ))
+        ) : (
+          <video
+            ref={heroVideoRef}
+            key={heroVideoUrl}
+            src={heroVideoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+            className={styles.heroVideo}
+          />
+        )}
         <div className={styles.heroOverlay} />
         <div className={styles.heroGradientBottom} />
       </div>
@@ -73,34 +104,33 @@ export default function Hero() {
           padding: '6px 18px', 
           borderRadius: '30px', 
           fontSize: '0.88rem', 
-          fontWeight: 800, 
-          letterSpacing: '0.08em', 
-          marginBottom: '1rem', 
-          boxShadow: '0 4px 15px rgba(0,0,0,0.3)', 
-          backdropFilter: 'blur(6px)' 
+          fontWeight: '700',
+          marginBottom: '15px',
+          backdropFilter: 'blur(8px)',
+          letterSpacing: '1px'
         }}>
-          <Sparkles size={14} color="var(--gold)" /> {t('heroTag')} <Sparkles size={14} color="var(--gold)" />
+          <Sparkles size={16} /> التشكيلة الحصرية 2026
         </span>
+        
         <h1 className={styles.heroTitle}>
-          {t('heroBrand')}
-          <span className={styles.heroTitleAccent}>{t('heroSubtitleAccent')}</span>
+          زهرة بيسان
+          <span className={styles.heroSubtitle}>متجر إلكتروني فاخر</span>
         </h1>
-        <p className={styles.heroSubtitle}>
-          {t('heroDescription')}
+        
+        <p className={styles.heroDesc}>
+          حيثُ تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا المصممة خصيصاً لتتوج إطلالتكِ بأبهى صورها
         </p>
-        <div className={styles.heroCtas}>
-          <a href="#collection" className="btn btn-primary">{t('shopNewCollection')}</a>
-          <a href="#categories" className={styles.heroSecondaryLink}>
-            <span>{t('browseCategories')}</span>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path d="M3 8H13M13 8L8 3M13 8L8 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+
+        <div className={styles.heroActions}>
+          <a href="#collection" className={styles.heroBtnPrimary}>
+            <span>تسوقي التشكيلة الجديدة</span>
+            <span className={styles.btnArrow}>←</span>
+          </a>
+          <a href="#categories" className={styles.heroBtnSecondary}>
+            <span>تصفحي الأقسام</span>
+            <span className={styles.btnArrow}>←</span>
           </a>
         </div>
-      </div>
-
-      <div className={styles.scrollIndicator}>
-        <div className={styles.scrollLine} />
       </div>
     </section>
   );

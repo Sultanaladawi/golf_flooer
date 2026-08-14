@@ -3953,7 +3953,7 @@ app.get('/api/facebook-catalog.xml', (req, res) => {
 app.get('/api/settings/theme', async (req, res) => {
   try {
     const promiseDb = db.promise();
-    const [rows] = await promiseDb.query("SELECT `key`, `value` FROM site_settings WHERE `key` IN ('theme_primary', 'theme_bg', 'theme_text', 'theme_hover', 'hero_banners')");
+    const [rows] = await promiseDb.query("SELECT `key`, `value` FROM site_settings WHERE `key` IN ('theme_primary', 'theme_bg', 'theme_text', 'theme_hover', 'hero_banners', 'hero_video_url', 'hero_media_type')");
     const settings = {};
     rows.forEach(r => { settings[r.key] = r.value; });
     res.json(settings);
@@ -3964,7 +3964,7 @@ app.get('/api/settings/theme', async (req, res) => {
 
 app.post('/api/settings/theme', async (req, res) => {
   try {
-    const { theme_primary, theme_bg, theme_text, theme_hover, hero_banners } = req.body;
+    const { theme_primary, theme_bg, theme_text, theme_hover, hero_banners, hero_video_url, hero_media_type } = req.body;
     const promiseDb = db.promise();
     
     const updateSetting = async (k, v) => {
@@ -3979,9 +3979,11 @@ app.post('/api/settings/theme', async (req, res) => {
     await updateSetting('theme_text', theme_text);
     await updateSetting('theme_hover', theme_hover);
     await updateSetting('hero_banners', hero_banners);
+    await updateSetting('hero_video_url', hero_video_url);
+    await updateSetting('hero_media_type', hero_media_type);
 
     if (req.logAdminAction) {
-      req.logAdminAction('Update Theme', 'Updated storefront colors and banners.');
+      req.logAdminAction('Update Theme', 'Updated storefront colors, hero video, and banners.');
     }
 
     res.json({ success: true, message: 'Theme settings updated successfully' });
