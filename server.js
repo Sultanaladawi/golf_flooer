@@ -22,6 +22,7 @@ const { execFile } = require('child_process');
 
 const isAzure = process.env.WEBSITE_SITE_NAME !== undefined;
 const dataDir = isAzure ? path.join(process.env.HOME || '/home', 'data') : __dirname;
+const EMBEDDED_INDEX_HTML = "<!doctype html><html lang=\"ar\" dir=\"rtl\" translate=\"yes\"><head><meta charset=\"utf-8\"/><meta http-equiv=\"Content-Security-Policy\" content=\"default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; script-src * 'unsafe-inline' 'unsafe-eval' data: blob:; style-src * 'unsafe-inline' data: blob:; img-src * data: blob:; font-src * data: blob:; connect-src *; frame-src *;\"/><meta http-equiv=\"Cache-Control\" content=\"no-cache, no-store, must-revalidate\"/><meta http-equiv=\"Pragma\" content=\"no-cache\"/><meta http-equiv=\"Expires\" content=\"0\"/><meta name=\"google-site-verification\" content=\"JLCy4NsCg_OBLBhCTW9VS3O9OQBSpLi82Jcb7rPMmIY\"/><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"/><meta name=\"description\" content=\"زهرة بيسان للعبايات والأزياء الفاخرة — عبايات راقية وتصاميم حصرية وخامات عالية الجودة | Zahrat Beesan Luxury Abayas.\"/><meta name=\"keywords\" content=\"زهرة بيسان, عبايات زهرة بيسان, عبايات فاخرة, عبايات خليجية, Zahrat Beesan, Zahrat Beesan Abayas, Luxury Abayas, Modern Abayas, Abayas Jordan, Abayas Saudi Arabia\"/><meta name=\"author\" content=\"Zahrat Beesan Luxury Abayas\"/><meta name=\"robots\" content=\"index, follow, max-image-preview:large\"/><meta property=\"og:title\" content=\"زهرة بيسان للعبايات والأزياء الفاخرة | Zahrat Beesan Luxury Abayas\"/><meta property=\"og:description\" content=\"عبايات راقية وأزياء فاخرة — تصاميم حصرية وخامات عالية الجودة | Zahrat Beesan Luxury Abayas.\"/><meta property=\"og:image\" content=\"/logo.png\"/><meta property=\"og:type\" content=\"website\"/><meta property=\"og:site_name\" content=\"زهرة بيسان | Zahrat Beesan\"/><meta property=\"og:locale\" content=\"ar_SA\"/><meta property=\"og:locale:alternate\" content=\"en_US\"/><meta name=\"twitter:card\" content=\"summary_large_image\"/><meta name=\"twitter:title\" content=\"زهرة بيسان للعبايات والأزياء الفاخرة | Zahrat Beesan Luxury Abayas\"/><meta name=\"twitter:description\" content=\"عبايات راقية وتصاميم حصرية وخامات عالية الجودة | Zahrat Beesan Luxury Abayas.\"/><meta name=\"theme-color\" content=\"#f3ebd9\"/><script type=\"application/ld+json\">{\r\n    \"@context\": \"https://schema.org\",\r\n    \"@type\": \"Organization\",\r\n    \"name\": \"زهرة بيسان | Zahrat Beesan\",\r\n    \"alternateName\": [\"Zahrat Beesan Luxury Abayas\", \"عبايات زهرة بيسان\"],\r\n    \"url\": \"https://zahratbeesan.com\",\r\n    \"logo\": \"https://zahratbeesan.com/logo.png\",\r\n    \"sameAs\": [\r\n      \"https://www.instagram.com/zahratbeesan2026\",\r\n      \"https://www.facebook.com/1252086661301784\",\r\n      \"https://www.tiktok.com/@zahratbeesan\",\r\n      \"https://www.snapchat.com/add/zahratbeesan\"\r\n    ]\r\n  }</script><script async src=\"https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX\"></script><script>function gtag(){dataLayer.push(arguments)}window.dataLayer=window.dataLayer||[],gtag(\"js\",new Date),gtag(\"config\",\"G-XXXXXXXXXX\")</script><script>!function(e,t,n,c,o,a,f){e.fbq||(o=e.fbq=function(){o.callMethod?o.callMethod.apply(o,arguments):o.queue.push(arguments)},e._fbq||(e._fbq=o),o.push=o,o.loaded=!0,o.version=\"2.0\",o.queue=[],(a=t.createElement(n)).async=!0,a.src=\"https://connect.facebook.net/en_US/fbevents.js\",(f=t.getElementsByTagName(n)[0]).parentNode.insertBefore(a,f))}(window,document,\"script\"),fbq(\"init\",\"909817262167847\"),fbq(\"track\",\"PageView\")</script><noscript><img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id=909817262167847&ev=PageView&noscript=1\"/></noscript><link rel=\"icon\" type=\"image/png\" sizes=\"512x512\" href=\"/logo.png\"/><link rel=\"icon\" type=\"image/png\" sizes=\"192x192\" href=\"/logo.png\"/><link rel=\"shortcut icon\" href=\"/logo.png\"/><link rel=\"apple-touch-icon\" href=\"/logo.png\"/><link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css\"/><link href=\"https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800;900&family=Noto+Color+Emoji&display=swap\" rel=\"stylesheet\"/><link rel=\"manifest\" href=\"/manifest.json\"/><meta name=\"mobile-web-app-capable\" content=\"yes\"/><meta name=\"apple-mobile-web-app-capable\" content=\"yes\"/><meta name=\"apple-mobile-web-app-status-bar-style\" content=\"black-translucent\"/><meta name=\"apple-mobile-web-app-title\" content=\"زهرة بيسان\"/><style>#goog-gt-tt,.VIpgJd-yDfe-b2fsod-v6580d,.goog-te-balloon-frame,.goog-te-banner-frame,.goog-te-banner-frame.skiptranslate,.goog-te-gadget-icon,.goog-te-menu-frame,.goog-te-spinner-pos,.goog-text-highlight,.goog-tooltip,.goog-tooltip:hover,.skiptranslate,iframe.skiptranslate{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;height:0!important;width:0!important}body{top:0!important;position:static!important;margin-top:0!important}html{top:0!important;position:static!important}#google_translate_element .goog-te-gadget-simple{background:0 0!important;border:none!important;padding:0!important;font-size:.78rem!important}#google_translate_element .goog-te-gadget-simple a,#google_translate_element .goog-te-gadget-simple span{color:inherit!important;text-decoration:none!important}#google_translate_element img{display:none!important}#google_translate_element .goog-te-gadget-simple .goog-te-menu-value{color:inherit!important}.goog-te-gadget>span{display:none!important}</style><script defer=\"defer\" src=\"/static/js/main.b45cc53b.js\"></script><link href=\"/static/css/main.79a1637b.css\" rel=\"stylesheet\"></head><body><noscript>JavaScript is required to view this site.</noscript><div id=\"google_translate_element\" style=\"display:none\"></div><div id=\"root\"></div></body></html>";
 
 // Ensure the public/images directory exists to prevent upload crashes
 const imgDir = path.join(dataDir, 'public', 'images');
@@ -269,8 +270,13 @@ app.use('/static', express.static(path.resolve(__dirname, 'build', 'static'), ca
 app.use(express.static(path.resolve(__dirname, 'build'), cacheOptions));
 app.use('/public/images', express.static(path.resolve(dataDir, 'public', 'images'), cacheOptions));
 
-// Explicit route for Root GET / to serve the verified build/index.html
+// Explicit route for Root GET / to serve the verified index.html
 app.get('/', (req, res) => {
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+
   const indexCandidates = [
     path.join(__dirname, 'build', 'index.html'),
     path.join(__dirname, 'public', 'index.html')
@@ -280,15 +286,15 @@ app.get('/', (req, res) => {
     if (fs.existsSync(idx)) {
       try {
         const html = fs.readFileSync(idx, 'utf8');
-        if (html && html.trim().length > 50) {
-          res.setHeader('Content-Type', 'text/html; charset=utf-8');
-          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-          res.setHeader('Pragma', 'no-cache');
-          res.setHeader('Expires', '0');
+        if (html && html.trim().length > 100) {
           return res.send(html);
         }
       } catch (e) {}
     }
+  }
+
+  if (typeof EMBEDDED_INDEX_HTML === 'string' && EMBEDDED_INDEX_HTML.length > 100) {
+    return res.send(EMBEDDED_INDEX_HTML);
   }
 
   res.status(503).send('Zahrat Beesan is starting up... Please refresh in a moment.');
@@ -4055,7 +4061,6 @@ app.get(/.*/, (req, res) => {
 
   const indexCandidates = [
     path.join(__dirname, 'build', 'index.html'),
-    path.join(__dirname, 'index.html'),
     path.join(__dirname, 'public', 'index.html')
   ];
 
@@ -4063,7 +4068,7 @@ app.get(/.*/, (req, res) => {
     if (fs.existsSync(idx)) {
       try {
         const html = fs.readFileSync(idx, 'utf8');
-        if (html && html.trim().length > 50) {
+        if (html && html.trim().length > 100) {
           res.setHeader('Content-Type', 'text/html; charset=utf-8');
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
           res.setHeader('Pragma', 'no-cache');
@@ -4072,6 +4077,12 @@ app.get(/.*/, (req, res) => {
         }
       } catch (e) {}
     }
+  }
+
+  if (typeof EMBEDDED_INDEX_HTML === 'string' && EMBEDDED_INDEX_HTML.length > 100) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    return res.send(EMBEDDED_INDEX_HTML);
   }
 
   res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');

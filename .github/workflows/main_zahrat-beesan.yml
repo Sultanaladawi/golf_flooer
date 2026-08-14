@@ -28,6 +28,7 @@ jobs:
 
       - name: Bundle server.js and prepare clean release ZIP
         run: |
+          node scripts/embed-html.js
           mkdir -p release
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
           cp -r build release/
