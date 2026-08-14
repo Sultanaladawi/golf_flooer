@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Release-Deployer/7.0',
+        'User-Agent': 'Antigravity-Release-Deployer/8.0',
         ...headers
       },
       timeout: 180000
@@ -61,41 +61,15 @@ async function uploadZipToWwwroot(scmHost, basicAuth, zipPath) {
   return res.code >= 200 && res.code < 300;
 }
 
-async function forceContainerRestart(scmHost, basicAuth) {
-  ghNotice('Forcefully recycling Node process on Azure Linux...');
-
-  // 1. Process termination via Kudu
-  const procRes = await makeKuduRequest(scmHost, basicAuth, '/api/processes/0', 'DELETE');
-  ghNotice(`Process kill result: HTTP ${procRes.code} ${procRes.msg}`);
-
-  // 2. Kudu bash command to kill node
-  const cmdRes = await makeKuduRequest(scmHost, basicAuth, '/api/command', 'POST', JSON.stringify({
-    command: 'killall -9 node || pkill -9 node || true',
-    dir: '/home/site/wwwroot'
-  }), { 'Content-Type': 'application/json', 'Content-Length': 73 });
-  ghNotice(`Command kill result: HTTP ${cmdRes.code} ${cmdRes.msg}`);
-
-  // 3. Diagnostics reboot endpoint
-  const rebootRes = await makeKuduRequest(scmHost, basicAuth, '/api/diagnostics/reboot', 'POST');
-  ghNotice(`Diagnostics reboot result: HTTP ${rebootRes.code} ${rebootRes.msg}`);
-
-  // 4. Create restart.txt trigger
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/restart.txt', 'PUT', 'restart', {
-    'If-Match': '*',
-    'Content-Type': 'text/plain',
-    'Content-Length': 7
+async function triggerZipDeployRecycle(scmHost, basicAuth, zipPath) {
+  ghNotice('Triggering official Azure Linux container recycle via /api/zipdeploy...');
+  const stats = fs.statSync(zipPath);
+  const stream = fs.createReadStream(zipPath);
+  const res = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', stream, {
+    'Content-Type': 'application/octet-stream',
+    'Content-Length': stats.size
   });
-
-  // 5. App level reload
-  const reloadReq = https.request({
-    hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
-    port: 443,
-    path: '/api/system/reload',
-    method: 'POST',
-    timeout: 8000
-  }, () => {});
-  reloadReq.on('error', () => {});
-  reloadReq.end();
+  ghNotice(`ZipDeploy recycle status: HTTP ${res.code} ${res.msg}`);
 }
 
 async function main() {
@@ -148,10 +122,10 @@ async function main() {
     process.exit(1);
   }
 
-  // Step 2: Force process restart so new server.js starts
-  await forceContainerRestart(scmHost, basicAuth);
+  // Step 2: Trigger official container recycle via zipdeploy
+  await triggerZipDeployRecycle(scmHost, basicAuth, releaseZip);
 
-  ghNotice('🎉 FULL RELEASE ZIP UNPACKED AND CONTAINER RESTARTED SUCCESSFULLY!');
+  ghNotice('🎉 FULL RELEASE ZIP UNPACKED AND CONTAINER RECYCLE SIGNALED!');
 }
 
 main().catch(err => {
