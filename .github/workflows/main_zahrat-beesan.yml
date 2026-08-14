@@ -51,6 +51,23 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9F6440EECBFD42D8A6DF18EDC929C765 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_93F91F608C034306A9F9DE16A772F388 }}
 
+      - name: Reset App Settings and Startup
+        run: |
+          RG=$(az webapp list --query "[?name=='zahrat-beesan'].resourceGroup" -o tsv | tr -d '\r\n')
+          echo "Resource Group: $RG"
+          
+          echo "Clearing conflicting package settings..."
+          az webapp config appsettings delete \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --setting-names WEBSITE_RUN_FROM_PACKAGE SCM_DO_BUILD_DURING_DEPLOYMENT || true
+          
+          echo "Setting startup file to node server.js..."
+          az webapp config set \
+            --name zahrat-beesan \
+            --resource-group "$RG" \
+            --startup-file "node server.js"
+
       - name: Deploy to Azure Web App via official Action
         uses: azure/webapps-deploy@v3
         with:
