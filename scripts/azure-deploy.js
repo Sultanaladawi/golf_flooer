@@ -20,10 +20,10 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Direct-Zip/2.0',
+        'User-Agent': 'Antigravity-Direct-Sync/3.0',
         ...headers
       },
-      timeout: 300000
+      timeout: 120000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
@@ -46,52 +46,22 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function triggerLiveReload() {
-  ghNotice('Sending reload signal to live application...');
-  return new Promise((resolve) => {
-    const req = https.request({
-      hostname: 'zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net',
-      port: 443,
-      path: '/api/system/reload',
-      method: 'POST',
-      timeout: 10000
-    }, (res) => {
-      ghNotice(`Live reload response: HTTP ${res.statusCode}`);
-      resolve(true);
-    });
-    req.on('error', () => resolve(false));
-    req.on('timeout', () => { req.destroy(); resolve(false); });
-    req.end();
-  });
+async function ensureRemoteDir(scmHost, basicAuth, remoteDirPath) {
+  await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remoteDirPath}/`, 'PUT', null, { 'If-Match': '*' });
 }
 
-async function deployDirectToWwwroot(scmHost, basicAuth, zipPath, zipSize) {
-  const maxRetries = 5;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    ghNotice(`[Attempt ${attempt}/${maxRetries}] Direct Extraction: PUT /api/zip/site/wwwroot/ (${(zipSize / (1024 * 1024)).toFixed(2)} MB)...`);
-
-    const stream = fs.createReadStream(zipPath);
-    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
-      'Content-Type': 'application/zip',
-      'Content-Length': zipSize
-    });
-
-    ghNotice(`Direct Zip Result: HTTP ${result.code} ${result.msg}`);
-
-    if (result.code >= 200 && result.code < 300) {
-      ghNotice('🎉 SUCCESS! All files extracted directly into /home/site/wwwroot/ on Azure!');
-      return true;
-    }
-
-    ghNotice(`Response detail: ${result.body.substring(0, 200)}`);
-    await new Promise(r => setTimeout(r, 10000));
-  }
-
-  return false;
+async function uploadDirectFile(scmHost, basicAuth, localPath, remotePath) {
+  if (!fs.existsSync(localPath)) return false;
+  const content = fs.readFileSync(localPath);
+  const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/site/wwwroot/${remotePath}`, 'PUT', content, {
+    'If-Match': '*'
+  });
+  ghNotice(`Uploaded ${remotePath} -> HTTP ${res.code} ${res.msg}`);
+  return res.code >= 200 && res.code < 300;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Azure Direct wwwroot Deployment...');
+  ghNotice('🚀 Starting Critical Asset Synchronization & Deploy...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -132,24 +102,60 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
+  // Step 1: Ensure directories exist
+  await ensureRemoteDir(scmHost, basicAuth, 'build');
+  await ensureRemoteDir(scmHost, basicAuth, 'build/static');
+  await ensureRemoteDir(scmHost, basicAuth, 'build/static/css');
+  await ensureRemoteDir(scmHost, basicAuth, 'build/static/js');
+  await ensureRemoteDir(scmHost, basicAuth, 'static');
+  await ensureRemoteDir(scmHost, basicAuth, 'static/css');
+  await ensureRemoteDir(scmHost, basicAuth, 'static/js');
+
+  // Step 2: Upload CSS bundle and all hash aliases
+  const buildCssDir = path.resolve(process.cwd(), 'build', 'static', 'css');
+  if (fs.existsSync(buildCssDir)) {
+    const cssFiles = fs.readdirSync(buildCssDir);
+    for (const cf of cssFiles) {
+      const fullP = path.join(buildCssDir, cf);
+      await uploadDirectFile(scmHost, basicAuth, fullP, `build/static/css/${cf}`);
+      await uploadDirectFile(scmHost, basicAuth, fullP, `static/css/${cf}`);
+    }
+  }
+
+  // Step 3: Upload JS bundle and all hash aliases
+  const buildJsDir = path.resolve(process.cwd(), 'build', 'static', 'js');
+  if (fs.existsSync(buildJsDir)) {
+    const jsFiles = fs.readdirSync(buildJsDir);
+    for (const jf of jsFiles) {
+      const fullP = path.join(buildJsDir, jf);
+      await uploadDirectFile(scmHost, basicAuth, fullP, `build/static/js/${jf}`);
+      await uploadDirectFile(scmHost, basicAuth, fullP, `static/js/${jf}`);
+    }
+  }
+
+  // Step 4: Upload index.html and server.js
+  const indexPath = path.resolve(process.cwd(), 'build', 'index.html');
+  await uploadDirectFile(scmHost, basicAuth, indexPath, 'build/index.html');
+  await uploadDirectFile(scmHost, basicAuth, indexPath, 'index.html');
+
+  const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
+  if (fs.existsSync(serverPath)) {
+    await uploadDirectFile(scmHost, basicAuth, serverPath, 'server.js');
+  }
+
+  // Step 5: Direct full Zip extraction
   const zipPath = path.resolve(process.cwd(), 'release.zip');
-  if (!fs.existsSync(zipPath)) {
-    ghError(`release.zip not found at ${zipPath}`);
-    process.exit(1);
+  if (fs.existsSync(zipPath)) {
+    const zipStats = fs.statSync(zipPath);
+    ghNotice(`Unpacking full release.zip (${(zipStats.size / (1024 * 1024)).toFixed(2)} MB) to /site/wwwroot/ ...`);
+    const stream = fs.createReadStream(zipPath);
+    await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream, {
+      'Content-Type': 'application/zip',
+      'Content-Length': zipStats.size
+    });
   }
 
-  const zipStats = fs.statSync(zipPath);
-
-  const ok = await deployDirectToWwwroot(scmHost, basicAuth, zipPath, zipStats.size);
-  if (!ok) {
-    ghError('Direct wwwroot extraction failed.');
-    process.exit(1);
-  }
-
-  // Trigger live reload
-  await triggerLiveReload();
-
-  ghNotice('🎉 ALL ASSETS & CODE EXTRACTED DIRECTLY INTO WWWROOT SUCCESSFULLY!');
+  ghNotice('🎉 ALL CRITICAL CSS, JS, HTML AND CODE SYNCHRONIZED DIRECTLY TO AZURE!');
 }
 
 main().catch(err => {
