@@ -20,7 +20,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Deployer/18.0',
+        'User-Agent': 'Antigravity-Deployer/19.0',
         ...headers
       },
       timeout: 300000
@@ -73,7 +73,7 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
 }
 
 async function main() {
-  ghNotice('🚀 Starting Azure Deployment with Favicon and Hero Video...');
+  ghNotice('🚀 Starting Azure Deployment with All Abaya Videos & Favicon...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -135,17 +135,20 @@ async function main() {
   const faviconPath = path.resolve(process.cwd(), 'public', 'favicon.ico');
   if (fs.existsSync(faviconPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/favicon.ico', faviconPath, false);
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/favicon.ico', faviconPath, false);
   }
 
   const logoPath = path.resolve(process.cwd(), 'public', 'logo.png');
   if (fs.existsSync(logoPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/logo.png', logoPath, false);
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/logo.png', logoPath, false);
   }
 
-  // STEP 5: UPLOAD HERO VIDEO DIRECTLY
+  // STEP 5: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY
   const heroVideoPath = path.resolve(process.cwd(), 'public', 'hero_video.mp4');
   if (fs.existsSync(heroVideoPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/hero_video.mp4', heroVideoPath, false);
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/hero_video.mp4', heroVideoPath, false);
   }
 
   // STEP 6: UNPACK STATIC BUILD ZIP (CSS, JS, ICONS)
@@ -155,7 +158,16 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
   }
 
-  ghNotice('🎉 COMPLETE DEPLOYMENT: SERVER, HERO VIDEO, FAVICON, & ASSETS ARE 100% READY!');
+  // STEP 7: UNPACK ALL ABAYA PRODUCT VIDEOS
+  const videosZip = path.resolve(process.cwd(), 'videos.zip');
+  if (fs.existsSync(videosZip)) {
+    ghNotice('🎥 Deploying all abaya product videos...');
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/images/', videosZip, true);
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/public/images/', videosZip, true);
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', videosZip, true);
+  }
+
+  ghNotice('🎉 COMPLETE DEPLOYMENT: SULTANA HERO VIDEO, FAVICON, & ALL ABAYA VIDEOS 100% READY!');
 }
 
 main().catch(err => {
