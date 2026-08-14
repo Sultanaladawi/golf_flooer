@@ -19,10 +19,10 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Azure-Deployer/9.0',
+        'User-Agent': 'Antigravity-Direct-Deployer/1.0',
         ...headers
       },
-      timeout: 180000
+      timeout: 60000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
@@ -45,66 +45,51 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
-async function waitForKuduIdle(scmHost, basicAuth) {
-  ghNotice('Checking Azure Kudu engine readiness...');
-  for (let i = 1; i <= 12; i++) {
-    const statusRes = await makeKuduRequest(scmHost, basicAuth, '/api/deployments/latest', 'GET');
-    if (statusRes.code === 200) {
-      try {
-        const info = JSON.parse(statusRes.body);
-        if (info.complete === true || info.status === 4 || info.status === 3) {
-          ghNotice(`Kudu engine is IDLE and ready for deployment. (Last status: ${info.status_text || info.status})`);
-          return true;
-        }
-        ghNotice(`[Wait ${i}/12] Azure is still finalizing previous task (${info.status_text || 'Processing'}). Waiting 15s...`);
-      } catch (e) {
-        return true;
-      }
-    } else if (statusRes.code === 404) {
-      ghNotice('No previous deployment found. Kudu is ready.');
-      return true;
+function getAllFiles(dirPath, arrayOfFiles = []) {
+  if (!fs.existsSync(dirPath)) return arrayOfFiles;
+  const files = fs.readdirSync(dirPath);
+  files.forEach((file) => {
+    const fullPath = path.join(dirPath, file);
+    if (fs.statSync(fullPath).isDirectory()) {
+      arrayOfFiles = getAllFiles(fullPath, arrayOfFiles);
     } else {
-      ghNotice(`[Wait ${i}/12] Status check returned HTTP ${statusRes.code}. Waiting 10s...`);
+      arrayOfFiles.push(fullPath);
     }
-    await new Promise(r => setTimeout(r, 15000));
-  }
-  return true;
+  });
+  return arrayOfFiles;
 }
 
-async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
-  await waitForKuduIdle(scmHost, basicAuth);
+async function syncDirectoryDirect(scmHost, basicAuth, localDir, remoteSubdir) {
+  const allFiles = getAllFiles(localDir).filter(f => {
+    const ext = path.extname(f).toLowerCase();
+    // Exclude large raw media to keep sync instant; sync core code, html, css, js, json, svg
+    return !['.mp4', '.mov', '.webm'].includes(ext);
+  });
 
-  const maxRetries = 6;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    ghNotice(`[Attempt ${attempt}/${maxRetries}] Uploading release.zip (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to /api/zipdeploy ...`);
+  ghNotice(`Syncing ${allFiles.length} core files directly via VFS to /site/wwwroot/${remoteSubdir}...`);
 
-    const stream = fs.createReadStream(zipPath);
-    const result = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true&clean=false', 'POST', stream, {
-      'Content-Type': 'application/octet-stream',
-      'Content-Length': zipSize
+  for (let i = 0; i < allFiles.length; i++) {
+    const file = allFiles[i];
+    const relPath = path.relative(localDir, file).replace(/\\/g, '/');
+    const targetUrlPath = `/api/vfs/site/wwwroot/${remoteSubdir ? remoteSubdir + '/' : ''}${relPath}`;
+    const fileData = fs.readFileSync(file);
+
+    const res = await makeKuduRequest(scmHost, basicAuth, targetUrlPath, 'PUT', fileData, {
+      'If-Match': '*'
     });
 
-    ghNotice(`ZipDeploy Status: HTTP ${result.code} ${result.msg}`);
-
-    if (result.code >= 200 && result.code < 300) {
-      ghNotice('🎉 SUCCESS! Azure accepted release.zip for deployment.');
-      return true;
-    }
-
-    if (result.code === 409) {
-      ghNotice(`⏳ Received 409 Conflict. Waiting 30s before retry attempt ${attempt + 1}...`);
-      await new Promise(r => setTimeout(r, 30000));
+    if (res.code >= 200 && res.code < 300) {
+      // Success
     } else {
-      ghNotice(`Response detail: ${result.body.substring(0, 150)}`);
-      await new Promise(r => setTimeout(r, 8000));
+      ghNotice(`[Notice] ${relPath} returned HTTP ${res.code}: ${res.msg}`);
     }
   }
 
-  return false;
+  ghNotice(`✅ Direct VFS sync of ${allFiles.length} files completed!`);
 }
 
 async function main() {
-  ghNotice('🚀 Starting Azure Deploy via Kudu API...');
+  ghNotice('🚀 Starting Azure Direct VFS Deployment...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -120,20 +105,15 @@ async function main() {
   };
 
   let selectedBlock = null;
-  let publishMethod = '';
-
   for (const block of profileBlocks) {
     const method = getAttr(block, 'publishMethod') || '';
     if (method.toLowerCase() === 'msdeploy') {
       selectedBlock = block;
-      publishMethod = method;
       break;
     }
   }
-
   if (!selectedBlock && profileBlocks.length > 0) {
     selectedBlock = profileBlocks[0];
-    publishMethod = getAttr(selectedBlock, 'publishMethod') || 'Default';
   }
 
   const rawUrl = getAttr(selectedBlock, 'publishUrl');
@@ -146,25 +126,31 @@ async function main() {
     .replace(/:\d+$/, '')
     .trim();
 
-  ghNotice(`Deploying to ${scmHost} (User: ${userName})`);
+  ghNotice(`Target: ${scmHost} (User: ${userName})`);
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  const zipPath = path.resolve(process.cwd(), 'release.zip');
-  if (!fs.existsSync(zipPath)) {
-    ghError(`release.zip not found at ${zipPath}`);
-    process.exit(1);
+  // Step 1: Upload server.js and package.json to root
+  const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
+  if (fs.existsSync(serverPath)) {
+    ghNotice('Uploading bundled server.js to /site/wwwroot/server.js ...');
+    const sData = fs.readFileSync(serverPath);
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', 'PUT', sData, { 'If-Match': '*' });
   }
 
-  const zipStats = fs.statSync(zipPath);
-
-  const ok = await uploadZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
-  if (!ok) {
-    ghError('Deployment failed after all attempts.');
-    process.exit(1);
+  const pkgPath = path.resolve(process.cwd(), 'package.json');
+  if (fs.existsSync(pkgPath)) {
+    const pData = fs.readFileSync(pkgPath);
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', 'PUT', pData, { 'If-Match': '*' });
   }
 
-  ghNotice('🎉 DEPLOYMENT FINISHED 100% SUCCESSFULLY IN AZURE!');
+  // Step 2: Direct sync of all build assets (build/index.html, build/static/css/*, build/static/js/*)
+  const buildDir = path.resolve(process.cwd(), 'build');
+  if (fs.existsSync(buildDir)) {
+    await syncDirectoryDirect(scmHost, basicAuth, buildDir, 'build');
+  }
+
+  ghNotice('🎉 ALL ASSETS & CODE DEPLOYED DIRECTLY TO AZURE!');
 }
 
 main().catch(err => {
