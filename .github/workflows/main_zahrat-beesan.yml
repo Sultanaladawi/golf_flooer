@@ -23,14 +23,14 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
 
-      - name: Bundle server.js and prepare lean release ZIP
+      - name: Bundle server.js and prepare clean release ZIP
         run: |
           mkdir -p release
           npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
           cp -r build release/
           cp package.json release/
           find release/build -type f \( -name "*.png" -o -name "*.mp4" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webm" -o -name "*.mov" -o -name "*.gif" \) -delete
-          cd release && zip -r ../release.zip . && cd ..
+          cd release && zip -r -q ../release.zip * && cd ..
           echo "Release ZIP size: $(du -sh release.zip | cut -f1)"
 
       - name: Deploy to Azure Web App via Kudu API

@@ -10,10 +10,10 @@ function ghError(msg) {
   console.log(`::error::${msg}`);
 }
 
-async function uploadZipViaVFS(scmHost, basicAuth, zipPath, zipSize) {
-  ghNotice(`Unpacking release.zip (${(zipSize / (1024 * 1024)).toFixed(2)} MB) to /site/wwwroot/ via Kudu VFS Zip API...`);
+async function uploadZipVFS(scmHost, basicAuth, zipPath, zipSize) {
+  ghNotice(`Attempting VFS Zip Extract (PUT /api/zip/site/wwwroot/)...`);
 
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const req = https.request({
       hostname: scmHost,
       port: 443,
@@ -21,33 +21,78 @@ async function uploadZipViaVFS(scmHost, basicAuth, zipPath, zipSize) {
       method: 'PUT',
       headers: {
         'Authorization': basicAuth,
-        'Content-Type': 'application/zip',
+        'Content-Type': 'application/octet-stream',
         'Content-Length': zipSize,
-        'User-Agent': 'Antigravity-Azure-Deployer/5.0'
+        'User-Agent': 'Antigravity-Azure-Deployer/6.0'
       },
       timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
       res.on('end', () => {
-        ghNotice(`VFS Zip Response: HTTP ${res.statusCode} ${res.statusMessage}`);
+        ghNotice(`VFS Response: HTTP ${res.statusCode} ${res.statusMessage}`);
         if (res.statusCode >= 200 && res.statusCode < 300) {
-          ghNotice('🎉 SUCCESS! All files, CSS, JS, and server.js extracted into /home/site/wwwroot/!');
           resolve(true);
         } else {
-          ghNotice(`VFS Zip notice (${res.statusCode}): ${body.substring(0, 300)}`);
+          ghNotice(`VFS info (${res.statusCode}): ${body.substring(0, 150)}`);
           resolve(false);
         }
       });
     });
 
     req.on('error', (err) => {
-      ghError(`Network error: ${err.message}`);
-      reject(err);
+      ghNotice(`VFS error: ${err.message}`);
+      resolve(false);
     });
 
     req.on('timeout', () => {
-      req.destroy(new Error('VFS Zip upload timed out'));
+      req.destroy();
+      resolve(false);
+    });
+
+    const stream = fs.createReadStream(zipPath);
+    stream.pipe(req);
+  });
+}
+
+async function uploadZipDeploy(scmHost, basicAuth, zipPath, zipSize) {
+  ghNotice(`Attempting ZipDeploy (POST /api/zipdeploy?isAsync=true&clean=true)...`);
+
+  return new Promise((resolve) => {
+    const req = https.request({
+      hostname: scmHost,
+      port: 443,
+      path: '/api/zipdeploy?isAsync=true&clean=true',
+      method: 'POST',
+      headers: {
+        'Authorization': basicAuth,
+        'Content-Type': 'application/octet-stream',
+        'Content-Length': zipSize,
+        'User-Agent': 'Antigravity-Azure-Deployer/6.0'
+      },
+      timeout: 300000
+    }, (res) => {
+      let body = '';
+      res.on('data', c => { body += c; });
+      res.on('end', () => {
+        ghNotice(`ZipDeploy Response: HTTP ${res.statusCode} ${res.statusMessage}`);
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(true);
+        } else {
+          ghNotice(`ZipDeploy info (${res.statusCode}): ${body.substring(0, 150)}`);
+          resolve(false);
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      ghNotice(`ZipDeploy error: ${err.message}`);
+      resolve(false);
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
     });
 
     const stream = fs.createReadStream(zipPath);
@@ -56,7 +101,7 @@ async function uploadZipViaVFS(scmHost, basicAuth, zipPath, zipSize) {
 }
 
 async function main() {
-  ghNotice('🚀 Starting Azure Deploy via Kudu VFS Zip API...');
+  ghNotice('🚀 Starting Azure Deploy via Kudu API...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -109,14 +154,24 @@ async function main() {
   }
 
   const zipStats = fs.statSync(zipPath);
+  const sizeMB = (zipStats.size / (1024 * 1024)).toFixed(2);
+  ghNotice(`Package: release.zip (${sizeMB} MB)`);
 
-  const ok = await uploadZipViaVFS(scmHost, basicAuth, zipPath, zipStats.size);
+  // Try Method 1: VFS
+  let ok = await uploadZipVFS(scmHost, basicAuth, zipPath, zipStats.size);
+
+  // Try Method 2: ZipDeploy if VFS didn't succeed
   if (!ok) {
-    ghError('VFS Zip deployment failed!');
+    ghNotice('VFS was busy, falling back to ZipDeploy...');
+    ok = await uploadZipDeploy(scmHost, basicAuth, zipPath, zipStats.size);
+  }
+
+  if (!ok) {
+    ghError('All deployment methods failed.');
     process.exit(1);
   }
 
-  ghNotice('🎉 ALL FILES & CSS BUNDLES DEPLOYED SUCCESSFULLY!');
+  ghNotice('🎉 ALL FILES & CSS/JS BUNDLES DEPLOYED SUCCESSFULLY!');
 }
 
 main().catch(err => {
