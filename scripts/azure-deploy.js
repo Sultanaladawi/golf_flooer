@@ -144,7 +144,20 @@ async function main() {
   // Step 2: Direct sync of all build assets (build/index.html, build/static/css/*, build/static/js/*)
   const buildDir = path.resolve(process.cwd(), 'build');
   if (fs.existsSync(buildDir)) {
+    // Sync into /site/wwwroot/build
     await syncDirectoryDirect(scmHost, basicAuth, buildDir, 'build');
+
+    // Also sync index.html and static assets to /site/wwwroot directly
+    const indexPath = path.join(buildDir, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      const idxData = fs.readFileSync(indexPath);
+      await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/index.html', 'PUT', idxData, { 'If-Match': '*' });
+    }
+
+    const staticDir = path.join(buildDir, 'static');
+    if (fs.existsSync(staticDir)) {
+      await syncDirectoryDirect(scmHost, basicAuth, staticDir, 'static');
+    }
   }
 
   // Step 3: Trigger Node App Restart to load latest assets and code immediately
