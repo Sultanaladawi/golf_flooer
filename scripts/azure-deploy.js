@@ -20,10 +20,10 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
       method: method,
       headers: {
         'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-DiskCleaner-Deployer/17.0',
+        'User-Agent': 'Antigravity-Deployer/18.0',
         ...headers
       },
-      timeout: 180000
+      timeout: 300000
     }, (res) => {
       let body = '';
       res.on('data', c => { body += c; });
@@ -47,7 +47,7 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
 }
 
 async function cleanDiskSpace(scmHost, basicAuth) {
-  ghNotice('🧹 PURGING STALE DISK ARTIFACTS ON AZURE...');
+  ghNotice('🧹 PURGING STALE LOGFILES & OLD DEPLOYMENTS ON AZURE...');
   await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
   await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
   ghNotice('✅ Disk space purge completed.');
@@ -63,7 +63,7 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
 
   const stream = fs.createReadStream(filePath);
   const res = await makeKuduRequest(scmHost, basicAuth, reqPath, 'PUT', stream, {
-    'Content-Type': isZip ? 'application/zip' : 'application/octet-stream',
+    'Content-Type': isZip ? 'application/zip' : (filePath.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream'),
     'Content-Length': stats.size,
     'If-Match': '*'
   });
@@ -73,7 +73,7 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
 }
 
 async function main() {
-  ghNotice('🚀 Starting Complete Azure Deployment with Perfect Paths...');
+  ghNotice('🚀 Starting Azure Deployment with Favicon and Hero Video...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -131,15 +131,31 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
   }
 
-  // STEP 4: UNPACK STATIC BUILD ZIP DIRECTLY INTO /site/wwwroot/build/
+  // STEP 4: UPLOAD FAVICON & LOGO DIRECTLY TO ROOT & BUILD
+  const faviconPath = path.resolve(process.cwd(), 'public', 'favicon.ico');
+  if (fs.existsSync(faviconPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/favicon.ico', faviconPath, false);
+  }
+
+  const logoPath = path.resolve(process.cwd(), 'public', 'logo.png');
+  if (fs.existsSync(logoPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/logo.png', logoPath, false);
+  }
+
+  // STEP 5: UPLOAD HERO VIDEO DIRECTLY
+  const heroVideoPath = path.resolve(process.cwd(), 'public', 'hero_video.mp4');
+  if (fs.existsSync(heroVideoPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/hero_video.mp4', heroVideoPath, false);
+  }
+
+  // STEP 6: UNPACK STATIC BUILD ZIP (CSS, JS, ICONS)
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
     await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', buildZip, true);
-    // Also extract at wwwroot root so /logo.png, /favicon.ico are directly at root
     await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
   }
 
-  ghNotice('🎉 COMPLETE APPLICATION AND ALL ASSETS DEPLOYED 100%!');
+  ghNotice('🎉 COMPLETE DEPLOYMENT: SERVER, HERO VIDEO, FAVICON, & ASSETS ARE 100% READY!');
 }
 
 main().catch(err => {

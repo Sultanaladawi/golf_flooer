@@ -302,10 +302,71 @@ app.get('/', (req, res) => {
   res.status(503).send('Zahrat Beesan is starting up... Please refresh in a moment.');
 });
 
-// 3. Specific favicon and manifest routes for stability
-app.get('/favicon.ico', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.ico')));
-app.get('/favicon.jpg', (req, res) => res.sendFile(path.resolve(__dirname, 'public/favicon.jpg')));
-app.get('/manifest.json', (req, res) => res.sendFile(path.resolve(__dirname, 'public/manifest.json')));
+// 3. Specific favicon, logo, video and manifest routes with multi-directory fallbacks
+app.get(['/favicon.ico', '/favicon.png', '/favicon.jpg'], (req, res) => {
+  const file = req.path.replace(/^\//, '');
+  const candidates = [
+    path.resolve(__dirname, file),
+    path.resolve(__dirname, 'public', file),
+    path.resolve(__dirname, 'build', file),
+    path.resolve(__dirname, 'logo.png'),
+    path.resolve(__dirname, 'public', 'logo.png'),
+    path.resolve(__dirname, 'build', 'logo.png')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return res.sendFile(c);
+    }
+  }
+  return res.status(204).end();
+});
+
+app.get(['/logo.png', '/logo_abayas.png', '/logo_new.png'], (req, res) => {
+  const file = req.path.replace(/^\//, '');
+  const candidates = [
+    path.resolve(__dirname, file),
+    path.resolve(__dirname, 'public', file),
+    path.resolve(__dirname, 'build', file),
+    path.resolve(__dirname, 'logo.png')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return res.sendFile(c);
+    }
+  }
+  return res.status(404).send('Logo not found');
+});
+
+app.get(['/hero_video.mp4', '/lookbook_video.mp4'], (req, res) => {
+  const fileName = req.path.replace(/^\//, '');
+  const candidates = [
+    path.resolve(__dirname, fileName),
+    path.resolve(__dirname, 'public', fileName),
+    path.resolve(__dirname, 'build', fileName),
+    path.resolve(dataDir, fileName),
+    path.resolve(dataDir, 'public', fileName)
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return res.sendFile(c);
+    }
+  }
+  return res.status(404).send('Video not found');
+});
+
+app.get('/manifest.json', (req, res) => {
+  const candidates = [
+    path.resolve(__dirname, 'manifest.json'),
+    path.resolve(__dirname, 'public', 'manifest.json'),
+    path.resolve(__dirname, 'build', 'manifest.json')
+  ];
+  for (const c of candidates) {
+    if (fs.existsSync(c)) {
+      return res.sendFile(c);
+    }
+  }
+  return res.json({ name: "زهرة بيسان", short_name: "زهرة بيسان", start_url: "/" });
+});
 
 // Instant Server Reload endpoint
 app.all('/api/system/reload', (req, res) => {
