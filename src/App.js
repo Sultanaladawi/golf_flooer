@@ -42,40 +42,58 @@ import AdminRoute         from './admin/AdminRoute';
 import axios from 'axios';
 import { RamadanLanding, EidLanding, SummerLanding } from './components/LandingPages';
 
-// Lazy-loaded secondary & admin routes for maximum performance
-const Account          = lazy(() => import('./components/Account'));
-const ProductPage      = lazy(() => import('./components/ProductPage'));
-const Blog             = lazy(() => import('./components/Blog'));
-const BlogPost         = lazy(() => import('./components/BlogPost'));
-const GiftCards        = lazy(() => import('./components/GiftCards'));
-const TechAgency       = lazy(() => import('./components/TechAgency'));
+import TechAgency from './components/TechAgency';
 
-const AdminLogin       = lazy(() => import('./admin/AdminLogin'));
-const AdminLayout      = lazy(() => import('./admin/AdminLayout'));
-const Dashboard        = lazy(() => import('./admin/pages/Dashboard'));
-const TechLeads        = lazy(() => import('./admin/pages/TechLeads'));
-const Orders           = lazy(() => import('./admin/pages/Orders'));
-const Products         = lazy(() => import('./admin/pages/Products'));
-const Analytics        = lazy(() => import('./admin/pages/Analytics'));
-const Inventory        = lazy(() => import('./admin/pages/Inventory'));
-const Offers           = lazy(() => import('./admin/pages/Offers'));
-const Coupons          = lazy(() => import('./admin/pages/Coupons'));
-const Newsletter       = lazy(() => import('./admin/pages/Newsletter'));
-const AIAssistant      = lazy(() => import('./admin/pages/AIAssistant'));
-const Feedback         = lazy(() => import('./admin/pages/Feedback'));
-const Messages         = lazy(() => import('./admin/pages/Messages'));
-const LeaderDashboard  = lazy(() => import('./admin/pages/LeaderDashboard'));
-const Settings         = lazy(() => import('./admin/pages/Settings'));
-const ThemeSettings    = lazy(() => import('./admin/pages/ThemeSettings'));
-const SocialMedia      = lazy(() => import('./admin/pages/SocialMedia'));
-const Loyalty          = lazy(() => import('./admin/pages/Loyalty'));
-const PreOrderInterests = lazy(() => import('./admin/pages/PreOrderInterests'));
-const Delivery         = lazy(() => import('./admin/pages/Delivery'));
-const VIPCustomers     = lazy(() => import('./admin/pages/VIPCustomers'));
-const StaffManagement  = lazy(() => import('./admin/pages/StaffManagement'));
-const BlogManagement   = lazy(() => import('./admin/pages/BlogManagement'));
-const AbandonedCarts   = lazy(() => import('./admin/pages/AbandonedCarts'));
-const AdminGiftCards   = lazy(() => import('./admin/pages/AdminGiftCards'));
+// Safe lazy loader with auto-retry on new deployment
+function lazyRetry(componentImport) {
+  return lazy(async () => {
+    const pageHasBeenForceRefreshed = window.sessionStorage.getItem('page-has-been-force-refreshed');
+    try {
+      return await componentImport();
+    } catch (error) {
+      if (!pageHasBeenForceRefreshed) {
+        window.sessionStorage.setItem('page-has-been-force-refreshed', 'true');
+        window.location.reload();
+        return;
+      }
+      throw error;
+    }
+  });
+}
+
+// Lazy-loaded secondary & admin routes for maximum performance
+const Account          = lazyRetry(() => import('./components/Account'));
+const ProductPage      = lazyRetry(() => import('./components/ProductPage'));
+const Blog             = lazyRetry(() => import('./components/Blog'));
+const BlogPost         = lazyRetry(() => import('./components/BlogPost'));
+const GiftCards        = lazyRetry(() => import('./components/GiftCards'));
+
+const AdminLogin       = lazyRetry(() => import('./admin/AdminLogin'));
+const AdminLayout      = lazyRetry(() => import('./admin/AdminLayout'));
+const Dashboard        = lazyRetry(() => import('./admin/pages/Dashboard'));
+const TechLeads        = lazyRetry(() => import('./admin/pages/TechLeads'));
+const Orders           = lazyRetry(() => import('./admin/pages/Orders'));
+const Products         = lazyRetry(() => import('./admin/pages/Products'));
+const Analytics        = lazyRetry(() => import('./admin/pages/Analytics'));
+const Inventory        = lazyRetry(() => import('./admin/pages/Inventory'));
+const Offers           = lazyRetry(() => import('./admin/pages/Offers'));
+const Coupons          = lazyRetry(() => import('./admin/pages/Coupons'));
+const Newsletter       = lazyRetry(() => import('./admin/pages/Newsletter'));
+const AIAssistant      = lazyRetry(() => import('./admin/pages/AIAssistant'));
+const Feedback         = lazyRetry(() => import('./admin/pages/Feedback'));
+const Messages         = lazyRetry(() => import('./admin/pages/Messages'));
+const LeaderDashboard  = lazyRetry(() => import('./admin/pages/LeaderDashboard'));
+const Settings         = lazyRetry(() => import('./admin/pages/Settings'));
+const ThemeSettings    = lazyRetry(() => import('./admin/pages/ThemeSettings'));
+const SocialMedia      = lazyRetry(() => import('./admin/pages/SocialMedia'));
+const Loyalty          = lazyRetry(() => import('./admin/pages/Loyalty'));
+const PreOrderInterests = lazyRetry(() => import('./admin/pages/PreOrderInterests'));
+const Delivery         = lazyRetry(() => import('./admin/pages/Delivery'));
+const VIPCustomers     = lazyRetry(() => import('./admin/pages/VIPCustomers'));
+const StaffManagement  = lazyRetry(() => import('./admin/pages/StaffManagement'));
+const BlogManagement   = lazyRetry(() => import('./admin/pages/BlogManagement'));
+const AbandonedCarts   = lazyRetry(() => import('./admin/pages/AbandonedCarts'));
+const AdminGiftCards   = lazyRetry(() => import('./admin/pages/AdminGiftCards'));
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
