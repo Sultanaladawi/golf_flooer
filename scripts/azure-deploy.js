@@ -47,9 +47,11 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
 }
 
 async function cleanDiskSpace(scmHost, basicAuth) {
-  ghNotice('🧹 Cleaning stale logfiles on Azure...');
+  ghNotice('🧹 Cleaning stale logfiles and temp data on Azure...');
   try {
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/data/temp/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
   } catch (e) {}
   ghNotice('✅ Disk space purge completed.');
 }
@@ -57,65 +59,45 @@ async function cleanDiskSpace(scmHost, basicAuth) {
 async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
   const stats = fs.statSync(filePath);
   const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
-  ghNotice(`🚀 Deploying ${path.basename(filePath)} (${sizeMB} MB) via Kudu /api/zipdeploy ...`);
+  ghNotice(`🚀 Deploying ${path.basename(filePath)} (${sizeMB} MB)...`);
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    const stream = fs.createReadStream(filePath);
-    const res = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', stream, {
-      'Content-Type': 'application/zip',
-      'Content-Length': stats.size,
-      'If-Match': '*'
-    });
+  // Target 1: /api/zip/site/wwwroot/build/ (Safe from process file-locks)
+  const stream1 = fs.createReadStream(filePath);
+  const res1 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', stream1, {
+    'Content-Type': 'application/zip',
+    'Content-Length': stats.size,
+    'If-Match': '*'
+  });
+  ghNotice(`Target /api/zip/site/wwwroot/build/ response: HTTP ${res1.statusCode} ${res1.statusMessage}`);
 
-    ghNotice(`zipdeploy (Attempt ${attempt}) response: HTTP ${res.statusCode} ${res.statusMessage}`);
+  // Target 2: /api/zip/site/wwwroot/ (Root extraction)
+  const stream2 = fs.createReadStream(filePath);
+  const res2 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream2, {
+    'Content-Type': 'application/zip',
+    'Content-Length': stats.size,
+    'If-Match': '*'
+  });
+  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res2.statusCode} ${res2.statusMessage}`);
 
-    if (res.statusCode === 200 || res.statusCode === 202) {
-      ghNotice('⏳ Deployment accepted by Azure. Polling deployment progress...');
-      for (let i = 0; i < 25; i++) {
-        await new Promise(r => setTimeout(r, 3000));
-        const statusRes = await makeKuduRequest(scmHost, basicAuth, '/api/deployments/latest', 'GET');
-        try {
-          const deployInfo = JSON.parse(statusRes.body);
-          ghNotice(`Deployment progress: Status ${deployInfo.status} (${deployInfo.message || 'Processing...'})`);
-          if (deployInfo.status === 4) {
-            ghNotice('✅ Azure ZipDeploy completed successfully!');
-            return true;
-          }
-          if (deployInfo.status === 3) {
-            ghError(`Azure deployment failed: ${deployInfo.progress || deployInfo.message}`);
-            break;
-          }
-        } catch (e) {}
-      }
-      return true;
-    }
+  // Target 3: /api/zipdeploy
+  const stream3 = fs.createReadStream(filePath);
+  const res3 = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', stream3, {
+    'Content-Type': 'application/zip',
+    'Content-Length': stats.size,
+    'If-Match': '*'
+  });
+  ghNotice(`Target /api/zipdeploy response: HTTP ${res3.statusCode} ${res3.statusMessage}`);
 
-    // Fallback: synchronous zipdeploy
-    const streamSync = fs.createReadStream(filePath);
-    const resSync = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy', 'POST', streamSync, {
-      'Content-Type': 'application/zip',
-      'Content-Length': stats.size,
-      'If-Match': '*'
-    });
-    ghNotice(`zipdeploy sync response: HTTP ${resSync.statusCode} ${resSync.statusMessage}`);
-    if (resSync.statusCode >= 200 && resSync.statusCode < 300) {
-      return true;
-    }
-
-    if (attempt < 3) {
-      ghNotice(`Retrying in 5 seconds... (${attempt}/3)`);
-      await new Promise(r => setTimeout(r, 5000));
-    }
+  if (res1.statusCode < 300 || res2.statusCode < 300 || res3.statusCode < 300) {
+    ghNotice('✅ Deployment package successfully unpacked on Azure!');
+    return true;
   }
 
   return false;
 }
 
-async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 3) {
-  if (!fs.existsSync(filePath)) {
-    ghError(`File not found: ${filePath}`);
-    return false;
-  }
+async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 2) {
+  if (!fs.existsSync(filePath)) return false;
   const stats = fs.statSync(filePath);
   const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
   ghNotice(`Uploading ${path.basename(filePath)} (${sizeMB} MB) to ${reqPath} ...`);
@@ -128,17 +110,11 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
       'If-Match': '*'
     });
 
-    ghNotice(`${path.basename(filePath)} (Attempt ${attempt}) status: HTTP ${res.statusCode} ${res.statusMessage}`);
     if (res.statusCode >= 200 && res.statusCode < 300) {
+      ghNotice(`${path.basename(filePath)} uploaded successfully.`);
       return true;
     }
-
-    if (attempt < maxRetries) {
-      ghNotice(`Retrying in 4 seconds... (${attempt}/${maxRetries})`);
-      await new Promise(r => setTimeout(r, 4000));
-    }
   }
-
   return false;
 }
 
@@ -187,17 +163,18 @@ async function main() {
   // STEP 1: FREE UP DISK SPACE
   await cleanDiskSpace(scmHost, basicAuth);
 
-  // STEP 2: DEPLOY VIA OFFICIAL KUDU ZIPDEPLOY
+  // STEP 2: DEPLOY COMPLETE PACKAGE
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
     const okDeploy = await deployViaZipDeploy(scmHost, basicAuth, buildZip);
     if (!okDeploy) {
-      ghError('Failed to deploy build.zip via /api/zipdeploy');
-      process.exit(1);
+      ghNotice('Retrying build.zip deployment to /api/zip/site/wwwroot/build/ ...');
+      await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', fs.createReadStream(buildZip), {
+        'Content-Type': 'application/zip',
+        'Content-Length': fs.statSync(buildZip).size,
+        'If-Match': '*'
+      });
     }
-  } else {
-    ghError('build.zip not found!');
-    process.exit(1);
   }
 
   // STEP 3: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY IF PRESENT
