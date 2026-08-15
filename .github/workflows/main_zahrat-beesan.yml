@@ -23,11 +23,20 @@ jobs:
           npm install --legacy-peer-deps --no-audit --no-fund
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
+          node scripts/embed-html.js
           
-          # Prepare ultra-fast lightweight build package directly from build/
-          find build -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete || true
-          cd build && zip -r -q ../build.zip static/ index.html manifest.json portfolio/ favicon.ico logo.png || zip -r -q ../build.zip *
-          cd ..
+          # Prepare unified lightweight deployment package
+          mkdir -p deploy_stage
+          cp server.js deploy_stage/
+          cp package.json deploy_stage/
+          cp -r build/* deploy_stage/
+          mkdir -p deploy_stage/build
+          cp -r build/* deploy_stage/build/
+          
+          # Remove large video files from zip (they will be streamed separately or cached)
+          find deploy_stage -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete || true
+          
+          cd deploy_stage && zip -r -q ../build.zip . && cd ..
           echo "Optimized build.zip size: $(du -sh build.zip | cut -f1)"
 
           # Prepare videos package with all abaya product videos
@@ -35,14 +44,6 @@ jobs:
           find public -maxdepth 2 -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" \) -exec cp {} videos_stage/ \; || true
           cd videos_stage && zip -r -q ../videos.zip * && cd ..
           echo "videos.zip size: $(du -sh videos.zip | cut -f1)"
-
-      - name: Bundle server.js and prepare release files
-        run: |
-          node scripts/embed-html.js
-          mkdir -p release
-          cp server.js release/server.js
-          cp package.json release/
-          echo "release/server.js size: $(du -sh release/server.js | cut -f1)"
 
       - name: Deploy to Azure Web App via Direct VFS Upload
         env:

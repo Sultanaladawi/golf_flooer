@@ -131,24 +131,18 @@ async function main() {
   // STEP 1: FREE UP DISK SPACE AND PURGE STALE 0-BYTE BUNDLES
   await cleanDiskSpace(scmHost, basicAuth);
 
-  // STEP 2: UPLOAD SERVER.JS AND PACKAGE.JSON FIRST
-  const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
-  const okServer = await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverPath, false);
-  if (!okServer) {
-    ghError('Failed to upload server.js');
-    process.exit(1);
-  }
-
-  const pkgPath = path.resolve(process.cwd(), 'release', 'package.json');
-  if (fs.existsSync(pkgPath)) {
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
-  }
-
-  // STEP 3: UPLOAD CLEAN LIGHTWEIGHT STATIC BUILD ZIP (CSS, JS, ICONS)
+  // STEP 2: UPLOAD UNIFIED APPLICATION & SERVER ZIP ARCHIVE
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', buildZip, true);
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
+    ghNotice('📦 Deploying complete application package (server.js + React build)...');
+    const okBuild = await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
+    if (!okBuild) {
+      ghError('Failed to deploy build.zip to /api/zip/site/wwwroot/');
+      process.exit(1);
+    }
+  } else {
+    ghError('build.zip not found!');
+    process.exit(1);
   }
 
   // STEP 4: UPLOAD FAVICON & LOGO DIRECTLY
