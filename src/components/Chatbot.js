@@ -49,11 +49,22 @@ export default function Chatbot() {
   const [msgs, setMsgs]           = useState(() => {
     try {
       const saved = localStorage.getItem('zb_ai_chat_history');
-      return saved ? JSON.parse(saved) : WELCOME;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const clean = parsed.filter(m => !m.text.includes('غير متاحة مؤقتاً') && !m.text.includes('خطأ'));
+        if (clean.length > 0) return clean;
+      }
+      return WELCOME;
     } catch(e) {
       return WELCOME;
     }
   });
+
+  const clearChat = () => {
+    stopSpeech();
+    setMsgs(WELCOME);
+    try { localStorage.removeItem('zb_ai_chat_history'); } catch(e) {}
+  };
   const [input, setInput]         = useState('');
   const [typing, setTyping]       = useState(false);
   const [unread, setUnread]       = useState(true);
@@ -255,9 +266,18 @@ export default function Chatbot() {
               <div className={styles.status} style={{ color: '#c5a880', opacity: 0.9 }}>زهرة بيسان · مستشارة الأناقة</div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق" style={{ color: '#f3ebd9' }}>
-            <i className="fas fa-times" />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button 
+              onClick={clearChat} 
+              title="بدء محادثة جديدة" 
+              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(197,168,128,0.3)', color: '#c5a880', borderRadius: '50%', width: '28px', height: '28px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.78rem' }}
+            >
+              <i className="fas fa-redo-alt" />
+            </button>
+            <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق" style={{ color: '#f3ebd9' }}>
+              <i className="fas fa-times" />
+            </button>
+          </div>
         </div>
 
         <div className={styles.messages} style={{ background: '#fcfaf6' }}>
