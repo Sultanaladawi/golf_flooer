@@ -1,669 +1,833 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './TechAgency.module.css';
-import { 
-  Code2, 
-  Smartphone, 
-  Globe2, 
-  Cpu, 
-  ShieldCheck, 
-  Rocket, 
-  Calculator, 
-  CheckCircle2, 
-  ArrowLeft, 
-  Sparkles, 
-  Layers, 
-  Zap, 
-  Send,
-  MessageCircle,
-  Phone,
-  Mail,
-  ExternalLink,
-  Laptop,
-  Check
+import {
+  Code2, Smartphone, Globe2, Cpu, ShieldCheck, Sparkles,
+  Check, CheckCircle2, Send, MessageCircle, Phone, Mail,
+  Layers, Zap, ArrowLeft, Star, ChevronDown, ChevronUp,
+  Server, HardDrive, Wifi, Globe, ShoppingBag, Utensils,
+  Heart, Home, GraduationCap, Building2, Car, Scissors,
+  Package, Filter, ExternalLink
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+/* ─── SERVICES ──────────────────────────────────────── */
 const SERVICES = [
+  { icon: Globe2, num: '01', title: 'المتاجر الإلكترونية الفاخرة', enTitle: 'Luxury E-Commerce', desc: 'منصات تجارة إلكترونية فائقة السرعة مع بوابات الدفع (كليك، تمارا، فيزا)، الشحن الآلي، وإدارة المخزون الحية.', tags: ['React / Next.js', 'Node.js', 'بوابات دفع', 'لوحة ERP'] },
+  { icon: Smartphone, num: '02', title: 'تطبيقات الهواتف الذكية', enTitle: 'iOS & Android Apps', desc: 'تطبيقات جوال فائقة السلاسة تعمل على App Store وGoogle Play بتجربة مستخدم استثنائية لا تُنسى.', tags: ['Flutter', 'React Native', 'Push Notifications', 'Offline Support'] },
+  { icon: Cpu, num: '03', title: 'حلول الذكاء الاصطناعي', enTitle: 'AI & Smart Automation', desc: 'دمج GPT-4 وGemini، روبوتات المحادثة الذكية، وأتمتة العمليات لرفع الإنتاجية ومضاعفة المبيعات.', tags: ['LLM Integration', 'AI Chatbots', 'أتمتة واتساب', 'تحليل البيانات'] },
+  { icon: Code2, num: '04', title: 'أنظمة ERP وإدارة الأعمال', enTitle: 'Custom ERP Systems', desc: 'أنظمة سحابية شاملة للمبيعات، الفواتير، الحسابات، شؤون الموظفين، وسلاسل التوريد في منصة واحدة.', tags: ['SaaS Cloud ERP', 'CRM', 'إدارة المخازن', 'تقارير ذكية'] },
+  { icon: Layers, num: '05', title: 'تصميم UI/UX الفاخر', enTitle: 'Premium UI/UX Design', desc: 'واجهات عصرية فاخرة تركز على سهولة الاستخدام وجمالية التفاصيل، مما يضاعف معدلات التحويل والمبيعات.', tags: ['Figma', 'Design Systems', 'Prototyping', 'Mobile-First'] },
+  { icon: ShieldCheck, num: '06', title: 'الاستضافة السحابية والحماية', enTitle: 'Cloud & Cybersecurity', desc: 'بنية تحتية على Azure وAWS مع حماية سيبرانية متعددة الطبقات، CDN عالمي، وضمان 99.9% uptime.', tags: ['Azure Cloud', 'AWS', 'WAF & DDoS', '24/7 Monitoring'] },
+];
+
+/* ─── PORTFOLIO ─────────────────────────────────────── */
+const PORTFOLIO = [
   {
-    icon: <Globe2 size={32} className={styles.serviceIcon} />,
-    title: 'تطوير المتاجر الإلكترونية الفاخرة',
-    enTitle: 'Luxury E-Commerce Platforms',
-    desc: 'نبني منصات تجارة إلكترونية سريعة وخارقة الأداء، متكاملة مع بوابات الدفع (فيزا، ماستركارد، كليك، تابي، تمارا)، أنظمة الشحن الآلية، وإدارة المخزون الحية.',
-    tags: ['React', 'Node.js', 'Next.js', 'بوابات الدفع', 'لوحات تحكم ذكية']
+    id: 1, cat: 'ecommerce',
+    title: 'متجر الأزياء الفاخرة',
+    industry: '👗 أزياء وعبايات',
+    desc: 'متجر إلكتروني متكامل بلوحة تحكم ERP، بوابات دفع محلية ودولية، شحن آلي، وشات بوت AI.',
+    image: '/portfolio/fashion.png',
+    tags: ['React', 'Node.js', 'MySQL', 'Azure'],
+    badge: 'E-Commerce'
   },
   {
-    icon: <Smartphone size={32} className={styles.serviceIcon} />,
-    title: 'تطبيقات الهواتف الذكية (iOS & Android)',
-    enTitle: 'Native & Cross-Platform Mobile Apps',
-    desc: 'تصميم وبرمجة تطبيقات جوال فائقة السلاسة والسرعة، تعمل على متجري App Store و Google Play بأحدث لغات البرمجة وتجربة مستخدم لا تُنسى.',
-    tags: ['Flutter', 'React Native', 'Swift', 'Kotlin', 'Push Notifications']
+    id: 2, cat: 'ecommerce',
+    title: 'سوبرماركت الإلكتروني',
+    industry: '🛒 بقالة وسوبرماركت',
+    desc: 'منصة طلب بقالة أونلاين مع تتبع حي للطلبات، إدارة مخزون ذكية، وتطبيق جوال للتوصيل.',
+    image: '/portfolio/grocery.png',
+    tags: ['Next.js', 'Flutter', 'MongoDB', 'Vercel'],
+    badge: 'E-Commerce + App'
   },
   {
-    icon: <Cpu size={32} className={styles.serviceIcon} />,
-    title: 'حلول الذكاء الاصطناعي والأتمتة',
-    enTitle: 'AI Solutions & Smart Automation',
-    desc: 'دمج نماذج الذكاء الاصطناعي المتقدمة (GPT, Gemini)، روبوتات المحادثة الذكية المبيعاتية، وأتمتة العمليات التجارية لرفع الإنتاجية وتقليل التكاليف.',
-    tags: ['AI Chatbots', 'LLM Integration', 'أتمتة الواتساب', 'تحليل البيانات']
+    id: 3, cat: 'restaurant',
+    title: 'منصة الطلب والتوصيل',
+    industry: '🍕 مطاعم وكافيهات',
+    desc: 'نظام طلب طعام أونلاين مع QR Menu، إدارة المطبخ الحية، نظام نقاط ولاء، وتتبع التوصيل على الخريطة.',
+    image: '/portfolio/restaurant.png',
+    tags: ['React', 'Node.js', 'Socket.io', 'Google Maps'],
+    badge: 'Restaurant System'
   },
   {
-    icon: <Code2 size={32} className={styles.serviceIcon} />,
-    title: 'أنظمة إدارة الشركات و ERP مخصصة',
-    enTitle: 'Custom ERP & Business Systems',
-    desc: 'تطوير أنظمة سحابية متكاملة مصممة خصيصاً وفق متطلبات عملك: إدارة المبيعات، الفواتير، الحسابات، شؤون الموظفين، وسلاسل التوريد.',
-    tags: ['SaaS ERP', 'CRM Systems', 'إدارة المخازن', 'تقارير مالية حية']
+    id: 4, cat: 'clinic',
+    title: 'منظومة العيادات الذكية',
+    industry: '🏥 عيادات ومستشفيات',
+    desc: 'نظام حجز مواعيد ذكي، ملفات مرضى إلكترونية، متابعة وصفات طبية، ودفع أونلاين مع تذكيرات واتساب.',
+    image: '/portfolio/clinic.png',
+    tags: ['React', 'PostgreSQL', 'HIPAA Compliant', 'WhatsApp API'],
+    badge: 'Healthcare System'
   },
   {
-    icon: <Layers size={32} className={styles.serviceIcon} />,
-    title: 'تصميم واجهات وتجارب المستخدم (UI/UX)',
-    enTitle: 'High-End UI/UX Design',
-    desc: 'دراسة سلوك العملاء وتصميم واجهات عصرية فاخرة تركز على سهولة الاستخدام، جمالية التفاصيل، ومضاعفة معدلات التحويل والمبيعات.',
-    tags: ['Figma', 'User Journey', 'Design Systems', 'Mobile-First UI']
+    id: 5, cat: 'realestate',
+    title: 'منصة العقارات الفاخرة',
+    industry: '🏡 عقارات ومقاولات',
+    desc: 'منصة عقارية شاملة مع خرائط تفاعلية، جولات 360°، نظام حجز وتواصل مع الوكلاء، وتقارير السوق الذكية.',
+    image: '/portfolio/realestate.png',
+    tags: ['Next.js', 'Mapbox', 'PostgreSQL', 'AWS S3'],
+    badge: 'Real Estate'
   },
   {
-    icon: <ShieldCheck size={32} className={styles.serviceIcon} />,
-    title: 'الاستضافة السحابية والأمن السيبراني',
-    enTitle: 'Cloud Architecture & DevOps',
-    desc: 'بنية تحتية سحابية متطورة على Azure و AWS مع حماية سيبرانية شاملة من الهجمات، نسخ احتياطي لحظي، وضمان عمل بنسبة 99.99%.',
-    tags: ['Azure Cloud', 'AWS', 'SSL & WAF', 'CDN Optimization', '24/7 Monitoring']
+    id: 6, cat: 'education',
+    title: 'منصة التعليم الإلكتروني',
+    industry: '📚 مراكز تعليمية',
+    desc: 'LMS متكامل مع بث مباشر للدروس، اختبارات تفاعلية، شهادات رقمية، وتحليل أداء الطلاب.',
+    image: '/portfolio/education.png',
+    tags: ['React', 'Node.js', 'Video Streaming', 'Analytics'],
+    badge: 'EdTech Platform'
+  },
+  {
+    id: 7, cat: 'app',
+    title: 'تطبيق خدمات VIP وحجوزات',
+    industry: '💎 خدمات VIP',
+    desc: 'تطبيق جوال فاخر لخدمات الحجز والتوصيل مع نظام دفع آمن، تتبع جغرافي، وإشعارات حية.',
+    image: '/portfolio/vipapp.png',
+    tags: ['Flutter', 'Firebase', 'Google Maps', 'Stripe'],
+    badge: 'Mobile App'
+  },
+  {
+    id: 8, cat: 'app',
+    title: 'تطبيق توصيل الأدوية',
+    industry: '💊 صيدليات',
+    desc: 'تطبيق طلب أدوية مع وصفات طبية رقمية، تأكيد صيدلاني، تتبع التوصيل، وسجل طبي للمريض.',
+    image: '/portfolio/pharmacy.png',
+    tags: ['React Native', 'Node.js', 'ML Prescription OCR'],
+    badge: 'HealthApp'
+  },
+  {
+    id: 9, cat: 'erp',
+    title: 'نظام ERP الصناعي الشامل',
+    industry: '🏭 مصانع وشركات كبرى',
+    desc: 'نظام ERP سحابي متكامل لإدارة الإنتاج، المخازن، سلاسل التوريد، الموارد البشرية، والمحاسبة.',
+    image: '/portfolio/erp.png',
+    tags: ['SaaS ERP', 'Docker', 'Microservices', 'BI Reports'],
+    badge: 'Enterprise ERP'
+  },
+  {
+    id: 10, cat: 'corporate',
+    title: 'موقع شركة المقاولات',
+    industry: '🏗️ مقاولات وهندسة',
+    desc: 'موقع مؤسسي احترافي مع معرض مشاريع، نماذج طلب عروض، خريطة المشاريع التفاعلية، وبوابة عملاء.',
+    image: '/portfolio/corporate.png',
+    tags: ['Next.js', 'Sanity CMS', 'Mapbox', 'Vercel'],
+    badge: 'Corporate Website'
+  },
+  {
+    id: 11, cat: 'restaurant',
+    title: 'نظام إدارة سلسلة المطاعم',
+    industry: '🍔 سلاسل وفرانشايز',
+    desc: 'إدارة مركزية لجميع الفروع مع تقارير مبيعات حية، إدارة الطاقم، التوريد المركزي، والمنيو الرقمي.',
+    image: '/portfolio/restaurant2.png',
+    tags: ['React', 'Node.js', 'Multi-Branch ERP', 'Analytics'],
+    badge: 'Restaurant Chain'
+  },
+  {
+    id: 12, cat: 'corporate',
+    title: 'منصة الحجوزات الفندقية',
+    industry: '🏨 فنادق وشقق مفروشة',
+    desc: 'نظام إدارة فندقي PMS شامل مع حجز أونلاين، تحكم بالغرف، الفواتير، والتكامل مع Booking.com.',
+    image: '/portfolio/hotel.png',
+    tags: ['React', 'PMS Integration', 'Channel Manager', 'Payment'],
+    badge: 'Hospitality System'
+  },
+];
+
+const PORT_CATS = [
+  { id: 'all', label: 'جميع المشاريع', icon: Package },
+  { id: 'ecommerce', label: 'متاجر إلكترونية', icon: ShoppingBag },
+  { id: 'restaurant', label: 'مطاعم وكافيهات', icon: Utensils },
+  { id: 'clinic', label: 'صحة وعيادات', icon: Heart },
+  { id: 'realestate', label: 'عقارات', icon: Home },
+  { id: 'education', label: 'تعليم', icon: GraduationCap },
+  { id: 'app', label: 'تطبيقات جوال', icon: Smartphone },
+  { id: 'erp', label: 'أنظمة ERP', icon: Building2 },
+  { id: 'corporate', label: 'مواقع مؤسسية', icon: Globe2 },
+];
+
+/* ─── HOSTING PLANS ────────────────────────────────── */
+const HOSTING_PLANS = [
+  {
+    name: 'ابتدائي',
+    nameEn: 'STARTER',
+    icon: Globe,
+    price: '24',
+    period: 'سنة',
+    desc: 'مثالي للمواقع التعريفية والمدونات',
+    features: [
+      { label: 'مساحة تخزين', value: '5 GB SSD' },
+      { label: 'نطاق ترددي', value: 'غير محدود' },
+      { label: 'نطاقات مجانية', value: '1 دومين' },
+      { label: 'بريد إلكتروني', value: '5 صناديق بريد' },
+      { label: 'SSL مجاني', value: '✓' },
+      { label: 'لوحة cPanel', value: '✓' },
+      { label: 'نسخ احتياطي', value: 'أسبوعي' },
+      { label: 'دعم', value: '8/5' },
+    ],
+    highlighted: false,
+    color: '#6366f1'
+  },
+  {
+    name: 'احترافي',
+    nameEn: 'PROFESSIONAL',
+    icon: Server,
+    price: '59',
+    period: 'سنة',
+    desc: 'الأنسب للمتاجر الإلكترونية والمواقع النشطة',
+    features: [
+      { label: 'مساحة تخزين', value: '25 GB NVMe SSD' },
+      { label: 'نطاق ترددي', value: 'غير محدود' },
+      { label: 'نطاقات مجانية', value: '5 دومينات' },
+      { label: 'بريد إلكتروني', value: '25 صندوق بريد' },
+      { label: 'SSL مجاني', value: '✓' },
+      { label: 'لوحة cPanel', value: '✓' },
+      { label: 'نسخ احتياطي', value: 'يومي' },
+      { label: 'دعم', value: '24/7' },
+    ],
+    highlighted: true,
+    color: '#b8943a'
+  },
+  {
+    name: 'سحابي VPS',
+    nameEn: 'CLOUD VPS',
+    icon: HardDrive,
+    price: '149',
+    period: 'سنة',
+    desc: 'لتطبيقات الأعمال والمنصات الكبيرة',
+    features: [
+      { label: 'RAM', value: '4 GB DDR4' },
+      { label: 'معالج', value: '4 vCPU Cores' },
+      { label: 'مساحة', value: '80 GB NVMe SSD' },
+      { label: 'نطاق ترددي', value: '5 TB/شهر' },
+      { label: 'IP ثابت', value: '1 Dedicated IP' },
+      { label: 'نظام تشغيل', value: 'Ubuntu / CentOS' },
+      { label: 'نسخ احتياطي', value: 'يومي تلقائي' },
+      { label: 'دعم', value: '24/7 Priority' },
+    ],
+    highlighted: false,
+    color: '#8b5cf6'
+  },
+  {
+    name: 'إنتربرايز',
+    nameEn: 'ENTERPRISE CLOUD',
+    icon: Wifi,
+    price: 'مخصص',
+    period: '',
+    desc: 'Azure / AWS مخصص للأنظمة الضخمة',
+    features: [
+      { label: 'بنية تحتية', value: 'Azure / AWS / GCP' },
+      { label: 'Auto Scaling', value: '✓ تلقائي' },
+      { label: 'Load Balancer', value: '✓ مدمج' },
+      { label: 'CDN عالمي', value: '✓ 200+ موقع' },
+      { label: 'WAF & DDoS', value: '✓ حماية كاملة' },
+      { label: 'Uptime SLA', value: '99.99%' },
+      { label: 'نسخ احتياطي', value: 'لحظي Multi-Zone' },
+      { label: 'دعم', value: 'فريق مخصص 24/7' },
+    ],
+    highlighted: false,
+    color: '#10b981'
   }
 ];
 
-const PORTFOLIO_PROJECTS = [
-  {
-    id: 1,
-    title: 'منصة زهرة بيسان الفاخرة للأزياء',
-    category: 'E-Commerce & High-End Retail',
-    desc: 'متجر إلكتروني فائق السرعة مع لوحة تحكم ERP شاملة، بوابات دفع متعددة، مشغل فيديو عالي الدقة، وشات بوت ذكاء اصطناعي تفاعلي.',
-    image: '/images/1786522915955-411348681_1782578082455351.mp4',
-    isVideo: true,
-    tags: ['React', 'Node.js', 'MySQL', 'Azure Cloud', 'AI Assistant']
-  },
-  {
-    id: 2,
-    title: 'نظام إدارة سلاسل الإمداد والمخزون الذكي',
-    category: 'Enterprise ERP System',
-    desc: 'منظومة سحابية متكاملة لمتابعة حركة المنتجات، الفواتير الضريبية، تنبيهات نفاد المخزون، والتقارير المالية التنبؤية بالذكاء الاصطناعي.',
-    image: '/12.png',
-    isVideo: false,
-    tags: ['Next.js', 'PostgreSQL', 'Docker', 'Microservices']
-  },
-  {
-    id: 3,
-    title: 'تطبيق حجوزات وخدمات VIP',
-    category: 'Mobile Application',
-    desc: 'تطبيق موبايل فاخر مخصص لعملاء النخبة مع نظام دفع آمن، إشعارات حية، وتتبع جغرافي دقيق للطلبات في الوقت الفعلي.',
-    image: '/8 (1).png',
-    isVideo: false,
-    tags: ['React Native', 'Node.js', 'Socket.io', 'Google Maps API']
-  }
+/* ─── DOMAINS ───────────────────────────────────────── */
+const DOMAINS = [
+  { ext: '.com', reg: '12', renew: '15', popular: true },
+  { ext: '.net', reg: '14', renew: '16', popular: false },
+  { ext: '.jo', reg: '30', renew: '30', popular: true },
+  { ext: '.store', reg: '8', renew: '18', popular: false },
+  { ext: '.online', reg: '5', renew: '20', popular: false },
+  { ext: '.tech', reg: '10', renew: '25', popular: false },
+  { ext: '.shop', reg: '8', renew: '20', popular: false },
+  { ext: '.app', reg: '18', renew: '20', popular: false },
 ];
 
+/* ─── PROCESS ───────────────────────────────────────── */
+const PROCESS_STEPS = [
+  { num: '01', title: 'الاستشارة والتحليل', desc: 'نجتمع بك لفهم أهدافك، نحلل المنافسين، ونضع استراتيجية تقنية دقيقة وشاملة.' },
+  { num: '02', title: 'التصميم والنمذجة', desc: 'نصمم الواجهات بـ Figma ونبني نماذج تفاعلية قابلة للاختبار قبل كتابة أي كود.' },
+  { num: '03', title: 'البرمجة والتطوير', desc: 'يبدأ فريقنا الهندسي بالبرمجة بأحدث المعايير مع تحديثات تقدم أسبوعية شفافة.' },
+  { num: '04', title: 'الاختبار والضبط', desc: 'نختبر كل جزء على جميع الأجهزة والمتصفحات ونضبط الأداء لمستوى مثالي.' },
+  { num: '05', title: 'الإطلاق والدعم', desc: 'نطلق مشروعك بثقة على السحابة مع دعم فني مستمر ومجاني بعد التسليم.' },
+];
+
+/* ─── TESTIMONIALS ──────────────────────────────────── */
+const TESTIMONIALS = [
+  { name: 'أحمد المنصوري', role: 'مدير العمليات — مجموعة النخبة التجارية', quote: 'فريق زهرة بيسان التقني حوّل فكرتنا إلى منصة ضخمة خلال 3 أسابيع. مبيعاتنا ارتفعت 240% خلال أول شهر.', rating: 5 },
+  { name: 'سارة الخطيب', role: 'مؤسسة — بوتيك سارة للأزياء', quote: 'التصميم فاخر جداً ويعكس هوية علامتنا بدقة مذهلة. الموقع سريع جداً وتجربة الشراء سلسة. عملاؤنا معجبون للغاية.', rating: 5 },
+  { name: 'خالد العمري', role: 'الرئيس التنفيذي — مجموعة العمري للمقاولات', quote: 'نظام ERP الذي طوروه لنا وفّر أكثر من 15 ساعة عمل أسبوعياً في العمليات اليدوية. استثمار يستحق كل دينار.', rating: 5 },
+];
+
+/* ─── FAQs ──────────────────────────────────────────── */
+const FAQS = [
+  { q: 'كم يستغرق تطوير موقع أو تطبيق متكامل؟', a: 'الموقع التعريفي 5-7 أيام، المتجر الإلكتروني 2-4 أسابيع، والأنظمة المخصصة 4-8 أسابيع. نلتزم بالجدول 100%.' },
+  { q: 'هل تقدمون ضماناً وصيانة بعد التسليم؟', a: 'نعم، ضمان كامل 3 أشهر لإصلاح أي مشكلة مجاناً، مع عروض صيانة شهرية بأسعار تنافسية.' },
+  { q: 'ما التقنيات التي تستخدمونها؟', a: 'React وNext.js للويب، Flutter وReact Native للجوال، MySQL وPostgreSQL للبيانات، Azure وAWS للاستضافة.' },
+  { q: 'هل تعملون مع شركات خارج الأردن؟', a: 'بالتأكيد! نخدم الأردن، السعودية، الإمارات، الكويت، والبحرين. نتواصل عن بُعد بكفاءة عالية.' },
+  { q: 'ما الفرق بين الاستضافة المشتركة والـ VPS؟', a: 'الاستضافة المشتركة مثالية للمواقع البسيطة بتكلفة منخفضة. VPS يوفر موارد مخصصة وأداءً أعلى للمتاجر والتطبيقات. السحابة (Azure/AWS) للأنظمة الضخمة التي تحتاج توسعاً تلقائياً.' },
+];
+
+/* ─── ANIMATED COUNTER ──────────────────────────────── */
+function AnimatedCounter({ target, suffix = '' }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        let start = 0;
+        const step = (target / 1800) * 16;
+        const timer = setInterval(() => {
+          start += step;
+          if (start >= target) { setCount(target); clearInterval(timer); }
+          else setCount(Math.floor(start));
+        }, 16);
+      }
+    }, { threshold: 0.5 });
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [target]);
+  return <span ref={ref}>{count}{suffix}</span>;
+}
+
+function FAQItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`${styles.faqItem} ${open ? styles.faqOpen : ''}`}>
+      <button className={styles.faqQ} onClick={() => setOpen(!open)}>
+        <span>{q}</span>
+        {open ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+      </button>
+      {open && <div className={styles.faqA}>{a}</div>}
+    </div>
+  );
+}
+
+/* ─── PORTFOLIO CARD ────────────────────────────────── */
+function PortfolioCard({ p }) {
+  // Use a placeholder colored card since real images might not exist
+  const bgColors = {
+    ecommerce: '#fdf4ff',
+    restaurant: '#fff7ed',
+    clinic: '#f0fdf4',
+    realestate: '#eff6ff',
+    education: '#fefce8',
+    app: '#f0f9ff',
+    erp: '#faf5ff',
+    corporate: '#f8fafc',
+  };
+  const accentColors = {
+    ecommerce: '#a855f7',
+    restaurant: '#f97316',
+    clinic: '#16a34a',
+    realestate: '#3b82f6',
+    education: '#eab308',
+    app: '#0ea5e9',
+    erp: '#8b5cf6',
+    corporate: '#64748b',
+  };
+  const bg = bgColors[p.cat] || '#f8fafc';
+  const accent = accentColors[p.cat] || '#6366f1';
+
+  return (
+    <div className={styles.portCard}>
+      <div className={styles.portMedia} style={{ background: bg }}>
+        <div className={styles.portPlaceholder} style={{ '--accent': accent }}>
+          <span className={styles.portIndustryBig}>{p.industry.split(' ')[0]}</span>
+          <span className={styles.portMockBar} style={{ background: accent }} />
+          <div className={styles.portMockRows}>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className={styles.portMockRow} style={{ width: `${85 - i * 12}%`, background: i === 0 ? accent : `${accent}30` }} />
+            ))}
+          </div>
+          <div className={styles.portMockCards}>
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className={styles.portMockCard} style={{ '--c': accent }} />
+            ))}
+          </div>
+        </div>
+        <div className={styles.portBadgeWrap}>
+          <span className={styles.portBadge} style={{ background: accent }}>{p.badge}</span>
+        </div>
+      </div>
+      <div className={styles.portBody}>
+        <span className={styles.portIndustry}>{p.industry}</span>
+        <h3 className={styles.portTitle}>{p.title}</h3>
+        <p className={styles.portDesc}>{p.desc}</p>
+        <div className={styles.portTags}>
+          {p.tags.map((t, i) => <span key={i} className={styles.portTag}>{t}</span>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── MAIN ──────────────────────────────────────────── */
 export default function TechAgency() {
-  // Calculator state
+  const [portFilter, setPortFilter] = useState('all');
   const [projectType, setProjectType] = useState('ecommerce');
   const [platforms, setPlatforms] = useState(['web']);
   const [features, setFeatures] = useState(['payments', 'admin']);
   const [timeline, setTimeline] = useState('standard');
-
-  // Contact form state
+  const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
-    email: '',
-    company: '',
-    service: 'متجر إلكتروني متكامل',
-    budget: '500 - 1,500 د.أ',
-    details: ''
+    name: '', phone: '', email: '', company: '',
+    service: 'متجر إلكتروني متكامل', budget: '700 - 1,500 د.أ', details: ''
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  // Dynamic cost calculation
-  const calculateEstimate = () => {
-    let base = 500;
-    if (projectType === 'ecommerce') base = 650;
-    if (projectType === 'mobile') base = 900;
-    if (projectType === 'erp') base = 1200;
-    if (projectType === 'custom') base = 800;
+  useEffect(() => {
+    const t = setInterval(() => setActiveTestimonial(p => (p + 1) % TESTIMONIALS.length), 5000);
+    return () => clearInterval(t);
+  }, []);
 
-    let platformMultiplier = platforms.length === 2 ? 1.6 : (platforms.length === 3 ? 2.1 : 1);
-    let featureCost = features.length * 120;
-    let timelineMultiplier = timeline === 'express' ? 1.25 : 1;
+  const filteredPorts = portFilter === 'all' ? PORTFOLIO : PORTFOLIO.filter(p => p.cat === portFilter);
 
-    const total = Math.round((base * platformMultiplier + featureCost) * timelineMultiplier);
-    return { min: total, max: Math.round(total * 1.35) };
+  const calcEstimate = () => {
+    const bases = { ecommerce: 700, mobile: 950, erp: 1300, custom: 850 };
+    const base = bases[projectType] || 700;
+    const plat = platforms.length === 3 ? 2.2 : platforms.length === 2 ? 1.65 : 1;
+    const feat = features.length * 130;
+    const rush = timeline === 'express' ? 1.3 : 1;
+    const total = Math.round((base * plat + feat) * rush);
+    return { min: total, max: Math.round(total * 1.4) };
   };
+  const est = calcEstimate();
 
-  const estimate = calculateEstimate();
-
-  const handleFeatureToggle = (f) => {
-    if (features.includes(f)) {
-      setFeatures(features.filter(x => x !== f));
-    } else {
-      setFeatures([...features, f]);
-    }
+  const togglePlatform = p => {
+    if (platforms.includes(p)) { if (platforms.length > 1) setPlatforms(platforms.filter(x => x !== p)); }
+    else setPlatforms([...platforms, p]);
   };
+  const toggleFeature = f => setFeatures(features.includes(f) ? features.filter(x => x !== f) : [...features, f]);
 
-  const handlePlatformToggle = (p) => {
-    if (platforms.includes(p)) {
-      if (platforms.length > 1) setPlatforms(platforms.filter(x => x !== p));
-    } else {
-      setPlatforms([...platforms, p]);
-    }
-  };
-
-  const handleSubmitLead = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (!formData.name || !formData.phone) {
-      alert('يرجى كتابة الاسم ورقم الهاتف للتواصل');
-      return;
-    }
+    if (!formData.name || !formData.phone) return;
     setSubmitting(true);
     try {
       await axios.post('/api/tech/lead', {
         ...formData,
-        estimated_quote: `JOD ${estimate.min} - ${estimate.max}`,
+        estimated_quote: `JOD ${est.min} - ${est.max}`,
         calculator_details: JSON.stringify({ projectType, platforms, features, timeline })
       });
-      setSubmitted(true);
-    } catch (err) {
-      console.error('Lead submission failed', err);
-      // Fallback direct success message
-      setSubmitted(true);
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (_) {}
+    setSubmitted(true);
+    setSubmitting(false);
   };
 
-  const openWhatsAppDirect = () => {
-    const text = `مرحباً زهرة بيسان للتكنولوجيا 💻✨%0Aأود الاستفسار عن خدمة: ${formData.service}%0Aالاسم: ${formData.name || 'عميل مهتم'}%0Aالميزانية المقدرة: ${formData.budget || 'غير محدد'}%0Aالتفاصيل: ${formData.details || 'طلب استشارة وتحديد موعد'}`;
-    window.open(`https://wa.me/962788888888?text=${text}`, '_blank');
+  const openWhatsApp = () => {
+    const txt = encodeURIComponent(`مرحباً زهرة بيسان للتكنولوجيا 💻\nأود الاستفسار عن: ${formData.service}\nالاسم: ${formData.name || 'عميل مهتم'}`);
+    window.open(`https://wa.me/962788888888?text=${txt}`, '_blank');
   };
 
   return (
-    <div className={styles.techContainer}>
-      
-      {/* Top Brand Navigation Bar */}
-      <header className={styles.techHeader}>
-        <div className={styles.headerInner}>
-          <Link to="/tech" className={styles.techLogo}>
-            <div className={styles.logoBadge}>
-              <Code2 size={24} color="#c5a880" />
-            </div>
+    <div className={styles.page} dir="rtl">
+
+      {/* ── NAV ──────────────────────────────── */}
+      <header className={styles.nav}>
+        <div className={styles.navInner}>
+          <Link to="/tech" className={styles.brand}>
+            <div className={styles.brandIcon}><Code2 size={20} /></div>
             <div>
-              <span className={styles.logoTextMain}>زهرة بيسان للحلول الرقمية</span>
-              <span className={styles.logoTextSub}>ZAHRAT BEESAN TECH & SOFTWARE</span>
+              <span className={styles.brandMain}>زهرة بيسان تك</span>
+              <span className={styles.brandSub}>ZAHRAT BEESAN TECH & SOFTWARE</span>
             </div>
           </Link>
-
-          <nav className={styles.techNav}>
+          <nav className={styles.navLinks}>
             <a href="#services">الخدمات</a>
-            <a href="#calculator">حاسبة الأسعار</a>
-            <a href="#portfolio">الأعمال</a>
-            <a href="#quote" className={styles.ctaNavBtn}>
-              <Sparkles size={16} /> طلب عرض سعر
-            </a>
-            <Link to="/" className={styles.storeLink}>
-              👑 متجر الأزياء والعبايات
-            </Link>
+            <a href="#portfolio">أعمالنا</a>
+            <a href="#hosting">الاستضافة</a>
+            <a href="#calculator">الأسعار</a>
+            <a href="#contact" className={styles.navCta}>ابدأ مشروعك ←</a>
+            <Link to="/" className={styles.navStore}>👑 المتجر الملكي</Link>
           </nav>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className={styles.heroSection}>
-        <div className={styles.heroGlowTop} />
+      {/* ── HERO ─────────────────────────────── */}
+      <section className={styles.hero}>
+        <div className={styles.heroBg}>
+          <div className={styles.orb1} />
+          <div className={styles.orb2} />
+          <div className={styles.gridOverlay} />
+          <div className={styles.codeFloat1}><span style={{color:'#b8943a'}}>const</span> success = <span style={{color:'#16a34a'}}>true</span>;</div>
+          <div className={styles.codeFloat2}>npm run <span style={{color:'#b8943a'}}>deploy</span></div>
+          <div className={styles.codeFloat3}><span style={{color:'#6366f1'}}>{'{'}</span> uptime: <span style={{color:'#16a34a'}}>"99.9%"</span> <span style={{color:'#6366f1'}}>{'}'}</span></div>
+        </div>
         <div className={styles.heroContent}>
-          <div className={styles.heroBadge}>
-            <Sparkles size={16} /> المنظومة الرقمية الشاملة لنمو أعمالك 2026
-          </div>
-          
+          <div className={styles.heroBadge}><Sparkles size={14} /> شريكك الرقمي الموثوق منذ 2018 — الأردن والخليج</div>
           <h1 className={styles.heroTitle}>
-            نبتكر الحلول البرمجية والمتاجر الرقمية
-            <span className={styles.heroHighlight}> التي تصنع الفارق الحقيقي.</span>
+            نبني حلولاً رقمية<span className={styles.heroGold}> تصنع الفارق </span>الحقيقي
           </h1>
-
           <p className={styles.heroDesc}>
-            من الفكرة إلى الإطلاق الكامل — نصمم ونبرمج متاجر إلكترونية خارقة، تطبيقات هواتف ذكية، أنظمة ERP سحابية، وحلول ذكاء اصطناعي ترفع أرباحك وتمنح علامتك التجارية المكانة التي تستحقها.
+            من الفكرة إلى الإطلاق — متاجر إلكترونية، تطبيقات ذكية، أنظمة ERP، حلول ذكاء اصطناعي، واستضافة سحابية تضمن نمو أعمالك وتضاعف مبيعاتك.
           </p>
-
-          <div className={styles.heroActions}>
-            <a href="#calculator" className={styles.btnPrimary}>
-              <Calculator size={20} /> احسب تكلفة مشروعك الآن
-            </a>
-            <a href="#quote" className={styles.btnSecondary}>
-              <MessageCircle size={20} /> حجز استشارة مجانية
-            </a>
+          <div className={styles.heroButtons}>
+            <a href="#contact" className={styles.btnGold}><Zap size={18} /> ابدأ مشروعك الآن</a>
+            <a href="#portfolio" className={styles.btnGhost}><span>شوف أعمالنا</span> <ArrowLeft size={18} /></a>
           </div>
-
-          {/* Trust Metrics */}
-          <div className={styles.metricsGrid}>
-            <div className={styles.metricItem}>
-              <span className={styles.metricNum}>99.9%</span>
-              <span className={styles.metricLabel}>استقرار وحماية سحابية</span>
-            </div>
-            <div className={styles.metricDivider} />
-            <div className={styles.metricItem}>
-              <span className={styles.metricNum}>3X</span>
-              <span className={styles.metricLabel}>سرعة فائقة ومضاعفة مبيعات</span>
-            </div>
-            <div className={styles.metricDivider} />
-            <div className={styles.metricItem}>
-              <span className={styles.metricNum}>24/7</span>
-              <span className={styles.metricLabel}>دعم فني وتطوير مستمر</span>
-            </div>
+          <div className={styles.statsStrip}>
+            <div className={styles.statItem}><span className={styles.statNum}><AnimatedCounter target={99} suffix=".9%" /></span><span className={styles.statLbl}>وقت تشغيل مضمون</span></div>
+            <div className={styles.statDivider} />
+            <div className={styles.statItem}><span className={styles.statNum}><AnimatedCounter target={3} suffix="X" /></span><span className={styles.statLbl}>مضاعفة متوسطة للمبيعات</span></div>
+            <div className={styles.statDivider} />
+            <div className={styles.statItem}><span className={styles.statNum}><AnimatedCounter target={80} suffix="+" /></span><span className={styles.statLbl}>مشروع مُنجز</span></div>
+            <div className={styles.statDivider} />
+            <div className={styles.statItem}><span className={styles.statNum}><AnimatedCounter target={24} suffix="/7" /></span><span className={styles.statLbl}>دعم فني</span></div>
           </div>
         </div>
       </section>
 
-      {/* Services Section */}
-      <section className={styles.servicesSection} id="services">
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionTag}>مجالات خبرتنا المتطورة</span>
-          <h2 className={styles.sectionTitle}>خدمات برمجية وتقنية بمعايير عالمية</h2>
-          <p className={styles.sectionDesc}>
-            حلول هندسية متكاملة مصممة خصيصاً لدعم نمو الشركات الناشئة والمتاجر الرائدة والشركات الكبرى.
-          </p>
-        </div>
-
-        <div className={styles.servicesGrid}>
-          {SERVICES.map((srv, idx) => (
-            <div key={idx} className={styles.serviceCard}>
-              <div className={styles.serviceIconWrap}>{srv.icon}</div>
-              <h3 className={styles.serviceCardTitle}>{srv.title}</h3>
-              <span className={styles.serviceCardEn}>{srv.enTitle}</span>
-              <p className={styles.serviceCardDesc}>{srv.desc}</p>
-              <div className={styles.tagList}>
-                {srv.tags.map((t, i) => (
-                  <span key={i} className={styles.tagBadge}>{t}</span>
-                ))}
-              </div>
-            </div>
-          ))}
+      {/* ── SERVICES ─────────────────────────── */}
+      <section className={styles.section} id="services">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>مجالات خبرتنا</span>
+            <h2 className={styles.sectionTitle}>خدمات برمجية بمعايير عالمية</h2>
+            <p className={styles.sectionDesc}>حلول هندسية متكاملة للشركات الناشئة والمتاجر الرائدة والشركات الكبرى.</p>
+          </div>
+          <div className={styles.servicesGrid}>
+            {SERVICES.map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <div key={i} className={styles.serviceCard}>
+                  <div className={styles.serviceNum}>{s.num}</div>
+                  <div className={styles.serviceIconBox}><Icon size={26} color="#b8943a" /></div>
+                  <h3 className={styles.serviceTitle}>{s.title}</h3>
+                  <span className={styles.serviceEn}>{s.enTitle}</span>
+                  <p className={styles.serviceDesc}>{s.desc}</p>
+                  <div className={styles.tagRow}>{s.tags.map((t, j) => <span key={j} className={styles.tag}>{t}</span>)}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
-      {/* Interactive Project Cost Calculator */}
-      <section className={styles.calcSection} id="calculator">
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionTag}>حاسبة التكلفة الذكية</span>
-          <h2 className={styles.sectionTitle}>قدّر تكلفة ومدة مشروعك خلال لحظات</h2>
-          <p className={styles.sectionDesc}>
-            اختر مواصفات وميزات نظامك التقني واحصل على تقدير فوري وشفاف لميزانية التطوير.
-          </p>
-        </div>
-
-        <div className={styles.calcContainer}>
-          
-          {/* Options Form */}
-          <div className={styles.calcControls}>
-            
-            {/* 1. Project Type */}
-            <div className={styles.calcGroup}>
-              <label className={styles.calcGroupLabel}>1. ما هو نوع المشروع المطلوب؟</label>
-              <div className={styles.optionsGrid}>
-                {[
-                  { id: 'ecommerce', label: '🛍️ متجر إلكتروني متكامل', desc: 'بيع المنتجات، دفع أونلاين، شحن' },
-                  { id: 'mobile', label: '📱 تطبيق هاتف ذكي', desc: 'تطبيق iOS وأندرويد عالي الأداء' },
-                  { id: 'erp', label: '🏢 نظام ERP وإدارة أعمال', desc: 'مخازن، محاسبة، فواتير، موظفين' },
-                  { id: 'custom', label: '⚡ موقع تعريفي وخدمي مخصص', desc: 'شركات، عيادات، منصات حجز' }
-                ].map(item => (
-                  <div 
-                    key={item.id}
-                    onClick={() => setProjectType(item.id)}
-                    className={`${styles.optionCard} ${projectType === item.id ? styles.optionSelected : ''}`}
-                  >
-                    <div className={styles.optionHeader}>
-                      <span className={styles.optionTitle}>{item.label}</span>
-                      {projectType === item.id && <CheckCircle2 size={18} color="#c5a880" />}
-                    </div>
-                    <span className={styles.optionDesc}>{item.desc}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 2. Target Platforms */}
-            <div className={styles.calcGroup}>
-              <label className={styles.calcGroupLabel}>2. المنصات المستهدفة:</label>
-              <div className={styles.optionsGridMini}>
-                {[
-                  { id: 'web', label: '🌐 منصة ويب تفاعلية (Web App)' },
-                  { id: 'ios', label: '🍏 تطبيق أبل (iOS App)' },
-                  { id: 'android', label: '🤖 تطبيق أندرويد (Android App)' }
-                ].map(p => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    onClick={() => handlePlatformToggle(p.id)}
-                    className={`${styles.pillBtn} ${platforms.includes(p.id) ? styles.pillSelected : ''}`}
-                  >
-                    {platforms.includes(p.id) && <Check size={16} />} {p.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* 3. Add-on Features */}
-            <div className={styles.calcGroup}>
-              <label className={styles.calcGroupLabel}>3. الميزات والإضافات المتقدمة:</label>
-              <div className={styles.featuresGrid}>
-                {[
-                  { id: 'payments', label: '💳 بوابات الدفع الإلكتروني (Visa, CliQ, Apple Pay)' },
-                  { id: 'admin', label: '📊 لوحة تحكم إدارية متقدمة مع إحصائيات حية' },
-                  { id: 'ai', label: '🤖 شات بوت ذكاء اصطناعي للرد الآلي والمبيعات' },
-                  { id: 'multilang', label: '🌍 دعم متعدد اللغات (عربي / إنجليزي)' },
-                  { id: 'loyalty', label: '🏆 نظام نقاط ولاء وكوبونات خصم' },
-                  { id: 'whatsapp', label: '💬 ربط آلي مع إشعارات ورسائل الواتساب' }
-                ].map(f => (
-                  <div
-                    key={f.id}
-                    onClick={() => handleFeatureToggle(f.id)}
-                    className={`${styles.featureItem} ${features.includes(f.id) ? styles.featureSelected : ''}`}
-                  >
-                    <div className={styles.checkboxSquare}>
-                      {features.includes(f.id) && <Check size={14} color="#111" />}
-                    </div>
-                    <span>{f.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 4. Timeline */}
-            <div className={styles.calcGroup}>
-              <label className={styles.calcGroupLabel}>4. الجدول الزمني المفضل للإنجاز:</label>
-              <div className={styles.timelineToggle}>
-                <button
-                  type="button"
-                  onClick={() => setTimeline('standard')}
-                  className={`${styles.timeBtn} ${timeline === 'standard' ? styles.timeSelected : ''}`}
-                >
-                  ⏳ قياسي (3 - 5 أسابيع)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTimeline('express')}
-                  className={`${styles.timeBtn} ${timeline === 'express' ? styles.timeSelected : ''}`}
-                >
-                  ⚡ سريع ومكثف (10 - 15 يوم)
-                </button>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Estimate Summary Card */}
-          <div className={styles.estimateCard}>
-            <div className={styles.estimateHeader}>
-              <Sparkles size={24} color="#c5a880" />
-              <h3>التقدير المبدئي للاستثمار</h3>
-            </div>
-
-            <div className={styles.priceDisplay}>
-              <span className={styles.currency}>JOD</span>
-              <span className={styles.priceRange}>{estimate.min} - {estimate.max}</span>
-            </div>
-            <span className={styles.priceNote}>* التقدير يشمل التصميم، البرمجة، والربط السحابي لمدة عام</span>
-
-            <div className={styles.includedList}>
-              <div className={styles.incItem}>
-                <CheckCircle2 size={16} color="#10b981" />
-                <span>تصميم واجهات UI/UX فاخرة ومخصصة</span>
-              </div>
-              <div className={styles.incItem}>
-                <CheckCircle2 size={16} color="#10b981" />
-                <span>برمجة نظيفة وكود آمن 100% قابل للتوسع</span>
-              </div>
-              <div className={styles.incItem}>
-                <CheckCircle2 size={16} color="#10b981" />
-                <span>استضافة سحابية فائقة السرعة مع شهادة SSL</span>
-              </div>
-              <div className={styles.incItem}>
-                <CheckCircle2 size={16} color="#10b981" />
-                <span>دعم فني مجاني وضمان تشغيلي شامل</span>
-              </div>
-            </div>
-
-            <a href="#quote" className={styles.btnEstimateAction}>
-              اعتماد المواصفات وحجز موعد الانطلاق ←
-            </a>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Portfolio Showcase */}
+      {/* ── PORTFOLIO ────────────────────────── */}
       <section className={styles.portfolioSection} id="portfolio">
-        <div className={styles.sectionHeader}>
-          <span className={styles.sectionTag}>سابقة الأعمال</span>
-          <h2 className={styles.sectionTitle}>مشاريع صُنعت بدقة وشغف هندسي</h2>
-          <p className={styles.sectionDesc}>
-            نماذج حية من المنصات والأنظمة التي قمنا بتطويرها لعملائنا في الأردن والخليج العربي.
-          </p>
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>أعمالنا ومشاريعنا</span>
+            <h2 className={styles.sectionTitle}>نبني لجميع القطاعات والمجالات</h2>
+            <p className={styles.sectionDesc}>80+ مشروع منجز في الأردن والخليج عبر أكثر من 12 قطاعاً تجارياً وخدمياً.</p>
+          </div>
+
+          {/* Category Filter */}
+          <div className={styles.portFilters}>
+            {PORT_CATS.map(cat => {
+              const Icon = cat.icon;
+              return (
+                <button key={cat.id} onClick={() => setPortFilter(cat.id)}
+                  className={`${styles.portFilter} ${portFilter === cat.id ? styles.portFilterActive : ''}`}>
+                  <Icon size={14} /> {cat.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className={styles.portGrid}>
+            {filteredPorts.map(p => <PortfolioCard key={p.id} p={p} />)}
+          </div>
+
+          <div className={styles.portCta}>
+            <p>هذه مجرد أمثلة من أعمالنا — نبني لأي مجال أو فكرة!</p>
+            <a href="#contact" className={styles.btnGold}><Send size={18} /> اطلب مشروعك الآن</a>
+          </div>
         </div>
+      </section>
 
-        <div className={styles.portfolioGrid}>
-          {PORTFOLIO_PROJECTS.map(proj => (
-            <div key={proj.id} className={styles.portfolioCard}>
-              <div className={styles.portfolioMediaWrap}>
-                {proj.isVideo ? (
-                  <video 
-                    src={proj.image} 
-                    autoPlay 
-                    loop 
-                    muted 
-                    playsInline 
-                    className={styles.portfolioMedia}
-                  />
-                ) : (
-                  <img 
-                    src={proj.image} 
-                    alt={proj.title} 
-                    className={styles.portfolioMedia} 
-                  />
-                )}
-                <span className={styles.portfolioCategoryBadge}>{proj.category}</span>
+      {/* ── PROCESS ──────────────────────────── */}
+      <section className={styles.processSection} id="process">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>منهجيتنا في العمل</span>
+            <h2 className={styles.sectionTitle}>من الفكرة إلى الإطلاق</h2>
+          </div>
+          <div className={styles.processGrid}>
+            {PROCESS_STEPS.map((s, i) => (
+              <div key={i} className={styles.processCard}>
+                <div className={styles.processLine} />
+                <div className={styles.processNum}>{s.num}</div>
+                <h3 className={styles.processTitle}>{s.title}</h3>
+                <p className={styles.processDesc}>{s.desc}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-              <div className={styles.portfolioBody}>
-                <h3 className={styles.portfolioTitle}>{proj.title}</h3>
-                <p className={styles.portfolioDesc}>{proj.desc}</p>
-                <div className={styles.tagList}>
-                  {proj.tags.map((t, idx) => (
-                    <span key={idx} className={styles.tagBadge}>{t}</span>
+      {/* ── HOSTING & DOMAINS ─────────────────── */}
+      <section className={styles.section} id="hosting">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>استضافة ودومينات</span>
+            <h2 className={styles.sectionTitle}>استضافة احترافية وأسعار الدومينات</h2>
+            <p className={styles.sectionDesc}>خوادم سريعة وآمنة في الشرق الأوسط وأوروبا — SSL مجاني، دعم 24/7، وضمان استرداد خلال 30 يوم.</p>
+          </div>
+
+          {/* Hosting Plans */}
+          <div className={styles.hostingGrid}>
+            {HOSTING_PLANS.map((plan, i) => {
+              const Icon = plan.icon;
+              return (
+                <div key={i} className={`${styles.hostCard} ${plan.highlighted ? styles.hostHighlighted : ''}`}>
+                  {plan.highlighted && <div className={styles.hostPopular}><Sparkles size={12} /> الأكثر طلباً</div>}
+                  <div className={styles.hostIconWrap} style={{ background: `${plan.color}15`, border: `1px solid ${plan.color}30` }}>
+                    <Icon size={26} style={{ color: plan.color }} />
+                  </div>
+                  <div className={styles.hostNameEn}>{plan.nameEn}</div>
+                  <div className={styles.hostNameAr}>{plan.name}</div>
+                  <div className={styles.hostPrice}>
+                    {plan.price === 'مخصص' ? (
+                      <span className={styles.hostPriceBig}>بالاتفاق</span>
+                    ) : (
+                      <><span className={styles.hostPriceCur}>JOD</span><span className={styles.hostPriceBig}>{plan.price}</span><span className={styles.hostPricePer}>/{plan.period}</span></>
+                    )}
+                  </div>
+                  <p className={styles.hostDesc}>{plan.desc}</p>
+                  <div className={styles.hostFeatures}>
+                    {plan.features.map((f, j) => (
+                      <div key={j} className={styles.hostFeature}>
+                        <span className={styles.hostFeatLabel}>{f.label}</span>
+                        <span className={styles.hostFeatVal}>{f.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <a href="#contact" className={plan.highlighted ? styles.btnGold : styles.btnOutline} style={plan.highlighted ? {} : { '--outline-color': plan.color }}>
+                    اطلب الآن ←
+                  </a>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Domain Prices */}
+          <div className={styles.domainsSection}>
+            <h3 className={styles.domainTitle}>أسعار تسجيل الدومينات <span className={styles.domainSub}>(بالدينار الأردني / سنة)</span></h3>
+            <div className={styles.domainGrid}>
+              {DOMAINS.map((d, i) => (
+                <div key={i} className={`${styles.domainCard} ${d.popular ? styles.domainPopular : ''}`}>
+                  {d.popular && <span className={styles.domainPopBadge}>شائع</span>}
+                  <span className={styles.domainExt}>{d.ext}</span>
+                  <div className={styles.domainPriceRow}>
+                    <span className={styles.domainLabel}>تسجيل</span>
+                    <span className={styles.domainPrice}>JOD {d.reg}</span>
+                  </div>
+                  <div className={styles.domainPriceRow}>
+                    <span className={styles.domainLabel}>تجديد</span>
+                    <span className={styles.domainRenew}>JOD {d.renew}</span>
+                  </div>
+                  <a href="#contact" className={styles.domainBtn}>اطلب ←</a>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CALCULATOR ───────────────────────── */}
+      <section className={styles.calcSection} id="calculator">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>حاسبة التكلفة الذكية</span>
+            <h2 className={styles.sectionTitle}>قدّر تكلفة مشروعك فوراً</h2>
+            <p className={styles.sectionDesc}>اختر مواصفات مشروعك واحصل على تقدير شفاف في ثوانٍ.</p>
+          </div>
+          <div className={styles.calcLayout}>
+            <div className={styles.calcForm}>
+              <div className={styles.calcGroup}>
+                <label className={styles.calcLabel}>نوع المشروع</label>
+                <div className={styles.calcOptions}>
+                  {[
+                    { id: 'ecommerce', label: '🛍️ متجر إلكتروني', desc: 'دفع + شحن + ERP' },
+                    { id: 'mobile', label: '📱 تطبيق جوال', desc: 'iOS + Android' },
+                    { id: 'erp', label: '🏢 نظام ERP', desc: 'إدارة سحابية شاملة' },
+                    { id: 'custom', label: '⚡ موقع مخصص', desc: 'عيادات، شركات، حجز' }
+                  ].map(o => (
+                    <button key={o.id} type="button" onClick={() => setProjectType(o.id)}
+                      className={`${styles.calcOpt} ${projectType === o.id ? styles.calcOptActive : ''}`}>
+                      <span className={styles.calcOptLabel}>{o.label}</span>
+                      <span className={styles.calcOptDesc}>{o.desc}</span>
+                      {projectType === o.id && <CheckCircle2 size={16} className={styles.calcCheck} color="#b8943a" />}
+                    </button>
                   ))}
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Contact & Quotation Form */}
-      <section className={styles.quoteSection} id="quote">
-        <div className={styles.quoteContainer}>
-          
-          <div className={styles.quoteInfo}>
-            <span className={styles.sectionTag}>ابدأ مشروعك معنا</span>
-            <h2 className={styles.quoteTitle}>
-              جاهز لتحويل فكرتك إلى منظومة رقمية رائدة؟
-            </h2>
-            <p className={styles.quoteDesc}>
-              فريقنا الهندسي جاهز لدراسة فكرتك، تقديم الاستشارة التقنية الأمثل، وتنفيذ مشروعك بأعلى درجات الاحترافية والسرعة.
-            </p>
-
-            <div className={styles.contactDetails}>
-              <div className={styles.contactItem}>
-                <Phone size={20} color="#c5a880" />
-                <div>
-                  <strong>الهاتف والواتساب المباشر:</strong>
-                  <span>+962 7 8888 8888</span>
+              <div className={styles.calcGroup}>
+                <label className={styles.calcLabel}>المنصات</label>
+                <div className={styles.calcPills}>
+                  {[{ id: 'web', label: '🌐 ويب' }, { id: 'ios', label: '🍏 iOS' }, { id: 'android', label: '🤖 Android' }].map(p => (
+                    <button key={p.id} type="button" onClick={() => togglePlatform(p.id)}
+                      className={`${styles.pill} ${platforms.includes(p.id) ? styles.pillActive : ''}`}>
+                      {platforms.includes(p.id) && <Check size={13} />} {p.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <div className={styles.contactItem}>
-                <Mail size={20} color="#c5a880" />
-                <div>
-                  <strong>البريد الإلكتروني الرسمي:</strong>
-                  <span>tech@zahratbeesan.com</span>
+              <div className={styles.calcGroup}>
+                <label className={styles.calcLabel}>الميزات والإضافات</label>
+                <div className={styles.calcFeatures}>
+                  {[
+                    { id: 'payments', label: '💳 بوابات الدفع الإلكتروني' },
+                    { id: 'admin', label: '📊 لوحة تحكم مع إحصائيات' },
+                    { id: 'ai', label: '🤖 شات بوت ذكاء اصطناعي' },
+                    { id: 'multilang', label: '🌍 عربي + إنجليزي' },
+                    { id: 'loyalty', label: '🏆 نقاط ولاء وكوبونات' },
+                    { id: 'whatsapp', label: '💬 ربط واتساب آلي' }
+                  ].map(f => (
+                    <div key={f.id} onClick={() => toggleFeature(f.id)}
+                      className={`${styles.featureRow} ${features.includes(f.id) ? styles.featureActive : ''}`}>
+                      <div className={styles.checkbox}>{features.includes(f.id) && <Check size={11} />}</div>
+                      <span>{f.label}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className={styles.contactItem}>
-                <Globe2 size={20} color="#c5a880" />
-                <div>
-                  <strong>المقر الرئيسي:</strong>
-                  <span>عمّان، المملكة الأردنية الهاشمية</span>
+              <div className={styles.calcGroup}>
+                <label className={styles.calcLabel}>مدة التنفيذ</label>
+                <div className={styles.timelineBtns}>
+                  <button type="button" onClick={() => setTimeline('standard')} className={`${styles.timeBtn} ${timeline === 'standard' ? styles.timeBtnActive : ''}`}>⏳ قياسي (3-5 أسابيع)</button>
+                  <button type="button" onClick={() => setTimeline('express')} className={`${styles.timeBtn} ${timeline === 'express' ? styles.timeBtnActive : ''}`}>⚡ مكثف سريع <span className={styles.rushBadge}>+30%</span></button>
                 </div>
               </div>
             </div>
-
-            <button onClick={openWhatsAppDirect} className={styles.btnWaDirect}>
-              <MessageCircle size={22} /> تواصل فوري ومباشر عبر الواتساب
-            </button>
-          </div>
-
-          <div className={styles.quoteFormCard}>
-            {submitted ? (
-              <div className={styles.successBox}>
-                <CheckCircle2 size={64} color="#10b981" />
-                <h3>تم استلام طلبك بنجاح! 🎉</h3>
-                <p>
-                  شكراً لتواصلك مع زهرة بيسان للحلول الرقمية. سيقوم مستشارنا التقني بالتواصل معك هاتفياً وعبر الواتساب خلال دقائق لمناقشة تفاصيل المشروع.
-                </p>
-                <button 
-                  onClick={() => setSubmitted(false)}
-                  className={styles.btnReset}
-                >
-                  إرسال استفسار آخر
-                </button>
+            <div className={styles.estimateCard}>
+              <div className={styles.estHeader}><Sparkles size={20} color="#b8943a" /><span>التقدير المبدئي</span></div>
+              <div className={styles.estPrice}>
+                <span className={styles.estCur}>JOD</span>
+                <span className={styles.estRange}>{est.min.toLocaleString()} – {est.max.toLocaleString()}</span>
               </div>
-            ) : (
-              <form onSubmit={handleSubmitLead} className={styles.formElement}>
-                <h3 className={styles.formTitle}>طلب عرض سعر واستشارة مجانية</h3>
-
-                <div className={styles.formRow}>
-                  <div className={styles.formField}>
-                    <label>الاسم الكريم *</label>
-                    <input 
-                      type="text" 
-                      required 
-                      value={formData.name}
-                      onChange={e => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="مثال: سلطان العدوي"
-                    />
-                  </div>
-                  <div className={styles.formField}>
-                    <label>رقم الهاتف / الواتساب *</label>
-                    <input 
-                      type="tel" 
-                      required 
-                      value={formData.phone}
-                      onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                      placeholder="079XXXXXXXX"
-                      dir="ltr"
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <div className={styles.formField}>
-                    <label>البريد الإلكتروني</label>
-                    <input 
-                      type="email" 
-                      value={formData.email}
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      placeholder="name@company.com"
-                      dir="ltr"
-                    />
-                  </div>
-                  <div className={styles.formField}>
-                    <label>اسم الشركة أو النشاط التجاري</label>
-                    <input 
-                      type="text" 
-                      value={formData.company}
-                      onChange={e => setFormData({ ...formData, company: e.target.value })}
-                      placeholder="مثال: متجر أو شركة..."
-                    />
-                  </div>
-                </div>
-
-                <div className={styles.formRow}>
-                  <div className={styles.formField}>
-                    <label>نوع الخدمة المطلوبة</label>
-                    <select
-                      value={formData.service}
-                      onChange={e => setFormData({ ...formData, service: e.target.value })}
-                    >
-                      <option>متجر إلكتروني متكامل</option>
-                      <option>تطبيق هواتف ذكية (iOS & Android)</option>
-                      <option>نظام ERP وإدارة سحابية مخصص</option>
-                      <option>حلول وأتمتة الذكاء الاصطناعي</option>
-                      <option>تصميم واجهات وتطوير موقع تعريفي</option>
-                      <option>استشارات وتطوير برمجيات خاصة</option>
-                    </select>
-                  </div>
-                  <div className={styles.formField}>
-                    <label>الميزانية التقريبية</label>
-                    <select
-                      value={formData.budget}
-                      onChange={e => setFormData({ ...formData, budget: e.target.value })}
-                    >
-                      <option>300 - 800 د.أ</option>
-                      <option>800 - 1,500 د.أ</option>
-                      <option>1,500 - 3,000 د.أ</option>
-                      <option>أكثر من 3,000 د.أ</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className={styles.formField}>
-                  <label>تفاصيل وملاحظات إضافية حول فكرتك</label>
-                  <textarea 
-                    rows={4}
-                    value={formData.details}
-                    onChange={e => setFormData({ ...formData, details: e.target.value })}
-                    placeholder="اكتب نبذة عن مشروعك، الميزات الخاصة التي ترغب بإضافتها، أو أي استفسار تريده..."
-                  />
-                </div>
-
-                <button 
-                  type="submit" 
-                  disabled={submitting}
-                  className={styles.btnSubmitLead}
-                >
-                  {submitting ? 'جاري إرسال طلبك...' : <><Send size={18} /> إرسال طلب المشروع والبدء فوراً</>}
-                </button>
-              </form>
-            )}
+              <p className={styles.estNote}>* يشمل التصميم والبرمجة والاستضافة وشهر دعم مجاني</p>
+              <div className={styles.estIncludes}>
+                {['تصميم UI/UX فاخر مخصص', 'كود نظيف وآمن 100%', 'استضافة سحابية + SSL', 'دعم فني مجاني بعد التسليم'].map((item, i) => (
+                  <div key={i} className={styles.estIncItem}><CheckCircle2 size={14} color="#16a34a" /> <span>{item}</span></div>
+                ))}
+              </div>
+              <a href="#contact" className={styles.btnGoldFull}>احجز استشارة مجانية ←</a>
+              <button onClick={openWhatsApp} className={styles.btnWa}><MessageCircle size={17} /> واتساب مباشر</button>
+            </div>
           </div>
-
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className={styles.techFooter}>
+      {/* ── TESTIMONIALS ─────────────────────── */}
+      <section className={styles.testimSection}>
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>آراء عملائنا</span>
+            <h2 className={styles.sectionTitle}>قصص نجاح حقيقية</h2>
+          </div>
+          <div className={styles.testimGrid}>
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className={`${styles.testimCard} ${i === activeTestimonial ? styles.testimActive : ''}`}>
+                <div className={styles.stars}>{[...Array(t.rating)].map((_, j) => <Star key={j} size={15} fill="#b8943a" color="#b8943a" />)}</div>
+                <p className={styles.testimQuote}>"{t.quote}"</p>
+                <div className={styles.testimAuthor}>
+                  <div className={styles.testimAvatar}>{t.name[0]}</div>
+                  <div><strong>{t.name}</strong><span>{t.role}</span></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className={styles.testimDots}>
+            {TESTIMONIALS.map((_, i) => <button key={i} onClick={() => setActiveTestimonial(i)} className={`${styles.dot} ${i === activeTestimonial ? styles.dotActive : ''}`} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ──────────────────────────────── */}
+      <section className={styles.section}>
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>أسئلة شائعة</span>
+            <h2 className={styles.sectionTitle}>كل ما تريد معرفته</h2>
+          </div>
+          <div className={styles.faqList}>{FAQS.map((f, i) => <FAQItem key={i} {...f} />)}</div>
+        </div>
+      </section>
+
+      {/* ── CONTACT ──────────────────────────── */}
+      <section className={styles.contactSection} id="contact">
+        <div className={styles.container}>
+          <div className={styles.contactLayout}>
+            <div className={styles.contactInfo}>
+              <span className={styles.sectionTag}>تواصل معنا</span>
+              <h2 className={styles.contactTitle}>جاهزون لتحويل فكرتك إلى واقع</h2>
+              <p className={styles.contactDesc}>فريقنا الهندسي جاهز لدراسة فكرتك وتنفيذ مشروعك بأعلى معايير الاحترافية.</p>
+              <div className={styles.contactItems}>
+                <div className={styles.contactItem}><div className={styles.contactIcon}><Phone size={18} color="#b8943a" /></div><div><strong>هاتف وواتساب</strong><span dir="ltr">+962 7 8888 8888</span></div></div>
+                <div className={styles.contactItem}><div className={styles.contactIcon}><Mail size={18} color="#b8943a" /></div><div><strong>البريد الإلكتروني</strong><span dir="ltr">tech@zahratbeesan.com</span></div></div>
+                <div className={styles.contactItem}><div className={styles.contactIcon}><Globe2 size={18} color="#b8943a" /></div><div><strong>المقر الرئيسي</strong><span>عمّان، المملكة الأردنية الهاشمية</span></div></div>
+              </div>
+              <button onClick={openWhatsApp} className={styles.btnWaLarge}><MessageCircle size={20} /> تواصل مباشر عبر الواتساب</button>
+            </div>
+            <div className={styles.contactForm}>
+              {submitted ? (
+                <div className={styles.successBox}>
+                  <CheckCircle2 size={56} color="#16a34a" />
+                  <h3>تم استلام طلبك! 🎉</h3>
+                  <p>سيتواصل معك مستشارنا خلال دقائق.</p>
+                  <button onClick={() => setSubmitted(false)} className={styles.btnOutline}>إرسال طلب آخر</button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className={styles.form}>
+                  <h3 className={styles.formTitle}>طلب استشارة مجانية</h3>
+                  <div className={styles.formGrid}>
+                    <div className={styles.formField}><label>الاسم *</label><input required placeholder="سلطان العدوي" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                    <div className={styles.formField}><label>الهاتف *</label><input required dir="ltr" placeholder="079XXXXXXXX" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} /></div>
+                    <div className={styles.formField}><label>البريد الإلكتروني</label><input type="email" dir="ltr" placeholder="name@company.com" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} /></div>
+                    <div className={styles.formField}><label>اسم الشركة / المشروع</label><input placeholder="اسم نشاطك التجاري" value={formData.company} onChange={e => setFormData({ ...formData, company: e.target.value })} /></div>
+                    <div className={styles.formField}><label>الخدمة المطلوبة</label>
+                      <select value={formData.service} onChange={e => setFormData({ ...formData, service: e.target.value })}>
+                        <option>متجر إلكتروني متكامل</option>
+                        <option>تطبيق هواتف ذكية</option>
+                        <option>نظام ERP مخصص</option>
+                        <option>حلول ذكاء اصطناعي</option>
+                        <option>موقع تعريفي فاخر</option>
+                        <option>استضافة سحابية ودومين</option>
+                        <option>نظام إدارة مطعم</option>
+                        <option>منصة عقارية</option>
+                        <option>نظام عيادة طبية</option>
+                        <option>منصة تعليمية</option>
+                        <option>استشارة تقنية</option>
+                      </select>
+                    </div>
+                    <div className={styles.formField}><label>الميزانية التقريبية</label>
+                      <select value={formData.budget} onChange={e => setFormData({ ...formData, budget: e.target.value })}>
+                        <option>أقل من 300 د.أ (استضافة/دومين)</option>
+                        <option>300 - 700 د.أ</option>
+                        <option>700 - 1,500 د.أ</option>
+                        <option>1,500 - 3,000 د.أ</option>
+                        <option>أكثر من 3,000 د.أ</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className={styles.formField}><label>تفاصيل مشروعك</label><textarea rows={4} placeholder="اكتب نبذة عن فكرتك، الميزات المطلوبة، أو أي استفسار..." value={formData.details} onChange={e => setFormData({ ...formData, details: e.target.value })} /></div>
+                  <button type="submit" disabled={submitting} className={styles.btnSubmit}>
+                    {submitting ? 'جاري الإرسال...' : <><Send size={17} /> إرسال الطلب والبدء فوراً</>}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── FOOTER ───────────────────────────── */}
+      <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.footerBrand}>
-            <div className={styles.logoBadgeSmall}>
-              <Code2 size={20} color="#c5a880" />
-            </div>
-            <div>
-              <h4>زهرة بيسان لتكنولوجيا المعلومات</h4>
-              <p>شريكك الهندسي الموثوق لصناعة الحلول الرقمية الفاخرة.</p>
-            </div>
+            <div className={styles.brandIcon}><Code2 size={16} /></div>
+            <div><strong>زهرة بيسان للحلول الرقمية</strong><span>شريكك الهندسي لصناعة الحلول الرقمية الفاخرة.</span></div>
           </div>
-
           <div className={styles.footerLinks}>
-            <Link to="/">👑 متجر الأزياء والعبايات</Link>
-            <a href="#services">الخدمات التقنية</a>
-            <a href="#calculator">حاسبة التكلفة</a>
-            <a href="#quote">طلب استشارة</a>
+            <Link to="/">👑 متجر الأزياء</Link>
+            <a href="#services">الخدمات</a>
+            <a href="#portfolio">أعمالنا</a>
+            <a href="#hosting">الاستضافة</a>
+            <a href="#contact">تواصل</a>
           </div>
-
-          <div className={styles.footerCopy}>
-            © {new Date().getFullYear()} Zahrat Beesan Tech Solutions. All Rights Reserved.
-          </div>
+          <div className={styles.footerCopy}>© {new Date().getFullYear()} Zahrat Beesan Tech — All Rights Reserved</div>
         </div>
       </footer>
 

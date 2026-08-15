@@ -1,0 +1,22 @@
+{
+  "name": "zahrat-beesan-backend",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "compression": "^1.8.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "mysql2": "^3.22.2",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^9.0.3",
+    "openai": "^6.34.0",
+    "pdf-lib": "^1.17.1",
+    "stripe": "^22.3.2"
+  }
+}

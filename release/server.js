@@ -149986,6 +149986,13 @@ var require_cjs = __commonJS({
 });
 
 // server.js
+process.on("uncaughtException", (err) => {
+  console.error("\u{1F525} [CRITICAL UNCAUGHT EXCEPTION]:", err ? err.stack || err : "Unknown error");
+});
+process.on("unhandledRejection", (reason) => {
+  console.error("\u{1F525} [CRITICAL UNHANDLED REJECTION]:", reason);
+});
+console.log("\u26A1 [BOOT] Zahrat Beesan server.js started executing on Node", process.version);
 var express = require_express2();
 var mysql = require_mysql2();
 var cors = require_lib6();
@@ -150009,6 +150016,7 @@ try {
 var { execFile } = require("child_process");
 var isAzure = process.env.WEBSITE_SITE_NAME !== void 0;
 var dataDir = isAzure ? path.join(process.env.HOME || "/home", "data") : __dirname;
+var EMBEDDED_INDEX_HTML = Buffer.from("PCFkb2N0eXBlIGh0bWw+PGh0bWwgbGFuZz0iYXIiIGRpcj0icnRsIiB0cmFuc2xhdGU9InllcyI+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiLz48bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVNlY3VyaXR5LVBvbGljeSIgY29udGVudD0iZGVmYXVsdC1zcmMgKiAndW5zYWZlLWlubGluZScgJ3Vuc2FmZS1ldmFsJyBkYXRhOiBibG9iOjsgc2NyaXB0LXNyYyAqICd1bnNhZmUtaW5saW5lJyAndW5zYWZlLWV2YWwnIGRhdGE6IGJsb2I6OyBzdHlsZS1zcmMgKiAndW5zYWZlLWlubGluZScgZGF0YTogYmxvYjo7IGltZy1zcmMgKiBkYXRhOiBibG9iOjsgZm9udC1zcmMgKiBkYXRhOiBibG9iOjsgY29ubmVjdC1zcmMgKjsgZnJhbWUtc3JjICo7Ii8+PG1ldGEgaHR0cC1lcXVpdj0iQ2FjaGUtQ29udHJvbCIgY29udGVudD0ibm8tY2FjaGUsIG5vLXN0b3JlLCBtdXN0LXJldmFsaWRhdGUiLz48bWV0YSBodHRwLWVxdWl2PSJQcmFnbWEiIGNvbnRlbnQ9Im5vLWNhY2hlIi8+PG1ldGEgaHR0cC1lcXVpdj0iRXhwaXJlcyIgY29udGVudD0iMCIvPjxtZXRhIG5hbWU9Imdvb2dsZS1zaXRlLXZlcmlmaWNhdGlvbiIgY29udGVudD0iSkxDeTROc0NnX09CTEJoQ1RXOVZTM085T1FCU3BMaTgySmNiN3JQTW1JWSIvPjxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsaW5pdGlhbC1zY2FsZT0xIi8+PG1ldGEgbmFtZT0iZGVzY3JpcHRpb24iIGNvbnRlbnQ9Itiy2YfYsdipINio2YrYs9in2YYg2YTZhNi52KjYp9mK2KfYqiDZiNin2YTYo9iy2YrYp9ihINin2YTZgdin2K7YsdipIOKAlCDYudio2KfZitin2Kog2LHYp9mC2YrYqSDZiNiq2LXYp9mF2YrZhSDYrdi12LHZitipINmI2K7Yp9mF2KfYqiDYudin2YTZitipINin2YTYrNmI2K/YqSB8IFphaHJhdCBCZWVzYW4gTHV4dXJ5IEFiYXlhcy4iLz48bWV0YSBuYW1lPSJrZXl3b3JkcyIgY29udGVudD0i2LLZh9ix2Kkg2KjZitiz2KfZhiwg2LnYqNin2YrYp9iqINiy2YfYsdipINio2YrYs9in2YYsINi52KjYp9mK2KfYqiDZgdin2K7YsdipLCDYudio2KfZitin2Kog2K7ZhNmK2KzZitipLCBaYWhyYXQgQmVlc2FuLCBaYWhyYXQgQmVlc2FuIEFiYXlhcywgTHV4dXJ5IEFiYXlhcywgTW9kZXJuIEFiYXlhcywgQWJheWFzIEpvcmRhbiwgQWJheWFzIFNhdWRpIEFyYWJpYSIvPjxtZXRhIG5hbWU9ImF1dGhvciIgY29udGVudD0iWmFocmF0IEJlZXNhbiBMdXh1cnkgQWJheWFzIi8+PG1ldGEgbmFtZT0icm9ib3RzIiBjb250ZW50PSJpbmRleCwgZm9sbG93LCBtYXgtaW1hZ2UtcHJldmlldzpsYXJnZSIvPjxtZXRhIHByb3BlcnR5PSJvZzp0aXRsZSIgY29udGVudD0i2LLZh9ix2Kkg2KjZitiz2KfZhiDZhNmE2LnYqNin2YrYp9iqINmI2KfZhNij2LLZitin2KEg2KfZhNmB2KfYrtix2KkgfCBaYWhyYXQgQmVlc2FuIEx1eHVyeSBBYmF5YXMiLz48bWV0YSBwcm9wZXJ0eT0ib2c6ZGVzY3JpcHRpb24iIGNvbnRlbnQ9Iti52KjYp9mK2KfYqiDYsdin2YLZitipINmI2KPYstmK2KfYoSDZgdin2K7YsdipIOKAlCDYqti12KfZhdmK2YUg2K3Ytdix2YrYqSDZiNiu2KfZhdin2Kog2LnYp9mE2YrYqSDYp9mE2KzZiNiv2KkgfCBaYWhyYXQgQmVlc2FuIEx1eHVyeSBBYmF5YXMuIi8+PG1ldGEgcHJvcGVydHk9Im9nOmltYWdlIiBjb250ZW50PSIvbG9nby5wbmciLz48bWV0YSBwcm9wZXJ0eT0ib2c6dHlwZSIgY29udGVudD0id2Vic2l0ZSIvPjxtZXRhIHByb3BlcnR5PSJvZzpzaXRlX25hbWUiIGNvbnRlbnQ9Itiy2YfYsdipINio2YrYs9in2YYgfCBaYWhyYXQgQmVlc2FuIi8+PG1ldGEgcHJvcGVydHk9Im9nOmxvY2FsZSIgY29udGVudD0iYXJfU0EiLz48bWV0YSBwcm9wZXJ0eT0ib2c6bG9jYWxlOmFsdGVybmF0ZSIgY29udGVudD0iZW5fVVMiLz48bWV0YSBuYW1lPSJ0d2l0dGVyOmNhcmQiIGNvbnRlbnQ9InN1bW1hcnlfbGFyZ2VfaW1hZ2UiLz48bWV0YSBuYW1lPSJ0d2l0dGVyOnRpdGxlIiBjb250ZW50PSLYstmH2LHYqSDYqNmK2LPYp9mGINmE2YTYudio2KfZitin2Kog2YjYp9mE2KPYstmK2KfYoSDYp9mE2YHYp9iu2LHYqSB8IFphaHJhdCBCZWVzYW4gTHV4dXJ5IEFiYXlhcyIvPjxtZXRhIG5hbWU9InR3aXR0ZXI6ZGVzY3JpcHRpb24iIGNvbnRlbnQ9Iti52KjYp9mK2KfYqiDYsdin2YLZitipINmI2KrYtdin2YXZitmFINit2LXYsdmK2Kkg2YjYrtin2YXYp9iqINi52KfZhNmK2Kkg2KfZhNis2YjYr9ipIHwgWmFocmF0IEJlZXNhbiBMdXh1cnkgQWJheWFzLiIvPjxtZXRhIG5hbWU9InRoZW1lLWNvbG9yIiBjb250ZW50PSIjZjNlYmQ5Ii8+PHNjcmlwdCB0eXBlPSJhcHBsaWNhdGlvbi9sZCtqc29uIj57DQogICAgIkBjb250ZXh0IjogImh0dHBzOi8vc2NoZW1hLm9yZyIsDQogICAgIkB0eXBlIjogIk9yZ2FuaXphdGlvbiIsDQogICAgIm5hbWUiOiAi2LLZh9ix2Kkg2KjZitiz2KfZhiB8IFphaHJhdCBCZWVzYW4iLA0KICAgICJhbHRlcm5hdGVOYW1lIjogWyJaYWhyYXQgQmVlc2FuIEx1eHVyeSBBYmF5YXMiLCAi2LnYqNin2YrYp9iqINiy2YfYsdipINio2YrYs9in2YYiXSwNCiAgICAidXJsIjogImh0dHBzOi8vemFocmF0YmVlc2FuLmNvbSIsDQogICAgImxvZ28iOiAiaHR0cHM6Ly96YWhyYXRiZWVzYW4uY29tL2xvZ28ucG5nIiwNCiAgICAic2FtZUFzIjogWw0KICAgICAgImh0dHBzOi8vd3d3Lmluc3RhZ3JhbS5jb20vemFocmF0YmVlc2FuMjAyNiIsDQogICAgICAiaHR0cHM6Ly93d3cuZmFjZWJvb2suY29tLzEyNTIwODY2NjEzMDE3ODQiLA0KICAgICAgImh0dHBzOi8vd3d3LnRpa3Rvay5jb20vQHphaHJhdGJlZXNhbiIsDQogICAgICAiaHR0cHM6Ly93d3cuc25hcGNoYXQuY29tL2FkZC96YWhyYXRiZWVzYW4iDQogICAgXQ0KICB9PC9zY3JpcHQ+PHNjcmlwdCBhc3luYyBzcmM9Imh0dHBzOi8vd3d3Lmdvb2dsZXRhZ21hbmFnZXIuY29tL2d0YWcvanM/aWQ9Ry1YWFhYWFhYWFhYIj48L3NjcmlwdD48c2NyaXB0PmZ1bmN0aW9uIGd0YWcoKXtkYXRhTGF5ZXIucHVzaChhcmd1bWVudHMpfXdpbmRvdy5kYXRhTGF5ZXI9d2luZG93LmRhdGFMYXllcnx8W10sZ3RhZygianMiLG5ldyBEYXRlKSxndGFnKCJjb25maWciLCJHLVhYWFhYWFhYWFgiKTwvc2NyaXB0PjxzY3JpcHQ+IWZ1bmN0aW9uKGUsdCxuLGMsbyxhLGYpe2UuZmJxfHwobz1lLmZicT1mdW5jdGlvbigpe28uY2FsbE1ldGhvZD9vLmNhbGxNZXRob2QuYXBwbHkobyxhcmd1bWVudHMpOm8ucXVldWUucHVzaChhcmd1bWVudHMpfSxlLl9mYnF8fChlLl9mYnE9byksby5wdXNoPW8sby5sb2FkZWQ9ITAsby52ZXJzaW9uPSIyLjAiLG8ucXVldWU9W10sKGE9dC5jcmVhdGVFbGVtZW50KG4pKS5hc3luYz0hMCxhLnNyYz0iaHR0cHM6Ly9jb25uZWN0LmZhY2Vib29rLm5ldC9lbl9VUy9mYmV2ZW50cy5qcyIsKGY9dC5nZXRFbGVtZW50c0J5VGFnTmFtZShuKVswXSkucGFyZW50Tm9kZS5pbnNlcnRCZWZvcmUoYSxmKSl9KHdpbmRvdyxkb2N1bWVudCwic2NyaXB0IiksZmJxKCJpbml0IiwiOTA5ODE3MjYyMTY3ODQ3IiksZmJxKCJ0cmFjayIsIlBhZ2VWaWV3Iik8L3NjcmlwdD48bm9zY3JpcHQ+PGltZyBoZWlnaHQ9IjEiIHdpZHRoPSIxIiBzdHlsZT0iZGlzcGxheTpub25lIiBzcmM9Imh0dHBzOi8vd3d3LmZhY2Vib29rLmNvbS90cj9pZD05MDk4MTcyNjIxNjc4NDcmZXY9UGFnZVZpZXcmbm9zY3JpcHQ9MSIvPjwvbm9zY3JpcHQ+PGxpbmsgcmVsPSJpY29uIiB0eXBlPSJpbWFnZS9wbmciIHNpemVzPSI1MTJ4NTEyIiBocmVmPSIvbG9nby5wbmciLz48bGluayByZWw9Imljb24iIHR5cGU9ImltYWdlL3BuZyIgc2l6ZXM9IjE5MngxOTIiIGhyZWY9Ii9sb2dvLnBuZyIvPjxsaW5rIHJlbD0ic2hvcnRjdXQgaWNvbiIgaHJlZj0iL2xvZ28ucG5nIi8+PGxpbmsgcmVsPSJhcHBsZS10b3VjaC1pY29uIiBocmVmPSIvbG9nby5wbmciLz48bGluayByZWw9InN0eWxlc2hlZXQiIGhyZWY9Imh0dHBzOi8vY2RuanMuY2xvdWRmbGFyZS5jb20vYWpheC9saWJzL2ZvbnQtYXdlc29tZS82LjUuMS9jc3MvYWxsLm1pbi5jc3MiLz48bGluayBocmVmPSJodHRwczovL2ZvbnRzLmdvb2dsZWFwaXMuY29tL2NzczI/ZmFtaWx5PURNK1NlcmlmK0Rpc3BsYXkmZmFtaWx5PUludGVyOndnaHRANDAwOzUwMDs2MDA7NzAwOzgwMDs5MDAmZmFtaWx5PU5vdG8rQ29sb3IrRW1vamkmZGlzcGxheT1zd2FwIiByZWw9InN0eWxlc2hlZXQiLz48bGluayByZWw9Im1hbmlmZXN0IiBocmVmPSIvbWFuaWZlc3QuanNvbiIvPjxtZXRhIG5hbWU9Im1vYmlsZS13ZWItYXBwLWNhcGFibGUiIGNvbnRlbnQ9InllcyIvPjxtZXRhIG5hbWU9ImFwcGxlLW1vYmlsZS13ZWItYXBwLWNhcGFibGUiIGNvbnRlbnQ9InllcyIvPjxtZXRhIG5hbWU9ImFwcGxlLW1vYmlsZS13ZWItYXBwLXN0YXR1cy1iYXItc3R5bGUiIGNvbnRlbnQ9ImJsYWNrLXRyYW5zbHVjZW50Ii8+PG1ldGEgbmFtZT0iYXBwbGUtbW9iaWxlLXdlYi1hcHAtdGl0bGUiIGNvbnRlbnQ9Itiy2YfYsdipINio2YrYs9in2YYiLz48c3R5bGU+I2dvb2ctZ3QtdHQsLlZJcGdKZC15RGZlLWIyZnNvZC12NjU4MGQsLmdvb2ctdGUtYmFsbG9vbi1mcmFtZSwuZ29vZy10ZS1iYW5uZXItZnJhbWUsLmdvb2ctdGUtYmFubmVyLWZyYW1lLnNraXB0cmFuc2xhdGUsLmdvb2ctdGUtZ2FkZ2V0LWljb24sLmdvb2ctdGUtbWVudS1mcmFtZSwuZ29vZy10ZS1zcGlubmVyLXBvcywuZ29vZy10ZXh0LWhpZ2hsaWdodCwuZ29vZy10b29sdGlwLC5nb29nLXRvb2x0aXA6aG92ZXIsLnNraXB0cmFuc2xhdGUsaWZyYW1lLnNraXB0cmFuc2xhdGV7ZGlzcGxheTpub25lIWltcG9ydGFudDt2aXNpYmlsaXR5OmhpZGRlbiFpbXBvcnRhbnQ7b3BhY2l0eTowIWltcG9ydGFudDtwb2ludGVyLWV2ZW50czpub25lIWltcG9ydGFudDtoZWlnaHQ6MCFpbXBvcnRhbnQ7d2lkdGg6MCFpbXBvcnRhbnR9Ym9keXt0b3A6MCFpbXBvcnRhbnQ7cG9zaXRpb246c3RhdGljIWltcG9ydGFudDttYXJnaW4tdG9wOjAhaW1wb3J0YW50fWh0bWx7dG9wOjAhaW1wb3J0YW50O3Bvc2l0aW9uOnN0YXRpYyFpbXBvcnRhbnR9I2dvb2dsZV90cmFuc2xhdGVfZWxlbWVudCAuZ29vZy10ZS1nYWRnZXQtc2ltcGxle2JhY2tncm91bmQ6MCAwIWltcG9ydGFudDtib3JkZXI6bm9uZSFpbXBvcnRhbnQ7cGFkZGluZzowIWltcG9ydGFudDtmb250LXNpemU6Ljc4cmVtIWltcG9ydGFudH0jZ29vZ2xlX3RyYW5zbGF0ZV9lbGVtZW50IC5nb29nLXRlLWdhZGdldC1zaW1wbGUgYSwjZ29vZ2xlX3RyYW5zbGF0ZV9lbGVtZW50IC5nb29nLXRlLWdhZGdldC1zaW1wbGUgc3Bhbntjb2xvcjppbmhlcml0IWltcG9ydGFudDt0ZXh0LWRlY29yYXRpb246bm9uZSFpbXBvcnRhbnR9I2dvb2dsZV90cmFuc2xhdGVfZWxlbWVudCBpbWd7ZGlzcGxheTpub25lIWltcG9ydGFudH0jZ29vZ2xlX3RyYW5zbGF0ZV9lbGVtZW50IC5nb29nLXRlLWdhZGdldC1zaW1wbGUgLmdvb2ctdGUtbWVudS12YWx1ZXtjb2xvcjppbmhlcml0IWltcG9ydGFudH0uZ29vZy10ZS1nYWRnZXQ+c3BhbntkaXNwbGF5Om5vbmUhaW1wb3J0YW50fTwvc3R5bGU+PHNjcmlwdCBkZWZlcj0iZGVmZXIiIHNyYz0iL3N0YXRpYy9qcy9tYWluLmI0NWNjNTNiLmpzIj48L3NjcmlwdD48bGluayBocmVmPSIvc3RhdGljL2Nzcy9tYWluLjc5YTE2MzdiLmNzcyIgcmVsPSJzdHlsZXNoZWV0Ij48L2hlYWQ+PGJvZHk+PG5vc2NyaXB0PkphdmFTY3JpcHQgaXMgcmVxdWlyZWQgdG8gdmlldyB0aGlzIHNpdGUuPC9ub3NjcmlwdD48ZGl2IGlkPSJnb29nbGVfdHJhbnNsYXRlX2VsZW1lbnQiIHN0eWxlPSJkaXNwbGF5Om5vbmUiPjwvZGl2PjxkaXYgaWQ9InJvb3QiPjwvZGl2PjwvYm9keT48L2h0bWw+", "base64").toString("utf8");
 var imgDir = path.join(dataDir, "public", "images");
 if (!fs.existsSync(imgDir)) {
   fs.mkdirSync(imgDir, { recursive: true });
@@ -150058,7 +150066,7 @@ if (GEMINI_KEY) {
   console.warn("[WARNING] GEMINI_API_KEY missing. Gemini AI disabled.");
 }
 var app = express();
-var PORT = process.env.PORT || process.env.SERVER_PORT || 5e3;
+var PORT = process.env.PORT || process.env.SERVER_PORT || 8080;
 app.use(compression());
 app.use(cors({
   origin: true,
@@ -150219,12 +150227,39 @@ app.use((req, res, next) => {
   next();
 });
 var cacheOptions = { maxAge: "30d", etag: true, lastModified: true };
-app.use(express.static(path.resolve(__dirname, "build"), cacheOptions));
-app.use(express.static(path.resolve(__dirname, "public"), cacheOptions));
+app.use("/static", express.static(path.resolve(__dirname, "build", "static"), cacheOptions));
+app.use(express.static(path.resolve(__dirname, "build"), { ...cacheOptions, index: false }));
 app.use("/public/images", express.static(path.resolve(dataDir, "public", "images"), cacheOptions));
+app.get("/", (req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  if (typeof EMBEDDED_INDEX_HTML === "string" && EMBEDDED_INDEX_HTML.length > 100) {
+    return res.send(EMBEDDED_INDEX_HTML);
+  }
+  const diskIndex = path.join(__dirname, "build", "index.html");
+  if (fs.existsSync(diskIndex)) {
+    try {
+      const html = fs.readFileSync(diskIndex, "utf8");
+      if (html && html.trim().length > 100) {
+        return res.send(html);
+      }
+    } catch (e) {
+    }
+  }
+  res.status(503).send("Zahrat Beesan is starting up... Please refresh in a moment.");
+});
 app.get("/favicon.ico", (req, res) => res.sendFile(path.resolve(__dirname, "public/favicon.ico")));
 app.get("/favicon.jpg", (req, res) => res.sendFile(path.resolve(__dirname, "public/favicon.jpg")));
 app.get("/manifest.json", (req, res) => res.sendFile(path.resolve(__dirname, "public/manifest.json")));
+app.all("/api/system/reload", (req, res) => {
+  res.json({ success: true, message: "Server recycling immediately..." });
+  setTimeout(() => {
+    console.log("\u{1F504} Recycling Node process for fresh assets deployment...");
+    process.exit(0);
+  }, 300);
+});
 app.get("/sitemap.xml", (req, res) => {
   const baseUrl = process.env.BASE_URL || "https://zahrat-beesan-fsbagjfxd2fjdycb.swedencentral-01.azurewebsites.net";
   db.query("SELECT id, name, updated_at FROM menu_items", (err, products) => {
@@ -153578,20 +153613,66 @@ app.get("/api/catalog.json", (req, res) => {
   });
 });
 app.get(/.*/, (req, res) => {
-  if (req.path.startsWith("/static/") || req.path.startsWith("/public/") || /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$/i.test(req.path)) {
+  if (req.path.startsWith("/static/css/") || req.path.includes(".css") && req.path.startsWith("/static/")) {
+    const cssDirs = [
+      path.join(__dirname, "build", "static", "css"),
+      path.join(__dirname, "static", "css"),
+      path.join(__dirname, "build", "css")
+    ];
+    for (const cDir of cssDirs) {
+      if (fs.existsSync(cDir)) {
+        const cssFiles = fs.readdirSync(cDir).filter((f) => f.startsWith("main.") && f.endsWith(".css"));
+        if (cssFiles.length > 0) {
+          res.setHeader("Content-Type", "text/css; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return res.sendFile(path.join(cDir, cssFiles[0]));
+        }
+      }
+    }
+  }
+  if (req.path.startsWith("/static/js/") || req.path.includes(".js") && req.path.startsWith("/static/")) {
+    const jsDirs = [
+      path.join(__dirname, "build", "static", "js"),
+      path.join(__dirname, "static", "js"),
+      path.join(__dirname, "build", "js")
+    ];
+    for (const jDir of jsDirs) {
+      if (fs.existsSync(jDir)) {
+        const jsFiles = fs.readdirSync(jDir).filter((f) => f.startsWith("main.") && f.endsWith(".js"));
+        if (jsFiles.length > 0) {
+          res.setHeader("Content-Type", "application/javascript; charset=utf-8");
+          res.setHeader("Cache-Control", "public, max-age=86400");
+          return res.sendFile(path.join(jDir, jsFiles[0]));
+        }
+      }
+    }
+  }
+  if (req.path.startsWith("/public/") || /\.(png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$/i.test(req.path)) {
     return res.status(404).send("Asset not found");
   }
-  const indexPath = path.join(__dirname, "build", "index.html");
-  if (fs.existsSync(indexPath)) {
-    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+  if (typeof EMBEDDED_INDEX_HTML === "string" && EMBEDDED_INDEX_HTML.length > 100) {
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
-    return res.sendFile(indexPath);
+    return res.send(EMBEDDED_INDEX_HTML);
   }
-  res.send("Zahrat Beesan Server is LIVE. Loading app...");
+  const diskIndex = path.join(__dirname, "build", "index.html");
+  if (fs.existsSync(diskIndex)) {
+    try {
+      const html = fs.readFileSync(diskIndex, "utf8");
+      if (html && html.trim().length > 100) {
+        res.setHeader("Content-Type", "text/html; charset=utf-8");
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+        return res.send(html);
+      }
+    } catch (e) {
+    }
+  }
+  res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');
 });
-app.listen(PORT, () => {
-  console.log(`\u{1F680} Server is LIVE on port: ${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`\u{1F680} [Zahrat Beesan] Server is LIVE and listening on port: ${PORT}`);
 });
 /*! Bundled license information:
 
