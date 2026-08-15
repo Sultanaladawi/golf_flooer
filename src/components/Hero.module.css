@@ -15,6 +15,33 @@
   inset: 0;
   z-index: 0;
   background-color: #0d0b0a;
+  overflow: hidden;
+}
+
+/* Ambient blurred background to fill widescreen screens smoothly with matching motion */
+.heroVideoBackdrop {
+  position: absolute;
+  inset: -30px;
+  width: calc(100% + 60px);
+  height: calc(100% + 60px);
+  object-fit: cover;
+  object-position: center;
+  filter: blur(40px) brightness(0.6) saturate(120%);
+  opacity: 0.85;
+  transform: scale(1.08);
+  pointer-events: none;
+}
+
+/* Main crystal-clear video preserving 100% of top and bottom without crop */
+.heroVideoMain {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  z-index: 1;
+  filter: contrast(104%) brightness(102%);
 }
 
 .heroVideo {
@@ -23,16 +50,24 @@
   object-fit: cover;
 }
 
+@media (max-width: 768px) {
+  .heroVideoMain {
+    object-fit: cover;
+    object-position: center top;
+  }
+}
+
 .heroOverlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(13, 11, 10, 0.45) 0%,
-    rgba(13, 11, 10, 0.75) 60%,
-    rgba(13, 11, 10, 0.92) 100%
+  background: linear-gradient(
+    180deg,
+    rgba(13, 11, 10, 0.20) 0%,
+    rgba(13, 11, 10, 0.30) 45%,
+    rgba(13, 11, 10, 0.70) 100%
   );
-  z-index: 1;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .heroGradientBottom {
@@ -40,9 +75,10 @@
   bottom: 0;
   left: 0;
   right: 0;
-  height: 250px;
-  background: linear-gradient(to top, #0d0b0a 0%, transparent 100%);
-  z-index: 1;
+  height: 160px;
+  background: linear-gradient(to top, rgba(13, 11, 10, 0.92) 0%, transparent 100%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 /* Corner decorative lines */

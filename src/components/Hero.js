@@ -14,7 +14,7 @@ export default function Hero() {
 
   useEffect(() => {
     if (heroVideoRef.current) {
-      heroVideoRef.current.playbackRate = 0.75;
+      heroVideoRef.current.playbackRate = 1.0;
     }
     
     // Fetch theme settings for dynamic hero video & banners
@@ -72,19 +72,34 @@ export default function Hero() {
             />
           ))
         ) : (
-          <video
-            ref={heroVideoRef}
-            key={heroVideoUrl}
-            src={heroVideoUrl}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
-            disablePictureInPicture
-            style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-            className={styles.heroVideo}
-          />
+          <>
+            {/* Ambient blurred backdrop video to fill widescreen smoothly */}
+            <video
+              key={`bg-${heroVideoUrl}`}
+              src={heroVideoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              className={styles.heroVideoBackdrop}
+            />
+            {/* Crystal-clear foreground video uncropped from top and bottom */}
+            <video
+              ref={heroVideoRef}
+              key={`fg-${heroVideoUrl}`}
+              src={heroVideoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="auto"
+              disablePictureInPicture
+              style={{ transform: 'translateZ(0)', willChange: 'transform' }}
+              className={styles.heroVideoMain}
+            />
+          </>
         )}
         <div className={styles.heroOverlay} />
         <div className={styles.heroGradientBottom} />
