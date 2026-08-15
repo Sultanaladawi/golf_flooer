@@ -25,25 +25,25 @@ jobs:
           node scripts/create-aliases.js
           node scripts/embed-html.js
           
-          # Prepare unified lightweight deployment package
+          # Prepare ultra-fast lightweight deployment package (8MB vs 650MB)
+          rm -rf deploy_stage build.zip
           mkdir -p deploy_stage
           cp server.js deploy_stage/
           cp package.json deploy_stage/
-          cp -r build/* deploy_stage/
-          mkdir -p deploy_stage/build
-          cp -r build/* deploy_stage/build/
+          cp build/index.html deploy_stage/
+          cp build/manifest.json deploy_stage/ 2>/dev/null || true
+          cp build/favicon.ico deploy_stage/ 2>/dev/null || true
+          cp build/logo.png deploy_stage/ 2>/dev/null || true
+          cp -r build/static deploy_stage/
+          cp -r build/portfolio deploy_stage/ 2>/dev/null || true
           
-          # Remove large video files from zip (they will be streamed separately or cached)
-          find deploy_stage -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete || true
+          # Mirror build directory for fallback resolution
+          mkdir -p deploy_stage/build
+          cp build/index.html deploy_stage/build/
+          cp -r build/static deploy_stage/build/
           
           cd deploy_stage && zip -r -q ../build.zip . && cd ..
-          echo "Optimized build.zip size: $(du -sh build.zip | cut -f1)"
-
-          # Prepare videos package with all abaya product videos
-          mkdir -p videos_stage
-          find public -maxdepth 2 -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" \) -exec cp {} videos_stage/ \; || true
-          cd videos_stage && zip -r -q ../videos.zip * && cd ..
-          echo "videos.zip size: $(du -sh videos.zip | cut -f1)"
+          echo "Ultra-fast build.zip size: $(du -sh build.zip | cut -f1)"
 
       - name: Deploy to Azure Web App via Direct VFS Upload
         env:
