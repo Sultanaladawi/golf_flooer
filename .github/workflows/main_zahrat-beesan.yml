@@ -24,14 +24,15 @@ jobs:
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
           
-          # Prepare ultra-fast build package directly from build/ (excluding heavy videos)
-          find build -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete
-          cd build && zip -r -q ../build.zip * && cd ..
-          echo "build.zip size: $(du -sh build.zip | cut -f1)"
+          # Prepare ultra-fast lightweight build package directly from build/
+          find build -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" -o -name "*.avi" -o -name "*.m4v" \) -delete || true
+          cd build && zip -r -q ../build.zip static/ index.html manifest.json portfolio/ favicon.ico logo.png || zip -r -q ../build.zip *
+          cd ..
+          echo "Optimized build.zip size: $(du -sh build.zip | cut -f1)"
 
           # Prepare videos package with all abaya product videos
           mkdir -p videos_stage
-          find public -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" \) -exec cp {} videos_stage/ \; || true
+          find public -maxdepth 2 -type f \( -name "*.mp4" -o -name "*.mov" -o -name "*.webm" \) -exec cp {} videos_stage/ \; || true
           cd videos_stage && zip -r -q ../videos.zip * && cd ..
           echo "videos.zip size: $(du -sh videos.zip | cut -f1)"
 

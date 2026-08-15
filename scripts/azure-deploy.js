@@ -55,23 +55,35 @@ async function cleanDiskSpace(scmHost, basicAuth) {
   ghNotice('✅ Disk space purge completed.');
 }
 
-async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false) {
+async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 3) {
   if (!fs.existsSync(filePath)) {
     ghError(`File not found: ${filePath}`);
     return false;
   }
   const stats = fs.statSync(filePath);
-  ghNotice(`Uploading ${path.basename(filePath)} (${(stats.size / (1024 * 1024)).toFixed(2)} MB) to ${reqPath} ...`);
+  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+  ghNotice(`Uploading ${path.basename(filePath)} (${sizeMB} MB) to ${reqPath} ...`);
 
-  const stream = fs.createReadStream(filePath);
-  const res = await makeKuduRequest(scmHost, basicAuth, reqPath, 'PUT', stream, {
-    'Content-Type': isZip ? 'application/zip' : (filePath.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream'),
-    'Content-Length': stats.size,
-    'If-Match': '*'
-  });
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const stream = fs.createReadStream(filePath);
+    const res = await makeKuduRequest(scmHost, basicAuth, reqPath, 'PUT', stream, {
+      'Content-Type': isZip ? 'application/zip' : (filePath.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream'),
+      'Content-Length': stats.size,
+      'If-Match': '*'
+    });
 
-  ghNotice(`${path.basename(filePath)} upload status: HTTP ${res.statusCode} ${res.statusMessage}`);
-  return res.statusCode >= 200 && res.statusCode < 300;
+    ghNotice(`${path.basename(filePath)} (Attempt ${attempt}) status: HTTP ${res.statusCode} ${res.statusMessage}`);
+    if (res.statusCode >= 200 && res.statusCode < 300) {
+      return true;
+    }
+
+    if (attempt < maxRetries) {
+      ghNotice(`Retrying in 4 seconds... (${attempt}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, 4000));
+    }
+  }
+
+  return false;
 }
 
 async function main() {
@@ -119,14 +131,7 @@ async function main() {
   // STEP 1: FREE UP DISK SPACE AND PURGE STALE 0-BYTE BUNDLES
   await cleanDiskSpace(scmHost, basicAuth);
 
-  // STEP 2: UPLOAD CLEAN STATIC BUILD ZIP (CSS, JS, ICONS)
-  const buildZip = path.resolve(process.cwd(), 'build.zip');
-  if (fs.existsSync(buildZip)) {
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', buildZip, true);
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
-  }
-
-  // STEP 3: UPLOAD SERVER.JS
+  // STEP 2: UPLOAD SERVER.JS AND PACKAGE.JSON FIRST
   const serverPath = path.resolve(process.cwd(), 'release', 'server.js');
   const okServer = await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverPath, false);
   if (!okServer) {
@@ -134,13 +139,19 @@ async function main() {
     process.exit(1);
   }
 
-  // STEP 4: UPLOAD PACKAGE.JSON
   const pkgPath = path.resolve(process.cwd(), 'release', 'package.json');
   if (fs.existsSync(pkgPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/package.json', pkgPath, false);
   }
 
-  // STEP 5: UPLOAD FAVICON & LOGO DIRECTLY
+  // STEP 3: UPLOAD CLEAN LIGHTWEIGHT STATIC BUILD ZIP (CSS, JS, ICONS)
+  const buildZip = path.resolve(process.cwd(), 'build.zip');
+  if (fs.existsSync(buildZip)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', buildZip, true);
+    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
+  }
+
+  // STEP 4: UPLOAD FAVICON & LOGO DIRECTLY
   const faviconPath = path.resolve(process.cwd(), 'public', 'favicon.ico');
   if (fs.existsSync(faviconPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/favicon.ico', faviconPath, false);

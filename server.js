@@ -1236,11 +1236,84 @@ db.query("SHOW COLUMNS FROM categories", (err, columns) => {
   }
 });
 
-app.post('/api/contact', (req, res) => {
+// Helper to send instant notification email to official store email
+async function sendStoreNotificationEmail({ subject, title, senderName, senderEmail, senderPhone, content, detailsHtml = '' }) {
+  const storeEmail = process.env.STORE_EMAIL || process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
+  const smtpUser = process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
+  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+
+  if (!smtpPass) {
+    console.log(`[Notification Info] Message logged in database and visible in /admin/messages. (Set SMTP_PASS in Azure app settings for automated Gmail forwarding).`);
+    return false;
+  }
+
+  try {
+    const emailTransporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.SMTP_PORT || '587'),
+      secure: false,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass
+      }
+    });
+
+    await emailTransporter.sendMail({
+      from: `"متجر زهرة بيسان" <${smtpUser}>`,
+      to: storeEmail,
+      replyTo: senderEmail || storeEmail,
+      subject: subject,
+      html: `
+        <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: right; background-color: #fcf9f5; padding: 25px; border-radius: 12px; max-width: 600px; margin: auto; border: 1px solid #e8dfd8;">
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h2 style="color: #b8943a; margin: 0; font-size: 22px;">👑 متجر زهرة بيسان الفاخر</h2>
+            <p style="color: #555; font-size: 15px; font-weight: bold; margin-top: 5px;">${title}</p>
+          </div>
+          
+          <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; line-height: 1.8;">
+            <p style="margin: 6px 0;"><strong>👤 اسم العميل:</strong> ${senderName || 'غير محدد'}</p>
+            <p style="margin: 6px 0;"><strong>📧 البريد الإلكتروني:</strong> <a href="mailto:${senderEmail}" style="color: #b8943a; font-weight: bold;">${senderEmail || 'غير محدد'}</a></p>
+            ${senderPhone ? `<p style="margin: 6px 0;"><strong>📱 الهاتف:</strong> <a href="tel:${senderPhone}" style="color: #b8943a; font-weight: bold;">${senderPhone}</a></p>` : ''}
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+              <strong>📝 نص الرسالة:</strong>
+              <p style="background: #fdfbf7; padding: 14px; border-radius: 6px; border-right: 4px solid #b8943a; white-space: pre-wrap; color: #222; margin-top: 8px; line-height: 1.6;">${content}</p>
+            </div>
+            ${detailsHtml}
+          </div>
+
+          <div style="text-align: center; margin-top: 25px;">
+            <a href="https://zahratbeesan.com/admin/messages" style="background: #b8943a; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block; font-size: 14px;">
+              فتح صندوق الرسائل في لوحة التحكم ←
+            </a>
+          </div>
+          <p style="text-align: center; color: #999; font-size: 11px; margin-top: 20px;">تم إرسال هذا الإشعار تلقائياً من نظام متجر زهرة بيسان</p>
+        </div>
+      `
+    });
+    console.log(`[Email Sent] Instant message notification successfully forwarded to ${storeEmail}`);
+    return true;
+  } catch (err) {
+    console.error(`[Email Sending Error]`, err.message);
+    return false;
+  }
+}
+
+app.post('/api/contact', async (req, res) => {
   const { name, email, message } = req.body;
   if (!name || !email || !message) return res.status(400).json({ error: 'All fields required' });
-  db.query('INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)', [name, email, message], (err, result) => {
+  
+  db.query('INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)', [name, email, message], async (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
+    
+    // Asynchronously dispatch instant email notification to official store inbox
+    sendStoreNotificationEmail({
+      subject: `📬 رسالة تواصل جديدة من: ${name} (متجر زهرة بيسان)`,
+      title: 'تم استلام استفسار / رسالة جديدة من نموذج التواصل',
+      senderName: name,
+      senderEmail: email,
+      content: message
+    }).catch(() => {});
+
     res.status(201).json({ success: true, id: result.insertId });
   });
 });
@@ -4097,6 +4170,25 @@ app.post(['/api/tech/lead', '/api/tech-lead', '/api/tech-leads'], async (req, re
     );
 
     console.log(`[Tech Leads] Received new project request from ${name} (${phone}) for ${service}`);
+
+    // Asynchronously dispatch instant email notification to official store inbox
+    sendStoreNotificationEmail({
+      subject: `💼 طلب مشروع تقني جديد: ${name} (${service})`,
+      title: 'تم استلام طلب مشروع / استشارة برمجية من موقع زهرة بيسان تك',
+      senderName: name,
+      senderEmail: email,
+      senderPhone: phone,
+      content: details || `طلب خدمة: ${service} | الميزانية: ${budget || 'غير محددة'}`,
+      detailsHtml: `
+        <div style="margin-top: 10px; font-size: 13px; color: #444;">
+          <p style="margin: 4px 0;"><strong>🏢 الشركة/المؤسسة:</strong> ${company || 'فردي'}</p>
+          <p style="margin: 4px 0;"><strong>💻 الخدمة المطلوبة:</strong> ${service}</p>
+          <p style="margin: 4px 0;"><strong>💰 الميزانية المقدرة:</strong> ${budget || 'غير محددة'}</p>
+          ${estimated_quote ? `<p style="margin: 4px 0;"><strong>📊 تقدير الحاسبة:</strong> ${estimated_quote}</p>` : ''}
+        </div>
+      `
+    }).catch(() => {});
+
     res.json({ success: true, id: result.insertId, message: 'Lead received successfully' });
   } catch (err) {
     console.error('[Tech Lead Error]:', err.message);
