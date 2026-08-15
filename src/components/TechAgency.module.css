@@ -247,33 +247,123 @@
   background-size: 50px 50px;
 }
 
-@keyframes orbPulse {
-  0%, 100% { opacity: 0.6; transform: translateX(-50%) scale(1); }
-  50% { opacity: 1; transform: translateX(-50%) scale(1.06); }
-}
 
-.codeFloat1, .codeFloat2, .codeFloat3 {
+/* ── LUXURY FLOATING TECH STATUS CARDS ───────────── */
+.floatCard1, .floatCard2, .floatCard3 {
   position: absolute;
-  font-family: 'Space Grotesk', monospace;
-  font-size: 0.78rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--border);
-  padding: 10px 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-  color: var(--text-3);
-  direction: ltr;
-  animation: floatCode 7s ease-in-out infinite;
-  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 12px 18px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(184, 148, 58, 0.08);
+  backdrop-filter: blur(16px);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 3;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+  animation: floatGentle 8s ease-in-out infinite;
 }
 
-.codeFloat1 { top: 18%; right: 7%; animation-delay: 0s; }
-.codeFloat2 { top: 54%; left: 5%; animation-delay: 2s; }
-.codeFloat3 { bottom: 20%; right: 8%; animation-delay: 4s; }
+.floatCard1:hover, .floatCard2:hover, .floatCard3:hover {
+  transform: translateY(-5px);
+  border-color: var(--gold-pale);
+  box-shadow: 0 14px 34px rgba(184, 148, 58, 0.16);
+}
 
-@keyframes floatCode {
+.floatCard1 {
+  top: 18%;
+  right: 6%;
+  animation-delay: 0s;
+}
+
+.floatCard2 {
+  top: 52%;
+  left: 5%;
+  animation-delay: 2.5s;
+}
+
+.floatCard3 {
+  bottom: 16%;
+  right: 8%;
+  animation-delay: 5s;
+}
+
+@keyframes floatGentle {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-10px); }
+}
+
+.floatPulseWrap {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.floatPulseDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #16a34a;
+  box-shadow: 0 0 8px #16a34a;
+}
+
+.floatPulseRing {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(22, 163, 74, 0.35);
+  animation: pulseRadar 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes pulseRadar {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.floatIconGold, .floatIconGreen {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.floatIconGold {
+  background: var(--gold-bg);
+  border: 1px solid var(--gold-pale);
+  color: var(--gold);
+}
+
+.floatIconGreen {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+}
+
+.floatCardTitle {
+  display: block;
+  font-size: 0.84rem;
+  font-weight: 800;
+  color: var(--text-1);
+  line-height: 1.2;
+}
+
+.floatCardSub {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-3);
+  font-weight: 600;
+  margin-top: 2px;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 0.2px;
 }
 
 .heroContent {
@@ -1893,9 +1983,7 @@
   .estimateCard { position: static; }
   .contactLayout { grid-template-columns: 1fr; }
   .testimGrid { grid-template-columns: 1fr; }
-  .portCta { flex-direction: column; text-align: center; }
-  .portCtaContent { flex-direction: column; }
-  .codeFloat1, .codeFloat2, .codeFloat3 { display: none; }
+  .floatCard1, .floatCard2, .floatCard3 { display: none; }
 }
 
 @media (max-width: 700px) {

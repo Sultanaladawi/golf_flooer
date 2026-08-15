@@ -597,16 +597,33 @@ export default function TechAgency() {
           <div className={styles.orb1} />
           <div className={styles.orb2} />
           <div className={styles.gridOverlay} />
-          
-          {/* Floating Code Snippets */}
-          <div className={styles.codeFloat1}>
-            <span style={{ color: '#b8943a' }}>const</span> status = <span style={{ color: '#16a34a' }}>"Online"</span>;
+
+          {/* Luxury Floating Tech Status Badges */}
+          <div className={styles.floatCard1}>
+            <div className={styles.floatPulseWrap}>
+              <div className={styles.floatPulseRing} />
+              <div className={styles.floatPulseDot} />
+            </div>
+            <div>
+              <span className={styles.floatCardTitle}>حالة السيرفر: متصل 100%</span>
+              <span className={styles.floatCardSub}>Uptime 99.99% • 24ms Response</span>
+            </div>
           </div>
-          <div className={styles.codeFloat2}>
-            npm run <span style={{ color: '#b8943a' }}>deploy</span> --azure
+
+          <div className={styles.floatCard2}>
+            <div className={styles.floatIconGold}><CloudLightning size={17} /></div>
+            <div>
+              <span className={styles.floatCardTitle}>نشر سحابي فوري ومؤتمت</span>
+              <span className={styles.floatCardSub}>Microsoft Azure & AWS Cloud</span>
+            </div>
           </div>
-          <div className={styles.codeFloat3}>
-            <span style={{ color: '#6366f1' }}>{'{'}</span> uptime: <span style={{ color: '#16a34a' }}>"99.99%"</span> <span style={{ color: '#6366f1'}}>{'}'}</span>
+
+          <div className={styles.floatCard3}>
+            <div className={styles.floatIconGreen}><ShieldCheck size={17} /></div>
+            <div>
+              <span className={styles.floatCardTitle}>تشفير وأمان مصرفي 256-Bit</span>
+              <span className={styles.floatCardSub}>PCI-DSS & SSL Enterprise</span>
+            </div>
           </div>
         </div>
 
