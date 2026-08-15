@@ -151,17 +151,19 @@
   font-family: 'DM Sans', sans-serif;
 }
 .sophieMsg .bubble {
-  background: var(--bg-card);
-  color: var(--text-primary);
+  background: #ffffff !important;
+  color: #1a1209 !important;
   border-bottom-left-radius: 4px;
-  box-shadow: var(--shadow-sm);
-  border: 1px solid var(--border);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(197, 168, 128, 0.3) !important;
+  font-weight: 500;
 }
 .userMsg .bubble {
-  background: linear-gradient(135deg, var(--brown), var(--gold));
-  color: #fff;
-  font-weight: 500;
+  background: linear-gradient(135deg, #c5a880, #a6865d) !important;
+  color: #1a1209 !important;
+  font-weight: 600;
   border-bottom-right-radius: 4px;
+  border: none;
 }
 
 .typing {
@@ -173,7 +175,7 @@
 .typing span {
   display: block;
   width: 6px; height: 6px;
-  background: var(--tea);
+  background: #a6865d;
   border-radius: 50%;
   animation: typeDot 1.2s ease-in-out infinite;
 }
@@ -182,22 +184,27 @@
 
 .quickReplies {
   padding: 0 1rem .9rem;
-  background: var(--bg-surface);
+  background: #fcfaf6;
   display: flex;
   flex-wrap: wrap;
   gap: .4rem;
 }
 .chip {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-secondary);
-  font-size: .73rem;
+  background: #ffffff;
+  border: 1px solid rgba(197, 168, 128, 0.4);
+  color: #5c4327;
+  font-weight: 600;
+  font-size: .75rem;
   font-family: 'DM Sans', sans-serif;
-  padding: .3rem .7rem;
+  padding: .35rem .8rem;
   border-radius: 100px;
   cursor: pointer;
   transition: var(--tr);
   white-space: nowrap;
+}
+.chip:hover {
+  background: rgba(197, 168, 128, 0.15);
+  color: #1a1209;
 }
 .chip:hover { background: var(--gold-glow); border-color: var(--gold); color: var(--gold-light); }
 

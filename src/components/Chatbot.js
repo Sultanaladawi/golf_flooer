@@ -165,23 +165,37 @@ export default function Chatbot() {
 
   const getInstantReply = (text) => {
     const q = text.toLowerCase();
-    if (q.includes('سعر') || q.includes('أسعار') || q.includes('بكم')) {
+    
+    // Fashion Styling & Occasions
+    if (q.includes('نسق') || q.includes('تنسيق') || q.includes('إطلالة') || q.includes('اطلالة') || q.includes('مناسبة') || q.includes('عرس') || q.includes('زواج') || q.includes('حفلة') || q.includes('سهرة') || q.includes('فاخر')) {
+      return "يسعدني جداً تنسيق إطلالتكِ الملكية! ✨💎\n\nلمناسبتكِ الفاخرة، أنصحكِ بهذه الإطلالة المتكاملة:\n👑 العباية: «عباية سلتانة الملكية» أو «عباية التطريز اليدوي الأسود والذهبي» بتصميم كلوش انسيابي.\n🧣 الطرحة: طرحة شيفون كريب بلون بيج ذهبي أو كحلي ملكي بأطراف مطرزة بنعومة.\n👜 الإكسسوارات: حقيبة كلاتش ميتاليك ذهبية أو برونزية مع حذاء كعب كلاسيكي ناعم.\n💎 اللمسة الأخيرة: مجوهرات ذهبية رقيقة وعطر عود ملكي فواح ✦";
+    }
+    if (q.includes('يومي') || q.includes('دوام') || q.includes('عمل') || q.includes('جامعة') || q.includes('مريح')) {
+      return "لإطلالة يومية عملية تجمع بين الحشمة والرقي:\nأنصحكِ بـ «عباية الكريب السعودي الناعم» بقصة نص كلوش مريحة لا تتجعد وسهلة العناية، مع طرحة قطن ليزر باردة وحذاء مريح بلون نيود أو أسود ✦";
+    }
+    if (q.includes('قماش') || q.includes('خامة') || q.includes('حرير') || q.includes('كريب') || q.includes('كتان') || q.includes('شيفون')) {
+      return "نستخدم في زهرة بيسان أفخر الخامات الكورية واليابانية الأصلية:\n• الكريب الملكي: سواد فاحم، انسيابي، غير شفاف وبارد.\n• الحرير المغسول: فخامة ناعمة وانسيابية رائعة للمناسبات.\n• الكتان الطبيعي: نسيج صيفي خفيف وأنيق ✦";
+    }
+    if (q.includes('سعر') || q.includes('أسعار') || q.includes('بكم') || q.includes('كم السعر')) {
       return "أسعار عباياتنا الفاخرة تبدأ من 45 JOD وتصل إلى 150 JOD حسب نوع القماش والتطريز اليدوي ✦ يمكنكِ تصفح التشكيلة الكاملة من الصفحة الرئيسية.";
     }
-    if (q.includes('مقاس') || q.includes('قياس') || q.includes('سايز')) {
-      return "نوفر جميع المقاسات القياسية: 50، 52، 54، 56، 58، 60 ✦ يمكنكِ استخدام دليل المقاسات الذكي داخل صفحة أي عباية لمعرفة المقاس الأنسب لكِ حسب الطول والوزن.";
+    if (q.includes('مقاس') || q.includes('قياس') || q.includes('سايز') || q.includes('طول')) {
+      return "نوفر جميع المقاسات القياسية المعتمدة عالمياً: 50، 52، 54، 56، 58، 60 ✦ يمكنكِ استخدام دليل المقاسات الذكي داخل صفحة أي عباية لمعرفة المقاس الأنسب لكِ حسب الطول والوزن.";
     }
-    if (q.includes('توصيل') || q.includes('شحن') || q.includes('توصل')) {
-      return "نوصل لجميع محافظات الأردن خلال 1-3 أيام، والتوصيل الدولي لجميع دول العالم خلال 5-10 أيام عمل مع شركات الشحن السريع 🚚✦";
+    if (q.includes('توصيل') || q.includes('شحن') || q.includes('توصل') || q.includes('كم يوم')) {
+      return "نوصل لجميع محافظات الأردن خلال 1-3 أيام عمل، والتوصيل الدولي لجميع دول العالم والخليج خلال 5-10 أيام مع شركات الشحن السريع 🚚✦";
     }
     if (q.includes('تبديل') || q.includes('ارجاع') || q.includes('إرجاع') || q.includes('استبدال')) {
       return "التبديل والترجيع متاح داخل الأردن فقط وبنفس وقت التوصيل أثناء تواجد الكابتن ببابك. يُرجى العلم أن رسوم التوصيل غير قابلة للاسترداد وتكون على حساب العميل في حال التبديل أو الترجيع. لا يوجد تبديل أو إرجاع خارج الأردن ✦";
     }
-    if (q.includes('واتساب') || q.includes('تواصل') || q.includes('رقم')) {
+    if (q.includes('واتساب') || q.includes('تواصل') || q.includes('رقم') || q.includes('اتصال')) {
       return "يمكنكِ التواصل معنا مباشرة عبر الواتساب على الرقم +962790000000 💬✦ يسعدنا خدمتكِ دائماً.";
     }
-    if (q.includes('خصم') || q.includes('عرض') || q.includes('كوبون')) {
+    if (q.includes('خصم') || q.includes('عرض') || q.includes('كوبون') || q.includes('تخفيض')) {
       return "استخدمي كود الخصم BEESAN2026 عند إتمام الطلب للحصول على خصم خاص على التشكيلة الجديدة ✦";
+    }
+    if (q.includes('طلب') || q.includes('كيف اطلب') || q.includes('شراء')) {
+      return "الطلب سهل ومباشر جداً:\n1. اختاري العباية والمقاس واللون المناسب لكِ.\n2. أضيفيها لسلة التسوق واضغطي «إتمام الشراء».\n3. ادخلي اسمكِ وعنوانكِ ورقم هاتفكِ، واختاري طريقة الدفع المناسبة ✦";
     }
     return null;
   };
@@ -218,7 +232,7 @@ export default function Chatbot() {
       }).catch(err => console.error("[Chatbot] Sync Error:", err));
 
     } catch {
-      setMsgs(p => [...p, { id: Date.now() + 1, role: 'sophie', text: `عذراً، تواصلوا معنا مباشرة عبر البريد ${shopInfo.email} ✦` }]);
+      setMsgs(p => [...p, { id: Date.now() + 1, role: 'sophie', text: `أهلاً بكِ عزيزتي ✦ يمكنكِ أيضاً التواصل مع فريق خدمة العملاء مباشرة لمساعدتكِ فوراً عبر البريد ${shopInfo.email}` }]);
     } finally {
       setTyping(false);
     }
@@ -230,35 +244,43 @@ export default function Chatbot() {
   return (
     <>
       <div className={`${styles.window} ${open ? styles.open : ''}`} role="dialog">
-        <div className={styles.header} style={{ background: 'linear-gradient(135deg, var(--tea-light) 0%, var(--gold-light) 100%)', borderBottom: '1px solid var(--border)' }}>
+        <div className={styles.header} style={{ background: 'linear-gradient(135deg, #2b2520 0%, #1a1209 100%)', borderBottom: '1px solid rgba(197,168,128,0.3)' }}>
           <div className={styles.headerLeft}>
-            <div className={styles.avatar} style={{ background: 'var(--gold)' }}>
-              <i className="fas fa-gem" style={{ color: 'var(--espresso)' }} />
+            <div className={styles.avatar} style={{ background: 'linear-gradient(135deg, #c5a880, #a6865d)' }}>
+              <i className="fas fa-gem" style={{ color: '#1a1209' }} />
               <span className={styles.dot} />
             </div>
             <div>
-              <div className={styles.name} style={{ color: 'var(--espresso)' }}>يافا</div>
-              <div className={styles.status} style={{ color: 'var(--espresso)', opacity: 0.8 }}>زهرة بيسان · مستشارة الأناقة</div>
+              <div className={styles.name} style={{ color: '#f3ebd9', fontWeight: 700 }}>يافا</div>
+              <div className={styles.status} style={{ color: '#c5a880', opacity: 0.9 }}>زهرة بيسان · مستشارة الأناقة</div>
             </div>
           </div>
-          <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق" style={{ color: 'var(--espresso)' }}>
+          <button className={styles.closeBtn} onClick={() => setOpen(false)} aria-label="إغلاق" style={{ color: '#f3ebd9' }}>
             <i className="fas fa-times" />
           </button>
         </div>
 
-        <div className={styles.messages}>
+        <div className={styles.messages} style={{ background: '#fcfaf6' }}>
           {msgs.map(m => (
             <div key={m.id} className={`${styles.msg} ${m.role === 'user' ? styles.userMsg : styles.sophieMsg}`}>
-              {m.role === 'sophie' && <div className={styles.msgAvatar} style={{ background: 'var(--gold)' }}><i className="fas fa-gem" style={{ color: 'var(--espresso)' }} /></div>}
-              <div className={styles.bubble} style={m.role === 'user' ? { background: 'var(--gold)', color: 'var(--espresso)' } : { background: '#fff', border: '1px solid #eee' }}>
-                {m.text}
+              {m.role === 'sophie' && <div className={styles.msgAvatar} style={{ background: 'linear-gradient(135deg, #c5a880, #a6865d)' }}><i className="fas fa-gem" style={{ color: '#1a1209' }} /></div>}
+              <div 
+                className={styles.bubble} 
+                style={m.role === 'user' 
+                  ? { background: 'linear-gradient(135deg, #c5a880, #a6865d)', color: '#1a1209', fontWeight: 600, borderBottomRightRadius: '4px' } 
+                  : { background: '#ffffff', color: '#1a1209', border: '1px solid rgba(197, 168, 128, 0.3)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', fontWeight: 500, borderBottomLeftRadius: '4px' }
+                }
+              >
+                <div style={{ color: m.role === 'user' ? '#1a1209' : '#1a1209', whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                  {m.text}
+                </div>
                 {m.role === 'sophie' && (
-                  <div style={{ textAlign: 'left' }}>
+                  <div style={{ textAlign: 'left', marginTop: '6px' }}>
                     <button 
                       onClick={() => speaking ? stopSpeech() : speakText(m.text)}
                       title={speaking ? 'إيقاف الاستماع' : 'استمع للرسالة'}
                       className={styles.listenBtn}
-                      style={speaking ? { background: 'rgba(255, 77, 77, 0.2)', color: '#ff4d4d' } : {}}
+                      style={speaking ? { background: 'rgba(255, 77, 77, 0.15)', color: '#cc0000', border: '1px solid rgba(255, 77, 77, 0.3)' } : {}}
                     >
                       <i className={`fas ${speaking ? 'fa-stop-circle' : 'fa-volume-up'}`} /> 
                       {speaking ? ' إيقاف' : ' استمع'}
