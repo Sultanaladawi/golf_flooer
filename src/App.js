@@ -43,8 +43,13 @@ import axios from 'axios';
 import { RamadanLanding, EidLanding, SummerLanding } from './components/LandingPages';
 
 import TechAgency from './components/TechAgency';
+import Account from './components/Account';
+import ProductPage from './components/ProductPage';
+import Blog from './components/Blog';
+import BlogPost from './components/BlogPost';
+import GiftCards from './components/GiftCards';
 
-// Safe lazy loader with auto-retry on new deployment
+// Safe lazy loader with auto-retry for admin routes
 function lazyRetry(componentImport) {
   return lazy(async () => {
     const pageHasBeenForceRefreshed = window.sessionStorage.getItem('page-has-been-force-refreshed');
@@ -60,13 +65,6 @@ function lazyRetry(componentImport) {
     }
   });
 }
-
-// Lazy-loaded secondary & admin routes for maximum performance
-const Account          = lazyRetry(() => import('./components/Account'));
-const ProductPage      = lazyRetry(() => import('./components/ProductPage'));
-const Blog             = lazyRetry(() => import('./components/Blog'));
-const BlogPost         = lazyRetry(() => import('./components/BlogPost'));
-const GiftCards        = lazyRetry(() => import('./components/GiftCards'));
 
 const AdminLogin       = lazyRetry(() => import('./admin/AdminLogin'));
 const AdminLayout      = lazyRetry(() => import('./admin/AdminLayout'));

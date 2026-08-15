@@ -40,7 +40,7 @@ jobs:
         run: |
           node scripts/embed-html.js
           mkdir -p release
-          npx --yes esbuild server.js --bundle --platform=node --target=node20 --outfile=release/server.js --external:canvas
+          cp server.js release/server.js
           cp package.json release/
           echo "release/server.js size: $(du -sh release/server.js | cut -f1)"
 
