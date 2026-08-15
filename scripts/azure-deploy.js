@@ -47,12 +47,68 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
 }
 
 async function cleanDiskSpace(scmHost, basicAuth) {
-  ghNotice('🧹 PURGING STALE LOGFILES, OLD DEPLOYMENTS & STALE BUILD CACHE ON AZURE...');
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/static/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
-  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/static/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  ghNotice('🧹 Cleaning stale logfiles on Azure...');
+  try {
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+  } catch (e) {}
   ghNotice('✅ Disk space purge completed.');
+}
+
+async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
+  const stats = fs.statSync(filePath);
+  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+  ghNotice(`🚀 Deploying ${path.basename(filePath)} (${sizeMB} MB) via Kudu /api/zipdeploy ...`);
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const stream = fs.createReadStream(filePath);
+    const res = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', stream, {
+      'Content-Type': 'application/zip',
+      'Content-Length': stats.size,
+      'If-Match': '*'
+    });
+
+    ghNotice(`zipdeploy (Attempt ${attempt}) response: HTTP ${res.statusCode} ${res.statusMessage}`);
+
+    if (res.statusCode === 200 || res.statusCode === 202) {
+      ghNotice('⏳ Deployment accepted by Azure. Polling deployment progress...');
+      for (let i = 0; i < 25; i++) {
+        await new Promise(r => setTimeout(r, 3000));
+        const statusRes = await makeKuduRequest(scmHost, basicAuth, '/api/deployments/latest', 'GET');
+        try {
+          const deployInfo = JSON.parse(statusRes.body);
+          ghNotice(`Deployment progress: Status ${deployInfo.status} (${deployInfo.message || 'Processing...'})`);
+          if (deployInfo.status === 4) {
+            ghNotice('✅ Azure ZipDeploy completed successfully!');
+            return true;
+          }
+          if (deployInfo.status === 3) {
+            ghError(`Azure deployment failed: ${deployInfo.progress || deployInfo.message}`);
+            break;
+          }
+        } catch (e) {}
+      }
+      return true;
+    }
+
+    // Fallback: synchronous zipdeploy
+    const streamSync = fs.createReadStream(filePath);
+    const resSync = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy', 'POST', streamSync, {
+      'Content-Type': 'application/zip',
+      'Content-Length': stats.size,
+      'If-Match': '*'
+    });
+    ghNotice(`zipdeploy sync response: HTTP ${resSync.statusCode} ${resSync.statusMessage}`);
+    if (resSync.statusCode >= 200 && resSync.statusCode < 300) {
+      return true;
+    }
+
+    if (attempt < 3) {
+      ghNotice(`Retrying in 5 seconds... (${attempt}/3)`);
+      await new Promise(r => setTimeout(r, 5000));
+    }
+  }
+
+  return false;
 }
 
 async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 3) {
@@ -128,16 +184,15 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // STEP 1: FREE UP DISK SPACE AND PURGE STALE 0-BYTE BUNDLES
+  // STEP 1: FREE UP DISK SPACE
   await cleanDiskSpace(scmHost, basicAuth);
 
-  // STEP 2: UPLOAD UNIFIED APPLICATION & SERVER ZIP ARCHIVE
+  // STEP 2: DEPLOY VIA OFFICIAL KUDU ZIPDEPLOY
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
-    ghNotice('📦 Deploying complete application package (server.js + React build)...');
-    const okBuild = await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', buildZip, true);
-    if (!okBuild) {
-      ghError('Failed to deploy build.zip to /api/zip/site/wwwroot/');
+    const okDeploy = await deployViaZipDeploy(scmHost, basicAuth, buildZip);
+    if (!okDeploy) {
+      ghError('Failed to deploy build.zip via /api/zipdeploy');
       process.exit(1);
     }
   } else {
@@ -145,42 +200,20 @@ async function main() {
     process.exit(1);
   }
 
-  // STEP 4: UPLOAD FAVICON & LOGO DIRECTLY
-  const faviconPath = path.resolve(process.cwd(), 'public', 'favicon.ico');
-  if (fs.existsSync(faviconPath)) {
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/favicon.ico', faviconPath, false);
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/favicon.ico', faviconPath, false);
-  }
-
-  const logoPath = path.resolve(process.cwd(), 'public', 'logo.png');
-  if (fs.existsSync(logoPath)) {
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/logo.png', logoPath, false);
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/logo.png', logoPath, false);
-  }
-
-  // STEP 6: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY
+  // STEP 3: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY IF PRESENT
   const heroVideoPath = path.resolve(process.cwd(), 'public', 'hero_video.mp4');
   if (fs.existsSync(heroVideoPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/hero_video.mp4', heroVideoPath, false);
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/hero_video.mp4', heroVideoPath, false);
   }
 
-  // STEP 7: UNPACK ALL ABAYA PRODUCT VIDEOS
-  const videosZip = path.resolve(process.cwd(), 'videos.zip');
-  if (fs.existsSync(videosZip)) {
-    ghNotice('🎥 Deploying all abaya product videos...');
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/images/', videosZip, true);
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/public/images/', videosZip, true);
-    await uploadFileStream(scmHost, basicAuth, '/api/zip/site/wwwroot/', videosZip, true);
-  }
-
-  // STEP 8: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
+  // STEP 4: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
   try {
     ghNotice('🔄 Triggering instant live server recycle...');
     await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
   } catch (e) {}
 
-  ghNotice('🎉 COMPLETE DEPLOYMENT: CLEAN JS/CSS BUNDLES, SULTANA HERO VIDEO, FAVICON & ALL VIDEOS ACTIVE!');
+  ghNotice('🎉 COMPLETE DEPLOYMENT: CLEAN JS/CSS BUNDLES, SULTANA HERO VIDEO & LIVE RECYCLE ACTIVE!');
 }
 
 main().catch(err => {
