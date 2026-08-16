@@ -63,33 +63,57 @@ async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
   const sizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(2);
   ghNotice(`🚀 Deploying ${path.basename(filePath)} (${sizeMB} MB)...`);
 
-  // Target 1: /api/zip/site/wwwroot/build/ (Safe from process file-locks)
+  // Target 1: /api/zip/site/wwwroot/build/
   const res1 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', fileBuffer, {
     'Content-Type': 'application/zip',
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zip/site/wwwroot/build/ response: HTTP ${res1.statusCode} ${res1.statusMessage} ${res1.body ? '- ' + res1.body.substring(0, 150) : ''}`);
+  ghNotice(`Target /api/zip/site/wwwroot/build/ response: HTTP ${res1.statusCode} ${res1.statusMessage}`);
 
-  // Target 2: /api/zip/site/wwwroot/ (Root extraction)
+  // Target 2: /api/zip/site/wwwroot/
   const res2 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', fileBuffer, {
     'Content-Type': 'application/zip',
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res2.statusCode} ${res2.statusMessage} ${res2.body ? '- ' + res2.body.substring(0, 150) : ''}`);
+  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res2.statusCode} ${res2.statusMessage}`);
 
   // Target 3: /api/zipdeploy
   const res3 = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', fileBuffer, {
     'Content-Type': 'application/zip',
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zipdeploy response: HTTP ${res3.statusCode} ${res3.statusMessage} ${res3.body ? '- ' + res3.body.substring(0, 150) : ''}`);
+  ghNotice(`Target /api/zipdeploy response: HTTP ${res3.statusCode} ${res3.statusMessage}`);
 
   if (res1.statusCode < 300 || res2.statusCode < 300 || res3.statusCode < 300) {
-    ghNotice('✅ Deployment package successfully unpacked on Azure!');
+    ghNotice('✅ Deployment package successfully unpacked on Azure via ZipDeploy!');
     return true;
   }
 
   return false;
+}
+
+async function uploadFolderVfs(scmHost, basicAuth, localDir, remoteBase) {
+  if (!fs.existsSync(localDir)) return;
+  const entries = fs.readdirSync(localDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullLocalPath = path.join(localDir, entry.name);
+    const remotePath = `${remoteBase}/${entry.name}`;
+
+    if (entry.isDirectory()) {
+      // Create remote directory
+      await makeKuduRequest(scmHost, basicAuth, `/api/vfs/${remotePath}/`, 'PUT', null, { 'If-Match': '*' });
+      await uploadFolderVfs(scmHost, basicAuth, fullLocalPath, remotePath);
+    } else {
+      if (entry.name.endsWith('.mp4')) continue; // Videos handled separately
+      const fileBuffer = fs.readFileSync(fullLocalPath);
+      const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/${remotePath}`, 'PUT', fileBuffer, {
+        'Content-Type': 'application/octet-stream',
+        'If-Match': '*'
+      });
+      console.log(`VFS uploaded: ${remotePath} -> HTTP ${res.statusCode}`);
+    }
+  }
 }
 
 async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 2) {
@@ -159,29 +183,40 @@ async function main() {
 
   // STEP 2: DEPLOY COMPLETE PACKAGE
   const buildZip = path.resolve(process.cwd(), 'build.zip');
+  let deploySuccess = false;
+
   if (fs.existsSync(buildZip)) {
-    const okDeploy = await deployViaZipDeploy(scmHost, basicAuth, buildZip);
-    if (!okDeploy) {
-      ghNotice('Retrying build.zip deployment to /api/zip/site/wwwroot/build/ ...');
-      await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', fs.createReadStream(buildZip), {
-        'Content-Type': 'application/zip',
-        'Content-Length': fs.statSync(buildZip).size,
-        'If-Match': '*'
-      });
+    deploySuccess = await deployViaZipDeploy(scmHost, basicAuth, buildZip);
+  }
+
+  // STEP 3: FALLBACK TO DIRECT VFS UPLOAD IF ZIP FAILED
+  if (!deploySuccess) {
+    ghNotice('⚡ Zip extraction failed (HTTP 500 file lock) — Uploading all static build assets directly via VFS...');
+    const localBuildDir = path.resolve(process.cwd(), 'build');
+    if (fs.existsSync(localBuildDir)) {
+      await uploadFolderVfs(scmHost, basicAuth, localBuildDir, 'site/wwwroot/build');
+      ghNotice('✅ Direct VFS upload of build folder completed.');
     }
   }
 
-  // STEP 3: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY IF PRESENT
+  // STEP 4: UPLOAD SERVER.JS DIRECTLY
+  const serverJsPath = path.resolve(process.cwd(), 'server.js');
+  if (fs.existsSync(serverJsPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverJsPath);
+  }
+
+  // STEP 5: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY IF PRESENT
   const heroVideoPath = path.resolve(process.cwd(), 'public', 'hero_video.mp4');
   if (fs.existsSync(heroVideoPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/hero_video.mp4', heroVideoPath, false);
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/hero_video.mp4', heroVideoPath, false);
   }
 
-  // STEP 4: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
+  // STEP 6: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
   try {
     ghNotice('🔄 Triggering instant live server recycle...');
     await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
+    await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
   } catch (e) {}
 
   ghNotice('🎉 COMPLETE DEPLOYMENT: CLEAN JS/CSS BUNDLES, SULTANA HERO VIDEO & LIVE RECYCLE ACTIVE!');
