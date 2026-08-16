@@ -210,7 +210,12 @@ async function main() {
     await deployViaZipDeploy(scmHost, basicAuth, buildZip);
   }
 
-  // STEP 4: UPLOAD APP.JS, SERVER.JS AND WEB.CONFIG DIRECTLY
+  // STEP 4: UPLOAD MAIN_SERVER.JS, APP.JS, SERVER.JS AND WEB.CONFIG DIRECTLY
+  const mainServerJsPath = path.resolve(process.cwd(), 'main_server.js');
+  if (fs.existsSync(mainServerJsPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/main_server.js', mainServerJsPath);
+  }
+
   const appJsPath = path.resolve(process.cwd(), 'app.js');
   if (fs.existsSync(appJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/app.js', appJsPath);
@@ -240,15 +245,16 @@ async function main() {
   // STEP 7: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
   try {
     ghNotice('🔄 Triggering instant live server recycle and worker reload...');
-    await runKuduCommand(scmHost, basicAuth, 'powershell -Command "Get-Process node, w3wp -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue"');
-    await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
+    await runKuduCommand(scmHost, basicAuth, 'taskkill /F /IM node.exe');
+    await runKuduCommand(scmHost, basicAuth, 'powershell -Command "Stop-Process -Name node, w3wp -Force -ErrorAction SilentlyContinue"');
     await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
+    await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
   } catch (e) {}
 
   ghNotice('🎉 COMPLETE DEPLOYMENT: CLEAN JS/CSS BUNDLES, SULTANA HERO VIDEO & LIVE RECYCLE ACTIVE!');
 }
 
 main().catch(err => {
-  ghError(`Fatal error: ${err.message}`);
+  ghError(`Deployment script fatal error: ${err.message}`);
   process.exit(1);
 });

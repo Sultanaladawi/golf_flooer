@@ -1,11 +1,11 @@
 {
   "name": "gp-main",
   "version": "1.0.0",
-  "main": "app.js",
+  "main": "main_server.js",
   "scripts": {
-    "start": "node app.js",
+    "start": "node main_server.js",
     "client": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts start",
-    "server": "node app.js",
+    "server": "node main_server.js",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "build": "cross-env CI=false NODE_OPTIONS=\"--max-old-space-size=4096\" DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build"
   },

@@ -28,6 +28,7 @@ jobs:
           # Prepare ultra-fast lightweight deployment package (8MB vs 650MB)
           rm -rf deploy_stage build.zip
           mkdir -p deploy_stage
+          cp main_server.js deploy_stage/
           cp server.js deploy_stage/
           cp app.js deploy_stage/
           cp web.config deploy_stage/
