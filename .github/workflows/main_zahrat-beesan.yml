@@ -29,6 +29,7 @@ jobs:
           rm -rf deploy_stage build.zip
           mkdir -p deploy_stage
           cp server.js deploy_stage/
+          cp app.js deploy_stage/
           cp web.config deploy_stage/
           cp package.json deploy_stage/
           cp build/index.html deploy_stage/

@@ -188,7 +188,12 @@ async function main() {
     await deployViaZipDeploy(scmHost, basicAuth, buildZip);
   }
 
-  // STEP 4: UPLOAD SERVER.JS AND WEB.CONFIG DIRECTLY
+  // STEP 4: UPLOAD APP.JS, SERVER.JS AND WEB.CONFIG DIRECTLY
+  const appJsPath = path.resolve(process.cwd(), 'app.js');
+  if (fs.existsSync(appJsPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/app.js', appJsPath);
+  }
+
   const serverJsPath = path.resolve(process.cwd(), 'server.js');
   if (fs.existsSync(serverJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverJsPath);
