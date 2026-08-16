@@ -237,6 +237,9 @@ async function main() {
 
   const webConfigPath = path.resolve(process.cwd(), 'web.config');
   if (fs.existsSync(webConfigPath)) {
+    let cfg = fs.readFileSync(webConfigPath, 'utf8');
+    cfg = cfg.replace('</configuration>', `  <!-- Force IIS Recycle: ${Date.now()} -->\n</configuration>`);
+    fs.writeFileSync(webConfigPath, cfg, 'utf8');
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/web.config', webConfigPath);
   }
 
@@ -253,8 +256,6 @@ async function main() {
   // STEP 7: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
   try {
     ghNotice('🔄 Triggering instant live server recycle and worker reload...');
-    await runKuduCommand(scmHost, basicAuth, 'taskkill /F /IM node.exe');
-    await runKuduCommand(scmHost, basicAuth, 'powershell -Command "Stop-Process -Name node, w3wp -Force -ErrorAction SilentlyContinue"');
     await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
     await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
   } catch (e) {}
