@@ -51,14 +51,19 @@ jobs:
           cd deploy_stage && zip -r -q ../build.zip . && cd ..
           echo "Ultra-fast build.zip size: $(du -sh build.zip | cut -f1)"
 
-      - name: Deploy to Azure Web App via Kudu ZipDeploy with App Offline Unlock
+      - name: Sync Settings and Pre-Deploy via Kudu
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          SMTP_PASS: ${{ secrets.GMAIL_APP_PASSWORD }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           STORE_EMAIL: zahratbeesanshop@gmail.com
           SMTP_USER: zahratbeesanshop@gmail.com
         run: |
           node scripts/azure-deploy.js
+
+      - name: Deploy and Force Restart via Official Azure Action
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'zahrat-beesan'
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: 'build.zip'
+          clean: true
+          restart: true
