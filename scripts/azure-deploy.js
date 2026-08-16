@@ -208,6 +208,13 @@ async function main() {
   // STEP 1: FREE UP DISK SPACE AND REMOVE STALE RUNNERS
   await cleanDiskSpace(scmHost, basicAuth);
 
+  // Diagnostic: Check what files and processes are currently on Azure
+  const dirCheck = await runKuduCommand(scmHost, basicAuth, 'dir site\\wwwroot');
+  ghNotice('Azure site\\wwwroot files: ' + (dirCheck.body ? dirCheck.body.substring(0, 300) : 'none'));
+
+  const procCheck = await runKuduCommand(scmHost, basicAuth, 'tasklist');
+  ghNotice('Azure processes: ' + (procCheck.body ? procCheck.body.substring(0, 300) : 'none'));
+
   // STEP 2: SET APP OFFLINE AND KILL RUNNING PROCESSES TO FREE LOCKS
   await setAppOffline(scmHost, basicAuth, true);
 
