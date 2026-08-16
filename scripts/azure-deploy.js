@@ -244,6 +244,35 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server_bundled.js', serverJsPath);
   }
 
+  // Direct upload of compiled index.html
+  const indexPath = path.resolve(process.cwd(), 'build', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/index.html', indexPath);
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/index.html', indexPath);
+  }
+
+  // Direct upload of all JS bundles (including alias names)
+  const jsDir = path.resolve(process.cwd(), 'build', 'static', 'js');
+  if (fs.existsSync(jsDir)) {
+    const files = fs.readdirSync(jsDir).filter(f => f.endsWith('.js') && !f.endsWith('.map'));
+    for (const f of files) {
+      const p = path.join(jsDir, f);
+      await uploadFileStream(scmHost, basicAuth, `/api/vfs/site/wwwroot/static/js/${f}`, p);
+      await uploadFileStream(scmHost, basicAuth, `/api/vfs/site/wwwroot/build/static/js/${f}`, p);
+    }
+  }
+
+  // Direct upload of all CSS bundles (including alias names)
+  const cssDir = path.resolve(process.cwd(), 'build', 'static', 'css');
+  if (fs.existsSync(cssDir)) {
+    const files = fs.readdirSync(cssDir).filter(f => f.endsWith('.css') && !f.endsWith('.map'));
+    for (const f of files) {
+      const p = path.join(cssDir, f);
+      await uploadFileStream(scmHost, basicAuth, `/api/vfs/site/wwwroot/static/css/${f}`, p);
+      await uploadFileStream(scmHost, basicAuth, `/api/vfs/site/wwwroot/build/static/css/${f}`, p);
+    }
+  }
+
   // STEP 6: HARD RECYCLE IIS WORKER PROCESS BY CYCLING WEB.CONFIG
   ghNotice('🔄 Hard recycling IIS worker process by deleting and recreating web.config...');
   await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/web.config', 'DELETE', null, { 'If-Match': '*' });
