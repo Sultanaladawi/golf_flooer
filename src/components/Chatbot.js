@@ -48,10 +48,12 @@ export default function Chatbot() {
   const [open, setOpen]           = useState(false);
   const [msgs, setMsgs]           = useState(() => {
     try {
-      const saved = localStorage.getItem('zb_ai_chat_history');
+      localStorage.removeItem('zb_ai_chat_history');
+      localStorage.removeItem('zb_ai_chat_history_v2');
+      const saved = localStorage.getItem('zb_ai_chat_history_v4');
       if (saved) {
         const parsed = JSON.parse(saved);
-        const clean = parsed.filter(m => !m.text.includes('غير متاحة مؤقتاً') && !m.text.includes('خطأ'));
+        const clean = parsed.filter(m => !m.text.includes('غير متاحة') && !m.text.includes('خطأ'));
         if (clean.length > 0) return clean;
       }
       return WELCOME;
@@ -63,7 +65,10 @@ export default function Chatbot() {
   const clearChat = () => {
     stopSpeech();
     setMsgs(WELCOME);
-    try { localStorage.removeItem('zb_ai_chat_history'); } catch(e) {}
+    try {
+      localStorage.removeItem('zb_ai_chat_history_v4');
+      localStorage.removeItem('zb_ai_chat_history');
+    } catch(e) {}
   };
   const [input, setInput]         = useState('');
   const [typing, setTyping]       = useState(false);
@@ -78,7 +83,7 @@ export default function Chatbot() {
   // 💾 Persist AI chat history in localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('zb_ai_chat_history', JSON.stringify(msgs));
+      localStorage.setItem('zb_ai_chat_history_v4', JSON.stringify(msgs));
     } catch(e) {}
   }, [msgs]);
 

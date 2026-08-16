@@ -36,3 +36,9 @@ if ('serviceWorker' in navigator) {
     }
   });
 }
+
+if ('caches' in window) {
+  caches.keys().then(names => {
+    names.forEach(name => caches.delete(name));
+  });
+}
