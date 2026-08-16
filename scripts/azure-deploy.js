@@ -136,6 +136,16 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
   return false;
 }
 
+async function releaseProcessLocks(scmHost, basicAuth) {
+  ghNotice('🔓 Releasing Windows process file locks on node.exe...');
+  try {
+    const cmdPayload = JSON.stringify({ command: 'powershell -Command "Stop-Process -Name node -Force -ErrorAction SilentlyContinue"', dir: 'site\\wwwroot' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/command', 'POST', Buffer.from(cmdPayload), {
+      'Content-Type': 'application/json'
+    });
+  } catch (e) {}
+}
+
 async function main() {
   ghNotice('🚀 Starting Azure Deployment with Clean Static Bundles & Sultana Hero Video...');
 
@@ -178,25 +188,22 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // STEP 1: FREE UP DISK SPACE
+  // STEP 1: FREE UP DISK SPACE & RELEASE PROCESS LOCKS
   await cleanDiskSpace(scmHost, basicAuth);
+  await releaseProcessLocks(scmHost, basicAuth);
 
-  // STEP 2: DEPLOY COMPLETE PACKAGE
-  const buildZip = path.resolve(process.cwd(), 'build.zip');
-  let deploySuccess = false;
-
-  if (fs.existsSync(buildZip)) {
-    deploySuccess = await deployViaZipDeploy(scmHost, basicAuth, buildZip);
+  // STEP 2: DEPLOY COMPLETE PACKAGE VIA DIRECT VFS + ZIP
+  const localBuildDir = path.resolve(process.cwd(), 'build');
+  if (fs.existsSync(localBuildDir)) {
+    ghNotice('⚡ Uploading fresh React build assets directly via VFS to eliminate any chunk load errors...');
+    await uploadFolderVfs(scmHost, basicAuth, localBuildDir, 'site/wwwroot/build');
+    await uploadFolderVfs(scmHost, basicAuth, localBuildDir, 'site/wwwroot');
+    ghNotice('✅ Direct VFS upload completed.');
   }
 
-  // STEP 3: FALLBACK TO DIRECT VFS UPLOAD IF ZIP FAILED
-  if (!deploySuccess) {
-    ghNotice('⚡ Zip extraction failed (HTTP 500 file lock) — Uploading all static build assets directly via VFS...');
-    const localBuildDir = path.resolve(process.cwd(), 'build');
-    if (fs.existsSync(localBuildDir)) {
-      await uploadFolderVfs(scmHost, basicAuth, localBuildDir, 'site/wwwroot/build');
-      ghNotice('✅ Direct VFS upload of build folder completed.');
-    }
+  const buildZip = path.resolve(process.cwd(), 'build.zip');
+  if (fs.existsSync(buildZip)) {
+    await deployViaZipDeploy(scmHost, basicAuth, buildZip);
   }
 
   // STEP 4: UPLOAD SERVER.JS DIRECTLY
