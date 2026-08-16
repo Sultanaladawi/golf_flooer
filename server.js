@@ -1240,7 +1240,7 @@ db.query("SHOW COLUMNS FROM categories", (err, columns) => {
 async function sendStoreNotificationEmail({ subject, title, senderName, senderEmail, senderPhone, content, detailsHtml = '' }) {
   const storeEmail = process.env.STORE_EMAIL || process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
   const smtpUser = process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
-  const smtpPass = process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD;
+  const smtpPass = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || 'xonwujxfjuciraei').replace(/\s+/g, '');
 
   if (!smtpPass) {
     console.log(`[Notification Info] Message logged in database and visible in /admin/messages. (Set SMTP_PASS in Azure app settings for automated Gmail forwarding).`);
@@ -1249,9 +1249,7 @@ async function sendStoreNotificationEmail({ subject, title, senderName, senderEm
 
   try {
     const emailTransporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false,
+      service: 'gmail',
       auth: {
         user: smtpUser,
         pass: smtpPass
