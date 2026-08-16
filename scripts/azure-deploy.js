@@ -48,11 +48,24 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
+async function runKuduCommand(scmHost, basicAuth, command) {
+  try {
+    const payload = Buffer.from(JSON.stringify({ command: command, dir: 'site\\wwwroot' }));
+    return await makeKuduRequest(scmHost, basicAuth, '/api/command', 'POST', payload, {
+      'Content-Type': 'application/json'
+    });
+  } catch (e) {
+    return { statusCode: 0, body: e.message };
+  }
+}
+
 async function setAppOffline(scmHost, basicAuth, offline = true) {
   if (offline) {
-    ghNotice('⏸️ Putting App Service in offline mode to release all Windows process file locks...');
+    ghNotice('⏸️ Putting App Service in offline mode and terminating running node processes...');
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/app_offline.htm', 'PUT', Buffer.from('<!DOCTYPE html><html><body>Updating</body></html>'), { 'If-Match': '*' });
-    await new Promise(r => setTimeout(r, 2000));
+    await runKuduCommand(scmHost, basicAuth, 'powershell -Command "Stop-Process -Name node -Force -ErrorAction SilentlyContinue"');
+    await runKuduCommand(scmHost, basicAuth, 'taskkill /F /IM node.exe');
+    await new Promise(r => setTimeout(r, 2500));
   } else {
     ghNotice('▶️ Bringing App Service back online...');
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/app_offline.htm', 'DELETE', null, { 'If-Match': '*' });
@@ -60,13 +73,15 @@ async function setAppOffline(scmHost, basicAuth, offline = true) {
 }
 
 async function cleanDiskSpace(scmHost, basicAuth) {
-  ghNotice('🧹 Cleaning stale logfiles and temp data on Azure...');
+  ghNotice('🧹 Cleaning stale files and temp data on Azure...');
   try {
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/data/temp/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/release/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server_bundled.js', 'DELETE', null, { 'If-Match': '*' });
   } catch (e) {}
-  ghNotice('✅ Disk space purge completed.');
+  ghNotice('✅ Disk cleanup completed.');
 }
 
 async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
@@ -96,7 +111,7 @@ async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
   return false;
 }
 
-async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 2) {
+async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 3) {
   if (!fs.existsSync(filePath)) return false;
   const fileBuffer = fs.readFileSync(filePath);
   const sizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(2);
@@ -111,13 +126,16 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
     if (res.statusCode >= 200 && res.statusCode < 300) {
       ghNotice(`${path.basename(filePath)} uploaded successfully.`);
       return true;
+    } else {
+      ghNotice(`Upload attempt ${attempt} failed with HTTP ${res.statusCode}. Retrying...`);
+      await new Promise(r => setTimeout(r, 1000));
     }
   }
   return false;
 }
 
 async function main() {
-  ghNotice('🚀 Starting Azure Deployment with Clean Static Bundles & Sultana Hero Video...');
+  ghNotice('🚀 Starting Azure Deployment with Process Termination & Direct File Overwrite...');
 
   const rawSecret = process.env.AZURE_WEBAPP_PUBLISH_PROFILE || process.env.PUBLISH_PROFILE || '';
   if (!rawSecret || rawSecret.trim().length === 0) {
@@ -158,10 +176,10 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // STEP 1: FREE UP DISK SPACE
+  // STEP 1: FREE UP DISK SPACE AND REMOVE STALE RUNNERS
   await cleanDiskSpace(scmHost, basicAuth);
 
-  // STEP 2: SET APP OFFLINE TO FREE PROCESS LOCKS
+  // STEP 2: SET APP OFFLINE AND KILL RUNNING PROCESSES TO FREE LOCKS
   await setAppOffline(scmHost, basicAuth, true);
 
   // STEP 3: DEPLOY COMPLETE PACKAGE
