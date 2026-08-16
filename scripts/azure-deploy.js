@@ -13,16 +13,22 @@ function ghError(msg) {
 async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data = null, headers = {}) {
   const safePath = encodeURI(reqPath);
   return new Promise((resolve) => {
+    const isBuffer = Buffer.isBuffer(data);
+    const reqHeaders = {
+      'Authorization': basicAuth,
+      'User-Agent': 'Antigravity-Deployer/20.0',
+      ...headers
+    };
+    if (isBuffer) {
+      reqHeaders['Content-Length'] = data.length;
+    }
+
     const req = https.request({
       hostname: scmHost,
       port: 443,
       path: safePath,
       method: method,
-      headers: {
-        'Authorization': basicAuth,
-        'User-Agent': 'Antigravity-Deployer/20.0',
-        ...headers
-      },
+      headers: reqHeaders,
       timeout: 300000
     }, (res) => {
       let body = '';
@@ -34,12 +40,8 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
     req.on('timeout', () => { req.destroy(); resolve({ statusCode: 408, statusMessage: 'Timeout', body: '' }); });
 
     if (data) {
-      if (typeof data.pipe === 'function') {
-        data.pipe(req);
-      } else {
-        req.write(data);
-        req.end();
-      }
+      req.write(data);
+      req.end();
     } else {
       req.end();
     }
@@ -57,36 +59,30 @@ async function cleanDiskSpace(scmHost, basicAuth) {
 }
 
 async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
-  const stats = fs.statSync(filePath);
-  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+  const fileBuffer = fs.readFileSync(filePath);
+  const sizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(2);
   ghNotice(`🚀 Deploying ${path.basename(filePath)} (${sizeMB} MB)...`);
 
   // Target 1: /api/zip/site/wwwroot/build/ (Safe from process file-locks)
-  const stream1 = fs.createReadStream(filePath);
-  const res1 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', stream1, {
+  const res1 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', fileBuffer, {
     'Content-Type': 'application/zip',
-    'Content-Length': stats.size,
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zip/site/wwwroot/build/ response: HTTP ${res1.statusCode} ${res1.statusMessage}`);
+  ghNotice(`Target /api/zip/site/wwwroot/build/ response: HTTP ${res1.statusCode} ${res1.statusMessage} ${res1.body ? '- ' + res1.body.substring(0, 150) : ''}`);
 
   // Target 2: /api/zip/site/wwwroot/ (Root extraction)
-  const stream2 = fs.createReadStream(filePath);
-  const res2 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', stream2, {
+  const res2 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', fileBuffer, {
     'Content-Type': 'application/zip',
-    'Content-Length': stats.size,
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res2.statusCode} ${res2.statusMessage}`);
+  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res2.statusCode} ${res2.statusMessage} ${res2.body ? '- ' + res2.body.substring(0, 150) : ''}`);
 
   // Target 3: /api/zipdeploy
-  const stream3 = fs.createReadStream(filePath);
-  const res3 = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', stream3, {
+  const res3 = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', fileBuffer, {
     'Content-Type': 'application/zip',
-    'Content-Length': stats.size,
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zipdeploy response: HTTP ${res3.statusCode} ${res3.statusMessage}`);
+  ghNotice(`Target /api/zipdeploy response: HTTP ${res3.statusCode} ${res3.statusMessage} ${res3.body ? '- ' + res3.body.substring(0, 150) : ''}`);
 
   if (res1.statusCode < 300 || res2.statusCode < 300 || res3.statusCode < 300) {
     ghNotice('✅ Deployment package successfully unpacked on Azure!');
@@ -98,15 +94,13 @@ async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
 
 async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 2) {
   if (!fs.existsSync(filePath)) return false;
-  const stats = fs.statSync(filePath);
-  const sizeMB = (stats.size / (1024 * 1024)).toFixed(2);
+  const fileBuffer = fs.readFileSync(filePath);
+  const sizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(2);
   ghNotice(`Uploading ${path.basename(filePath)} (${sizeMB} MB) to ${reqPath} ...`);
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const stream = fs.createReadStream(filePath);
-    const res = await makeKuduRequest(scmHost, basicAuth, reqPath, 'PUT', stream, {
+    const res = await makeKuduRequest(scmHost, basicAuth, reqPath, 'PUT', fileBuffer, {
       'Content-Type': isZip ? 'application/zip' : (filePath.endsWith('.mp4') ? 'video/mp4' : 'application/octet-stream'),
-      'Content-Length': stats.size,
       'If-Match': '*'
     });
 
