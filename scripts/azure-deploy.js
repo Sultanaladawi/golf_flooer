@@ -235,32 +235,23 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server_bundled.js', serverJsPath);
   }
 
+  // STEP 6: HARD RECYCLE IIS WORKER PROCESS BY CYCLING WEB.CONFIG
+  ghNotice('🔄 Hard recycling IIS worker process by deleting and recreating web.config...');
+  await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/web.config', 'DELETE', null, { 'If-Match': '*' });
+  await new Promise(r => setTimeout(r, 3000));
+
   const webConfigPath = path.resolve(process.cwd(), 'web.config');
   if (fs.existsSync(webConfigPath)) {
     let cfg = fs.readFileSync(webConfigPath, 'utf8');
-    cfg = cfg.replace('</configuration>', `  <!-- Force IIS Recycle: ${Date.now()} -->\n</configuration>`);
+    cfg = cfg.replace('</configuration>', `  <!-- Force IIS Fresh Boot: ${Date.now()} -->\n</configuration>`);
     fs.writeFileSync(webConfigPath, cfg, 'utf8');
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/web.config', webConfigPath);
   }
 
-  // STEP 5: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY IF PRESENT
-  const heroVideoPath = path.resolve(process.cwd(), 'public', 'hero_video.mp4');
-  if (fs.existsSync(heroVideoPath)) {
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/hero_video.mp4', heroVideoPath, false);
-    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/hero_video.mp4', heroVideoPath, false);
-  }
-
-  // STEP 6: BRING APP BACK ONLINE
+  // STEP 7: BRING APP BACK ONLINE
   await setAppOffline(scmHost, basicAuth, false);
 
-  // STEP 7: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
-  try {
-    ghNotice('🔄 Triggering instant live server recycle and worker reload...');
-    await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
-    await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
-  } catch (e) {}
-
-  ghNotice('🎉 COMPLETE DEPLOYMENT: CLEAN JS/CSS BUNDLES, SULTANA HERO VIDEO & LIVE RECYCLE ACTIVE!');
+  ghNotice('🎉 COMPLETE DEPLOYMENT: CLEAN JS/CSS BUNDLES, FRESH RECYCLE ACTIVE!');
 }
 
 main().catch(err => {
