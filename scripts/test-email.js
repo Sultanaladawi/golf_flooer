@@ -10,22 +10,27 @@ async function test() {
   });
 
   try {
+    const timeStr = new Date().toLocaleTimeString('ar-JO', { timeZone: 'Asia/Amman' });
     const info = await transporter.sendMail({
-      from: '"متجر زهرة بيسان" <zahratbeesanshop@gmail.com>',
+      from: '"متجر زهرة بيسان الفاخر" <zahratbeesanshop@gmail.com>',
       to: 'zahratbeesanshop@gmail.com',
-      subject: '👑 اختبار تفعيل نظام إشعارات متجر زهرة بيسان الفاخر',
+      subject: `🔔 [إشعار عاجل] رسالة جديدة من متجر زهرة بيسان (${timeStr})`,
       html: `
-        <div dir="rtl" style="font-family: Arial, sans-serif; padding: 20px; background-color: #fdfbf7; border: 1px solid #e8dfd8; border-radius: 10px;">
-          <h2 style="color: #b8943a;">👑 تم تفعيل نظام إشعارات متجر زهرة بيسان بنجاح!</h2>
-          <p style="color: #333; font-size: 16px;">أهلاً بك، تم ربط بريد متجر زهرة بيسان بنجاح وسوف تصلك جميع رسائل العملاء واستفسارات نموذج التواصل وطلبات الشراء على هذا البريد فوراً وبشكل تلقائي.</p>
-          <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
-          <p style="color: #777; font-size: 12px;">وقت الإرسال: ${new Date().toLocaleString('ar-JO', { timeZone: 'Asia/Amman' })}</p>
+        <div dir="rtl" style="font-family: Arial, sans-serif; padding: 25px; background-color: #fdfbf7; border: 2px solid #b8943a; border-radius: 12px; max-width: 600px; margin: auto;">
+          <h2 style="color: #b8943a; margin-top: 0;">👑 متجر زهرة بيسان الفاخر</h2>
+          <h3 style="color: #333;">وصلتك رسالة جديدة من نموذج التواصل!</h3>
+          <div style="background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #ddd; margin: 15px 0;">
+            <p><strong>👤 الاسم:</strong> تجربة النظام</p>
+            <p><strong>📧 البريد:</strong> zahratbeesanshop@gmail.com</p>
+            <p><strong>📝 الرسالة:</strong> تم فحص وتأكيد الربط بنجاح، والإشعار يعمل الآن على مدار الساعة.</p>
+          </div>
+          <p style="color: #888; font-size: 12px;">وقت الإرسال: ${timeStr}</p>
         </div>
       `
     });
-    console.log('✅ EMAIL_SENT_SUCCESS! Message ID:', info.messageId);
+    console.log('✅ DELIVERY_CONFIRMED:', info.messageId, 'Response:', info.response);
   } catch (err) {
-    console.error('❌ EMAIL_SEND_ERROR:', err);
+    console.error('❌ DELIVERY_FAILED:', err);
   }
 }
 
