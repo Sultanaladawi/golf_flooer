@@ -44,3 +44,7 @@ graduation_project_*
 build/
 untracked_media/
 
+
+.env.azure
+.env.local
+.env.production

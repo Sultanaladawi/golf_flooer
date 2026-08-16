@@ -176,6 +176,28 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
+  // STEP 0: SYNC AI API KEYS TO AZURE APP SETTINGS
+  ghNotice('🔑 Syncing AI API keys to Azure App Settings...');
+  try {
+    const envVarsToSync = {
+      OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+      GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
+      STORE_EMAIL: process.env.STORE_EMAIL || 'zahratbeesanshop@gmail.com',
+      SMTP_USER: process.env.SMTP_USER || 'zahratbeesanshop@gmail.com',
+      SMTP_PASS: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || '',
+      GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD || ''
+    };
+    // Get existing settings first
+    const getRes = await makeKuduRequest(scmHost, basicAuth, '/api/settings', 'GET');
+    let existing = {};
+    try { existing = JSON.parse(getRes.body || '{}'); } catch(e) {}
+    const merged = { ...existing, ...envVarsToSync };
+    const setRes = await makeKuduRequest(scmHost, basicAuth, '/api/settings', 'POST', JSON.stringify(merged), { 'Content-Type': 'application/json' });
+    ghNotice(`AI keys sync result: HTTP ${setRes.statusCode}`);
+  } catch(e) {
+    ghNotice('Warning: Could not sync env vars: ' + e.message);
+  }
+
   // STEP 1: FREE UP DISK SPACE AND REMOVE STALE RUNNERS
   await cleanDiskSpace(scmHost, basicAuth);
 
