@@ -30,6 +30,22 @@ const { execFile } = require('child_process');
 
 const isAzure = process.env.WEBSITE_SITE_NAME !== undefined;
 const dataDir = isAzure ? path.join(process.env.HOME || '/home', 'data') : __dirname;
+
+const STORE_EMAIL = process.env.STORE_EMAIL || 'zahratbeesanshop@gmail.com';
+const SMTP_USER = process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
+const SMTP_PASS = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || 'xonwujxfjuciraei').replace(/\s+/g, '');
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS
+  },
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100
+});
+
 const EMBEDDED_INDEX_HTML = Buffer.from('PCFkb2N0eXBlIGh0bWw+PGh0bWwgbGFuZz0iYXIiIGRpcj0icnRsIiB0cmFuc2xhdGU9InllcyI+PGhlYWQ+PG1ldGEgY2hhcnNldD0idXRmLTgiLz48bWV0YSBodHRwLWVxdWl2PSJDb250ZW50LVNlY3VyaXR5LVBvbGljeSIgY29udGVudD0iZGVmYXVsdC1zcmMgKiAndW5zYWZlLWlubGluZScgJ3Vuc2FmZS1ldmFsJyBkYXRhOiBibG9iOjsgc2NyaXB0LXNyYyAqICd1bnNhZmUtaW5saW5lJyAndW5zYWZlLWV2YWwnIGRhdGE6IGJsb2I6OyBzdHlsZS1zcmMgKiAndW5zYWZlLWlubGluZScgZGF0YTogYmxvYjo7IGltZy1zcmMgKiBkYXRhOiBibG9iOjsgZm9udC1zcmMgKiBkYXRhOiBibG9iOjsgY29ubmVjdC1zcmMgKjsgZnJhbWUtc3JjICo7Ii8+PG1ldGEgaHR0cC1lcXVpdj0iQ2FjaGUtQ29udHJvbCIgY29udGVudD0ibm8tY2FjaGUsIG5vLXN0b3JlLCBtdXN0LXJldmFsaWRhdGUiLz48bWV0YSBodHRwLWVxdWl2PSJQcmFnbWEiIGNvbnRlbnQ9Im5vLWNhY2hlIi8+PG1ldGEgaHR0cC1lcXVpdj0iRXhwaXJlcyIgY29udGVudD0iMCIvPjxtZXRhIG5hbWU9Imdvb2dsZS1zaXRlLXZlcmlmaWNhdGlvbiIgY29udGVudD0iSkxDeTROc0NnX09CTEJoQ1RXOVZTM085T1FCU3BMaTgySmNiN3JQTW1JWSIvPjxtZXRhIG5hbWU9InZpZXdwb3J0IiBjb250ZW50PSJ3aWR0aD1kZXZpY2Utd2lkdGgsaW5pdGlhbC1zY2FsZT0xIi8+PG1ldGEgbmFtZT0iZGVzY3JpcHRpb24iIGNvbnRlbnQ9Itiy2YfYsdipINio2YrYs9in2YYg2YTZhNi52KjYp9mK2KfYqiDZiNin2YTYo9iy2YrYp9ihINin2YTZgdin2K7YsdipIOKAlCDYudio2KfZitin2Kog2LHYp9mC2YrYqSDZiNiq2LXYp9mF2YrZhSDYrdi12LHZitipINmI2K7Yp9mF2KfYqiDYudin2YTZitipINin2YTYrNmI2K/YqSB8IFphaHJhdCBCZWVzYW4gTHV4dXJ5IEFiYXlhcy4iLz48bWV0YSBuYW1lPSJrZXl3b3JkcyIgY29udGVudD0i2LLZh9ix2Kkg2KjZitiz2KfZhiwg2LnYqNin2YrYp9iqINiy2YfYsdipINio2YrYs9in2YYsINi52KjYp9mK2KfYqiDZgdin2K7YsdipLCDYudio2KfZitin2Kog2K7ZhNmK2KzZitipLCBaYWhyYXQgQmVlc2FuLCBaYWhyYXQgQmVlc2FuIEFiYXlhcywgTHV4dXJ5IEFiYXlhcywgTW9kZXJuIEFiYXlhcywgQWJheWFzIEpvcmRhbiwgQWJheWFzIFNhdWRpIEFyYWJpYSIvPjxtZXRhIG5hbWU9ImF1dGhvciIgY29udGVudD0iWmFocmF0IEJlZXNhbiBMdXh1cnkgQWJheWFzIi8+PG1ldGEgbmFtZT0icm9ib3RzIiBjb250ZW50PSJpbmRleCwgZm9sbG93LCBtYXgtaW1hZ2UtcHJldmlldzpsYXJnZSIvPjxtZXRhIHByb3BlcnR5PSJvZzp0aXRsZSIgY29udGVudD0i2LLZh9ix2Kkg2KjZitiz2KfZhiDZhNmE2LnYqNin2YrYp9iqINmI2KfZhNij2LLZitin2KEg2KfZhNmB2KfYrtix2KkgfCBaYWhyYXQgQmVlc2FuIEx1eHVyeSBBYmF5YXMiLz48bWV0YSBwcm9wZXJ0eT0ib2c6ZGVzY3JpcHRpb24iIGNvbnRlbnQ9Iti52KjYp9mK2KfYqiDYsdin2YLZitipINmI2KPYstmK2KfYoSDZgdin2K7YsdipIOKAlCDYqti12KfZhdmK2YUg2K3Ytdix2YrYqSDZiNiu2KfZhdin2Kog2LnYp9mE2YrYqSDYp9mE2KzZiNiv2KkgfCBaYWhyYXQgQmVlc2FuIEx1eHVyeSBBYmF5YXMuIi8+PG1ldGEgcHJvcGVydHk9Im9nOmltYWdlIiBjb250ZW50PSIvbG9nby5wbmciLz48bWV0YSBwcm9wZXJ0eT0ib2c6dHlwZSIgY29udGVudD0id2Vic2l0ZSIvPjxtZXRhIHByb3BlcnR5PSJvZzpzaXRlX25hbWUiIGNvbnRlbnQ9Itiy2YfYsdipINio2YrYs9in2YYgfCBaYWhyYXQgQmVlc2FuIi8+PG1ldGEgcHJvcGVydHk9Im9nOmxvY2FsZSIgY29udGVudD0iYXJfU0EiLz48bWV0YSBwcm9wZXJ0eT0ib2c6bG9jYWxlOmFsdGVybmF0ZSIgY29udGVudD0iZW5fVVMiLz48bWV0YSBuYW1lPSJ0d2l0dGVyOmNhcmQiIGNvbnRlbnQ9InN1bW1hcnlfbGFyZ2VfaW1hZ2UiLz48bWV0YSBuYW1lPSJ0d2l0dGVyOnRpdGxlIiBjb250ZW50PSLYstmH2LHYqSDYqNmK2LPYp9mGINmE2YTYudio2KfZitin2Kog2YjYp9mE2KPYstmK2KfYoSDYp9mE2YHYp9iu2LHYqSB8IFphaHJhdCBCZWVzYW4gTHV4dXJ5IEFiYXlhcyIvPjxtZXRhIG5hbWU9InR3aXR0ZXI6ZGVzY3JpcHRpb24iIGNvbnRlbnQ9Iti52KjYp9mK2KfYqiDYsdin2YLZitipINmI2KrYtdin2YXZitmFINit2LXYsdmK2Kkg2YjYrtin2YXYp9iqINi52KfZhNmK2Kkg2KfZhNis2YjYr9ipIHwgWmFocmF0IEJlZXNhbiBMdXh1cnkgQWJheWFzLiIvPjxtZXRhIG5hbWU9InRoZW1lLWNvbG9yIiBjb250ZW50PSIjZjNlYmQ5Ii8+PHNjcmlwdCB0eXBlPSJhcHBsaWNhdGlvbi9sZCtqc29uIj57DQogICAgIkBjb250ZXh0IjogImh0dHBzOi8vc2NoZW1hLm9yZyIsDQogICAgIkB0eXBlIjogIk9yZ2FuaXphdGlvbiIsDQogICAgIm5hbWUiOiAi2LLZh9ix2Kkg2KjZitiz2KfZhiB8IFphaHJhdCBCZWVzYW4iLA0KICAgICJhbHRlcm5hdGVOYW1lIjogWyJaYWhyYXQgQmVlc2FuIEx1eHVyeSBBYmF5YXMiLCAi2LnYqNin2YrYp9iqINiy2YfYsdipINio2YrYs9in2YYiXSwNCiAgICAidXJsIjogImh0dHBzOi8vemFocmF0YmVlc2FuLmNvbSIsDQogICAgImxvZ28iOiAiaHR0cHM6Ly96YWhyYXRiZWVzYW4uY29tL2xvZ28ucG5nIiwNCiAgICAic2FtZUFzIjogWw0KICAgICAgImh0dHBzOi8vd3d3Lmluc3RhZ3JhbS5jb20vemFocmF0YmVlc2FuMjAyNiIsDQogICAgICAiaHR0cHM6Ly93d3cuZmFjZWJvb2suY29tLzEyNTIwODY2NjEzMDE3ODQiLA0KICAgICAgImh0dHBzOi8vd3d3LnRpa3Rvay5jb20vQHphaHJhdGJlZXNhbiIsDQogICAgICAiaHR0cHM6Ly93d3cuc25hcGNoYXQuY29tL2FkZC96YWhyYXRiZWVzYW4iDQogICAgXQ0KICB9PC9zY3JpcHQ+PHNjcmlwdCBhc3luYyBzcmM9Imh0dHBzOi8vd3d3Lmdvb2dsZXRhZ21hbmFnZXIuY29tL2d0YWcvanM/aWQ9Ry1YWFhYWFhYWFhYIj48L3NjcmlwdD48c2NyaXB0PmZ1bmN0aW9uIGd0YWcoKXtkYXRhTGF5ZXIucHVzaChhcmd1bWVudHMpfXdpbmRvdy5kYXRhTGF5ZXI9d2luZG93LmRhdGFMYXllcnx8W10sZ3RhZygianMiLG5ldyBEYXRlKSxndGFnKCJjb25maWciLCJHLVhYWFhYWFhYWFgiKTwvc2NyaXB0PjxzY3JpcHQ+IWZ1bmN0aW9uKGUsdCxuLGMsbyxhLGYpe2UuZmJxfHwobz1lLmZicT1mdW5jdGlvbigpe28uY2FsbE1ldGhvZD9vLmNhbGxNZXRob2QuYXBwbHkobyxhcmd1bWVudHMpOm8ucXVldWUucHVzaChhcmd1bWVudHMpfSxlLl9mYnF8fChlLl9mYnE9byksby5wdXNoPW8sby5sb2FkZWQ9ITAsby52ZXJzaW9uPSIyLjAiLG8ucXVldWU9W10sKGE9dC5jcmVhdGVFbGVtZW50KG4pKS5hc3luYz0hMCxhLnNyYz0iaHR0cHM6Ly9jb25uZWN0LmZhY2Vib29rLm5ldC9lbl9VUy9mYmV2ZW50cy5qcyIsKGY9dC5nZXRFbGVtZW50c0J5VGFnTmFtZShuKVswXSkucGFyZW50Tm9kZS5pbnNlcnRCZWZvcmUoYSxmKSl9KHdpbmRvdyxkb2N1bWVudCwic2NyaXB0IiksZmJxKCJpbml0IiwiOTA5ODE3MjYyMTY3ODQ3IiksZmJxKCJ0cmFjayIsIlBhZ2VWaWV3Iik8L3NjcmlwdD48bm9zY3JpcHQ+PGltZyBoZWlnaHQ9IjEiIHdpZHRoPSIxIiBzdHlsZT0iZGlzcGxheTpub25lIiBzcmM9Imh0dHBzOi8vd3d3LmZhY2Vib29rLmNvbS90cj9pZD05MDk4MTcyNjIxNjc4NDcmZXY9UGFnZVZpZXcmbm9zY3JpcHQ9MSIvPjwvbm9zY3JpcHQ+PGxpbmsgcmVsPSJpY29uIiB0eXBlPSJpbWFnZS94LWljb24iIGhyZWY9Ii9mYXZpY29uLmljbz92PTIiLz48bGluayByZWw9Imljb24iIHR5cGU9ImltYWdlL3BuZyIgc2l6ZXM9IjUxMng1MTIiIGhyZWY9Ii9sb2dvLnBuZz92PTIiLz48bGluayByZWw9Imljb24iIHR5cGU9ImltYWdlL3BuZyIgc2l6ZXM9IjE5MngxOTIiIGhyZWY9Ii9sb2dvLnBuZz92PTIiLz48bGluayByZWw9Imljb24iIHR5cGU9ImltYWdlL3BuZyIgc2l6ZXM9IjMyeDMyIiBocmVmPSIvbG9nby5wbmc/dj0yIi8+PGxpbmsgcmVsPSJpY29uIiB0eXBlPSJpbWFnZS9wbmciIHNpemVzPSIxNngxNiIgaHJlZj0iL2xvZ28ucG5nP3Y9MiIvPjxsaW5rIHJlbD0ic2hvcnRjdXQgaWNvbiIgdHlwZT0iaW1hZ2UveC1pY29uIiBocmVmPSIvZmF2aWNvbi5pY28/dj0yIi8+PGxpbmsgcmVsPSJhcHBsZS10b3VjaC1pY29uIiBzaXplcz0iMTgweDE4MCIgaHJlZj0iL2xvZ28ucG5nP3Y9MiIvPjxsaW5rIHJlbD0icHJlY29ubmVjdCIgaHJlZj0iaHR0cHM6Ly9mb250cy5nb29nbGVhcGlzLmNvbSIvPjxsaW5rIHJlbD0icHJlY29ubmVjdCIgaHJlZj0iaHR0cHM6Ly9mb250cy5nc3RhdGljLmNvbSIgY3Jvc3NvcmlnaW4vPjxsaW5rIGhyZWY9Imh0dHBzOi8vZm9udHMuZ29vZ2xlYXBpcy5jb20vY3NzMj9mYW1pbHk9Q2F2ZWF0OndnaHRANTAwOzcwMCZmYW1pbHk9RE0rU2FuczppdGFsLG9wc3osd2dodEAwLDkuLjQwLDMwMC4uNzAwOzEsOS4uNDAsMzAwLi43MDAmZmFtaWx5PURNK1NlcmlmK0Rpc3BsYXk6aXRhbEAwOzEmZmFtaWx5PUludGVyOndnaHRAMzAwOzQwMDs1MDA7NjAwOzcwMDs4MDAmZmFtaWx5PUxvcmE6aXRhbCx3Z2h0QDAsNDAwLi43MDA7MSw0MDAuLjcwMCZkaXNwbGF5PXN3YXAiIHJlbD0ic3R5bGVzaGVldCIvPjxsaW5rIHJlbD0ibWFuaWZlc3QiIGhyZWY9Ii9tYW5pZmVzdC5qc29uIi8+PG1ldGEgbmFtZT0ibW9iaWxlLXdlYi1hcHAtY2FwYWJsZSIgY29udGVudD0ieWVzIi8+PG1ldGEgbmFtZT0iYXBwbGUtbW9iaWxlLXdlYi1hcHAtY2FwYWJsZSIgY29udGVudD0ieWVzIi8+PG1ldGEgbmFtZT0iYXBwbGUtbW9iaWxlLXdlYi1hcHAtc3RhdHVzLWJhci1zdHlsZSIgY29udGVudD0iYmxhY2stdHJhbnNsdWNlbnQiLz48bWV0YSBuYW1lPSJhcHBsZS1tb2JpbGUtd2ViLWFwcC10aXRsZSIgY29udGVudD0i2LLZh9ix2Kkg2KjZitiz2KfZhiIvPjxzdHlsZT4jZ29vZy1ndC10dCwuVklwZ0pkLXlEZmUtYjJmc29kLXY2NTgwZCwuZ29vZy10ZS1iYWxsb29uLWZyYW1lLC5nb29nLXRlLWJhbm5lci1mcmFtZSwuZ29vZy10ZS1iYW5uZXItZnJhbWUuc2tpcHRyYW5zbGF0ZSwuZ29vZy10ZS1nYWRnZXQtaWNvbiwuZ29vZy10ZS1tZW51LWZyYW1lLC5nb29nLXRlLXNwaW5uZXItcG9zLC5nb29nLXRleHQtaGlnaGxpZ2h0LC5nb29nLXRvb2x0aXAsLmdvb2ctdG9vbHRpcDpob3Zlciwuc2tpcHRyYW5zbGF0ZSxpZnJhbWUuc2tpcHRyYW5zbGF0ZXtkaXNwbGF5Om5vbmUhaW1wb3J0YW50O3Zpc2liaWxpdHk6aGlkZGVuIWltcG9ydGFudDtvcGFjaXR5OjAhaW1wb3J0YW50O3BvaW50ZXItZXZlbnRzOm5vbmUhaW1wb3J0YW50O2hlaWdodDowIWltcG9ydGFudDt3aWR0aDowIWltcG9ydGFudH1ib2R5e3RvcDowIWltcG9ydGFudDtwb3NpdGlvbjpzdGF0aWMhaW1wb3J0YW50O21hcmdpbi10b3A6MCFpbXBvcnRhbnR9aHRtbHt0b3A6MCFpbXBvcnRhbnQ7cG9zaXRpb246c3RhdGljIWltcG9ydGFudH0jZ29vZ2xlX3RyYW5zbGF0ZV9lbGVtZW50IC5nb29nLXRlLWdhZGdldC1zaW1wbGV7YmFja2dyb3VuZDowIDAhaW1wb3J0YW50O2JvcmRlcjpub25lIWltcG9ydGFudDtwYWRkaW5nOjAhaW1wb3J0YW50O2ZvbnQtc2l6ZTouNzhyZW0haW1wb3J0YW50fSNnb29nbGVfdHJhbnNsYXRlX2VsZW1lbnQgLmdvb2ctdGUtZ2FkZ2V0LXNpbXBsZSBhLCNnb29nbGVfdHJhbnNsYXRlX2VsZW1lbnQgLmdvb2ctdGUtZ2FkZ2V0LXNpbXBsZSBzcGFue2NvbG9yOmluaGVyaXQhaW1wb3J0YW50O3RleHQtZGVjb3JhdGlvbjpub25lIWltcG9ydGFudH0jZ29vZ2xlX3RyYW5zbGF0ZV9lbGVtZW50IGltZ3tkaXNwbGF5Om5vbmUhaW1wb3J0YW50fSNnb29nbGVfdHJhbnNsYXRlX2VsZW1lbnQgLmdvb2ctdGUtZ2FkZ2V0LXNpbXBsZSAuZ29vZy10ZS1tZW51LXZhbHVle2NvbG9yOmluaGVyaXQhaW1wb3J0YW50fS5nb29nLXRlLWdhZGdldD5zcGFue2Rpc3BsYXk6bm9uZSFpbXBvcnRhbnR9PC9zdHlsZT48c2NyaXB0IGRlZmVyPSJkZWZlciIgc3JjPSIvc3RhdGljL2pzL21haW4uZjc1NjAyYmIuanMiPjwvc2NyaXB0PjxsaW5rIGhyZWY9Ii9zdGF0aWMvY3NzL21haW4uNTA4ZjYwYjQuY3NzIiByZWw9InN0eWxlc2hlZXQiPjwvaGVhZD48Ym9keT48bm9zY3JpcHQ+SmF2YVNjcmlwdCBpcyByZXF1aXJlZCB0byB2aWV3IHRoaXMgc2l0ZS48L25vc2NyaXB0PjxkaXYgaWQ9Imdvb2dsZV90cmFuc2xhdGVfZWxlbWVudCIgc3R5bGU9ImRpc3BsYXk6bm9uZSI+PC9kaXY+PGRpdiBpZD0icm9vdCI+PC9kaXY+PC9ib2R5PjwvaHRtbD4=', 'base64').toString('utf8');
 
 // Ensure the public/images directory exists to prevent upload crashes
@@ -880,26 +896,18 @@ app.post('/api/orders', async (req, res) => {
     await conn.commit();
 
     // Send admin notification email to zahratbeesanshop@gmail.com
-    const adminEmailToNotify = process.env.STORE_ADMIN_EMAIL || 'zahratbeesanshop@gmail.com';
-    if (process.env.SMTP_USER && process.env.SMTP_PASS) {
-      try {
-        transporter.sendMail({
-          from: `"زهرة بيسان" <${process.env.SMTP_USER}>`,
-          to: adminEmailToNotify,
-          subject: `🛍️ طلب جديد بقيمة ${totalAmount} JOD من ${customer_name}`,
-          html: `
-            <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; color: #333;">
-              <h2 style="color: #c5a880;">وصل طلب جديد على متجر زهرة بيسان!</h2>
-              <p><b>رقم الطلب:</b> #${orderId}</p>
-              <p><b>اسم العميلة:</b> ${customer_name}</p>
-              <p><b>رقم الهاتف:</b> ${phone || 'غير مدخل'}</p>
-              <p><b>البريد الإلكتروني:</b> ${email || 'غير مدخل'}</p>
-              <p><b>عنوان التوصيل:</b> ${delivery_address || 'استلام'}</p>
-              <p style="font-size: 1.2rem; color: #5c3d1e;"><b>المبلغ الإجمالي:</b> ${totalAmount} JOD</p>
-            </div>
-          `
-        }).catch(e => console.error('[Order Notification Email Error]:', e.message));
-      } catch (_) {}
+    try {
+      await sendStoreNotificationEmail({
+        subject: `🛍️ [طلب شراء جديد #${orderId}] بقيمة ${totalAmount} JOD من ${customer_name}`,
+        title: 'وصل طلب شراء جديد على متجر زهرة بيسان!',
+        senderName: customer_name,
+        senderEmail: email,
+        senderPhone: phone,
+        content: `رقم الطلب: #${orderId}\nالعميلة: ${customer_name}\nالهاتف: ${phone || 'غير مدخل'}\nالعنوان: ${delivery_address || 'استلام'}\nالمبلغ الإجمالي: ${totalAmount} JOD`,
+        detailsHtml: `<div style="margin-top: 10px; font-size: 1.15rem; color: #b8943a; font-weight: bold;">المبلغ الإجمالي: ${totalAmount} JOD</div>`
+      });
+    } catch (e) {
+      console.error('[Order Notification Email Error]:', e.message);
     }
 
     res.status(201).json({ success: true, orderId });
@@ -1238,34 +1246,18 @@ db.query("SHOW COLUMNS FROM categories", (err, columns) => {
 
 // Helper to send instant notification email to official store email
 async function sendStoreNotificationEmail({ subject, title, senderName, senderEmail, senderPhone, content, detailsHtml = '' }) {
-  const storeEmail = process.env.STORE_EMAIL || process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
-  const smtpUser = process.env.SMTP_USER || 'zahratbeesanshop@gmail.com';
-  const smtpPass = (process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || 'xonwujxfjuciraei').replace(/\s+/g, '');
-
-  if (!smtpPass) {
-    console.log(`[Notification Info] Message logged in database and visible in /admin/messages. (Set SMTP_PASS in Azure app settings for automated Gmail forwarding).`);
-    return false;
-  }
-
   try {
-    const emailTransporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: smtpUser,
-        pass: smtpPass
-      }
-    });
-
-    await emailTransporter.sendMail({
-      from: `"متجر زهرة بيسان" <${smtpUser}>`,
-      to: storeEmail,
-      replyTo: senderEmail || storeEmail,
-      subject: subject,
+    const timeStr = new Date().toLocaleTimeString('ar-JO', { timeZone: 'Asia/Amman' });
+    const info = await transporter.sendMail({
+      from: `"متجر زهرة بيسان الفاخر" <${SMTP_USER}>`,
+      to: STORE_EMAIL,
+      replyTo: senderEmail || STORE_EMAIL,
+      subject: subject || `📬 [إشعار جديد] من متجر زهرة بيسان (${timeStr})`,
       html: `
-        <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: right; background-color: #fcf9f5; padding: 25px; border-radius: 12px; max-width: 600px; margin: auto; border: 1px solid #e8dfd8;">
+        <div dir="rtl" style="font-family: Arial, sans-serif; text-align: right; background-color: #fcf9f5; padding: 25px; border-radius: 12px; max-width: 600px; margin: auto; border: 2px solid #b8943a;">
           <div style="text-align: center; margin-bottom: 20px;">
             <h2 style="color: #b8943a; margin: 0; font-size: 22px;">👑 متجر زهرة بيسان الفاخر</h2>
-            <p style="color: #555; font-size: 15px; font-weight: bold; margin-top: 5px;">${title}</p>
+            <p style="color: #555; font-size: 15px; font-weight: bold; margin-top: 5px;">${title || 'إشعار جديد من المتجر'}</p>
           </div>
           
           <div style="background: #ffffff; padding: 20px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px; line-height: 1.8;">
@@ -1273,7 +1265,7 @@ async function sendStoreNotificationEmail({ subject, title, senderName, senderEm
             <p style="margin: 6px 0;"><strong>📧 البريد الإلكتروني:</strong> <a href="mailto:${senderEmail}" style="color: #b8943a; font-weight: bold;">${senderEmail || 'غير محدد'}</a></p>
             ${senderPhone ? `<p style="margin: 6px 0;"><strong>📱 الهاتف:</strong> <a href="tel:${senderPhone}" style="color: #b8943a; font-weight: bold;">${senderPhone}</a></p>` : ''}
             <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-              <strong>📝 نص الرسالة:</strong>
+              <strong>📝 نص الرسالة / التفاصيل:</strong>
               <p style="background: #fdfbf7; padding: 14px; border-radius: 6px; border-right: 4px solid #b8943a; white-space: pre-wrap; color: #222; margin-top: 8px; line-height: 1.6;">${content}</p>
             </div>
             ${detailsHtml}
@@ -1284,14 +1276,14 @@ async function sendStoreNotificationEmail({ subject, title, senderName, senderEm
               فتح صندوق الرسائل في لوحة التحكم ←
             </a>
           </div>
-          <p style="text-align: center; color: #999; font-size: 11px; margin-top: 20px;">تم إرسال هذا الإشعار تلقائياً من نظام متجر زهرة بيسان</p>
+          <p style="text-align: center; color: #999; font-size: 11px; margin-top: 20px;">وقت الإرسال: ${timeStr} — تم إرسال هذا الإشعار تلقائياً من نظام متجر زهرة بيسان</p>
         </div>
       `
     });
-    console.log(`[Email Sent] Instant message notification successfully forwarded to ${storeEmail}`);
+    console.log(`[Email Sent] Instant message notification successfully delivered to ${STORE_EMAIL}. ID: ${info.messageId}`);
     return true;
   } catch (err) {
-    console.error(`[Email Sending Error]`, err.message);
+    console.error(`[Email Sending Error]:`, err.message);
     return false;
   }
 }
@@ -1303,14 +1295,18 @@ app.post('/api/contact', async (req, res) => {
   db.query('INSERT INTO contact_messages (name, email, message) VALUES (?, ?, ?)', [name, email, message], async (err, result) => {
     if (err) return res.status(500).json({ error: err.message });
     
-    // Asynchronously dispatch instant email notification to official store inbox
-    sendStoreNotificationEmail({
-      subject: `📬 رسالة تواصل جديدة من: ${name} (متجر زهرة بيسان)`,
-      title: 'تم استلام استفسار / رسالة جديدة من نموذج التواصل',
-      senderName: name,
-      senderEmail: email,
-      content: message
-    }).catch(() => {});
+    // Guaranteed instant email delivery to store inbox
+    try {
+      await sendStoreNotificationEmail({
+        subject: `📬 [رسالة جديدة من عميل] ${name} (متجر زهرة بيسان)`,
+        title: 'تم استلام رسالة واستفسار جديد من نموذج التواصل',
+        senderName: name,
+        senderEmail: email,
+        content: message
+      });
+    } catch (e) {
+      console.error('[Contact Email Dispatch Error]:', e);
+    }
 
     res.status(201).json({ success: true, id: result.insertId });
   });
@@ -2717,16 +2713,7 @@ app.get('/api/admin/abandoned-carts', (req, res) => {
   });
 });
 
-// Configure NodeMailer (Uses environment variables)
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+
 
 app.post('/api/admin/abandoned-carts/send-reminder', async (req, res) => {
   const { id } = req.body;
