@@ -80,6 +80,8 @@ async function cleanDiskSpace(scmHost, basicAuth) {
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/release/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/server_bundled.js', 'DELETE', null, { 'If-Match': '*' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/static/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/static/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
   } catch (e) {}
   ghNotice('✅ Disk cleanup completed.');
 }
