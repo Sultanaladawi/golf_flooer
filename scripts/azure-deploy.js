@@ -212,7 +212,8 @@ async function main() {
 
   // STEP 7: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
   try {
-    ghNotice('🔄 Triggering instant live server recycle...');
+    ghNotice('🔄 Triggering instant live server recycle and worker reload...');
+    await runKuduCommand(scmHost, basicAuth, 'powershell -Command "Get-Process node, w3wp -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue"');
     await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
     await makeKuduRequest(scmHost, basicAuth, '/api/restart', 'POST');
   } catch (e) {}
