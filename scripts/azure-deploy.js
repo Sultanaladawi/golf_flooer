@@ -193,7 +193,8 @@ async function main() {
       STORE_EMAIL: 'zahratbeesanshop@gmail.com',
       SMTP_USER: 'zahratbeesanshop@gmail.com',
       SMTP_PASS: process.env.SMTP_PASS || process.env.GMAIL_APP_PASSWORD || defaultSmtpPass,
-      GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD || defaultSmtpPass
+      GMAIL_APP_PASSWORD: process.env.GMAIL_APP_PASSWORD || defaultSmtpPass,
+      AZURE_RESTART_TRIGGER: String(Date.now())
     };
 
     // Get existing settings first
@@ -207,8 +208,19 @@ async function main() {
     ghNotice('Warning: Could not sync env vars: ' + e.message);
   }
 
-  // STEP 1: FREE UP DISK SPACE AND REMOVE STALE RUNNERS
+  // STEP 1: FREE UP DISK SPACE AND KILL RUNNING PROCESSES VIA KUDU DEBUG PRIVILEGE
   await cleanDiskSpace(scmHost, basicAuth);
+
+  try {
+    const procsRes = await makeKuduRequest(scmHost, basicAuth, '/api/processes', 'GET');
+    const procs = JSON.parse(procsRes.body || '[]');
+    for (const p of procs) {
+      if (p.name && (p.name.toLowerCase().includes('node') || p.name.toLowerCase().includes('w3wp'))) {
+        ghNotice(`Terminating stale process ${p.name} (PID: ${p.id})...`);
+        await makeKuduRequest(scmHost, basicAuth, `/api/processes/${p.id}`, 'DELETE');
+      }
+    }
+  } catch(e) {}
 
   // Diagnostic: Check what files and processes are currently on Azure
   const dirCheck = await runKuduCommand(scmHost, basicAuth, 'dir site\\wwwroot');
