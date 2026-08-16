@@ -94,7 +94,8 @@ const _AI_KEYS = (() => {
 })();
 
 let openai = null;
-const API_KEY = (process.env.OPENAI_API_KEY || _AI_KEYS.openai).trim();
+const rawOpenAIKey = (process.env.OPENAI_API_KEY || '').trim();
+const API_KEY = (rawOpenAIKey && rawOpenAIKey !== 'your_key_here' ? rawOpenAIKey : _AI_KEYS.openai).trim();
 
 if (API_KEY && API_KEY !== 'your_key_here') {
   const IS_GITHUB = API_KEY.startsWith('github_') || API_KEY.startsWith('ghp_');
@@ -117,8 +118,9 @@ if (API_KEY && API_KEY !== 'your_key_here') {
 
 // Initialize Google Gemini
 let gemini = null;
-const GEMINI_KEY = (process.env.GEMINI_API_KEY || _AI_KEYS.gemini).trim();
-if (GEMINI_KEY) {
+const rawGeminiKey = (process.env.GEMINI_API_KEY || '').trim();
+const GEMINI_KEY = (rawGeminiKey && rawGeminiKey !== 'your_key_here' ? rawGeminiKey : _AI_KEYS.gemini).trim();
+if (GEMINI_KEY && GEMINI_KEY !== 'your_key_here') {
   gemini = new GoogleGenerativeAI(GEMINI_KEY);
   console.log('------------------------------------------');
   console.log('✨ GEMINI AI: Initialized successfully!');
@@ -126,7 +128,6 @@ if (GEMINI_KEY) {
 } else {
   console.warn('[WARNING] GEMINI_API_KEY missing. Gemini AI disabled.');
 }
-
 
 const app = express();
 const PORT = process.env.PORT || process.env.SERVER_PORT || 8080;
@@ -3792,7 +3793,42 @@ app.post('/api/admin/log', (req, res) => {
 });
 
 app.get('/api/test-ai', (req, res) => {
-  res.json({ message: 'AI Server is reachable!', openai: !!openai });
+  res.json({ message: 'AI Server is reachable!', openai: !!openai, gemini: !!gemini });
+});
+
+app.get('/api/ai-diagnostics', async (req, res) => {
+  const result = {
+    openai_initialized: !!openai,
+    gemini_initialized: !!gemini,
+    openai_key_prefix: API_KEY ? API_KEY.substring(0, 10) + '...' : 'none',
+    gemini_key_prefix: GEMINI_KEY ? GEMINI_KEY.substring(0, 10) + '...' : 'none',
+    server_time: new Date().toISOString()
+  };
+  
+  if (gemini) {
+    try {
+      const model = gemini.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const r = await model.generateContent('Say hello in Arabic');
+      result.gemini_test = r.response.text();
+    } catch (e) {
+      result.gemini_error = e.message;
+    }
+  }
+
+  if (openai) {
+    try {
+      const completion = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'Say hello in Arabic' }],
+        max_tokens: 20
+      });
+      result.openai_test = completion.choices[0]?.message?.content;
+    } catch (e) {
+      result.openai_error = e.message;
+    }
+  }
+
+  res.json(result);
 });
 
 app.post('/api/ai-assistant-logs', (req, res) => {
