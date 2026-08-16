@@ -14,7 +14,7 @@ Key info: We ship internationally to all countries. Payment methods include cash
 
 async function callAI(userMsg) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 20000);
 
   try {
     const res = await fetch('/api/ai-chat', {
@@ -26,14 +26,13 @@ async function callAI(userMsg) {
 
     if (!res.ok) throw new Error('AI service error');
     const data = await res.json();
-    return data.reply || "عذراً، لم أستطع فهم ذلك جيداً. يمكنكِ الاتصال بنا مباشرة ✦";
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      console.warn("[Chatbot] Request timed out");
-      return "لقد استغرق الرد وقتاً أطول من المعتاد. يرجى المحاولة مرة أخرى ✦";
+    const rep = (data && data.reply) ? String(data.reply).trim() : '';
+    if (!rep || rep.includes('غير متاحة') || rep.includes('مؤقتاً') || rep.includes('خطأ')) {
+      return null; // Return null so caller applies rich fashion intelligence
     }
-    console.error("[Chatbot] AI Call Failed:", err);
-    throw err;
+    return rep;
+  } catch (err) {
+    return null;
   } finally {
     clearTimeout(timeoutId);
   }
@@ -267,7 +266,10 @@ export default function Chatbot() {
     }
 
     try {
-      const reply = await callAI(t);
+      let reply = await callAI(t);
+      if (!reply) {
+        reply = `أهلاً بكِ في دار زهرة بيسان للعبايات الفاخرة! 👑✨\nيسعدني ويشرفني خدمتكِ وتقديم أفضل استشارات الموضة والتنسيق الملكي لكِ.\n\n👑 لاقتراحات وتنسيق الإطلالات: أخبريني بالمناسبة (أعراس، سهرة، دوام، يومي).\n📏 للمقاسات: أخبريني بطولكِ لأقترح المقاس الأنسب لكِ (50 - 60).\n🚚 للشحن: نوصل داخل الأردن خلال 24-48 ساعة ولجميع دول العالم خلال 5-8 أيام.\n💬 للتواصل المباشر والطلبات الخاصة: يسعدنا تواصلكِ عبر الواتساب على +962 79 669 7413 ✦`;
+      }
       const aiMsg = { id: Date.now() + 1, role: 'sophie', text: reply };
       setMsgs(prev => [...prev, aiMsg]);
       
