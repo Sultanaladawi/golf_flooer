@@ -170,10 +170,15 @@ async function main() {
     await deployViaZipDeploy(scmHost, basicAuth, buildZip);
   }
 
-  // STEP 4: UPLOAD SERVER.JS DIRECTLY
+  // STEP 4: UPLOAD SERVER.JS AND WEB.CONFIG DIRECTLY
   const serverJsPath = path.resolve(process.cwd(), 'server.js');
   if (fs.existsSync(serverJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverJsPath);
+  }
+
+  const webConfigPath = path.resolve(process.cwd(), 'web.config');
+  if (fs.existsSync(webConfigPath)) {
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/web.config', webConfigPath);
   }
 
   // STEP 5: UPLOAD HERO VIDEO (SULTANA DRESS) DIRECTLY IF PRESENT
