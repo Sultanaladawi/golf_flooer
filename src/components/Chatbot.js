@@ -49,7 +49,9 @@ export default function Chatbot() {
     try {
       localStorage.removeItem('zb_ai_chat_history');
       localStorage.removeItem('zb_ai_chat_history_v2');
-      const saved = localStorage.getItem('zb_ai_chat_history_v4');
+      localStorage.removeItem('zb_ai_chat_history_v3');
+      localStorage.removeItem('zb_ai_chat_history_v4');
+      const saved = localStorage.getItem('zb_ai_chat_history_v5');
       if (saved) {
         const parsed = JSON.parse(saved);
         const clean = parsed.filter(m => !m.text.includes('غير متاحة') && !m.text.includes('خطأ'));
@@ -65,6 +67,7 @@ export default function Chatbot() {
     stopSpeech();
     setMsgs(WELCOME);
     try {
+      localStorage.removeItem('zb_ai_chat_history_v5');
       localStorage.removeItem('zb_ai_chat_history_v4');
       localStorage.removeItem('zb_ai_chat_history');
     } catch(e) {}
@@ -82,7 +85,7 @@ export default function Chatbot() {
   // 💾 Persist AI chat history in localStorage
   useEffect(() => {
     try {
-      localStorage.setItem('zb_ai_chat_history_v4', JSON.stringify(msgs));
+      localStorage.setItem('zb_ai_chat_history_v5', JSON.stringify(msgs));
     } catch(e) {}
   }, [msgs]);
 
@@ -318,27 +321,31 @@ export default function Chatbot() {
           </div>
         </div>
 
-        <div className={styles.messages} style={{ background: '#fcfaf6' }}>
+        <div className={styles.messages} style={{ background: '#f8f5f0' }}>
           {msgs.map(m => (
             <div key={m.id} className={`${styles.msg} ${m.role === 'user' ? styles.userMsg : styles.sophieMsg}`}>
-              {m.role === 'sophie' && <div className={styles.msgAvatar} style={{ background: 'linear-gradient(135deg, #c5a880, #a6865d)' }}><i className="fas fa-gem" style={{ color: '#1a1209' }} /></div>}
+              {m.role === 'sophie' && (
+                <div className={styles.msgAvatar} style={{ background: 'linear-gradient(135deg, #b8943a, #8c6d23)', color: '#ffffff' }}>
+                  <i className="fas fa-gem" style={{ color: '#ffffff' }} />
+                </div>
+              )}
               <div 
                 className={styles.bubble} 
                 style={m.role === 'user' 
-                  ? { background: 'linear-gradient(135deg, #c5a880, #a6865d)', color: '#1a1209', fontWeight: 600, borderBottomRightRadius: '4px' } 
-                  : { background: '#ffffff', color: '#1a1209', border: '1px solid rgba(197, 168, 128, 0.3)', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', fontWeight: 500, borderBottomLeftRadius: '4px' }
+                  ? { background: 'linear-gradient(135deg, #1c1208, #362211)', color: '#ffffff', fontWeight: 600, borderBottomRightRadius: '4px', border: '1.5px solid #b8943a', boxShadow: '0 4px 14px rgba(28,18,8,0.3)' } 
+                  : { background: '#ffffff', color: '#111111', border: '1.5px solid #d4af37', boxShadow: '0 4px 18px rgba(0,0,0,0.08)', fontWeight: 500, borderBottomLeftRadius: '4px' }
                 }
               >
-                <div style={{ color: m.role === 'user' ? '#1a1209' : '#1a1209', whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                <div style={{ color: m.role === 'user' ? '#ffffff' : '#111111', whiteSpace: 'pre-line', lineHeight: '1.65', fontSize: '0.94rem', fontWeight: m.role === 'user' ? '600' : '500' }}>
                   {m.text}
                 </div>
                 {m.role === 'sophie' && (
-                  <div style={{ textAlign: 'left', marginTop: '6px' }}>
+                  <div style={{ textAlign: 'left', marginTop: '8px' }}>
                     <button 
                       onClick={() => speaking ? stopSpeech() : speakText(m.text)}
                       title={speaking ? 'إيقاف الاستماع' : 'استمع للرسالة'}
                       className={styles.listenBtn}
-                      style={speaking ? { background: 'rgba(255, 77, 77, 0.15)', color: '#cc0000', border: '1px solid rgba(255, 77, 77, 0.3)' } : {}}
+                      style={speaking ? { background: '#fee2e2', color: '#dc2626', border: '1px solid #ef4444' } : { background: '#f3f4f6', color: '#1f2937', border: '1px solid #d1d5db' }}
                     >
                       <i className={`fas ${speaking ? 'fa-stop-circle' : 'fa-volume-up'}`} /> 
                       {speaking ? ' إيقاف' : ' استمع'}
@@ -350,15 +357,15 @@ export default function Chatbot() {
           ))}
           {typing && (
             <div className={`${styles.msg} ${styles.sophieMsg}`}>
-              <div className={styles.msgAvatar} style={{ background: 'var(--gold)' }}><i className="fas fa-gem" style={{ color: 'var(--espresso)' }} /></div>
-              <div className={`${styles.bubble} ${styles.typing}`}><span /><span /><span /></div>
+              <div className={styles.msgAvatar} style={{ background: '#b8943a', color: '#ffffff' }}><i className="fas fa-gem" style={{ color: '#ffffff' }} /></div>
+              <div className={`${styles.bubble} ${styles.typing}`} style={{ background: '#ffffff', border: '1.5px solid #d4af37' }}><span /><span /><span /></div>
             </div>
           )}
           {msgs.length <= 2 && (
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '8px 12px 14px', direction: 'rtl' }}>
-              <button onClick={() => send('الأسعار والمقاسات')} style={{ background: 'rgba(197, 168, 128, 0.12)', border: '1px solid rgba(197, 168, 128, 0.3)', color: 'var(--gold-dim, #a6865d)', borderRadius: '16px', padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>💰 الأسعار والمقاسات</button>
-              <button onClick={() => send('التوصيل والشحن')} style={{ background: 'rgba(197, 168, 128, 0.12)', border: '1px solid rgba(197, 168, 128, 0.3)', color: 'var(--gold-dim, #a6865d)', borderRadius: '16px', padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>🚚 التوصيل والشحن</button>
-              <button onClick={() => send('سياسة التبديل')} style={{ background: 'rgba(197, 168, 128, 0.12)', border: '1px solid rgba(197, 168, 128, 0.3)', color: 'var(--gold-dim, #a6865d)', borderRadius: '16px', padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}>🔄 سياسة التبديل</button>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '10px 12px 14px', direction: 'rtl' }}>
+              <button onClick={() => send('الأسعار والمقاسات')} style={{ background: '#ffffff', border: '1.5px solid #b8943a', color: '#1c1208', borderRadius: '16px', padding: '7px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>💰 الأسعار والمقاسات</button>
+              <button onClick={() => send('التوصيل والشحن')} style={{ background: '#ffffff', border: '1.5px solid #b8943a', color: '#1c1208', borderRadius: '16px', padding: '7px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>🚚 التوصيل والشحن</button>
+              <button onClick={() => send('سياسة التبديل')} style={{ background: '#ffffff', border: '1.5px solid #b8943a', color: '#1c1208', borderRadius: '16px', padding: '7px 14px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>🔄 سياسة التبديل</button>
             </div>
           )}
           <div ref={endRef} />
@@ -368,7 +375,7 @@ export default function Chatbot() {
         {msgs.length === WELCOME.length && (
           <div className={styles.quickReplies}>
             {sophieKnowledge.quickReplies.map(q => (
-              <button key={q} className={styles.chip} onClick={() => send(q)} style={{ border: '1px solid var(--gold)', color: 'var(--espresso)' }}>{q}</button>
+              <button key={q} className={styles.chip} onClick={() => send(q)} style={{ background: '#ffffff', border: '1.5px solid #b8943a', color: '#1c1208', fontWeight: 700 }}>{q}</button>
             ))}
           </div>
         )}
