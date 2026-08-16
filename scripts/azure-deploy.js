@@ -192,6 +192,7 @@ async function main() {
   const serverJsPath = path.resolve(process.cwd(), 'server.js');
   if (fs.existsSync(serverJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverJsPath);
+    await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/release/server.js', serverJsPath);
   }
 
   const webConfigPath = path.resolve(process.cwd(), 'web.config');

@@ -38,10 +38,12 @@ jobs:
           cp -r build/static deploy_stage/
           cp -r build/portfolio deploy_stage/ 2>/dev/null || true
           
-          # Mirror build directory for fallback resolution
+          # Mirror build and release directories for fallback resolution
           mkdir -p deploy_stage/build
           cp build/index.html deploy_stage/build/
           cp -r build/static deploy_stage/build/
+          mkdir -p deploy_stage/release
+          cp server.js deploy_stage/release/server.js
           
           cd deploy_stage && zip -r -q ../build.zip . && cd ..
           echo "Ultra-fast build.zip size: $(du -sh build.zip | cut -f1)"
