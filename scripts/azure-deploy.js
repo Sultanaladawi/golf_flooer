@@ -48,6 +48,17 @@ async function makeKuduRequest(scmHost, basicAuth, reqPath, method = 'GET', data
   });
 }
 
+async function setAppOffline(scmHost, basicAuth, offline = true) {
+  if (offline) {
+    ghNotice('⏸️ Putting App Service in offline mode to release all Windows process file locks...');
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/app_offline.htm', 'PUT', Buffer.from('<!DOCTYPE html><html><body>Updating</body></html>'), { 'If-Match': '*' });
+    await new Promise(r => setTimeout(r, 2000));
+  } else {
+    ghNotice('▶️ Bringing App Service back online...');
+    await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/wwwroot/app_offline.htm', 'DELETE', null, { 'If-Match': '*' });
+  }
+}
+
 async function cleanDiskSpace(scmHost, basicAuth) {
   ghNotice('🧹 Cleaning stale logfiles and temp data on Azure...');
   try {
@@ -63,57 +74,26 @@ async function deployViaZipDeploy(scmHost, basicAuth, filePath) {
   const sizeMB = (fileBuffer.length / (1024 * 1024)).toFixed(2);
   ghNotice(`🚀 Deploying ${path.basename(filePath)} (${sizeMB} MB)...`);
 
-  // Target 1: /api/zip/site/wwwroot/build/
-  const res1 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/build/', 'PUT', fileBuffer, {
+  // Target 1: /api/zip/site/wwwroot/
+  const res1 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', fileBuffer, {
     'Content-Type': 'application/zip',
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zip/site/wwwroot/build/ response: HTTP ${res1.statusCode} ${res1.statusMessage}`);
+  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res1.statusCode} ${res1.statusMessage}`);
 
-  // Target 2: /api/zip/site/wwwroot/
-  const res2 = await makeKuduRequest(scmHost, basicAuth, '/api/zip/site/wwwroot/', 'PUT', fileBuffer, {
+  // Target 2: /api/zipdeploy
+  const res2 = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=false', 'POST', fileBuffer, {
     'Content-Type': 'application/zip',
     'If-Match': '*'
   });
-  ghNotice(`Target /api/zip/site/wwwroot/ response: HTTP ${res2.statusCode} ${res2.statusMessage}`);
+  ghNotice(`Target /api/zipdeploy response: HTTP ${res2.statusCode} ${res2.statusMessage}`);
 
-  // Target 3: /api/zipdeploy
-  const res3 = await makeKuduRequest(scmHost, basicAuth, '/api/zipdeploy?isAsync=true', 'POST', fileBuffer, {
-    'Content-Type': 'application/zip',
-    'If-Match': '*'
-  });
-  ghNotice(`Target /api/zipdeploy response: HTTP ${res3.statusCode} ${res3.statusMessage}`);
-
-  if (res1.statusCode < 300 || res2.statusCode < 300 || res3.statusCode < 300) {
-    ghNotice('✅ Deployment package successfully unpacked on Azure via ZipDeploy!');
+  if (res1.statusCode < 300 || res2.statusCode < 300) {
+    ghNotice('✅ Deployment package successfully unpacked on Azure!');
     return true;
   }
 
   return false;
-}
-
-async function uploadFolderVfs(scmHost, basicAuth, localDir, remoteBase) {
-  if (!fs.existsSync(localDir)) return;
-  const entries = fs.readdirSync(localDir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const fullLocalPath = path.join(localDir, entry.name);
-    const remotePath = `${remoteBase}/${entry.name}`;
-
-    if (entry.isDirectory()) {
-      // Create remote directory
-      await makeKuduRequest(scmHost, basicAuth, `/api/vfs/${remotePath}/`, 'PUT', null, { 'If-Match': '*' });
-      await uploadFolderVfs(scmHost, basicAuth, fullLocalPath, remotePath);
-    } else {
-      if (entry.name.endsWith('.mp4')) continue; // Videos handled separately
-      const fileBuffer = fs.readFileSync(fullLocalPath);
-      const res = await makeKuduRequest(scmHost, basicAuth, `/api/vfs/${remotePath}`, 'PUT', fileBuffer, {
-        'Content-Type': 'application/octet-stream',
-        'If-Match': '*'
-      });
-      console.log(`VFS uploaded: ${remotePath} -> HTTP ${res.statusCode}`);
-    }
-  }
 }
 
 async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = false, maxRetries = 2) {
@@ -134,16 +114,6 @@ async function uploadFileStream(scmHost, basicAuth, reqPath, filePath, isZip = f
     }
   }
   return false;
-}
-
-async function releaseProcessLocks(scmHost, basicAuth) {
-  ghNotice('🔓 Releasing Windows process file locks on node.exe...');
-  try {
-    const cmdPayload = JSON.stringify({ command: 'powershell -Command "Stop-Process -Name node -Force -ErrorAction SilentlyContinue"', dir: 'site\\wwwroot' });
-    await makeKuduRequest(scmHost, basicAuth, '/api/command', 'POST', Buffer.from(cmdPayload), {
-      'Content-Type': 'application/json'
-    });
-  } catch (e) {}
 }
 
 async function main() {
@@ -188,19 +158,13 @@ async function main() {
 
   const basicAuth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
 
-  // STEP 1: FREE UP DISK SPACE & RELEASE PROCESS LOCKS
+  // STEP 1: FREE UP DISK SPACE
   await cleanDiskSpace(scmHost, basicAuth);
-  await releaseProcessLocks(scmHost, basicAuth);
 
-  // STEP 2: DEPLOY COMPLETE PACKAGE VIA DIRECT VFS + ZIP
-  const localBuildDir = path.resolve(process.cwd(), 'build');
-  if (fs.existsSync(localBuildDir)) {
-    ghNotice('⚡ Uploading fresh React build assets directly via VFS to eliminate any chunk load errors...');
-    await uploadFolderVfs(scmHost, basicAuth, localBuildDir, 'site/wwwroot/build');
-    await uploadFolderVfs(scmHost, basicAuth, localBuildDir, 'site/wwwroot');
-    ghNotice('✅ Direct VFS upload completed.');
-  }
+  // STEP 2: SET APP OFFLINE TO FREE PROCESS LOCKS
+  await setAppOffline(scmHost, basicAuth, true);
 
+  // STEP 3: DEPLOY COMPLETE PACKAGE
   const buildZip = path.resolve(process.cwd(), 'build.zip');
   if (fs.existsSync(buildZip)) {
     await deployViaZipDeploy(scmHost, basicAuth, buildZip);
@@ -219,7 +183,10 @@ async function main() {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/hero_video.mp4', heroVideoPath, false);
   }
 
-  // STEP 6: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
+  // STEP 6: BRING APP BACK ONLINE
+  await setAppOffline(scmHost, basicAuth, false);
+
+  // STEP 7: RECYCLE SERVER FOR ZERO-DOWNTIME INSTANT ACTIVATION
   try {
     ghNotice('🔄 Triggering instant live server recycle...');
     await makeKuduRequest(scmHost, basicAuth, '/api/system/reload', 'POST');
