@@ -4391,12 +4391,6 @@ app.get('/api/catalog.json', (req, res) => {
 app.get(/.*/, (req, res) => {
   // 1. Graceful fallback for CSS bundles (always serve newest compiled CSS)
   if (req.path.startsWith('/static/css/') || (req.path.includes('.css') && req.path.startsWith('/static/'))) {
-    const requested = path.join(__dirname, 'build', req.path);
-    if (fs.existsSync(requested)) {
-      res.setHeader('Content-Type', 'text/css; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return res.sendFile(requested);
-    }
     const cssDirs = [
       path.join(__dirname, 'build', 'static', 'css'),
       path.join(__dirname, 'static', 'css')
@@ -4404,26 +4398,28 @@ app.get(/.*/, (req, res) => {
     for (const cDir of cssDirs) {
       if (fs.existsSync(cDir)) {
         const cssFiles = fs.readdirSync(cDir)
-          .filter(f => f.startsWith('main.') && f.endsWith('.css'))
+          .filter(f => f.startsWith('main.') && f.endsWith('.css') && !f.includes('.alias.'))
           .map(f => ({ name: f, time: fs.statSync(path.join(cDir, f)).mtimeMs }))
           .sort((a, b) => b.time - a.time);
         if (cssFiles.length > 0) {
           res.setHeader('Content-Type', 'text/css; charset=utf-8');
-          res.setHeader('Cache-Control', 'public, max-age=86400');
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
           return res.sendFile(path.join(cDir, cssFiles[0].name));
         }
       }
+    }
+    const requested = path.join(__dirname, 'build', req.path);
+    if (fs.existsSync(requested)) {
+      res.setHeader('Content-Type', 'text/css; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      return res.sendFile(requested);
     }
   }
 
   // 2. Graceful fallback for JS bundles (always serve newest compiled JS)
   if (req.path.startsWith('/static/js/') || (req.path.includes('.js') && req.path.startsWith('/static/'))) {
-    const requested = path.join(__dirname, 'build', req.path);
-    if (fs.existsSync(requested)) {
-      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      return res.sendFile(requested);
-    }
     const jsDirs = [
       path.join(__dirname, 'build', 'static', 'js'),
       path.join(__dirname, 'static', 'js')
@@ -4431,15 +4427,23 @@ app.get(/.*/, (req, res) => {
     for (const jDir of jsDirs) {
       if (fs.existsSync(jDir)) {
         const jsFiles = fs.readdirSync(jDir)
-          .filter(f => f.startsWith('main.') && f.endsWith('.js'))
+          .filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.includes('.alias.'))
           .map(f => ({ name: f, time: fs.statSync(path.join(jDir, f)).mtimeMs }))
           .sort((a, b) => b.time - a.time);
         if (jsFiles.length > 0) {
           res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-          res.setHeader('Cache-Control', 'public, max-age=86400');
+          res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+          res.setHeader('Pragma', 'no-cache');
+          res.setHeader('Expires', '0');
           return res.sendFile(path.join(jDir, jsFiles[0].name));
         }
       }
+    }
+    const requested = path.join(__dirname, 'build', req.path);
+    if (fs.existsSync(requested)) {
+      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+      return res.sendFile(requested);
     }
   }
 
