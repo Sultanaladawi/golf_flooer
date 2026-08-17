@@ -180,10 +180,12 @@ export default function Chatbot() {
                     lineHeight: '1.6',
                     whiteSpace: 'pre-line',
                     wordBreak: 'break-word',
-                    fontWeight: isYafa ? '600' : '500'
+                    fontWeight: isYafa ? '700' : '600'
                   }}
                 >
-                  {m.text}
+                  <span style={{ color: isYafa ? '#111111' : '#ffffff', fontWeight: 700 }}>
+                    {m.text}
+                  </span>
                 </div>
               </div>
             );
