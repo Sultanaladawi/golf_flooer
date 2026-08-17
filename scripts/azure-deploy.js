@@ -238,18 +238,26 @@ async function main() {
     await deployViaZipDeploy(scmHost, basicAuth, buildZip);
   }
 
-  // STEP 4: UPLOAD MAIN_SERVER.JS, APP.JS, SERVER.JS AND WEB.CONFIG DIRECTLY
-  const mainServerJsPath = path.resolve(process.cwd(), 'main_server.js');
+  // Helper to read built files from deploy_stage first, falling back to process.cwd()
+  const stageDir = path.resolve(process.cwd(), 'deploy_stage');
+  const getDeployFile = (relPath) => {
+    const stagePath = path.join(stageDir, relPath);
+    if (fs.existsSync(stagePath)) return stagePath;
+    return path.resolve(process.cwd(), relPath);
+  };
+
+  // STEP 4: UPLOAD MAIN_SERVER.JS, APP.JS, SERVER.JS AND WEB.CONFIG DIRECTLY FROM DEPLOY STAGE
+  const mainServerJsPath = getDeployFile('main_server.js');
   if (fs.existsSync(mainServerJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/main_server.js', mainServerJsPath);
   }
 
-  const appJsPath = path.resolve(process.cwd(), 'app.js');
+  const appJsPath = getDeployFile('app.js');
   if (fs.existsSync(appJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/app.js', appJsPath);
   }
 
-  const serverJsPath = path.resolve(process.cwd(), 'server.js');
+  const serverJsPath = getDeployFile('server.js');
   if (fs.existsSync(serverJsPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/server.js', serverJsPath);
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/release/server.js', serverJsPath);
@@ -257,14 +265,16 @@ async function main() {
   }
 
   // Direct upload of compiled index.html
-  const indexPath = path.resolve(process.cwd(), 'build', 'index.html');
+  const indexPath = getDeployFile('build/index.html');
   if (fs.existsSync(indexPath)) {
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/index.html', indexPath);
     await uploadFileStream(scmHost, basicAuth, '/api/vfs/site/wwwroot/build/index.html', indexPath);
   }
 
-  // Direct upload of all JS bundles (including alias names)
-  const jsDir = path.resolve(process.cwd(), 'build', 'static', 'js');
+  // Direct upload of all JS bundles from deploy_stage
+  const stageJsDir = path.join(stageDir, 'static', 'js');
+  const fallbackJsDir = path.resolve(process.cwd(), 'build', 'static', 'js');
+  const jsDir = fs.existsSync(stageJsDir) ? stageJsDir : fallbackJsDir;
   if (fs.existsSync(jsDir)) {
     const files = fs.readdirSync(jsDir).filter(f => f.endsWith('.js') && !f.endsWith('.map'));
     for (const f of files) {
@@ -274,8 +284,10 @@ async function main() {
     }
   }
 
-  // Direct upload of all CSS bundles (including alias names)
-  const cssDir = path.resolve(process.cwd(), 'build', 'static', 'css');
+  // Direct upload of all CSS bundles from deploy_stage
+  const stageCssDir = path.join(stageDir, 'static', 'css');
+  const fallbackCssDir = path.resolve(process.cwd(), 'build', 'static', 'css');
+  const cssDir = fs.existsSync(stageCssDir) ? stageCssDir : fallbackCssDir;
   if (fs.existsSync(cssDir)) {
     const files = fs.readdirSync(cssDir).filter(f => f.endsWith('.css') && !f.endsWith('.map'));
     for (const f of files) {
