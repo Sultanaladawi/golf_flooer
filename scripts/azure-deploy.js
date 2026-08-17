@@ -220,6 +220,7 @@ async function main() {
         await makeKuduRequest(scmHost, basicAuth, `/api/processes/${p.id}`, 'DELETE');
       }
     }
+    await runKuduCommand(scmHost, basicAuth, 'taskkill /F /IM node.exe /T');
   } catch(e) {}
 
   // Diagnostic: Check what files and processes are currently on Azure
