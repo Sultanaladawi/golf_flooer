@@ -10,41 +10,38 @@ if (!fs.existsSync(indexPath)) {
 
 let htmlContent = fs.readFileSync(indexPath, 'utf8');
 
-// Detect the current main JS and CSS hash-named files
-const jsMatch = htmlContent.match(/src="\/static\/js\/(main\.[a-f0-9]{8}\.js)"/);
-const cssMatch = htmlContent.match(/href="\/static\/css\/(main\.[a-f0-9]{8}\.css)"/);
-
-if (!jsMatch || !cssMatch) {
-  console.log('❌ Could not detect JS/CSS bundle filenames in index.html');
-  process.exit(1);
-}
-
-const jsFile = jsMatch[1];
-const cssFile = cssMatch[1];
 const REPO = 'Sultanaladawi/golf_flooer';
 const BRANCH = 'main';
 const CDN = `https://cdn.jsdelivr.net/gh/${REPO}@${BRANCH}`;
 
-console.log(`📦 JS bundle: ${jsFile}`);
-console.log(`🎨 CSS bundle: ${cssFile}`);
-console.log(`🌐 CDN base: ${CDN}`);
+// Detect the current main JS and CSS hash-named files if local
+const jsMatch = htmlContent.match(/src="\/static\/js\/(main\.[a-f0-9]{8}\.js)"/);
+const cssMatch = htmlContent.match(/href="\/static\/css\/(main\.[a-f0-9]{8}\.css)"/);
 
-// Replace local asset references with CDN URLs
-htmlContent = htmlContent
-  .replace(
-    new RegExp(`src="/static/js/${jsFile}"`, 'g'),
-    `src="${CDN}/build/static/js/${jsFile}"`
-  )
-  .replace(
-    new RegExp(`href="/static/css/${cssFile}"`, 'g'),
-    `href="${CDN}/build/static/css/${cssFile}"`
-  );
+if (jsMatch && cssMatch) {
+  const jsFile = jsMatch[1];
+  const cssFile = cssMatch[1];
+  console.log(`📦 JS bundle: ${jsFile}`);
+  console.log(`🎨 CSS bundle: ${cssFile}`);
 
-console.log(`✅ Replaced JS src with CDN URL`);
-console.log(`✅ Replaced CSS href with CDN URL`);
+  htmlContent = htmlContent
+    .replace(
+      new RegExp(`src="/static/js/${jsFile}"`, 'g'),
+      `src="${CDN}/build/static/js/${jsFile}"`
+    )
+    .replace(
+      new RegExp(`href="/static/css/${cssFile}"`, 'g'),
+      `href="${CDN}/build/static/css/${cssFile}"`
+    );
 
-// Write back to build/index.html (CDN version)
-fs.writeFileSync(indexPath, htmlContent, 'utf8');
+  console.log(`✅ Replaced JS src with CDN URL`);
+  console.log(`✅ Replaced CSS href with CDN URL`);
+  fs.writeFileSync(indexPath, htmlContent, 'utf8');
+} else if (htmlContent.includes('cdn.jsdelivr.net')) {
+  console.log(`✅ index.html already contains CDN links`);
+} else {
+  console.log(`ℹ️ Using existing index.html content`);
+}
 
 // Now embed into server files
 const b64 = Buffer.from(htmlContent, 'utf8').toString('base64');

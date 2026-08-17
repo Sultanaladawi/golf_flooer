@@ -4440,6 +4440,15 @@ app.get(/.*/, (req, res) => {
     return res.status(404).send('Asset not found');
   }
 
+  // Always prioritize fresh in-memory EMBEDDED_INDEX_HTML (CDN-backed)
+  if (typeof EMBEDDED_INDEX_HTML === 'string' && EMBEDDED_INDEX_HTML.length > 100) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.send(EMBEDDED_INDEX_HTML);
+  }
+
   const candidates = [
     path.join(__dirname, 'build', 'index.html'),
     path.join(__dirname, 'index.html')
@@ -4457,14 +4466,6 @@ app.get(/.*/, (req, res) => {
         }
       } catch (e) {}
     }
-  }
-
-  if (typeof EMBEDDED_INDEX_HTML === 'string' && EMBEDDED_INDEX_HTML.length > 100) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    return res.send(EMBEDDED_INDEX_HTML);
   }
 
   res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');
