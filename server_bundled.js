@@ -4398,7 +4398,7 @@ app.get(/.*/, (req, res) => {
     for (const cDir of cssDirs) {
       if (fs.existsSync(cDir)) {
         const cssFiles = fs.readdirSync(cDir)
-          .filter(f => f.startsWith('main.') && f.endsWith('.css') && !f.includes('.alias.'))
+          .filter(f => /^main\.[a-f0-9]{8}\.css$/.test(f))
           .map(f => ({ name: f, time: fs.statSync(path.join(cDir, f)).mtimeMs }))
           .sort((a, b) => b.time - a.time);
         if (cssFiles.length > 0) {
@@ -4409,12 +4409,6 @@ app.get(/.*/, (req, res) => {
           return res.sendFile(path.join(cDir, cssFiles[0].name));
         }
       }
-    }
-    const requested = path.join(__dirname, 'build', req.path);
-    if (fs.existsSync(requested)) {
-      res.setHeader('Content-Type', 'text/css; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-      return res.sendFile(requested);
     }
   }
 
@@ -4427,7 +4421,7 @@ app.get(/.*/, (req, res) => {
     for (const jDir of jsDirs) {
       if (fs.existsSync(jDir)) {
         const jsFiles = fs.readdirSync(jDir)
-          .filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.includes('.alias.'))
+          .filter(f => /^main\.[a-f0-9]{8}\.js$/.test(f))
           .map(f => ({ name: f, time: fs.statSync(path.join(jDir, f)).mtimeMs }))
           .sort((a, b) => b.time - a.time);
         if (jsFiles.length > 0) {
@@ -4438,12 +4432,6 @@ app.get(/.*/, (req, res) => {
           return res.sendFile(path.join(jDir, jsFiles[0].name));
         }
       }
-    }
-    const requested = path.join(__dirname, 'build', req.path);
-    if (fs.existsSync(requested)) {
-      res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-      return res.sendFile(requested);
     }
   }
 
