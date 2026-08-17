@@ -33,6 +33,9 @@ jobs:
           cp server.js deploy_stage/
           cp app.js deploy_stage/
           cp package.json deploy_stage/
+          cp web.config deploy_stage/ 2>/dev/null || true
+          # Include .env.azure so Azure server reads DB credentials and SMTP settings
+          cp .env.azure deploy_stage/ 2>/dev/null || true
           
           # Install lightweight production dependencies so server runs standalone
           (cd deploy_stage && npm install --omit=dev --legacy-peer-deps --no-audit --no-fund)

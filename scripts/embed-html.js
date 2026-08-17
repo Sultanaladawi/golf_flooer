@@ -10,40 +10,13 @@ if (!fs.existsSync(indexPath)) {
 
 let htmlContent = fs.readFileSync(indexPath, 'utf8');
 
-const REPO = 'Sultanaladawi/golf_flooer';
-const BRANCH = 'main';
-const CDN = `https://cdn.jsdelivr.net/gh/${REPO}@${BRANCH}`;
+// Strip any external CDN references and ensure clean relative paths
+htmlContent = htmlContent.replace(/https:\/\/cdn\.jsdelivr\.net\/gh\/[^/]+\/[^/]+(@[^/]+)?\/build\//g, '/');
 
-// Detect the current main JS and CSS hash-named files if local
-const jsMatch = htmlContent.match(/src="\/static\/js\/(main\.[a-f0-9]{8}\.js)"/);
-const cssMatch = htmlContent.match(/href="\/static\/css\/(main\.[a-f0-9]{8}\.css)"/);
+fs.writeFileSync(indexPath, htmlContent, 'utf8');
+console.log('✅ index.html configured for direct local/Azure serving (no CDN dependency)');
 
-if (jsMatch && cssMatch) {
-  const jsFile = jsMatch[1];
-  const cssFile = cssMatch[1];
-  console.log(`📦 JS bundle: ${jsFile}`);
-  console.log(`🎨 CSS bundle: ${cssFile}`);
-
-  htmlContent = htmlContent
-    .replace(
-      new RegExp(`src="/static/js/${jsFile}"`, 'g'),
-      `src="${CDN}/build/static/js/${jsFile}"`
-    )
-    .replace(
-      new RegExp(`href="/static/css/${cssFile}"`, 'g'),
-      `href="${CDN}/build/static/css/${cssFile}"`
-    );
-
-  console.log(`✅ Replaced JS src with CDN URL`);
-  console.log(`✅ Replaced CSS href with CDN URL`);
-  fs.writeFileSync(indexPath, htmlContent, 'utf8');
-} else if (htmlContent.includes('cdn.jsdelivr.net')) {
-  console.log(`✅ index.html already contains CDN links`);
-} else {
-  console.log(`ℹ️ Using existing index.html content`);
-}
-
-// Now embed into server files
+// Now embed into server files for instant zero-disk-latency serving
 const b64 = Buffer.from(htmlContent, 'utf8').toString('base64');
 const pattern = /const EMBEDDED_INDEX_HTML = Buffer\.from\('[^']+'\s*,\s*'base64'\)\.toString\('utf8'\);/;
 
@@ -55,7 +28,7 @@ for (const t of targets) {
     if (pattern.test(code)) {
       code = code.replace(pattern, `const EMBEDDED_INDEX_HTML = Buffer.from('${b64}', 'base64').toString('utf8');`);
       fs.writeFileSync(p, code, 'utf8');
-      console.log(`✅ Embedded CDN index.html into ${t}`);
+      console.log(`✅ Embedded direct local index.html into ${t}`);
     } else {
       console.log(`⚠️ Pattern not found in ${t}`);
     }
