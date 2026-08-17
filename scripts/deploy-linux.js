@@ -47,7 +47,7 @@ async function deploy() {
       'Content-Length': zipData.length,
       'User-Agent': 'LinuxZipDeploy/1.0'
     },
-    timeout: 120000
+    timeout: 300000
   }, res => {
     let body = '';
     res.on('data', c => body += c);
@@ -58,20 +58,20 @@ async function deploy() {
         process.exit(0);
       } else {
         console.error('❌ ZipDeploy error body:', body);
-        process.exit(0); // Do not fail pipeline
+        process.exit(1);
       }
     });
   });
 
   req.on('error', err => {
     console.error('⚠️ Request error:', err.message);
-    process.exit(0);
+    process.exit(1);
   });
 
   req.on('timeout', () => {
-    console.log('⏰ Request timed out but deployment was sent');
+    console.error('⏰ Request timed out');
     req.destroy();
-    process.exit(0);
+    process.exit(1);
   });
 
   req.write(zipData);
@@ -80,5 +80,5 @@ async function deploy() {
 
 deploy().catch(err => {
   console.error('Error:', err);
-  process.exit(0);
+  process.exit(1);
 });

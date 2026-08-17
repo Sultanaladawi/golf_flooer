@@ -312,13 +312,13 @@ app.use((req, res, next) => {
   next();
 });
 
-// Robust static file serving with zero-byte protection and multiple directory fallbacks
+// Robust static file serving with multi-directory search
 app.use('/static', (req, res, next) => {
   const relPath = req.path.replace(/^\//, '');
   const isJs = relPath.endsWith('.js');
   const isCss = relPath.endsWith('.css');
 
-  // Search all possible directories for a valid non-empty file (> 500 bytes)
+  // Search all possible static asset directories for the requested file
   const candidateDirs = [
     path.resolve(__dirname, 'build', 'static'),
     path.resolve(__dirname, 'static'),
@@ -330,26 +330,28 @@ app.use('/static', (req, res, next) => {
     if (fs.existsSync(fullPath)) {
       try {
         const sz = fs.statSync(fullPath).size;
-        if (sz > 500) {
+        if (sz > 0) {
           if (isJs) res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
           if (isCss) res.setHeader('Content-Type', 'text/css; charset=utf-8');
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
           return res.sendFile(fullPath);
         }
       } catch (_) {}
     }
   }
 
-  // Fallback for ANY JS file to the newest valid main.*.js (> 50KB)
-  if (isJs) {
+  // Fallback ONLY for main bundle requests if a hash mismatch occurred
+  if (isJs && (relPath.includes('main.') || relPath === 'main.js')) {
     for (const dir of [path.resolve(__dirname, 'build', 'static', 'js'), path.resolve(__dirname, 'static', 'js')]) {
       if (fs.existsSync(dir)) {
         try {
           const files = fs.readdirSync(dir)
-            .filter(f => f.startsWith('main.') && f.endsWith('.js'))
-            .map(f => ({ name: f, full: path.join(dir, f), sz: fs.statSync(path.join(dir, f)).size }))
-            .filter(f => f.sz > 50000);
+            .filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.endsWith('.map'))
+            .map(f => ({ name: f, full: path.join(dir, f), sz: fs.statSync(path.join(dir, f)).size, mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
+            .sort((a, b) => b.mtime - a.mtime);
           if (files.length > 0) {
             res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
             return res.sendFile(files[0].full);
           }
         } catch (_) {}
@@ -357,17 +359,17 @@ app.use('/static', (req, res, next) => {
     }
   }
 
-  // Fallback for ANY CSS file to the newest valid main.*.css (> 5KB)
-  if (isCss) {
+  if (isCss && (relPath.includes('main.') || relPath === 'main.css')) {
     for (const dir of [path.resolve(__dirname, 'build', 'static', 'css'), path.resolve(__dirname, 'static', 'css')]) {
       if (fs.existsSync(dir)) {
         try {
           const files = fs.readdirSync(dir)
-            .filter(f => f.startsWith('main.') && f.endsWith('.css'))
-            .map(f => ({ name: f, full: path.join(dir, f), sz: fs.statSync(path.join(dir, f)).size }))
-            .filter(f => f.sz > 5000);
+            .filter(f => f.startsWith('main.') && f.endsWith('.css') && !f.endsWith('.map'))
+            .map(f => ({ name: f, full: path.join(dir, f), sz: fs.statSync(path.join(dir, f)).size, mtime: fs.statSync(path.join(dir, f)).mtimeMs }))
+            .sort((a, b) => b.mtime - a.mtime);
           if (files.length > 0) {
             res.setHeader('Content-Type', 'text/css; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
             return res.sendFile(files[0].full);
           }
         } catch (_) {}
@@ -3863,32 +3865,36 @@ app.get('/api/debug-images', (req, res) => {
 
 
 // --- SETTINGS ENDPOINTS ---
-const settingsPath = path.join(dataDir, 'store_settings.json');
+// NOTE: All settings are stored in MySQL site_settings table for persistence across Azure restarts/deployments.
+// Keys stored: iban, wallet, cliqAlias, fb_page_id, fb_access_token, ig_user_id, and any other flat key/value pairs.
 
-app.get('/api/settings', (req, res) => {
+app.get('/api/settings', async (req, res) => {
   try {
-    if (fs.existsSync(settingsPath)) {
-      const data = fs.readFileSync(settingsPath, 'utf8');
-      res.json(JSON.parse(data));
-    } else {
-      res.json({ iban: '', wallet: '', cliqAlias: '' });
-    }
+    const promiseDb = db.promise();
+    const [rows] = await promiseDb.query("SELECT `key`, `value` FROM site_settings WHERE `key` NOT IN ('store_status', 'theme_primary', 'theme_bg', 'theme_text', 'theme_hover', 'hero_banners', 'hero_video_url', 'hero_media_type')");
+    const settings = { iban: '', wallet: '', cliqAlias: '' };
+    rows.forEach(r => { settings[r.key] = r.value; });
+    res.json(settings);
   } catch (err) {
+    console.error('[Settings GET Error]:', err.message);
     res.status(500).json({ error: 'Failed to read settings' });
   }
 });
 
-app.post('/api/settings', (req, res) => {
+app.post('/api/settings', async (req, res) => {
   try {
-    let existing = {};
-    if (fs.existsSync(settingsPath)) { try { existing = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (e) {} }
-    const newSettings = { ...existing, ...req.body };
-    fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2));
+    const promiseDb = db.promise();
+    const entries = Object.entries(req.body);
+    for (const [k, v] of entries) {
+      await promiseDb.query("DELETE FROM site_settings WHERE `key` = ?", [k]);
+      await promiseDb.query("INSERT INTO site_settings (`key`, `value`) VALUES (?, ?)", [k, v !== null && v !== undefined ? String(v) : '']);
+    }
     if (req.logAdminAction) {
       req.logAdminAction('Update Settings', 'Updated IBAN and/or Wallet information');
     }
     res.json({ success: true });
   } catch (err) {
+    console.error('[Settings POST Error]:', err.message);
     res.status(500).json({ error: 'Failed to save settings' });
   }
 });
@@ -3947,12 +3953,12 @@ app.post('/api/social/post', async (req, res) => {
   if (!content || !content.trim()) return res.status(400).json({ error: 'Post content is required' });
   if (!platforms || !platforms.length) return res.status(400).json({ error: 'Select at least one platform' });
 
-  // Load settings for API tokens
+  // Load settings for API tokens from MySQL (persistent across restarts)
   let settings = {};
   try {
-    const settingsPath = path.join(dataDir, 'store_settings.json');
-    if (fs.existsSync(settingsPath)) settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-  } catch (e) {}
+    const [settingRows] = await db.promise().query("SELECT `key`, `value` FROM site_settings");
+    settingRows.forEach(r => { settings[r.key] = r.value; });
+  } catch (e) { console.error('[Social Post] Failed to load settings from DB:', e.message); }
 
   const results = {};
   const isScheduled = !!scheduled_at;
@@ -4440,15 +4446,7 @@ app.get(/.*/, (req, res) => {
     return res.status(404).send('Asset not found');
   }
 
-  // Always prioritize fresh in-memory EMBEDDED_INDEX_HTML (CDN-backed)
-  if (typeof EMBEDDED_INDEX_HTML === 'string' && EMBEDDED_INDEX_HTML.length > 100) {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    return res.send(EMBEDDED_INDEX_HTML);
-  }
-
+  // 1. Try serving freshest build/index.html from disk
   const candidates = [
     path.join(__dirname, 'build', 'index.html'),
     path.join(__dirname, 'index.html')
@@ -4466,6 +4464,15 @@ app.get(/.*/, (req, res) => {
         }
       } catch (e) {}
     }
+  }
+
+  // 2. Fallback to EMBEDDED_INDEX_HTML if disk file is unavailable
+  if (typeof EMBEDDED_INDEX_HTML === 'string' && EMBEDDED_INDEX_HTML.length > 100) {
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    return res.send(EMBEDDED_INDEX_HTML);
   }
 
   res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');

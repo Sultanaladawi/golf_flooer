@@ -1,39 +1,42 @@
 const fs = require('fs');
 const path = require('path');
 
-const cssAliases = ['main.v20260817_FINAL.css', 'main.v20260817.css', 'main.c506378e.css', 'main.ff9e555f.css', 'main.f978a579.css', 'main.css'];
-const jsAliases = ['main.v20260817_FINAL.js', 'main.v20260817.js', 'main.ef562455.js', 'main.d6632411.js', 'main.dacf438b.js', 'main.2d15e045.js', 'main.b45cc53b.js', 'main.js'];
-
-const cssDir = path.resolve(__dirname, '..', 'build', 'static', 'css');
-if (fs.existsSync(cssDir)) {
-  const cssFiles = fs.readdirSync(cssDir)
-    .filter(f => f.startsWith('main.') && f.endsWith('.css') && !f.endsWith('.map') && !cssAliases.includes(f))
-    .map(f => ({ name: f, time: fs.statSync(path.join(cssDir, f)).mtimeMs }))
-    .sort((a, b) => b.time - a.time);
-
-  if (cssFiles.length > 0) {
-    const newestCss = path.join(cssDir, cssFiles[0].name);
-    console.log(`✅ Using newest compiled CSS: ${cssFiles[0].name}`);
-    cssAliases.forEach(a => {
-      fs.copyFileSync(newestCss, path.join(cssDir, a));
-    });
-    console.log('✅ CSS Aliases created:', cssAliases.join(', '));
-  }
-}
-
+// Clean up any old duplicate bundles to keep deploy package ultra-light
 const jsDir = path.resolve(__dirname, '..', 'build', 'static', 'js');
 if (fs.existsSync(jsDir)) {
-  const jsFiles = fs.readdirSync(jsDir)
-    .filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.endsWith('.map') && !jsAliases.includes(f))
+  const allFiles = fs.readdirSync(jsDir);
+  const mainFiles = allFiles
+    .filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.endsWith('.map') && f !== 'main.js')
     .map(f => ({ name: f, time: fs.statSync(path.join(jsDir, f)).mtimeMs }))
     .sort((a, b) => b.time - a.time);
 
-  if (jsFiles.length > 0) {
-    const newestJs = path.join(jsDir, jsFiles[0].name);
-    console.log(`✅ Using newest compiled JS: ${jsFiles[0].name}`);
-    jsAliases.forEach(a => {
-      fs.copyFileSync(newestJs, path.join(jsDir, a));
+  if (mainFiles.length > 0) {
+    const newest = mainFiles[0].name;
+    console.log(`✅ Active React JS bundle: ${newest}`);
+    // Only keep main.js as single alias if needed
+    fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.js'));
+    // Remove stale extra main.*.js files
+    mainFiles.slice(1).forEach(f => {
+      try { fs.unlinkSync(path.join(jsDir, f.name)); } catch (_) {}
     });
-    console.log('✅ JS Aliases created:', jsAliases.join(', '));
   }
 }
+
+const cssDir = path.resolve(__dirname, '..', 'build', 'static', 'css');
+if (fs.existsSync(cssDir)) {
+  const allFiles = fs.readdirSync(cssDir);
+  const mainFiles = allFiles
+    .filter(f => f.startsWith('main.') && f.endsWith('.css') && !f.endsWith('.map') && f !== 'main.css')
+    .map(f => ({ name: f, time: fs.statSync(path.join(cssDir, f)).mtimeMs }))
+    .sort((a, b) => b.time - a.time);
+
+  if (mainFiles.length > 0) {
+    const newest = mainFiles[0].name;
+    console.log(`✅ Active React CSS bundle: ${newest}`);
+    fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.css'));
+    mainFiles.slice(1).forEach(f => {
+      try { fs.unlinkSync(path.join(cssDir, f.name)); } catch (_) {}
+    });
+  }
+}
+console.log('✅ Clean build directory ready for packaging.');
