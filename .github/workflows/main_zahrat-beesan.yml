@@ -25,7 +25,7 @@ jobs:
           node scripts/create-aliases.js
           node scripts/embed-html.js
           
-          # Prepare ultra-fast lightweight deployment package (8MB vs 650MB)
+          # Prepare ultra-fast lightweight deployment package (< 2MB)
           rm -rf deploy_stage build.zip
           mkdir -p deploy_stage
           cp main_server.js deploy_stage/
@@ -38,13 +38,10 @@ jobs:
           cp build/manifest.json deploy_stage/ 2>/dev/null || true
           cp build/favicon.ico deploy_stage/ 2>/dev/null || true
           cp build/logo.png deploy_stage/ 2>/dev/null || true
-          cp -r build/static deploy_stage/
-          cp -r build/portfolio deploy_stage/ 2>/dev/null || true
           
-          # Mirror build and release directories for fallback resolution
+          # Mirror build and release directories
           mkdir -p deploy_stage/build
           cp build/index.html deploy_stage/build/
-          cp -r build/static deploy_stage/build/
           mkdir -p deploy_stage/release
           cp server.js deploy_stage/release/server.js
           
