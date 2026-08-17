@@ -211,42 +211,49 @@ export default function Chatbot() {
         {/* Quick Action Chips */}
         <div className={styles.quickChips}>
           <button
-            onClick={() => handleSend('ما هو جدول المقاسات المناسب لي؟')}
+            onClick={() => handleSend('💎 نسّقي لي إطلالة لمناسبة فاخرة')}
             className={styles.chip}
             style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
           >
-            📏 جدول المقاسات
+            💎 نسّقي لي إطلالة لمناسبة فاخرة
           </button>
           <button
-            onClick={() => handleSend('ما هي أحدث الأقمشة والخامات المتوفرة؟')}
+            onClick={() => handleSend('🌸 ترشيح عباية يومية أنيقة')}
             className={styles.chip}
             style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
           >
-            💎 الخامات والتطريز
+            🌸 ترشيح عباية يومية أنيقة
           </button>
           <button
-            onClick={() => handleSend('كم يستغرق الشحن والتوصيل؟')}
+            onClick={() => handleSend('❄️ ما هي تشكيلة العباية الفاخرة المتوفرة؟')}
             className={styles.chip}
             style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
           >
-            🚚 الشحن والتوصيل
+            ❄️ تشكيلة العباية الفاخرة
           </button>
           <button
-            onClick={() => handleSend('هل يوجد كود خصم متاح الآن؟')}
+            onClick={() => handleSend('📏 مساعدة في اختيار المقاس المناسب')}
+            className={styles.chip}
+            style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
+          >
+            📏 مساعدة في اختيار المقاس المناسب
+          </button>
+          <button
+            onClick={() => handleSend('✈️ ما هي تفاصيل الشحن الدولي وطرق الدفع؟')}
+            className={styles.chip}
+            style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
+          >
+            ✈️ الشحن الدولي وطرق الدفع
+          </button>
+          <button
+            onClick={() => handleSend('🏷️ هل يوجد كود خصم متاح الآن؟')}
             className={styles.chip}
             style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
           >
             🏷️ كود الخصم (BEESAN2026)
           </button>
-          <button
-            onClick={() => handleSend('ما هي سياسة الاستبدال والاسترجاع؟')}
-            className={styles.chip}
-            style={{ background: '#ffffff', color: '#1c1208', border: '1.5px solid #b8943a', fontWeight: '700' }}
-          >
-            🔄 التبديل والترجيع
-          </button>
           <a
-            href={`https://wa.me/${shopInfo.phoneClean}`}
+            href={`https://wa.me/${shopInfo.phoneClean || '962796697413'}`}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.chip}

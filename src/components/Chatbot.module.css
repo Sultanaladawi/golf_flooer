@@ -223,23 +223,44 @@
 }
 
 /* 👑 SOPHIE / YAFA BUBBLE — Crisp Black Ink on Pure White Card */
-.sophieMsg .bubble {
+.sophieMsg .bubble,
+.sophieMsg.bubble,
+.sophieMsg,
+.sophieRow .bubble,
+.sophieRow .sophieMsg {
   background: #ffffff !important;
   color: #111111 !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   border-bottom-left-radius: 4px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.07) !important;
-  border: 1.5px solid #e0d4c3 !important;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08) !important;
+  border: 1.5px solid #d4af37 !important;
+}
+
+.sophieMsg *,
+.sophieMsg .bubble *,
+.sophieRow *,
+.sophieRow .bubble * {
+  color: #111111 !important;
 }
 
 /* 👤 USER BUBBLE — Rich Gold Gradient with Crisp White Ink */
-.userMsg .bubble {
+.userMsg .bubble,
+.userMsg.bubble,
+.userMsg,
+.userRow .bubble {
   background: linear-gradient(135deg, #1c1208 0%, #362211 100%) !important;
   color: #ffffff !important;
   font-weight: 600 !important;
   border-bottom-right-radius: 4px;
-  border: 1px solid #b8943a !important;
+  border: 1.5px solid #b8943a !important;
   box-shadow: 0 4px 15px rgba(28, 18, 8, 0.35) !important;
+}
+
+.userMsg *,
+.userMsg .bubble *,
+.userRow *,
+.userRow .bubble * {
+  color: #ffffff !important;
 }
 
 .typing {
