@@ -140,6 +140,22 @@
     }
     /* Suppress Google attribution text */
     .goog-te-gadget > span { display: none !important; }
+
+    /* 👑 GLOBAL FORCE CONTRAST OVERRIDE FOR YAFA CHATBOT — OVERRIDES BROWSER DISK CACHE FOR ALL BROWSERS */
+    div[class*="sophie"], div[class*="bubble"], p[class*="bubble"], span[class*="bubble"], button[class*="chip"] {
+      color: #111111 !important;
+    }
+    div[class*="sophieMsg"] .bubble, div[class*="sophieMsg"] p, div[class*="sophieMsg"] span, div[class*="sophieRow"] p, [class*="sophieMsg"] {
+      color: #111111 !important;
+      background-color: #ffffff !important;
+    }
+    div[class*="sophieMsg"] *, div[class*="sophieRow"] * {
+      color: #111111 !important;
+    }
+    div[class*="userMsg"] .bubble, div[class*="userMsg"] p, div[class*="userMsg"] span, div[class*="userRow"] p {
+      color: #ffffff !important;
+      background: linear-gradient(135deg, #1c1208, #362211) !important;
+    }
   </style>
 </head>
 <body>
