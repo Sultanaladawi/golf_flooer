@@ -3863,32 +3863,36 @@ app.get('/api/debug-images', (req, res) => {
 
 
 // --- SETTINGS ENDPOINTS ---
-const settingsPath = path.join(dataDir, 'store_settings.json');
+// NOTE: All settings are stored in MySQL site_settings table for persistence across Azure restarts/deployments.
+// Keys stored: iban, wallet, cliqAlias, fb_page_id, fb_access_token, ig_user_id, and any other flat key/value pairs.
 
-app.get('/api/settings', (req, res) => {
+app.get('/api/settings', async (req, res) => {
   try {
-    if (fs.existsSync(settingsPath)) {
-      const data = fs.readFileSync(settingsPath, 'utf8');
-      res.json(JSON.parse(data));
-    } else {
-      res.json({ iban: '', wallet: '', cliqAlias: '' });
-    }
+    const promiseDb = db.promise();
+    const [rows] = await promiseDb.query("SELECT `key`, `value` FROM site_settings WHERE `key` NOT IN ('store_status', 'theme_primary', 'theme_bg', 'theme_text', 'theme_hover', 'hero_banners', 'hero_video_url', 'hero_media_type')");
+    const settings = { iban: '', wallet: '', cliqAlias: '' };
+    rows.forEach(r => { settings[r.key] = r.value; });
+    res.json(settings);
   } catch (err) {
+    console.error('[Settings GET Error]:', err.message);
     res.status(500).json({ error: 'Failed to read settings' });
   }
 });
 
-app.post('/api/settings', (req, res) => {
+app.post('/api/settings', async (req, res) => {
   try {
-    let existing = {};
-    if (fs.existsSync(settingsPath)) { try { existing = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch (e) {} }
-    const newSettings = { ...existing, ...req.body };
-    fs.writeFileSync(settingsPath, JSON.stringify(newSettings, null, 2));
+    const promiseDb = db.promise();
+    const entries = Object.entries(req.body);
+    for (const [k, v] of entries) {
+      await promiseDb.query("DELETE FROM site_settings WHERE `key` = ?", [k]);
+      await promiseDb.query("INSERT INTO site_settings (`key`, `value`) VALUES (?, ?)", [k, v !== null && v !== undefined ? String(v) : '']);
+    }
     if (req.logAdminAction) {
       req.logAdminAction('Update Settings', 'Updated IBAN and/or Wallet information');
     }
     res.json({ success: true });
   } catch (err) {
+    console.error('[Settings POST Error]:', err.message);
     res.status(500).json({ error: 'Failed to save settings' });
   }
 });
@@ -3947,12 +3951,12 @@ app.post('/api/social/post', async (req, res) => {
   if (!content || !content.trim()) return res.status(400).json({ error: 'Post content is required' });
   if (!platforms || !platforms.length) return res.status(400).json({ error: 'Select at least one platform' });
 
-  // Load settings for API tokens
+  // Load settings for API tokens from MySQL (persistent across restarts)
   let settings = {};
   try {
-    const settingsPath = path.join(dataDir, 'store_settings.json');
-    if (fs.existsSync(settingsPath)) settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-  } catch (e) {}
+    const [settingRows] = await db.promise().query("SELECT `key`, `value` FROM site_settings");
+    settingRows.forEach(r => { settings[r.key] = r.value; });
+  } catch (e) { console.error('[Social Post] Failed to load settings from DB:', e.message); }
 
   const results = {};
   const isScheduled = !!scheduled_at;
