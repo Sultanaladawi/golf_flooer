@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const cssAliases = ['main.v20260817_FINAL.css', 'main.v20260817.css', 'main.ff9e555f.css', 'main.f978a579.css', 'main.css'];
-const jsAliases = ['main.v20260817_FINAL.js', 'main.v20260817.js', 'main.d6632411.js', 'main.dacf438b.js', 'main.2d15e045.js', 'main.b45cc53b.js', 'main.js'];
+const cssAliases = ['main.v20260817_FINAL.css', 'main.v20260817.css', 'main.c506378e.css', 'main.ff9e555f.css', 'main.f978a579.css', 'main.css'];
+const jsAliases = ['main.v20260817_FINAL.js', 'main.v20260817.js', 'main.ef562455.js', 'main.d6632411.js', 'main.dacf438b.js', 'main.2d15e045.js', 'main.b45cc53b.js', 'main.js'];
 
 const cssDir = path.resolve(__dirname, '..', 'build', 'static', 'css');
 if (fs.existsSync(cssDir)) {
