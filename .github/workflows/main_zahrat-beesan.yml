@@ -25,25 +25,24 @@ jobs:
           node scripts/create-aliases.js
           node scripts/embed-html.js
           
-          # Prepare ultra-fast lightweight deployment package (< 2MB)
+          # Prepare ultra-fast lightweight deployment package
           rm -rf deploy_stage build.zip
           mkdir -p deploy_stage
           cp main_server.js deploy_stage/
           cp server_bundled.js deploy_stage/
           cp server.js deploy_stage/
           cp app.js deploy_stage/
-          cp web.config deploy_stage/
           cp package.json deploy_stage/
+          
+          # Copy complete build folder (excluding heavy .mp4 videos)
+          mkdir -p deploy_stage/build
+          cp -r build/static deploy_stage/build/
+          cp build/index.html deploy_stage/build/
+          cp -r build/static deploy_stage/
           cp build/index.html deploy_stage/
           cp build/manifest.json deploy_stage/ 2>/dev/null || true
           cp build/favicon.ico deploy_stage/ 2>/dev/null || true
           cp build/logo.png deploy_stage/ 2>/dev/null || true
-          
-          # Mirror build and release directories
-          mkdir -p deploy_stage/build
-          cp build/index.html deploy_stage/build/
-          mkdir -p deploy_stage/release
-          cp server.js deploy_stage/release/server.js
           
           cd deploy_stage && zip -r -q ../build.zip . && cd ..
           echo "Ultra-fast build.zip size: $(du -sh build.zip | cut -f1)"
