@@ -1,4 +1,38 @@
 
+/* 👑 YAFA CHATBOT CONTRAST OVERRIDE — FORCES PURE BLACK TEXT ON ALL YAFA CARDS */
+div[class*="sophie"],
+div[class*="bubble"],
+div[class*="sophieRow"],
+div[class*="sophieMsg"],
+p[class*="bubble"],
+span[class*="bubble"],
+[class*="sophieMsg"] *,
+[class*="sophieRow"] *,
+[class*="sophie"] * {
+  color: #111111 !important;
+}
+
+div[class*="sophieMsg"] .bubble,
+div[class*="sophieRow"] .bubble,
+[class*="sophieMsg"].bubble {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  border: 1.5px solid #d4af37 !important;
+}
+
+div[class*="userMsg"] .bubble,
+div[class*="userRow"] .bubble,
+[class*="userMsg"].bubble {
+  background: linear-gradient(135deg, #1c1208, #362211) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #b8943a !important;
+}
+
+div[class*="userMsg"] *,
+div[class*="userRow"] * {
+  color: #ffffff !important;
+}
+
 /* Completely hide Google Translate top banner, tooltips, popups, and frames */
 .goog-te-banner-frame, 
 .goog-te-banner-frame.skiptranslate,
