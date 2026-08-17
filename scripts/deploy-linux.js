@@ -33,6 +33,8 @@ async function deploy() {
     process.exit(1);
   }
 
+  const zipData = fs.readFileSync(zipPath);
+
   function attemptUpload(attempt = 1) {
     return new Promise((resolve, reject) => {
       console.log(`📦 [Attempt ${attempt}/4] Uploading build.zip (${(zipData.length / 1024 / 1024).toFixed(2)} MB)...`);
