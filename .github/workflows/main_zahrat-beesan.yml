@@ -25,7 +25,7 @@ jobs:
           node scripts/create-aliases.js
           node scripts/embed-html.js
           
-          # Prepare ultra-fast lightweight deployment package
+          # Prepare ultra-fast deployment package with production node_modules
           rm -rf deploy_stage build.zip
           mkdir -p deploy_stage
           cp main_server.js deploy_stage/
@@ -33,6 +33,9 @@ jobs:
           cp server.js deploy_stage/
           cp app.js deploy_stage/
           cp package.json deploy_stage/
+          
+          # Install lightweight production dependencies so server runs standalone
+          (cd deploy_stage && npm install --omit=dev --legacy-peer-deps --no-audit --no-fund)
           
           # Copy complete build folder (excluding heavy .mp4 videos)
           mkdir -p deploy_stage/build
