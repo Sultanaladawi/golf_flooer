@@ -33,52 +33,70 @@ async function deploy() {
     process.exit(1);
   }
 
-  const zipData = fs.readFileSync(zipPath);
-  console.log(`📦 Uploading build.zip (${(zipData.length / 1024 / 1024).toFixed(2)} MB)...`);
+  function attemptUpload(attempt = 1) {
+    return new Promise((resolve, reject) => {
+      console.log(`📦 [Attempt ${attempt}/4] Uploading build.zip (${(zipData.length / 1024 / 1024).toFixed(2)} MB)...`);
 
-  const req = https.request({
-    hostname: scmHost,
-    port: 443,
-    path: '/api/zipdeploy',
-    method: 'POST',
-    headers: {
-      'Authorization': auth,
-      'Content-Type': 'application/zip',
-      'Content-Length': zipData.length,
-      'User-Agent': 'LinuxZipDeploy/1.0'
-    },
-    timeout: 300000
-  }, res => {
-    let body = '';
-    res.on('data', c => body += c);
-    res.on('end', () => {
-      console.log(`✅ Azure ZipDeploy response: HTTP ${res.statusCode} ${res.statusMessage}`);
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        console.log('🎉 Deployment succeeded!');
-        process.exit(0);
-      } else {
-        console.error('❌ ZipDeploy error body:', body);
-        process.exit(1);
-      }
+      const req = https.request({
+        hostname: scmHost,
+        port: 443,
+        path: '/api/zipdeploy',
+        method: 'POST',
+        headers: {
+          'Authorization': auth,
+          'Content-Type': 'application/zip',
+          'Content-Length': zipData.length,
+          'User-Agent': 'LinuxZipDeploy/1.0'
+        },
+        timeout: 300000
+      }, res => {
+        let body = '';
+        res.on('data', c => body += c);
+        res.on('end', () => {
+          console.log(`📡 Azure ZipDeploy response: HTTP ${res.statusCode} ${res.statusMessage}`);
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log('🎉 Deployment succeeded!');
+            resolve(true);
+          } else if ([502, 503, 504, 429].includes(res.statusCode) && attempt < 4) {
+            console.warn(`⚠️ Azure returned temporary HTTP ${res.statusCode}. Retrying in 15 seconds...`);
+            setTimeout(() => {
+              attemptUpload(attempt + 1).then(resolve).catch(reject);
+            }, 15000);
+          } else {
+            console.error('❌ ZipDeploy error body:', body.slice(0, 500));
+            reject(new Error(`Deployment failed with HTTP ${res.statusCode}`));
+          }
+        });
+      });
+
+      req.on('error', err => {
+        if (attempt < 4) {
+          console.warn(`⚠️ Network error (${err.message}). Retrying in 15s...`);
+          setTimeout(() => attemptUpload(attempt + 1).then(resolve).catch(reject), 15000);
+        } else {
+          reject(err);
+        }
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        if (attempt < 4) {
+          console.warn(`⏰ Request timeout. Retrying in 15s...`);
+          setTimeout(() => attemptUpload(attempt + 1).then(resolve).catch(reject), 15000);
+        } else {
+          reject(new Error('Request timed out after all retries'));
+        }
+      });
+
+      req.write(zipData);
+      req.end();
     });
-  });
+  }
 
-  req.on('error', err => {
-    console.error('⚠️ Request error:', err.message);
-    process.exit(1);
-  });
-
-  req.on('timeout', () => {
-    console.error('⏰ Request timed out');
-    req.destroy();
-    process.exit(1);
-  });
-
-  req.write(zipData);
-  req.end();
+  await attemptUpload();
 }
 
 deploy().catch(err => {
-  console.error('Error:', err);
+  console.error('Fatal Deployment Error:', err.message);
   process.exit(1);
 });
