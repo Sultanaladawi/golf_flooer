@@ -7,7 +7,7 @@ const serverPath = path.resolve(__dirname, '..', 'server.js');
 if (fs.existsSync(indexPath)) {
   const htmlContent = fs.readFileSync(indexPath, 'utf8');
   const b64 = Buffer.from(htmlContent, 'utf8').toString('base64');
-  const pattern = /const EMBEDDED_INDEX_HTML = [\s\S]*?;/;
+  const pattern = /const EMBEDDED_INDEX_HTML = Buffer\.from\('[^']+'\s*,\s*'base64'\)\.toString\('utf8'\);/;
 
   const targets = ['server.js', 'main_server.js', 'app.js', 'release/server.js', 'server_bundled.js'];
   for (const t of targets) {
