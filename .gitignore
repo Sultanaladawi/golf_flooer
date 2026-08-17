@@ -41,7 +41,7 @@ graduation_project_*
 *.zip
 *.rar
 
-build/
+# build/ - intentionally committed for CDN serving
 untracked_media/
 
 

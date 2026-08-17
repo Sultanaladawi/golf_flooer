@@ -73,8 +73,14 @@ async function setAppOffline(scmHost, basicAuth, offline = true) {
 }
 
 async function cleanDiskSpace(scmHost, basicAuth) {
-  ghNotice('🧹 Cleaning stale files and temp data on Azure...');
+  ghNotice('🧹 Cleaning stale files, videos, logs and temp data on Azure...');
   try {
+    // 1. Run PowerShell deep cleanup
+    await runKuduCommand(scmHost, basicAuth, 'powershell -Command "Remove-Item -Recurse -Force D:\\home\\LogFiles\\*, D:\\home\\data\\temp\\*, D:\\home\\site\\deployments\\*, D:\\home\\site\\wwwroot\\*.mp4, D:\\home\\site\\wwwroot\\static\\*, D:\\home\\site\\wwwroot\\build\\* -ErrorAction SilentlyContinue"');
+    await runKuduCommand(scmHost, basicAuth, 'del /f /q /s D:\\home\\site\\wwwroot\\*.mp4');
+    await runKuduCommand(scmHost, basicAuth, 'del /f /q D:\\home\\site\\wwwroot\\main_server.js D:\\home\\site\\wwwroot\\server.js D:\\home\\site\\wwwroot\\app.js');
+
+    // 2. Fallback VFS deletes
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/LogFiles/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/data/temp/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
     await makeKuduRequest(scmHost, basicAuth, '/api/vfs/site/deployments/?recursive=true', 'DELETE', null, { 'If-Match': '*' });
