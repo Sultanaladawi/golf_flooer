@@ -267,18 +267,25 @@ const AIAssistant = () => {
               <div style={{ background: msg.type === 'user' ? theme.border : theme.crema, width: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 {msg.type === 'user' ? <BsPerson color={theme.crema} size={20} /> : <BsCpu color={theme.espresso} size={20} />}
               </div>
-              <div style={{ background: msg.type === 'user' ? theme.crema : theme.espresso, color: msg.type === 'user' ? theme.espresso : theme.latte, padding: '15px 20px', borderRadius: '18px', border: `1px solid ${theme.border}` }}>
-                <div dir="auto" style={{ fontSize: '0.95rem', whiteSpace: 'pre-wrap' }}>{msg.text}</div>
+              <div style={{
+                background: msg.type === 'user' ? 'linear-gradient(135deg, #1c1208, #362211)' : '#ffffff',
+                color: msg.type === 'user' ? '#ffffff' : '#111111',
+                padding: '15px 20px',
+                borderRadius: '18px',
+                border: msg.type === 'user' ? '1.5px solid #b8943a' : '1.5px solid #d4af37',
+                boxShadow: '0 4px 18px rgba(0,0,0,0.08)'
+              }}>
+                <div dir="auto" style={{ fontSize: '0.95rem', whiteSpace: 'pre-wrap', color: msg.type === 'user' ? '#ffffff' : '#111111', fontWeight: 700 }}>{msg.text}</div>
                 
                 {msg.type === 'bot' && msg.text !== '...' && (
                   <button 
                     onClick={() => toggleSpeech(msg.id, msg.text)}
                     style={{
-                      marginTop: '10px', background: 'transparent', border: 'none', 
-                      color: speakingId === msg.id ? '#e74a3b' : theme.crema, 
+                      marginTop: '10px', background: '#f8f4eb', border: '1px solid #b8943a', 
+                      color: speakingId === msg.id ? '#e74a3b' : '#111111', 
                       cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '6px',
-                      fontSize: '0.8rem', padding: '4px 8px', borderRadius: '8px',
-                      transition: '0.3s', backgroundColor: 'rgba(255,255,255,0.05)'
+                      fontSize: '0.8rem', padding: '6px 12px', borderRadius: '8px',
+                      fontWeight: '700', transition: '0.3s'
                     }}
                     title={speakingId === msg.id ? t("Stop reading") : t("Listen to response")}
                   >
