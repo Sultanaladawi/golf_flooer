@@ -35,33 +35,7 @@ jobs:
           cp web.config deploy_stage/ 2>/dev/null || true
           cp .env.azure deploy_stage/ 2>/dev/null || true
           
-          # Create dedicated server package.json with ONLY runtime backend dependencies
-          cat << 'EOF' > deploy_stage/package.json
-          {
-            "name": "zahrat-beesan-server",
-            "version": "1.0.0",
-            "main": "main_server.js",
-            "scripts": { "start": "node main_server.js" },
-            "dependencies": {
-              "express": "^5.2.1",
-              "cors": "^2.8.6",
-              "dotenv": "^17.4.2",
-              "mysql2": "^3.22.2",
-              "nodemailer": "^9.0.3",
-              "compression": "^1.8.1",
-              "multer": "^2.1.1",
-              "stripe": "^22.3.2",
-              "openai": "^6.34.0",
-              "@google/generative-ai": "^0.24.1",
-              "node-cron": "^4.6.0"
-            }
-          }
-          EOF
-          
-          # Install lightweight production dependencies (installs in 5 seconds)
-          (cd deploy_stage && npm install --omit=dev --no-audit --no-fund)
-          
-          # Copy complete build folder
+          # Copy complete build folder (excluding heavy .mp4 videos)
           mkdir -p deploy_stage/build
           cp -r build/static deploy_stage/build/
           cp build/index.html deploy_stage/build/
