@@ -1,20 +1,20 @@
 .footer {
-  background: var(--cream-dark, #f2efe9);
-  color: var(--espresso, #1a1a1a);
-  padding: 0 0 30px;
+  background: linear-gradient(180deg, #18120d 0%, #110c08 100%);
+  color: #f5f2eb;
+  padding: 0 0 20px;
   position: relative;
   overflow: hidden;
-  border-top: 1px solid rgba(197, 168, 128, 0.25);
+  border-top: 2px solid #c5a880;
   font-family: 'DM Sans', 'Inter', 'Cairo', sans-serif;
 }
 
 /* 👑 Top Royal Assurances Banner */
 .topAssuranceBanner {
-  background: linear-gradient(135deg, #1f1a14 0%, #3a2e21 50%, #1f1a14 100%);
-  color: #faf8f5;
-  border-bottom: 1px solid rgba(197, 168, 128, 0.3);
+  background: linear-gradient(135deg, #241b12 0%, #3a2b1d 50%, #241b12 100%);
+  color: #ffffff;
+  border-bottom: 1px solid rgba(197, 168, 128, 0.4);
   padding: 24px 0;
-  margin-bottom: 50px;
+  margin-bottom: 45px;
 }
 
 .assuranceInner {
@@ -36,26 +36,27 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(197, 168, 128, 0.15);
-  border: 1px solid rgba(197, 168, 128, 0.35);
+  background: rgba(197, 168, 128, 0.2);
+  border: 1px solid rgba(197, 168, 128, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #ffd700;
 }
 
 .assuranceTitle {
   display: block;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 800;
-  color: var(--gold, #c5a880);
+  color: #e5c287;
   margin-bottom: 2px;
 }
 
 .assuranceDesc {
   margin: 0;
-  font-size: 0.78rem;
-  opacity: 0.8;
+  font-size: 0.82rem;
+  color: #e0ded9;
   line-height: 1.4;
 }
 
@@ -63,7 +64,7 @@
 .inner {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 30px 40px;
+  padding: 0 30px 30px;
   display: grid;
   grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr;
   gap: 35px;
@@ -83,8 +84,9 @@
 }
 
 .brandDesc {
-  color: var(--espresso-mid, #4a4a4a);
-  font-size: 0.88rem;
+  color: #dcd8d0;
+  font-size: 0.9rem;
+  font-weight: 500;
   line-height: 1.8;
   margin: 0;
 }
@@ -98,13 +100,13 @@
 .socialIcon {
   width: 38px;
   height: 38px;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.25);
+  background: rgba(197, 168, 128, 0.15);
+  border: 1px solid rgba(197, 168, 128, 0.35);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--espresso-mid, #4a4a4a);
+  color: #f5f2eb;
   text-decoration: none;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -147,11 +149,11 @@
   gap: 8px;
   padding: 6px 14px;
   border-radius: 20px;
-  background: rgba(197, 168, 128, 0.12);
-  border: 1px solid rgba(197, 168, 128, 0.25);
-  font-size: 0.78rem;
+  background: rgba(197, 168, 128, 0.15);
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--espresso, #1a1a1a);
+  color: #ffffff;
   width: fit-content;
 }
 
@@ -164,9 +166,9 @@
 }
 
 .colHeader {
-  font-size: 1.05rem;
+  font-size: 1.1rem;
   font-weight: 900;
-  color: var(--gold-dim, #b8966c);
+  color: #e5c287;
   margin: 0 0 20px;
   position: relative;
   padding-bottom: 8px;
@@ -179,18 +181,9 @@
   inset-inline-start: 0;
   width: 35px;
   height: 2.5px;
-  background: var(--gold, #c5a880);
+  background: #c5a880;
   border-radius: 2px;
-  box-shadow: 0 0 6px rgba(197, 168, 128, 0.4);
-}
-
-.brandDesc {
-  color: var(--espresso, #2c1d11);
-  font-size: 0.88rem;
-  font-weight: 500;
-  line-height: 1.8;
-  margin: 0;
-  opacity: 0.9;
+  box-shadow: 0 0 6px rgba(197, 168, 128, 0.6);
 }
 
 .linkList {
@@ -199,16 +192,16 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .linkList li a,
 .linkList li button,
 .footerLink {
-  color: var(--espresso, #2c1d11) !important;
+  color: #f0ece4 !important;
   text-decoration: none;
-  font-size: 0.88rem !important;
-  font-weight: 700 !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
   font-family: inherit !important;
   background: none;
   border: none;
@@ -222,54 +215,31 @@
 .linkList li a:hover,
 .linkList li button:hover,
 .footerLink:hover {
-  color: var(--gold, #b8966c) !important;
+  color: #ffd700 !important;
   transform: translateX(4px);
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.35);
 }
 
 .contactItem {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--espresso, #2c1d11) !important;
+  color: #f0ece4 !important;
   text-decoration: none;
-  font-size: 0.88rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 12px;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  margin-bottom: 14px;
   transition: all 0.25s ease;
 }
 
 .contactItem:hover {
-  color: var(--gold, #b8966c) !important;
+  color: #ffd700 !important;
   transform: translateX(3px);
 }
 
-.stylistBox {
-  margin-top: 15px;
-  padding: 14px;
-  border-radius: 14px;
-  background: rgba(197, 168, 128, 0.1);
-  border: 1px solid rgba(197, 168, 128, 0.25);
-}
-
-.stylistHeader {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  color: var(--gold-dim, #a6865d);
-  margin-bottom: 4px;
-}
-
-.stylistBox p {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--espresso-dim, #7a7a7a);
-  line-height: 1.4;
-}
-
 .newsletterDesc {
-  font-size: 0.82rem;
-  color: var(--espresso-mid, #4a4a4a);
+  font-size: 0.85rem;
+  color: #dcd8d0;
   line-height: 1.6;
   margin: 0 0 14px;
 }
@@ -283,11 +253,10 @@
 .inputWrap {
   display: flex;
   align-items: center;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(197, 168, 128, 0.4);
   border-radius: 12px;
   padding: 4px 6px;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.03);
 }
 
 .newsletterInput {
@@ -296,13 +265,17 @@
   background: transparent;
   outline: none;
   padding: 8px 10px;
-  font-size: 0.82rem;
-  color: var(--espresso, #1a1a1a);
+  font-size: 0.85rem;
+  color: #ffffff;
   font-family: inherit;
 }
 
+.newsletterInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
 .subscribeBtn {
-  background: linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%);
+  background: linear-gradient(135deg, #c5a880 0%, #a6865d 100%);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -320,8 +293,8 @@
 }
 
 .subscribeSuccessMsg {
-  font-size: 0.78rem;
-  color: var(--gold-dim, #a6865d);
+  font-size: 0.82rem;
+  color: #ffd700;
   margin: 4px 0 0;
   font-weight: 700;
 }
@@ -332,9 +305,9 @@
 
 .paymentTitle {
   display: block;
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 800;
-  color: var(--espresso-dim, #7a7a7a);
+  color: #e5c287;
   margin-bottom: 8px;
 }
 
@@ -345,20 +318,160 @@
 }
 
 .payChip {
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(197, 168, 128, 0.35);
+  color: #ffffff;
+}
+
+/* 🏛️ Official Commercial & Tax Trust Seal Card */
+.trustSealCard {
+  margin-top: 10px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #241b12 0%, #1c150e 100%);
+  border: 1.5px solid #c5a880;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.trustSealCard:hover {
+  border-color: #ffd700;
+  box-shadow: 0 12px 30px rgba(197, 168, 128, 0.3);
+  transform: translateY(-2px);
+}
+
+.trustSealHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(197, 168, 128, 0.3);
+}
+
+.trustBadgeIconWrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(197, 168, 128, 0.2);
+  border: 1px solid rgba(197, 168, 128, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #ffd700;
+}
+
+.trustHeaderText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.trustTag {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.2px;
+}
+
+.trustMinistry {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e5c287;
+}
+
+.trustSealBody {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trustRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.trustLabel {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #c4bfb7;
+}
+
+.trustName {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ffd700;
+  line-height: 1.4;
+}
+
+.trustNumbersGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.trustNumBox {
+  background: #140e0a;
+  border: 1px solid rgba(197, 168, 128, 0.4);
+  border-radius: 8px;
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trustNumLabel {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #e0ded9;
+}
+
+.trustNumValue {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #ffd700;
+  font-family: 'DM Sans', monospace, sans-serif;
+  letter-spacing: 0.5px;
+  direction: ltr;
+}
+
+.trustFooterBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.72rem;
   font-weight: 700;
-  padding: 3px 8px;
+  color: #e5c287;
+  background: rgba(197, 168, 128, 0.15);
+  padding: 4px 10px;
   border-radius: 6px;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.25);
-  color: var(--espresso-mid, #4a4a4a);
+  border: 1px solid rgba(197, 168, 128, 0.3);
+  width: fit-content;
+}
+
+.verifiedDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e;
 }
 
 /* Bottom Bar */
 .bottomBar {
-  border-top: 1px solid rgba(197, 168, 128, 0.2);
-  padding-top: 25px;
-  margin-top: 20px;
+  border-top: 1px solid rgba(197, 168, 128, 0.25);
+  padding-top: 20px;
+  margin-top: 15px;
+  background: #0e0906;
 }
 
 .bottomInner {
@@ -374,17 +487,22 @@
 
 .copyright {
   margin: 0;
-  font-size: 0.82rem;
-  color: var(--espresso-dim, #7a7a7a);
+  font-size: 0.85rem;
+  color: #dcd7cf;
+  line-height: 1.7;
+}
+
+.copyright strong {
+  color: #ffd700;
 }
 
 .scrollTopBtn {
-  background: none;
-  border: 1px solid rgba(197, 168, 128, 0.35);
-  color: var(--gold-dim, #a6865d);
-  padding: 6px 14px;
+  background: rgba(197, 168, 128, 0.15);
+  border: 1px solid rgba(197, 168, 128, 0.4);
+  color: #e5c287;
+  padding: 6px 16px;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
   display: flex;
@@ -394,9 +512,9 @@
 }
 
 .scrollTopBtn:hover {
-  background: var(--gold, #c5a880);
+  background: #c5a880;
   color: #ffffff;
-  border-color: var(--gold, #c5a880);
+  border-color: #c5a880;
 }
 
 /* Responsive */
@@ -416,149 +534,10 @@
   }
 }
 
-/* 🏛️ Official Commercial & Tax Trust Seal Card — Ultra Luxury */
-.trustSealCard {
-  margin-top: 10px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: linear-gradient(145deg, #ffffff 0%, #faf6f0 60%, #f5eee4 100%);
-  border: 1.5px solid rgba(197, 168, 128, 0.45);
-  box-shadow: 0 8px 24px rgba(197, 168, 128, 0.15), 0 2px 6px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: all 0.3s ease;
-}
-
-.trustSealCard:hover {
-  border-color: var(--gold, #c5a880);
-  box-shadow: 0 12px 30px rgba(197, 168, 128, 0.25);
-  transform: translateY(-2px);
-}
-
-.trustSealHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(197, 168, 128, 0.25);
-}
-
-.trustBadgeIconWrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: linear-gradient(135deg, rgba(197, 168, 128, 0.2) 0%, rgba(197, 168, 128, 0.05) 100%);
-  border: 1px solid rgba(197, 168, 128, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.trustHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.trustTag {
-  font-size: 0.76rem;
-  font-weight: 800;
-  color: var(--espresso, #1a1a1a);
-  letter-spacing: 0.2px;
-}
-
-.trustMinistry {
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--gold-dim, #96744c);
-}
-
-.trustSealBody {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.trustRow {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.trustLabel {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--espresso-mid, #665b52);
-}
-
-.trustName {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--espresso, #1a1a1a);
-  line-height: 1.4;
-}
-
-.trustNumbersGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin-top: 4px;
-}
-
-.trustNumBox {
-  background: #ffffff;
-  border: 1px solid rgba(197, 168, 128, 0.35);
-  border-radius: 8px;
-  padding: 6px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-}
-
-.trustNumLabel {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--espresso-mid, #665b52);
-}
-
-.trustNumValue {
-  font-size: 0.86rem;
-  font-weight: 900;
-  color: var(--espresso, #111111);
-  font-family: 'DM Sans', monospace, sans-serif;
-  letter-spacing: 0.5px;
-  direction: ltr;
-}
-
-.trustFooterBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--gold-dim, #8f6a3d);
-  background: rgba(197, 168, 128, 0.12);
-  padding: 4px 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(197, 168, 128, 0.2);
-  width: fit-content;
-}
-
-.verifiedDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 6px #22c55e;
-}
-
 @media (max-width: 500px) {
   .inner {
     grid-template-columns: 1fr;
-    padding: 0 20px 30px;
+    padding: 0 20px 25px;
   }
   .assuranceInner {
     grid-template-columns: 1fr;
