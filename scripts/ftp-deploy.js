@@ -84,9 +84,17 @@ async function deployViaFTP() {
     }
   }
 
-  // Upload static assets
+  // Ensure directories exist in both root and build/
   await client.ensureDir('/site/wwwroot/static/js');
   await client.ensureDir('/site/wwwroot/static/css');
+  await client.ensureDir('/site/wwwroot/build/static/js');
+  await client.ensureDir('/site/wwwroot/build/static/css');
+
+  // Upload build/index.html
+  const buildIndex = path.join(localDeployDir, 'build', 'index.html');
+  if (fs.existsSync(buildIndex)) {
+    await client.uploadFrom(buildIndex, '/site/wwwroot/build/index.html');
+  }
 
   const jsDir = path.join(localDeployDir, 'static', 'js');
   if (fs.existsSync(jsDir)) {
@@ -94,6 +102,7 @@ async function deployViaFTP() {
     for (const f of jsFiles) {
       console.log(`⬆️ Uploading JS: ${f}...`);
       await client.uploadFrom(path.join(jsDir, f), `/site/wwwroot/static/js/${f}`);
+      await client.uploadFrom(path.join(jsDir, f), `/site/wwwroot/build/static/js/${f}`);
     }
   }
 
@@ -103,6 +112,7 @@ async function deployViaFTP() {
     for (const f of cssFiles) {
       console.log(`⬆️ Uploading CSS: ${f}...`);
       await client.uploadFrom(path.join(cssDir, f), `/site/wwwroot/static/css/${f}`);
+      await client.uploadFrom(path.join(cssDir, f), `/site/wwwroot/build/static/css/${f}`);
     }
   }
 
