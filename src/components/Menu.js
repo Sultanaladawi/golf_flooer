@@ -456,6 +456,9 @@ export default function Menu() {
             return (
               <button 
                 key={cat.id} 
+                type="button"
+                data-category-id={cat.id}
+                data-category-label={cat.label}
                 className={`${styles.tab} ${isActive ? styles.tabActive : ''}`} 
                 onClick={() => { setActiveTab(String(cat.id)); setSearchTerm(''); }} 
                 style={{

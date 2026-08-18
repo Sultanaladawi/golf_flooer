@@ -80,28 +80,60 @@ export default function Footer({ onOpenPolicy }) {
   };
 
   const handleCategoryClick = (e, catKeyword) => {
-    if (e && e.preventDefault) e.preventDefault();
-    if (window.location.pathname !== '/' && window.location.pathname !== '') {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+      if (e.stopPropagation) e.stopPropagation();
+    }
+
+    const currentPath = window.location.pathname;
+    if (currentPath !== '/' && currentPath !== '' && currentPath !== '/index.html') {
       window.location.href = `/?cat=${encodeURIComponent(catKeyword)}#collection`;
       return;
     }
+
+    // 1. Dispatch custom event to React state
     window.dispatchEvent(new CustomEvent('selectCategoryByKeyword', { detail: { keyword: catKeyword } }));
-    const el = document.getElementById('collection');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+
+    // 2. Find and click matching category tab button in DOM
+    const kw = (catKeyword || '').toLowerCase();
+    const allCatBtns = document.querySelectorAll('button[data-category-id]');
+    allCatBtns.forEach(btn => {
+      const id = (btn.getAttribute('data-category-id') || '').toLowerCase();
+      const label = (btn.getAttribute('data-category-label') || '').toLowerCase();
+      if ((kw === 'classic' && (id === '2' || label.includes('مطرز') || label.includes('كلاسيك'))) ||
+          (kw === 'occasion' && (id === '3' || label.includes('سهرة') || label.includes('مناسب'))) ||
+          (kw === 'daily' && (id === '1' || label.includes('يومي') || label.includes('استقبال')))) {
+        btn.click();
+      }
+    });
+
+    // 3. Scroll to collection section
+    const collectionEl = document.getElementById('collection');
+    if (collectionEl) {
+      const yOffset = -80;
+      const y = collectionEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    } else {
+      window.location.href = '/#collection';
     }
   };
 
   const handleLinkClick = (e, href) => {
+    if (e) {
+      if (e.preventDefault) e.preventDefault();
+    }
     if (href.startsWith('/#') || href.startsWith('#')) {
-      e.preventDefault();
       const targetId = href.replace(/^\/?#/, '');
       const el = document.getElementById(targetId);
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+        const yOffset = -80;
+        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
       } else {
         window.location.href = href;
       }
+    } else {
+      window.location.href = href;
     }
   };
 
@@ -222,11 +254,11 @@ export default function Footer({ onOpenPolicy }) {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('exclusiveCollections')}</h4>
           <ul className={styles.linkList}>
-            <li><button onClick={e => handleCategoryClick(e, 'classic')}>{t('classicAbayas')}</button></li>
-            <li><button onClick={e => handleCategoryClick(e, 'occasion')}>{t('occasionAbayas')}</button></li>
-            <li><button onClick={e => handleCategoryClick(e, 'winter')}>{t('winterCollection')}</button></li>
-            <li><button onClick={e => handleCategoryClick(e, 'daily')}>{t('dailyAbayas')}</button></li>
-            <li><button onClick={e => handleCategoryClick(e, 'new')}>{t('newArrivals')}</button></li>
+            <li><button type="button" onClick={e => handleCategoryClick(e, 'classic')}>{t('classicAbayas')}</button></li>
+            <li><button type="button" onClick={e => handleCategoryClick(e, 'occasion')}>{t('occasionAbayas')}</button></li>
+            <li><button type="button" onClick={e => handleCategoryClick(e, 'winter')}>{t('winterCollection')}</button></li>
+            <li><button type="button" onClick={e => handleCategoryClick(e, 'daily')}>{t('dailyAbayas')}</button></li>
+            <li><button type="button" onClick={e => handleCategoryClick(e, 'new')}>{t('newArrivals')}</button></li>
             <li><a href="/gift-cards">{t('royalGiftCards')}</a></li>
           </ul>
         </div>
@@ -235,11 +267,11 @@ export default function Footer({ onOpenPolicy }) {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('customerCare')}</h4>
           <ul className={styles.linkList}>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')}>{t('exchangeReturnPolicy')}</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy')}</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan')}</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide')}</button></li>
-            <li><button onClick={() => onOpenPolicy && onOpenPolicy('shipping')}>سياسة الشحن والتوصيل</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('returns')}>{t('exchangeReturnPolicy')}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy')}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan')}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide')}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('shipping')}>سياسة الشحن والتوصيل</button></li>
             <li><a href="/account">{t('vipLounge')}</a></li>
             <li><a href="/blog">{t('magazineAndElegance')}</a></li>
             <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
