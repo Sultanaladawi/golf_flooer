@@ -237,11 +237,10 @@ export default function Footer({ onOpenPolicy }) {
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy')}</button></li>
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan')}</button></li>
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide')}</button></li>
-            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('shipping')}>سياسة الشحن والتوصيل</button></li>
             <li><a href="/account">{t('vipLounge')}</a></li>
             <li><a href="/blog">{t('magazineAndElegance')}</a></li>
             <li><a href="/tech" style={{ color: 'var(--gold, #c5a880)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>💻 زهرة بيسان تك (الحلول الرقمية)</a></li>
-            <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
+            <li><a href="/Zahrat_Beesan_Catalog_2026.pdf" download="Zahrat_Beesan_Catalog_2026.pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
           </ul>
         </div>
 

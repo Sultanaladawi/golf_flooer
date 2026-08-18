@@ -36,7 +36,7 @@ jobs:
           cp .env.azure deploy_stage/ 2>/dev/null || true
           
           # Copy complete build folder to BOTH root and build/ subfolder
-          mkdir -p deploy_stage/build
+          mkdir -p deploy_stage/build deploy_stage/public deploy_stage/scripts
           cp -r build/static deploy_stage/build/
           cp build/index.html deploy_stage/build/
           cp -r build/static deploy_stage/
@@ -44,6 +44,10 @@ jobs:
           cp build/manifest.json deploy_stage/ 2>/dev/null || true
           cp build/favicon.ico deploy_stage/ 2>/dev/null || true
           cp build/logo.png deploy_stage/ 2>/dev/null || true
+          cp build/Zahrat_Beesan_Catalog_2026.pdf deploy_stage/build/ 2>/dev/null || true
+          cp public/Zahrat_Beesan_Catalog_2026.pdf deploy_stage/public/ 2>/dev/null || true
+          cp public/Zahrat_Beesan_Catalog_2026.pdf deploy_stage/ 2>/dev/null || true
+          cp scripts/generate-sample-catalog.js deploy_stage/scripts/ 2>/dev/null || true
           
           cd deploy_stage && zip -r -q ../build.zip . && cd ..
           echo "Ultra-fast build.zip size: $(du -sh build.zip | cut -f1)"
