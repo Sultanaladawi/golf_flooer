@@ -91,30 +91,18 @@ export default function Footer({ onOpenPolicy }) {
       return;
     }
 
-    // 1. Dispatch custom event to React state
-    window.dispatchEvent(new CustomEvent('selectCategoryByKeyword', { detail: { keyword: catKeyword } }));
-
-    // 2. Find and click matching category tab button in DOM
-    const kw = (catKeyword || '').toLowerCase();
-    const allCatBtns = document.querySelectorAll('button[data-category-id]');
-    allCatBtns.forEach(btn => {
-      const id = (btn.getAttribute('data-category-id') || '').toLowerCase();
-      const label = (btn.getAttribute('data-category-label') || '').toLowerCase();
-      if ((kw === 'classic' && (id === '2' || label.includes('مطرز') || label.includes('كلاسيك'))) ||
-          (kw === 'occasion' && (id === '3' || label.includes('سهرة') || label.includes('مناسب'))) ||
-          (kw === 'daily' && (id === '1' || label.includes('يومي') || label.includes('استقبال')))) {
-        btn.click();
-      }
-    });
-
-    // 3. Scroll to collection section
-    const collectionEl = document.getElementById('collection');
-    if (collectionEl) {
-      const yOffset = -80;
-      const y = collectionEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+    if (typeof window.__selectShopCategory === 'function') {
+      window.__selectShopCategory(catKeyword);
     } else {
-      window.location.href = '/#collection';
+      window.dispatchEvent(new CustomEvent('selectCategoryByKeyword', { detail: { keyword: catKeyword } }));
+      const collectionEl = document.getElementById('collection');
+      if (collectionEl) {
+        const yOffset = -80;
+        const y = collectionEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      } else {
+        window.location.href = '/#collection';
+      }
     }
   };
 
@@ -274,6 +262,7 @@ export default function Footer({ onOpenPolicy }) {
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('shipping')}>سياسة الشحن والتوصيل</button></li>
             <li><a href="/account">{t('vipLounge')}</a></li>
             <li><a href="/blog">{t('magazineAndElegance')}</a></li>
+            <li><a href="/tech" style={{ color: 'var(--gold, #c5a880)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>💻 زهرة بيسان تك (الحلول الرقمية)</a></li>
             <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
           </ul>
         </div>

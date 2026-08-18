@@ -24,6 +24,8 @@ const WORLD_COUNTRIES = [
   { name: 'أفغانستان',        iso: 'af' }, { name: 'الهند',            iso: 'in' },
   { name: 'بنغلاديش',         iso: 'bd' }, { name: 'إندونيسيا',        iso: 'id' },
   { name: 'ماليزيا',          iso: 'my' }, { name: 'سنغافورة',         iso: 'sg' },
+  { name: 'بروناي',           iso: 'bn' }, { name: 'تايلاند',          iso: 'th' },
+  { name: 'الفلبين',          iso: 'ph' }, { name: 'المالديف',         iso: 'mv' },
   { name: 'الصين',            iso: 'cn' }, { name: 'اليابان',          iso: 'jp' },
   { name: 'كوريا الجنوبية',   iso: 'kr' }, { name: 'أستراليا',         iso: 'au' },
   { name: 'نيوزيلندا',        iso: 'nz' }, { name: 'United States',    iso: 'us' },

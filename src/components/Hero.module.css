@@ -18,30 +18,21 @@
   overflow: hidden;
 }
 
-/* Ambient blurred background to fill widescreen screens smoothly with matching motion */
+/* Ambient background (clean fallback) */
 .heroVideoBackdrop {
-  position: absolute;
-  inset: -30px;
-  width: calc(100% + 60px);
-  height: calc(100% + 60px);
-  object-fit: cover;
-  object-position: center;
-  filter: blur(40px) brightness(0.6) saturate(120%);
-  opacity: 0.85;
-  transform: scale(1.08);
-  pointer-events: none;
+  display: none;
 }
 
-/* Main crystal-clear video preserving 100% of top and bottom without crop */
+/* Main crystal-clear full-bleed hero video without any side blur */
 .heroVideoMain {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
   z-index: 1;
-  filter: contrast(104%) brightness(102%);
+  filter: contrast(105%) brightness(100%);
 }
 
 .heroVideo {
@@ -53,7 +44,7 @@
 @media (max-width: 768px) {
   .heroVideoMain {
     object-fit: cover;
-    object-position: center top;
+    object-position: center center;
   }
 }
 

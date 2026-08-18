@@ -7,59 +7,129 @@ import { useCurrency } from '../context/CurrencyContext';
 export const DEFAULT_ARTICLES = [
   {
     id: 1,
-    slug: 'elegance-guide-2026',
-    title: 'دليل الأناقة الملكية 2026: كيف تختارين العباية المثالية لمناسباتكِ؟',
-    author: 'يافا — خبيرة الأناقة والموضة',
-    created_at: '2026-08-01',
-    category: 'أناقة المناسبات',
+    slug: 'taj-beesan-bridal-haute-couture',
+    title: 'عرائس بيسان 2026: كيف صُمم قفطان تاج بيسان ليكون تحفة الحفل الأولى؟',
+    author: 'يافا — خبيرة الأناقة والموضة الملكية',
+    created_at: '2026-08-15',
+    category: 'إطلالات المناسبات والعرائس',
     readTime: '4 دقائق قراءة',
     image_url: '/15.jpg',
-    excerpt: 'تعد العباية المطرزة بالخيوط الحريرية والتطريز اليدوي الخيار الأول لإبراز الوقار والفخامة في السهرات والمناسبات الرسمية...',
-    productId: 15,
-    productName: 'عباية حرير طبيعي',
-    productPrice: 120
+    excerpt: 'يجمع قفطان تاج بيسان بين التطريز اليدوي بخيوط الذهب 22 قيراط وحرير الكريب الإيطالي المنساب، ليمنح العروس حضوراً ملكياً مهيباً لا يُنسى في ليلة العمر.',
+    productId: 1,
+    productName: 'قفطان تاج بيسان العرائسي',
+    productPrice: 150
   },
   {
     id: 2,
-    slug: 'winter-luxury-care',
-    title: 'أسرار العناية بالعبايات الشتوية الفاخرة وصوف الكشمير',
-    author: 'فريق جودة دار بيسان',
-    created_at: '2026-07-28',
-    category: 'العناية بالجودة',
+    slug: 'modern-pearl-luxury-styling',
+    title: 'بريق اللؤلؤ الطبيعي: اللمسة العصرية التي تبحث عنها سيدة الأعمال الراقية',
+    author: 'فريق تصميم دار زهرة بيسان',
+    created_at: '2026-08-12',
+    category: 'إطلالات يومية واستقبال',
     readTime: '3 دقائق قراءة',
     image_url: '/13.png',
-    excerpt: 'خطوات عملية لحفظ رونق التطريز اليدوي ونعومة الأقمشة الثقيلة لتبدو عبايتكِ جديدة في كل موسم...',
-    productId: 13,
-    productName: 'عباية بشت فاخرة',
-    productPrice: 110
+    excerpt: 'تألقي بعباية اللؤلؤة المصنوعة من قماش الصالونة الياباني الفاخر والمطعمة بحبات اللؤلؤ النهري المختارة بعناية لتعكس الرقي والهدوء في كل خطوة.',
+    productId: 2,
+    productName: 'عباية اللؤلؤة العصرية 🦪',
+    productPrice: 85
   },
   {
     id: 3,
-    slug: 'embroidery-and-matching-accessories',
-    title: 'التطريز اليدوي وطريقة تنسيق الإكسسوارات الماتشينج',
-    author: 'يافا — خبيرة الأناقة والموضة',
-    created_at: '2026-07-20',
-    category: 'نصائح خبيرة الأناقة',
+    slug: 'sultana-imperial-robe-heritage',
+    title: 'هيبة التطريز الحريري: قصة ثوب السلطانة الملكي وتراث الشرق الخالد',
+    author: 'يافا — خبيرة الأناقة والموضة الملكية',
+    created_at: '2026-08-08',
+    category: 'تصاميم ملكية مطرزة',
     readTime: '5 دقائق قراءة',
     image_url: '/8.png',
-    excerpt: 'دمج التطريز الذهبي مع المجوهرات الهادئة خلق توازناً بصرياً يمنحكِ حضوراً يلفت الأنظار بدون مبالغة...',
-    productId: 8,
-    productName: 'عباية ملكية مطرزة',
-    productPrice: 90
+    excerpt: 'مستوحى من أزياء القصور العثمانية والأندلسية العريقة، ينفرد ثوب السلطانة بتفاصيل خياطة يدوية مكثفة تبرز المكانة والوقار العربي الأصيل.',
+    productId: 3,
+    productName: 'ثوب السلطانة الملكي👑',
+    productPrice: 130
   },
   {
     id: 4,
-    slug: 'daily-royal-look',
-    title: 'عبايات اليومية والاستقبال: الوقار والراحة في تصميم واحد',
+    slug: 'princess-royal-kaftan-elegance',
+    title: 'إطلالة الأميرات: سر التناغم بين الحشمة العالية والقصات الفضفاضة الفارهة',
+    author: 'دار زهرة بيسان — قسم الهوت كوتور',
+    created_at: '2026-08-04',
+    category: 'إطلالات المناسبات والعرائس',
+    readTime: '4 دقائق قراءة',
+    image_url: '/9 (1).png',
+    excerpt: 'تم تصميم قفطان الأميرة ليمنحكِ الراحة التامة دون التنازل عن أرقى معايير الفخامة، بفضل حواف الشيفون المطرزة وزوايا القصات الهندسية الدقيقة.',
+    productId: 4,
+    productName: 'قفطان الأميرة 👑',
+    productPrice: 110
+  },
+  {
+    id: 5,
+    slug: 'ruby-jewel-kaftan-vibrant-beauty',
+    title: 'سحر الياقوت: كيف تختارين درجات الألوان الملكية في استقبالاتكِ الفخمة؟',
+    author: 'يافا — خبيرة الأناقة والموضة الملكية',
+    created_at: '2026-07-30',
+    category: 'إطلالات يومية واستقبال',
+    readTime: '3 دقائق قراءة',
+    image_url: '/15.jpg',
+    excerpt: 'يمنح قفطان الياقوتة إشراقة فورية لبشرتكِ بفضل لونه الغني وانعكاسات الكريستال الناعمة، وهو الخيار الأفضل لحفلات الاستقبال والاجتماعات العائلية الراقية.',
+    productId: 5,
+    productName: 'قفطان الياقوتة💎',
+    productPrice: 95
+  },
+  {
+    id: 6,
+    slug: 'yashmak-traditional-oriental-robe',
+    title: 'ثوب اليشمك: عودة القصات التاريخية بروح الألفية الثالثة',
+    author: 'فريق الحرف اليدوية — دار بيسان',
+    created_at: '2026-07-25',
+    category: 'تصاميم ملكية مطرزة',
+    readTime: '4 دقائق قراءة',
+    image_url: '/13.png',
+    excerpt: 'تحية للمرأة العربية العاشقة للأصالة، يجمع ثوب اليشمك بين متانة نسيج الكتان والقطن الفاخر وخيوط البريسم اللامعة ليعيش معكِ عقوداً من الزمن.',
+    productId: 6,
+    productName: 'ثوب اليشمك',
+    productPrice: 90
+  },
+  {
+    id: 7,
+    slug: 'beesan-signature-dress-daily-comfort',
+    title: 'الوقار والانسيابية: أسرار ثوب بيسان الأيقوني للاستخدام اليومي الراقي',
     author: 'تصاميم دار زهرة بيسان',
+    created_at: '2026-07-20',
+    category: 'إطلالات يومية واستقبال',
+    readTime: '3 دقائق قراءة',
+    image_url: '/8.png',
+    excerpt: 'خفة لا تصدق وتهوية مثالية طوال اليوم، ثوب بيسان هو التجسيد الحقيقي للسهل الممتنع في عالم العبايات الشرقية الراقية.',
+    productId: 7,
+    productName: 'ثوب بيسان 🌿',
+    productPrice: 75
+  },
+  {
+    id: 8,
+    slug: 'black-elegance-timeless-abaya',
+    title: 'سيد الألوان: أسرار السواد الفاحم والقصة الكلاسيكية الساحرة',
+    author: 'يافا — خبيرة الأناقة والموضة الملكية',
     created_at: '2026-07-15',
-    category: 'إطلالات يومية',
+    category: 'أسرار الأقمشة والعناية',
     readTime: '3 دقائق قراءة',
     image_url: '/9 (1).png',
-    excerpt: 'تصاميم واسعة وخفيفة تتيح حرية الحركة اليومية مع المحافظة على الهيبة والوقار العربي الأصيل...',
-    productId: 9,
-    productName: 'عباية صيفية راقية',
-    productPrice: 75
+    excerpt: 'السواد ليس مجرد لون، بل هو لغة الهيبة والأناقة المطلقة. اكتشفي كيف تم نسج ثوب الأناقة السوداء بحرير منتصف الليل المعالج لمقاومة التجعد.',
+    productId: 8,
+    productName: 'ثوب الأناقة السوداء 💎',
+    productPrice: 80
+  },
+  {
+    id: 9,
+    slug: 'al-andalus-royal-abaya-masterpiece',
+    title: 'عبق الأندلس: تناغم النقوش التاريخية مع خيوط الحرير الإيطالي',
+    author: 'يافا — خبيرة الأناقة والموضة الملكية',
+    created_at: '2026-07-10',
+    category: 'تصاميم ملكية مطرزة',
+    readTime: '5 دقائق قراءة',
+    image_url: '/15.jpg',
+    excerpt: 'قطعة فنية تجسد جمال الزخارف الأندلسية المعقدة المنفذة يدوياً بدقة متناهية على أقمشة الجاكار الحريرية الفاخرة.',
+    productId: 16,
+    productName: 'عباية الأندلس 🌿',
+    productPrice: 105
   }
 ];
 
@@ -80,7 +150,7 @@ export default function Blog() {
   const { format: formatPrice } = useCurrency();
 
   useEffect(() => {
-    document.title = 'مجلة زهرة بيسان | أحدث المقالات عن الأناقة والعباءات';
+    document.title = 'مجلة زهرة بيسان الملكية | أحدث مقالات الأناقة والعبايات الفاخرة';
     window.scrollTo(0, 0);
 
     // Dynamic Binding: Fetch actual store products and map their exact images & details to articles!
@@ -89,7 +159,7 @@ export default function Blog() {
         const storeProducts = Array.isArray(res.data) ? res.data : [];
         if (storeProducts.length > 0) {
           const updatedArticles = DEFAULT_ARTICLES.map((article, idx) => {
-            const prod = storeProducts[idx % storeProducts.length];
+            const prod = storeProducts.find(p => String(p.id) === String(article.productId)) || storeProducts[idx % storeProducts.length];
             let prodImg = prod.image || (Array.isArray(prod.images) ? prod.images[0] : null) || article.image_url;
             if (typeof prodImg === 'string' && prodImg.startsWith('[')) {
               try { prodImg = JSON.parse(prodImg)[0]; } catch(e){}
@@ -109,7 +179,7 @@ export default function Blog() {
       .finally(() => setLoading(false));
   }, []);
 
-  const categories = ['الكل', 'أناقة المناسبات', 'العناية بالجودة', 'نصائح خبيرة الأناقة', 'إطلالات يومية'];
+  const categories = ['الكل', 'إطلالات المناسبات والعرائس', 'تصاميم ملكية مطرزة', 'إطلالات يومية واستقبال', 'أسرار الأقمشة والعناية'];
 
   const filteredPosts = activeCategory === 'الكل'
     ? posts

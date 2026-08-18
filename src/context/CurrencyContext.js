@@ -36,6 +36,11 @@ const CURRENCIES = [
   { code: 'TRY', symbol: '₺',   name: 'تركيا (ليرة تركية)',   rate: 45.2,    iso: 'tr' },
   { code: 'RUB', symbol: 'روبل', name: 'روسيا (روبل روسي)',     rate: 128,     iso: 'ru' },
   { code: 'MYR', symbol: 'رينغيت', name: 'ماليزيا (رينغيت)',    rate: 6.25,    iso: 'my' },
+  { code: 'IDR', symbol: 'روبية', name: 'إندونيسيا (روبية إندونيسية)', rate: 22800, iso: 'id' },
+  { code: 'BND', symbol: 'B$',  name: 'بروناي (دولار بروناي)',  rate: 1.88,    iso: 'bn' },
+  { code: 'SGD', symbol: 'S$',  name: 'سنغافورة (دولار)',    rate: 1.88,    iso: 'sg' },
+  { code: 'THB', symbol: '฿',   name: 'تايلاند (بات تايلاندي)', rate: 49.5,    iso: 'th' },
+  { code: 'PHP', symbol: '₱',   name: 'الفلبين (بيزو فلبيني)', rate: 82.5,    iso: 'ph' },
   { code: 'INR', symbol: '₹',   name: 'الهند (روبية هندية)',   rate: 117.5,   iso: 'in' },
   { code: 'CNY', symbol: '¥',   name: 'الصين (يوان صيني)',    rate: 10.2,    iso: 'cn' },
   { code: 'JPY', symbol: '¥',   name: 'اليابان (ين ياباني)',   rate: 210,     iso: 'jp' },
@@ -45,7 +50,6 @@ const CURRENCIES = [
   { code: 'NOK', symbol: 'kr',  name: 'النرويج (كرون نرويجي)', rate: 15.1,    iso: 'no' },
   { code: 'BRL', symbol: 'R$',  name: 'البرازيل (ريال برازيلي)', rate: 7.8,    iso: 'br' },
   { code: 'ZAR', symbol: 'راند', name: 'جنوب أفريقيا (راند)',  rate: 25.8,    iso: 'za' },
-  { code: 'SGD', symbol: 'S$',  name: 'سنغافورة (دولار)',    rate: 1.88,    iso: 'sg' },
   { code: 'NZD', symbol: 'NZ$', name: 'نيوزيلندا (دولار)',   rate: 2.35,    iso: 'nz' },
 ];
 

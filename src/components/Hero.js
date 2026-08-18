@@ -72,34 +72,18 @@ export default function Hero() {
             />
           ))
         ) : (
-          <>
-            {/* Ambient blurred backdrop video to fill widescreen smoothly */}
-            <video
-              key={`bg-${heroVideoUrl}`}
-              src={heroVideoUrl}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              className={styles.heroVideoBackdrop}
-            />
-            {/* Crystal-clear foreground video uncropped from top and bottom */}
-            <video
-              ref={heroVideoRef}
-              key={`fg-${heroVideoUrl}`}
-              src={heroVideoUrl}
-              autoPlay
-              muted
-              loop
-              playsInline
-              preload="auto"
-              disablePictureInPicture
-              style={{ transform: 'translateZ(0)', willChange: 'transform' }}
-              className={styles.heroVideoMain}
-            />
-          </>
+          <video
+            ref={heroVideoRef}
+            key={`hero-${heroVideoUrl}`}
+            src={heroVideoUrl}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            disablePictureInPicture
+            className={styles.heroVideoMain}
+          />
         )}
         <div className={styles.heroOverlay} />
         <div className={styles.heroGradientBottom} />

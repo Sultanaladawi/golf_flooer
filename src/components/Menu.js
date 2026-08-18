@@ -94,51 +94,48 @@ export default function Menu() {
 
   // Listen for category selection events from Footer / Header
   useEffect(() => {
-    const handleSelectCategoryByKeyword = (e) => {
-      const kw = (e.detail?.keyword || '').toLowerCase().trim();
+    const handleCategorySwitch = (catKeyword) => {
+      const kw = (catKeyword || '').toLowerCase().trim();
       if (!kw) return;
 
-      let targetCatId = null;
-      if (kw === 'classic' || kw === 'classicabayas' || kw.includes('مطرز') || kw.includes('كلاسيك')) {
-        const found = categories.find(c => String(c.id) === '2' || (c.label && (c.label.includes('مطرز') || c.label.includes('كلاسيك'))));
-        if (found) targetCatId = String(found.id);
-        else targetCatId = '2';
-      } else if (kw === 'occasion' || kw === 'occasionabayas' || kw.includes('سهرة') || kw.includes('مناسب')) {
-        const found = categories.find(c => String(c.id) === '3' || (c.label && (c.label.includes('سهرة') || c.label.includes('مناسب'))));
-        if (found) targetCatId = String(found.id);
-        else targetCatId = '3';
-      } else if (kw === 'daily' || kw === 'dailyabayas' || kw.includes('يومي') || kw.includes('استقبال')) {
-        const found = categories.find(c => String(c.id) === '1' || (c.label && c.label.includes('يومي')));
-        if (found) targetCatId = String(found.id);
-        else targetCatId = '1';
+      let targetCatId = '1';
+      if (kw === 'classic' || kw === 'classicabayas' || kw === '2' || kw.includes('مطرز') || kw.includes('كلاسيك')) {
+        targetCatId = '2';
+      } else if (kw === 'occasion' || kw === 'occasionabayas' || kw === '3' || kw.includes('سهرة') || kw.includes('مناسب')) {
+        targetCatId = '3';
+      } else if (kw === 'daily' || kw === 'dailyabayas' || kw === '1' || kw.includes('يومي') || kw.includes('استقبال')) {
+        targetCatId = '1';
       } else if (kw === 'winter' || kw === 'wintercollection' || kw.includes('شتو') || kw.includes('شتاء')) {
-        setSearchTerm('شتوية');
-        if (categories.length > 0) setActiveTab(String(categories[0].id));
+        targetCatId = '2';
       } else if (kw === 'new' || kw === 'newarrivals' || kw.includes('جديد') || kw.includes('وصل حديثا')) {
-        setSearchTerm('جديد');
-        if (categories.length > 0) setActiveTab(String(categories[0].id));
+        targetCatId = '1';
       } else {
         const found = categories.find(c => 
-          (c.id && String(c.id).toLowerCase().includes(kw)) ||
+          (c.id && String(c.id).toLowerCase() === kw) ||
           (c.name && c.name.toLowerCase().includes(kw)) ||
-          (c.label && c.label.toLowerCase().includes(kw)) ||
-          (c.name_ar && c.name_ar.toLowerCase().includes(kw))
+          (c.label && c.label.toLowerCase().includes(kw))
         );
         if (found) targetCatId = String(found.id);
       }
 
-      if (targetCatId) {
-        setActiveTab(targetCatId);
-        setSearchTerm('');
-      }
+      setActiveTab(targetCatId);
+      setSearchTerm('');
 
       const el = document.getElementById('collection');
       if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
+        const yOffset = -80;
+        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
       }
     };
 
-    window.addEventListener('selectCategoryByKeyword', handleSelectCategoryByKeyword);
+    window.__selectShopCategory = handleCategorySwitch;
+
+    const handleEvent = (e) => {
+      handleCategorySwitch(e.detail?.keyword);
+    };
+
+    window.addEventListener('selectCategoryByKeyword', handleEvent);
 
     // Check if URL has ?cat= parameter on page load
     try {
@@ -146,12 +143,15 @@ export default function Menu() {
       const urlCat = params.get('cat');
       if (urlCat) {
         setTimeout(() => {
-          handleSelectCategoryByKeyword({ detail: { keyword: urlCat } });
-        }, 400);
+          handleCategorySwitch(urlCat);
+        }, 300);
       }
     } catch (_) {}
 
-    return () => window.removeEventListener('selectCategoryByKeyword', handleSelectCategoryByKeyword);
+    return () => {
+      window.removeEventListener('selectCategoryByKeyword', handleEvent);
+      delete window.__selectShopCategory;
+    };
   }, [categories]);
 
   // Fetch menu items from DB
