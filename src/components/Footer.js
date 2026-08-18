@@ -306,51 +306,21 @@ export default function Footer({ onOpenPolicy }) {
 
       {/* 🌟 Standalone Zahrat Beesan Techno Card */}
       <div style={{ maxWidth: '1240px', margin: '0 auto 35px', padding: '0 20px' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(30, 23, 17, 0.95) 0%, rgba(48, 36, 25, 0.9) 100%)',
-          border: '1px solid rgba(197, 168, 128, 0.35)',
-          borderRadius: '16px',
-          padding: '16px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '16px',
-          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.12)'
-        }}>
+        <div className={styles.technoCard}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div style={{
-              width: '42px', height: '42px', borderRadius: '12px',
-              background: 'rgba(197, 168, 128, 0.15)', border: '1px solid rgba(197, 168, 128, 0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem'
-            }}>
+            <div className={styles.technoIcon}>
               💻
             </div>
             <div>
-              <strong style={{ color: 'var(--gold, #c5a880)', fontSize: '1.02rem', display: 'block', marginBottom: '2px' }}>
+              <strong className={styles.technoTitle}>
                 {t('technoSolutionsTitle')}
               </strong>
-              <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.82rem' }}>
+              <span className={styles.technoSubtitle}>
                 {t('technoSolutionsSubtitle')}
               </span>
             </div>
           </div>
-          <a
-            href="/tech"
-            style={{
-              background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
-              color: '#ffffff',
-              padding: '10px 22px',
-              borderRadius: '25px',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              textDecoration: 'none',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '8px',
-              boxShadow: '0 4px 15px rgba(197, 168, 128, 0.3)'
-            }}
-          >
+          <a href="/tech" className={styles.technoBtn}>
             <span>{t('visitTechno')}</span>
           </a>
         </div>

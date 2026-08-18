@@ -606,10 +606,10 @@ export default function ProductPage() {
               <p style={{ fontSize: '0.92rem', color: '#1a1a1a', fontWeight: 700, marginBottom: '14px' }}>جدول المقاسات الرسمي المعتمد (القياسات بالسنتيمتر):</p>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', border: '1.5px solid rgba(197,163,106,0.35)', fontSize: '0.95rem', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
                 <thead>
-                  <tr style={{ background: '#241b12', color: '#ffffff', fontWeight: 'bold' }}>
-                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#ffd700', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
-                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الصدر</th>
-                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الحوض</th>
+                  <tr style={{ background: 'linear-gradient(135deg, rgba(197,168,128,0.25) 0%, rgba(197,168,128,0.12) 100%)', color: '#1a1a1a', fontWeight: 'bold' }}>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#8a6538', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الصدر</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الحوض</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -855,15 +855,15 @@ export default function ProductPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#241b12', padding: '16px 22px', borderRadius: '16px', border: '1.5px solid #c5a880', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#faf8f5', padding: '16px 22px', borderRadius: '16px', border: '1.5px solid rgba(197, 168, 128, 0.45)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                 <div>
-                  <span style={{ fontSize: '0.88rem', color: '#e5c287', display: 'block', fontWeight: 700 }}>المقاس الموصى به:</span>
-                  <strong style={{ fontSize: '1.6rem', color: '#ffd700', fontWeight: 900 }}>مقاس {currentRecommendedSize}</strong>
+                  <span style={{ fontSize: '0.88rem', color: '#665b52', display: 'block', fontWeight: 700 }}>المقاس الموصى به:</span>
+                  <strong style={{ fontSize: '1.6rem', color: '#b8860b', fontWeight: 900 }}>مقاس {currentRecommendedSize}</strong>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => { setSelectedSize(currentRecommendedSize); setShowSizeModal(false); }}
-                  style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(197, 168, 128, 0.4)' }}
+                  style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(197, 168, 128, 0.35)' }}
                 >
                   اعتماد المقاس
                 </button>
@@ -876,10 +876,10 @@ export default function ProductPage() {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem', textAlign: 'center', border: '1.5px solid rgba(197, 168, 128, 0.35)', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
                   <thead>
-                    <tr style={{ background: '#241b12', color: '#ffffff', fontWeight: 'bold' }}>
-                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#ffd700', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
-                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الصدر</th>
-                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الحوض</th>
+                    <tr style={{ background: 'linear-gradient(135deg, rgba(197,168,128,0.25) 0%, rgba(197,168,128,0.12) 100%)', color: '#1a1a1a', fontWeight: 'bold' }}>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#8a6538', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الصدر</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الحوض</th>
                     </tr>
                   </thead>
                   <tbody>
