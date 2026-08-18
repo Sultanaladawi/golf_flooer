@@ -152944,69 +152944,21 @@ app.get("/api/catalog/pdf", async (req, res) => {
     const catalogPath = path.join(__dirname, 'public', 'Zahrat_Beesan_Catalog_2026.pdf');
     const buildCatalogPath = path.join(__dirname, 'build', 'Zahrat_Beesan_Catalog_2026.pdf');
     const finalPath = fs.existsSync(catalogPath) ? catalogPath : (fs.existsSync(buildCatalogPath) ? buildCatalogPath : null);
+
     if (finalPath) {
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", 'attachment; filename="Zahrat_Beesan_Luxury_Catalog_2026.pdf"');
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'inline; filename="Zahrat_Beesan_Luxury_Catalog_2026.pdf"');
       return fs.createReadStream(finalPath).pipe(res);
     }
-    const { PDFDocument, rgb, StandardFonts } = require_cjs();
-    const pdfDoc = await PDFDocument.create();
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-    let products = await new Promise((resolve) => {
-      db.query("SELECT id, name, price, price_display, description FROM menu_items LIMIT 30", (err, results) => {
-        if (err || !results || results.length === 0) resolve([]);
-        else resolve(results);
-      });
-    });
-    if (!products || products.length === 0) {
-      products = [
-        { id: 1, name: "Royal Silk Abaya", price: 120, price_display: "120 JOD", description: "Luxury natural silk abaya with hand embroidery" },
-        { id: 2, name: "Embroidered Bisht Abaya", price: 110, price_display: "110 JOD", description: "Classic regal bisht cut with gold thread accents" },
-        { id: 3, name: "Heritage Velvet Abaya", price: 145, price_display: "145 JOD", description: "Royal winter velvet kaftan with intricate detailing" },
-        { id: 4, name: "Daily Reception Abaya", price: 85, price_display: "85 JOD", description: "Lightweight linen reception abaya for daily elegance" },
-        { id: 5, name: "Bridal Occasion Kaftan", price: 180, price_display: "180 JOD", description: "Haute couture bridal reception kaftan with crystal beads" }
-      ];
-    }
-    let page = pdfDoc.addPage([595.28, 841.89]);
-    const { width, height } = page.getSize();
-    const translateName = (str) => {
-      if (!str || typeof str !== "string") return "Royal Abaya Item";
-      let s = str;
-      if (s.includes("\u062D\u0631\u064A\u0631")) return "Royal Natural Silk Abaya";
-      if (s.includes("\u0628\u0634\u062A")) return "Embroidered Bisht Abaya";
-      if (s.includes("\u0645\u0637\u0631\u0632\u0629") || s.includes("\u062A\u0637\u0631\u064A\u0632")) return "Luxury Embroidered Abaya";
-      if (s.includes("\u0633\u0647\u0631\u0629") || s.includes("\u0645\u0646\u0627\u0633\u0628\u0627\u062A")) return "Evening Occasion Abaya";
-      if (s.includes("\u0642\u0641\u0637\u0627\u0646")) return "Royal Oriental Kaftan";
-      if (s.includes("\u0645\u062E\u0645\u0644")) return "Winter Velvet Abaya";
-      if (s.includes("\u064A\u0648\u0645\u064A\u0629")) return "Daily Elegance Abaya";
-      const asciiOnly = s.replace(/[^\x20-\x7E]/g, "").trim();
-      return asciiOnly.length > 2 ? asciiOnly : "Zahrat Beesan Royal Abaya";
-    };
-    page.drawText("Zahrat Beesan Luxury Catalog", { x: 50, y: height - 60, size: 22, font: fontBold, color: rgb(0.77, 0.65, 0.5) });
-    page.drawText("Official Royal Abaya Collection 2026", { x: 50, y: height - 85, size: 12, font, color: rgb(0.3, 0.3, 0.3) });
-    let y = height - 130;
-    products.forEach((p, idx) => {
-      if (y < 90) {
-        page = pdfDoc.addPage([595.28, 841.89]);
-        y = height - 60;
-      }
-      const safeName = translateName(p.name);
-      const safePrice = p.price_display || (p.price ? `${p.price} JOD` : "85.00 JOD");
-      const safeDesc = p.description && typeof p.description === "string" && p.description.replace(/[^\x20-\x7E]/g, "").trim() || "Luxury hand-crafted oriental abaya";
-      const descSnippet = safeDesc.substring(0, 65) + (safeDesc.length > 65 ? "..." : "");
-      page.drawText(`${idx + 1}. ${safeName}`, { x: 50, y, size: 11, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
-      page.drawText(`Price: ${safePrice}`, { x: 420, y, size: 11, font: fontBold, color: rgb(0.77, 0.65, 0.5) });
-      page.drawText(descSnippet, { x: 50, y: y - 16, size: 9, font, color: rgb(0.4, 0.4, 0.4) });
-      y -= 50;
-    });
-    const pdfBytes = await pdfDoc.save();
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", 'attachment; filename="Zahrat_Beesan_Catalog_2026.pdf"');
+
+    const { generateCatalog } = require('./scripts/generate-sample-catalog');
+    const pdfBytes = await generateCatalog();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="Zahrat_Beesan_Luxury_Catalog_2026.pdf"');
     res.send(Buffer.from(pdfBytes));
   } catch (err) {
-    console.error("[PDF Catalog Error]:", err);
-    res.status(500).send("Error generating catalog");
+    console.error('[PDF Catalog Error]:', err);
+    res.status(500).send('Error generating catalog: ' + err.message);
   }
 });
 app.delete("/api/newsletter/:id", (req, res) => {

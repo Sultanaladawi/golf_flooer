@@ -36,8 +36,9 @@ npm-debug.log*
 # Graduation Project Private Files
 graduation_project_*
 *.pptx
-*.docx
 *.pdf
+!public/Zahrat_Beesan_Catalog_2026.pdf
+!build/Zahrat_Beesan_Catalog_2026.pdf
 *.zip
 *.rar
 
