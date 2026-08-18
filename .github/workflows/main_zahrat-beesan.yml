@@ -29,9 +29,9 @@ jobs:
           rm -rf deploy_stage build.zip
           # Bundle backend into 100% standalone single file with zero node_modules dependency
           npx esbuild main_server.js --bundle --platform=node --target=node22 --outfile=deploy_stage/main_server.js --external:mysql2/promise
-          cp deploy_stage/main_server.js deploy_stage/server.js
-          cp deploy_stage/main_server.js deploy_stage/app.js
-          cp deploy_stage/main_server.js deploy_stage/server_bundled.js
+          cat << 'EOF' > deploy_stage/package.json
+          {"name":"zahrat-beesan","main":"main_server.js","scripts":{"start":"node main_server.js"}}
+          EOF
           cp web.config deploy_stage/ 2>/dev/null || true
           cp .env.azure deploy_stage/ 2>/dev/null || true
           
@@ -39,8 +39,6 @@ jobs:
           mkdir -p deploy_stage/build
           cp -r build/static deploy_stage/build/
           cp build/index.html deploy_stage/build/
-          cp -r build/static deploy_stage/
-          cp build/index.html deploy_stage/
           cp build/manifest.json deploy_stage/ 2>/dev/null || true
           cp build/favicon.ico deploy_stage/ 2>/dev/null || true
           cp build/logo.png deploy_stage/ 2>/dev/null || true

@@ -42,7 +42,7 @@ async function deploy() {
       const req = https.request({
         hostname: scmHost,
         port: 443,
-        path: '/api/zipdeploy',
+        path: '/api/zipdeploy?isAsync=true',
         method: 'POST',
         headers: {
           'Authorization': auth,
@@ -57,7 +57,7 @@ async function deploy() {
         res.on('end', () => {
           console.log(`📡 Azure ZipDeploy response: HTTP ${res.statusCode} ${res.statusMessage}`);
           if (res.statusCode >= 200 && res.statusCode < 300) {
-            console.log('🎉 Deployment succeeded!');
+            console.log('🎉 Async Zip Deployment accepted by Azure successfully!');
             resolve(true);
           } else if ([502, 503, 504, 429].includes(res.statusCode) && attempt < 4) {
             console.warn(`⚠️ Azure returned temporary HTTP ${res.statusCode}. Retrying in 15 seconds...`);
