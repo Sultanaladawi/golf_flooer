@@ -95,19 +95,62 @@ export default function Menu() {
   // Listen for category selection events from Footer / Header
   useEffect(() => {
     const handleSelectCategoryByKeyword = (e) => {
-      const kw = (e.detail?.keyword || '').toLowerCase();
-      if (!kw || categories.length === 0) return;
-      const found = categories.find(c => 
-        (c.id && String(c.id).toLowerCase().includes(kw)) ||
-        (c.name && c.name.toLowerCase().includes(kw)) ||
-        (c.label && c.label.toLowerCase().includes(kw)) ||
-        (c.name_ar && c.name_ar.toLowerCase().includes(kw))
-      );
-      if (found) {
-        setActiveTab(String(found.id));
+      const kw = (e.detail?.keyword || '').toLowerCase().trim();
+      if (!kw) return;
+
+      let targetCatId = null;
+      if (kw === 'classic' || kw === 'classicabayas' || kw.includes('مطرز') || kw.includes('كلاسيك')) {
+        const found = categories.find(c => String(c.id) === '2' || (c.label && (c.label.includes('مطرز') || c.label.includes('كلاسيك'))));
+        if (found) targetCatId = String(found.id);
+        else targetCatId = '2';
+      } else if (kw === 'occasion' || kw === 'occasionabayas' || kw.includes('سهرة') || kw.includes('مناسب')) {
+        const found = categories.find(c => String(c.id) === '3' || (c.label && (c.label.includes('سهرة') || c.label.includes('مناسب'))));
+        if (found) targetCatId = String(found.id);
+        else targetCatId = '3';
+      } else if (kw === 'daily' || kw === 'dailyabayas' || kw.includes('يومي') || kw.includes('استقبال')) {
+        const found = categories.find(c => String(c.id) === '1' || (c.label && c.label.includes('يومي')));
+        if (found) targetCatId = String(found.id);
+        else targetCatId = '1';
+      } else if (kw === 'winter' || kw === 'wintercollection' || kw.includes('شتو') || kw.includes('شتاء')) {
+        setSearchTerm('شتوية');
+        if (categories.length > 0) setActiveTab(String(categories[0].id));
+      } else if (kw === 'new' || kw === 'newarrivals' || kw.includes('جديد') || kw.includes('وصل حديثا')) {
+        setSearchTerm('جديد');
+        if (categories.length > 0) setActiveTab(String(categories[0].id));
+      } else {
+        const found = categories.find(c => 
+          (c.id && String(c.id).toLowerCase().includes(kw)) ||
+          (c.name && c.name.toLowerCase().includes(kw)) ||
+          (c.label && c.label.toLowerCase().includes(kw)) ||
+          (c.name_ar && c.name_ar.toLowerCase().includes(kw))
+        );
+        if (found) targetCatId = String(found.id);
+      }
+
+      if (targetCatId) {
+        setActiveTab(targetCatId);
+        setSearchTerm('');
+      }
+
+      const el = document.getElementById('collection');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
       }
     };
+
     window.addEventListener('selectCategoryByKeyword', handleSelectCategoryByKeyword);
+
+    // Check if URL has ?cat= parameter on page load
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlCat = params.get('cat');
+      if (urlCat) {
+        setTimeout(() => {
+          handleSelectCategoryByKeyword({ detail: { keyword: urlCat } });
+        }, 400);
+      }
+    } catch (_) {}
+
     return () => window.removeEventListener('selectCategoryByKeyword', handleSelectCategoryByKeyword);
   }, [categories]);
 

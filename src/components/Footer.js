@@ -80,13 +80,15 @@ export default function Footer({ onOpenPolicy }) {
   };
 
   const handleCategoryClick = (e, catKeyword) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
+    if (window.location.pathname !== '/' && window.location.pathname !== '') {
+      window.location.href = `/?cat=${encodeURIComponent(catKeyword)}#collection`;
+      return;
+    }
     window.dispatchEvent(new CustomEvent('selectCategoryByKeyword', { detail: { keyword: catKeyword } }));
     const el = document.getElementById('collection');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      window.location.href = '/#collection';
     }
   };
 
@@ -176,34 +178,41 @@ export default function Footer({ onOpenPolicy }) {
           </div>
 
           {/* 🏛️ Official Commercial & Tax Trust Seal Card */}
-          <div className={styles.crCard}>
-            <div className={styles.crCardHeader}>
-              <ShieldCheck size={18} color="var(--gold-dim, #b8966c)" />
-              <div>
-                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--espresso, #1a1a1a)' }}>ترخيص رسمي وموثق في الأردن</strong>
-                <span style={{ fontSize: '0.72rem', color: 'var(--gold-dim, #a6865d)' }}>وزارة الصناعة والتجارة & ضريبة الدخل</span>
+          <div className={styles.trustSealCard}>
+            <div className={styles.trustSealHeader}>
+              <div className={styles.trustBadgeIconWrap}>
+                <ShieldCheck size={20} color="var(--gold-dim, #b8966c)" />
+              </div>
+              <div className={styles.trustHeaderText}>
+                <span className={styles.trustTag}>ترخيص وتوثيق رسمي معتمد</span>
+                <span className={styles.trustMinistry}>وزارة الصناعة والتجارة & ضريبة الدخل</span>
               </div>
             </div>
-            <div className={styles.crDetailsGrid}>
-              <div className={styles.crRow}>
-                <span className={styles.crLabel}>الاسم التجاري:</span>
-                <strong className={styles.crValueSmall}>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong>
+
+            <div className={styles.trustSealBody}>
+              <div className={styles.trustRow}>
+                <span className={styles.trustLabel}>الاسم التجاري الرسمي:</span>
+                <strong className={styles.trustName}>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong>
               </div>
-              <div className={styles.crRow}>
-                <span className={styles.crLabel}>السجل التجاري:</span>
-                <strong className={styles.crValue}>617219</strong>
+
+              <div className={styles.trustNumbersGrid}>
+                <div className={styles.trustNumBox}>
+                  <span className={styles.trustNumLabel}>السجل التجاري</span>
+                  <strong className={styles.trustNumValue}>617219</strong>
+                </div>
+                <div className={styles.trustNumBox}>
+                  <span className={styles.trustNumLabel}>الرقم الوطني للمنشأة</span>
+                  <strong className={styles.trustNumValue}>101071079</strong>
+                </div>
+                <div className={styles.trustNumBox}>
+                  <span className={styles.trustNumLabel}>الرقم الضريبي</span>
+                  <strong className={styles.trustNumValue}>81492545</strong>
+                </div>
               </div>
-              <div className={styles.crRow}>
-                <span className={styles.crLabel}>الرقم الوطني للمنشأة:</span>
-                <strong className={styles.crValue}>101071079</strong>
-              </div>
-              <div className={styles.crRow}>
-                <span className={styles.crLabel}>الرقم الضريبي:</span>
-                <strong className={styles.crValue}>81492545</strong>
-              </div>
-              <div className={styles.crRow}>
-                <span className={styles.crLabel}>الرقم الوطني للمكلف:</span>
-                <strong className={styles.crValue}>2000809648</strong>
+
+              <div className={styles.trustFooterBadge}>
+                <span className={styles.verifiedDot} />
+                <span>مرخص رسمياً للتجارة الإلكترونية (رمز 479120)</span>
               </div>
             </div>
           </div>
