@@ -35,10 +35,12 @@ jobs:
           cp web.config deploy_stage/ 2>/dev/null || true
           cp .env.azure deploy_stage/ 2>/dev/null || true
           
-          # Copy complete build folder (excluding heavy .mp4 videos)
+          # Copy complete build folder to BOTH root and build/ subfolder
           mkdir -p deploy_stage/build
           cp -r build/static deploy_stage/build/
           cp build/index.html deploy_stage/build/
+          cp -r build/static deploy_stage/
+          cp build/index.html deploy_stage/
           cp build/manifest.json deploy_stage/ 2>/dev/null || true
           cp build/favicon.ico deploy_stage/ 2>/dev/null || true
           cp build/logo.png deploy_stage/ 2>/dev/null || true
