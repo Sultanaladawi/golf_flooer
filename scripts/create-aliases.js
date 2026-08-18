@@ -1,50 +1,54 @@
 const fs = require('fs');
 const path = require('path');
 
-// Clean up any old duplicate bundles to keep deploy package ultra-light
-const jsDir = path.resolve(__dirname, '..', 'build', 'static', 'js');
-if (fs.existsSync(jsDir)) {
-  const allFiles = fs.readdirSync(jsDir);
-  const mainFiles = allFiles
-    .filter(f => f.startsWith('main.') && f.endsWith('.js') && !f.endsWith('.map') && f !== 'main.js')
-    .map(f => ({ name: f, time: fs.statSync(path.join(jsDir, f)).mtimeMs }))
-    .sort((a, b) => b.time - a.time);
+const indexPath = path.resolve(__dirname, '..', 'build', 'index.html');
+if (!fs.existsSync(indexPath)) {
+  console.log('❌ build/index.html not found');
+  process.exit(1);
+}
 
-  if (mainFiles.length > 0) {
-    const newest = mainFiles[0].name;
-    console.log(`✅ Active React JS bundle: ${newest}`);
-    // Create aliases
-    fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.js'));
-    fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.ef562455.js'));
-    fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.c9aa5b70.js'));
-    // Remove other stale files
-    mainFiles.slice(1).forEach(f => {
-      if (f.name !== 'main.ef562455.js' && f.name !== 'main.c9aa5b70.js') {
-        try { fs.unlinkSync(path.join(jsDir, f.name)); } catch (_) {}
-      }
-    });
+const indexHtml = fs.readFileSync(indexPath, 'utf8');
+const jsMatch = indexHtml.match(/\/static\/js\/(main\.[a-zA-Z0-9]+\.js)/i);
+const cssMatch = indexHtml.match(/\/static\/css\/(main\.[a-zA-Z0-9]+\.css)/i);
+
+const activeJs = jsMatch ? jsMatch[1] : null;
+const activeCss = cssMatch ? cssMatch[1] : null;
+
+const jsDir = path.resolve(__dirname, '..', 'build', 'static', 'js');
+if (fs.existsSync(jsDir) && activeJs) {
+  console.log(`✅ Deterministic Active React JS bundle from index.html: ${activeJs}`);
+  const activePath = path.join(jsDir, activeJs);
+  if (fs.existsSync(activePath)) {
+    const commonJsAliases = [
+      'main.js',
+      'main.ef562455.js',
+      'main.c9aa5b70.js',
+      'main.1c4e12f8.js',
+      'main.d06341fa.js',
+      'main.2be10d3c.js'
+    ];
+    for (const alias of commonJsAliases) {
+      fs.copyFileSync(activePath, path.join(jsDir, alias));
+    }
   }
 }
 
 const cssDir = path.resolve(__dirname, '..', 'build', 'static', 'css');
-if (fs.existsSync(cssDir)) {
-  const allFiles = fs.readdirSync(cssDir);
-  const mainFiles = allFiles
-    .filter(f => f.startsWith('main.') && f.endsWith('.css') && !f.endsWith('.map') && f !== 'main.css')
-    .map(f => ({ name: f, time: fs.statSync(path.join(cssDir, f)).mtimeMs }))
-    .sort((a, b) => b.time - a.time);
-
-  if (mainFiles.length > 0) {
-    const newest = mainFiles[0].name;
-    console.log(`✅ Active React CSS bundle: ${newest}`);
-    fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.css'));
-    fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.c506378e.css'));
-    fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.ed86ab77.css'));
-    mainFiles.slice(1).forEach(f => {
-      if (f.name !== 'main.c506378e.css' && f.name !== 'main.ed86ab77.css') {
-        try { fs.unlinkSync(path.join(cssDir, f.name)); } catch (_) {}
-      }
-    });
+if (fs.existsSync(cssDir) && activeCss) {
+  console.log(`✅ Deterministic Active React CSS bundle from index.html: ${activeCss}`);
+  const activePath = path.join(cssDir, activeCss);
+  if (fs.existsSync(activePath)) {
+    const commonCssAliases = [
+      'main.css',
+      'main.c506378e.css',
+      'main.ed86ab77.css',
+      'main.224378c4.css',
+      'main.6aed2f9a.css'
+    ];
+    for (const alias of commonCssAliases) {
+      fs.copyFileSync(activePath, path.join(cssDir, alias));
+    }
   }
 }
-console.log('✅ Clean build directory ready for packaging.');
+
+console.log('✅ All JS & CSS bundles and aliases synchronised with build/index.html.');
