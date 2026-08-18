@@ -70,13 +70,43 @@ async function deployViaFTP() {
   }
 
   const localDeployDir = path.resolve(process.cwd(), 'deploy_stage');
-  console.log(`📁 Uploading local directory: ${localDeployDir} to /site/wwwroot...`);
+  console.log(`📁 Fast FTPS upload of core runtime files...`);
 
   await client.ensureDir('/site/wwwroot');
-  await client.clearWorkingDir(); // Remove stale files
-  await client.uploadFromDir(localDeployDir, '/site/wwwroot');
+  
+  // Upload root server files
+  const rootFiles = ['index.html', 'main_server.js', 'package.json', 'web.config'];
+  for (const f of rootFiles) {
+    const src = path.join(localDeployDir, f);
+    if (fs.existsSync(src)) {
+      console.log(`⬆️ Uploading /site/wwwroot/${f}...`);
+      await client.uploadFrom(src, `/site/wwwroot/${f}`);
+    }
+  }
 
-  console.log('🎉 ALL FILES TRANSFERRED TO AZURE /site/wwwroot SUCCESSFULLY VIA FTPS!');
+  // Upload static assets
+  await client.ensureDir('/site/wwwroot/static/js');
+  await client.ensureDir('/site/wwwroot/static/css');
+
+  const jsDir = path.join(localDeployDir, 'static', 'js');
+  if (fs.existsSync(jsDir)) {
+    const jsFiles = fs.readdirSync(jsDir);
+    for (const f of jsFiles) {
+      console.log(`⬆️ Uploading JS: ${f}...`);
+      await client.uploadFrom(path.join(jsDir, f), `/site/wwwroot/static/js/${f}`);
+    }
+  }
+
+  const cssDir = path.join(localDeployDir, 'static', 'css');
+  if (fs.existsSync(cssDir)) {
+    const cssFiles = fs.readdirSync(cssDir);
+    for (const f of cssFiles) {
+      console.log(`⬆️ Uploading CSS: ${f}...`);
+      await client.uploadFrom(path.join(cssDir, f), `/site/wwwroot/static/css/${f}`);
+    }
+  }
+
+  console.log('🎉 ALL FRESH ASSETS TRANSFERRED TO AZURE IN SECONDS VIA FTPS!');
   client.close();
 }
 
