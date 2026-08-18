@@ -79,6 +79,30 @@ export default function Footer({ onOpenPolicy }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleCategoryClick = (e, catKeyword) => {
+    e.preventDefault();
+    window.dispatchEvent(new CustomEvent('selectCategoryByKeyword', { detail: { keyword: catKeyword } }));
+    const el = document.getElementById('collection');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.location.href = '/#collection';
+    }
+  };
+
+  const handleLinkClick = (e, href) => {
+    if (href.startsWith('/#') || href.startsWith('#')) {
+      e.preventDefault();
+      const targetId = href.replace(/^\/?#/, '');
+      const el = document.getElementById(targetId);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        window.location.href = href;
+      }
+    }
+  };
+
   return (
     <footer className={styles.footer} style={{ direction: currentLang.dir || 'rtl' }}>
       
@@ -124,7 +148,7 @@ export default function Footer({ onOpenPolicy }) {
 
         {/* Column 1: Brand & Identity */}
         <div className={styles.brandCol}>
-          <a href="#home" className={styles.logoLink} aria-label={shopInfo.name}>
+          <a href="#home" onClick={e => handleLinkClick(e, '#home')} className={styles.logoLink} aria-label={shopInfo.name}>
             <img src="/logo.png" alt="زهرة بيسان" className={styles.logoImg} />
           </a>
           <p className={styles.brandDesc}>
@@ -151,10 +175,26 @@ export default function Footer({ onOpenPolicy }) {
             <span>{t('globalOnlineStore')}</span>
           </div>
 
-          {/* 📋 Commercial Register & Business Identity */}
-          <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim, #b8966c)', fontWeight: '700', marginTop: '6px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'rgba(197, 168, 128, 0.08)', padding: '10px 14px', borderRadius: '12px', border: '1px solid rgba(197, 168, 128, 0.2)' }}>
-            <span>📋 السجل التجاري: <strong>398210</strong></span>
-            <span>🏛️ دار زهرة بيسان المسجلة رسمياً</span>
+          {/* 🏛️ Commercial Register & Business Identity */}
+          <div className={styles.crCard}>
+            <div className={styles.crCardHeader}>
+              <ShieldCheck size={16} color="var(--gold-dim, #b8966c)" />
+              <span>ترخيص رسمي وموثق في الأردن</span>
+            </div>
+            <div className={styles.crDetailsGrid}>
+              <div className={styles.crRow}>
+                <span className={styles.crLabel}>السجل التجاري:</span>
+                <strong className={styles.crValue}>398210</strong>
+              </div>
+              <div className={styles.crRow}>
+                <span className={styles.crLabel}>الرقم الوطني للمنشأة:</span>
+                <strong className={styles.crValue}>200189473</strong>
+              </div>
+              <div className={styles.crRow}>
+                <span className={styles.crLabel}>الاعتماد الرسمي:</span>
+                <span className={styles.crValueSmall}>دار زهرة بيسان للأزياء والعبايات</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -162,11 +202,11 @@ export default function Footer({ onOpenPolicy }) {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('exclusiveCollections')}</h4>
           <ul className={styles.linkList}>
-            <li><a href="/#collection">{t('classicAbayas')}</a></li>
-            <li><a href="/#collection">{t('occasionAbayas')}</a></li>
-            <li><a href="/#collection">{t('winterCollection')}</a></li>
-            <li><a href="/#collection">{t('dailyAbayas')}</a></li>
-            <li><a href="/#collection">{t('newArrivals')}</a></li>
+            <li><button onClick={e => handleCategoryClick(e, 'classic')}>{t('classicAbayas')}</button></li>
+            <li><button onClick={e => handleCategoryClick(e, 'occasion')}>{t('occasionAbayas')}</button></li>
+            <li><button onClick={e => handleCategoryClick(e, 'winter')}>{t('winterCollection')}</button></li>
+            <li><button onClick={e => handleCategoryClick(e, 'daily')}>{t('dailyAbayas')}</button></li>
+            <li><button onClick={e => handleCategoryClick(e, 'new')}>{t('newArrivals')}</button></li>
             <li><a href="/gift-cards">{t('royalGiftCards')}</a></li>
           </ul>
         </div>
@@ -178,12 +218,12 @@ export default function Footer({ onOpenPolicy }) {
             <li><button onClick={() => onOpenPolicy && onOpenPolicy('returns')}>{t('exchangeReturnPolicy')}</button></li>
             <li><button onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy')}</button></li>
             <li><button onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan')}</button></li>
-            <li><a href="/account">{t('smartSizeGuide')}</a></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide')}</button></li>
+            <li><button onClick={() => onOpenPolicy && onOpenPolicy('shipping')}>سياسة الشحن والتوصيل</button></li>
             <li><a href="/account">{t('vipLounge')}</a></li>
             <li><a href="/blog">{t('magazineAndElegance')}</a></li>
             <li><a href="/api/catalog/pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
           </ul>
-
         </div>
 
 

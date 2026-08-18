@@ -92,6 +92,25 @@ export default function Menu() {
     fetchCategories();
   }, []);
 
+  // Listen for category selection events from Footer / Header
+  useEffect(() => {
+    const handleSelectCategoryByKeyword = (e) => {
+      const kw = (e.detail?.keyword || '').toLowerCase();
+      if (!kw || categories.length === 0) return;
+      const found = categories.find(c => 
+        (c.id && String(c.id).toLowerCase().includes(kw)) ||
+        (c.name && c.name.toLowerCase().includes(kw)) ||
+        (c.label && c.label.toLowerCase().includes(kw)) ||
+        (c.name_ar && c.name_ar.toLowerCase().includes(kw))
+      );
+      if (found) {
+        setActiveTab(String(found.id));
+      }
+    };
+    window.addEventListener('selectCategoryByKeyword', handleSelectCategoryByKeyword);
+    return () => window.removeEventListener('selectCategoryByKeyword', handleSelectCategoryByKeyword);
+  }, [categories]);
+
   // Fetch menu items from DB
   useEffect(() => {
     async function fetchMenu() {
