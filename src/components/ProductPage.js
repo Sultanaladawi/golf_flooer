@@ -603,13 +603,13 @@ export default function ProductPage() {
 
           {activeTab === 'sizechart' && (
             <div style={{ overflowX: 'auto' }}>
-              <p style={{ fontSize: '0.88rem', color: 'var(--espresso-dim)', marginBottom: '14px' }}>جدول المقاسات الرسمي المعتمد (القياسات بالسنتيمتر):</p>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', border: '1px solid rgba(197,163,106,0.2)', fontSize: '0.9rem' }}>
+              <p style={{ fontSize: '0.92rem', color: '#1a1a1a', fontWeight: 700, marginBottom: '14px' }}>جدول المقاسات الرسمي المعتمد (القياسات بالسنتيمتر):</p>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', border: '1.5px solid rgba(197,163,106,0.35)', fontSize: '0.95rem', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
                 <thead>
-                  <tr style={{ background: 'rgba(197,163,106,0.15)', color: 'var(--espresso)', fontWeight: 'bold' }}>
-                    <th style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>المقاس</th>
-                    <th style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>محيط الصدر</th>
-                    <th style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>محيط الحوض</th>
+                  <tr style={{ background: '#241b12', color: '#ffffff', fontWeight: 'bold' }}>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#ffd700', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الصدر</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الحوض</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -621,10 +621,10 @@ export default function ProductPage() {
                     { size: '58', chest: '115 سم', hip: '125 سم' },
                     { size: '60', chest: '120 سم', hip: '130 سم' }
                   ]).map((row, idx) => (
-                    <tr key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.2)' : 'none' }}>
-                      <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)', color: 'var(--gold)', fontWeight: 900 }}>{row.size}</td>
-                      <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>{row.chest || '—'}</td>
-                      <td style={{ padding: '12px', border: '1px solid rgba(197,163,106,0.2)' }}>{row.hip || row.waist || '—'}</td>
+                    <tr key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.25)' : (idx % 2 === 0 ? '#ffffff' : '#fbf9f6'), cursor: 'pointer' }} onClick={() => setSelectedSize(String(row.size))}>
+                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{row.size}</td>
+                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.chest || '—'}</td>
+                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.hip || row.waist || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -823,22 +823,22 @@ export default function ProductPage() {
       {/* Interactive Size Calculator Modal */}
       {showSizeModal && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px', backdropFilter: 'blur(6px)', direction: 'rtl' }}>
-          <div style={{ background: 'var(--bg-card, #fff)', width: '95%', maxWidth: '600px', borderRadius: '24px', border: '1.5px solid var(--gold, rgba(197, 168, 128, 0.4))', padding: '32px', position: 'relative', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <button onClick={() => setShowSizeModal(false)} style={{ position: 'absolute', top: '22px', left: '22px', background: 'none', border: 'none', color: 'var(--espresso, #2b2015)', cursor: 'pointer', padding: 0 }} title="إغلاق">
+          <div style={{ background: '#ffffff', width: '95%', maxWidth: '600px', borderRadius: '24px', border: '1.5px solid #c5a880', padding: '32px', position: 'relative', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <button onClick={() => setShowSizeModal(false)} style={{ position: 'absolute', top: '22px', left: '22px', background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', padding: 0 }} title="إغلاق">
               <X size={26} />
             </button>
 
-            <h3 style={{ margin: '0 0 22px 0', color: 'var(--espresso, #2b2015)', fontSize: '1.45rem', fontWeight: 900, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+            <h3 style={{ margin: '0 0 22px 0', color: '#1a1a1a', fontSize: '1.45rem', fontWeight: 900, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
               📏 دليل ومساعد المقاسات الذكي
             </h3>
 
             {/* Interactive Calculator */}
-            <div style={{ background: 'rgba(197, 168, 128, 0.08)', padding: '22px', borderRadius: '18px', border: '1px solid rgba(197, 168, 128, 0.25)', marginBottom: '25px' }}>
-              <h4 style={{ margin: '0 0 15px 0', color: 'var(--gold, #c5a36a)', fontSize: '1.05rem', fontWeight: 900 }}>حاسبة الطول والمقاس التفاعلية</h4>
+            <div style={{ background: '#fcfaf6', padding: '22px', borderRadius: '18px', border: '1px solid rgba(197, 168, 128, 0.35)', marginBottom: '25px' }}>
+              <h4 style={{ margin: '0 0 15px 0', color: '#8a6538', fontSize: '1.05rem', fontWeight: 900 }}>حاسبة الطول والمقاس التفاعلية</h4>
               
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 800, color: 'var(--espresso)', marginBottom: '10px' }}>
-                  طولكِ الكريم: <span style={{ color: 'var(--gold)', fontWeight: 900 }}>{userHeight} سم</span>
+                <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 900, color: '#1a1a1a', marginBottom: '10px' }}>
+                  طولكِ الكريم: <span style={{ color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{userHeight} سم</span>
                 </label>
                 <input 
                   type="range" 
@@ -846,24 +846,24 @@ export default function ProductPage() {
                   max="185" 
                   value={userHeight} 
                   onChange={(e) => setUserHeight(parseInt(e.target.value))}
-                  style={{ width: '100%', accentColor: 'var(--gold)' }}
+                  style={{ width: '100%', accentColor: '#b8966c', cursor: 'pointer' }}
                 />
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--espresso-dim)', marginTop: '6px', fontWeight: 600 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#333333', marginTop: '8px', fontWeight: 700 }}>
                   <span>145 سم</span>
                   <span>165 سم</span>
                   <span>185 سم</span>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'var(--bg-card, #fff)', padding: '14px 20px', borderRadius: '14px', border: '1px solid rgba(197,163,106,0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#241b12', padding: '16px 22px', borderRadius: '16px', border: '1.5px solid #c5a880', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
                 <div>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', display: 'block' }}>المقاس الموصى به:</span>
-                  <strong style={{ fontSize: '1.5rem', color: 'var(--gold)', fontWeight: 900 }}>مقاس {currentRecommendedSize}</strong>
+                  <span style={{ fontSize: '0.88rem', color: '#e5c287', display: 'block', fontWeight: 700 }}>المقاس الموصى به:</span>
+                  <strong style={{ fontSize: '1.6rem', color: '#ffd700', fontWeight: 900 }}>مقاس {currentRecommendedSize}</strong>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => { setSelectedSize(currentRecommendedSize); setShowSizeModal(false); }}
-                  style={{ padding: '10px 18px', background: 'var(--gold, #c5a36a)', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.88rem' }}
+                  style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(197, 168, 128, 0.4)' }}
                 >
                   اعتماد المقاس
                 </button>
@@ -872,14 +872,14 @@ export default function ProductPage() {
 
             {/* Detailed Table STRICTLY Chest and Hip */}
             <div>
-              <h4 style={{ margin: '0 0 15px 0', color: 'var(--espresso, #2b2015)', fontSize: '1.05rem', fontWeight: 900 }}>📏 جدول القياسات (الصدر والحوض فقط)</h4>
+              <h4 style={{ margin: '0 0 15px 0', color: '#1a1a1a', fontSize: '1.05rem', fontWeight: 900 }}>📏 جدول القياسات (الصدر والحوض فقط)</h4>
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.9rem', textAlign: 'center', border: '1px solid rgba(197, 168, 128, 0.25)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem', textAlign: 'center', border: '1.5px solid rgba(197, 168, 128, 0.35)', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(197, 168, 128, 0.15)', color: 'var(--espresso, #2b2015)', fontWeight: 'bold' }}>
-                      <th style={{ padding: '12px', border: '1px solid rgba(197,168,128,0.2)' }}>المقاس</th>
-                      <th style={{ padding: '12px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الصدر</th>
-                      <th style={{ padding: '12px', border: '1px solid rgba(197,168,128,0.2)' }}>محيط الحوض</th>
+                    <tr style={{ background: '#241b12', color: '#ffffff', fontWeight: 'bold' }}>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#ffd700', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الصدر</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#ffffff', fontSize: '1rem', fontWeight: 800 }}>محيط الحوض</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -895,15 +895,15 @@ export default function ProductPage() {
                         key={idx} 
                         onClick={() => { setSelectedSize(String(row.size)); setShowSizeModal(false); }}
                         style={{ 
-                          background: selectedSize === String(row.size) ? 'rgba(197, 168, 128, 0.2)' : 'none', 
+                          background: selectedSize === String(row.size) ? 'rgba(197, 168, 128, 0.25)' : (idx % 2 === 0 ? '#ffffff' : '#fbf9f6'), 
                           fontWeight: selectedSize === String(row.size) ? 'bold' : 'normal',
                           cursor: 'pointer',
                           transition: 'background 0.2s'
                         }}
                       >
-                        <td style={{ padding: '12px', border: '1px solid rgba(197,168,128,0.2)', color: 'var(--gold, #c5a36a)', fontWeight: 900, fontSize: '1.05rem' }}>{row.size}</td>
-                        <td style={{ padding: '12px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.chest || '—'}</td>
-                        <td style={{ padding: '12px', border: '1px solid rgba(197,168,128,0.2)' }}>{row.hip || row.waist || '—'}</td>
+                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{row.size}</td>
+                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.chest || '—'}</td>
+                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.hip || row.waist || '—'}</td>
                       </tr>
                     ))}
                   </tbody>
