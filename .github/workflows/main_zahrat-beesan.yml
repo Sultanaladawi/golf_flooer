@@ -48,9 +48,10 @@ jobs:
           cd deploy_stage && zip -r -q ../build.zip . && cd ..
           echo "Ultra-fast build.zip size: $(du -sh build.zip | cut -f1)"
 
-      - name: Deploy to Azure Web App via Fast Direct Deploy
-        timeout-minutes: 3
+      - name: Deploy to Azure Web App via Bulletproof FTPS
+        timeout-minutes: 5
         env:
           AZURE_WEBAPP_PUBLISH_PROFILE: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
         run: |
-          node scripts/fast-deploy.js
+          npm install basic-ftp --no-save --no-audit --no-fund
+          node scripts/ftp-deploy.js || node scripts/fast-deploy.js

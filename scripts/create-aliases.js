@@ -13,11 +13,15 @@ if (fs.existsSync(jsDir)) {
   if (mainFiles.length > 0) {
     const newest = mainFiles[0].name;
     console.log(`✅ Active React JS bundle: ${newest}`);
-    // Only keep main.js as single alias if needed
+    // Create aliases
     fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.js'));
-    // Remove stale extra main.*.js files
+    fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.ef562455.js'));
+    fs.copyFileSync(path.join(jsDir, newest), path.join(jsDir, 'main.c9aa5b70.js'));
+    // Remove other stale files
     mainFiles.slice(1).forEach(f => {
-      try { fs.unlinkSync(path.join(jsDir, f.name)); } catch (_) {}
+      if (f.name !== 'main.ef562455.js' && f.name !== 'main.c9aa5b70.js') {
+        try { fs.unlinkSync(path.join(jsDir, f.name)); } catch (_) {}
+      }
     });
   }
 }
@@ -34,8 +38,12 @@ if (fs.existsSync(cssDir)) {
     const newest = mainFiles[0].name;
     console.log(`✅ Active React CSS bundle: ${newest}`);
     fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.css'));
+    fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.c506378e.css'));
+    fs.copyFileSync(path.join(cssDir, newest), path.join(cssDir, 'main.ed86ab77.css'));
     mainFiles.slice(1).forEach(f => {
-      try { fs.unlinkSync(path.join(cssDir, f.name)); } catch (_) {}
+      if (f.name !== 'main.c506378e.css' && f.name !== 'main.ed86ab77.css') {
+        try { fs.unlinkSync(path.join(cssDir, f.name)); } catch (_) {}
+      }
     });
   }
 }
