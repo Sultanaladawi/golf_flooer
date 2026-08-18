@@ -406,7 +406,7 @@ function BestSellersGrid({ items, onOpen }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <section ref={ref} className={`${styles.bestSellersSection} ${visible ? styles.blockVisible : ''}`}>
+    <section ref={ref} id="best-sellers" className={`${styles.bestSellersSection} ${visible ? styles.blockVisible : ''}`}>
       <div className={styles.bestSellersHeader}>
         <span className={styles.sectionLabel}>{t('mostRequested')}</span>
         <h2 className={styles.sectionTitle}>{t('bestSellers')}</h2>
@@ -540,7 +540,7 @@ export default function CategorySlider() {
   );
 
   return (
-    <div className={styles.categorySliderRoot}>
+    <div className={styles.categorySliderRoot} id="collection">
       {/* Trust Badges Strip */}
       <TrustBadges />
 

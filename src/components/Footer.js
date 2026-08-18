@@ -79,50 +79,28 @@ export default function Footer({ onOpenPolicy }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleCategoryClick = (e, catKeyword) => {
-    if (e) {
-      if (e.preventDefault) e.preventDefault();
-      if (e.stopPropagation) e.stopPropagation();
-    }
-
-    const currentPath = window.location.pathname;
-    if (currentPath !== '/' && currentPath !== '' && currentPath !== '/index.html') {
-      window.location.href = `/?cat=${encodeURIComponent(catKeyword)}#collection`;
-      return;
-    }
-
-    if (typeof window.__selectShopCategory === 'function') {
-      window.__selectShopCategory(catKeyword);
-    } else {
-      window.dispatchEvent(new CustomEvent('selectCategoryByKeyword', { detail: { keyword: catKeyword } }));
-      const collectionEl = document.getElementById('collection');
-      if (collectionEl) {
-        const yOffset = -80;
-        const y = collectionEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+  const handleLinkClick = (e, href) => {
+    if (href.startsWith('/#') || href.startsWith('#')) {
+      const targetId = href.replace(/^\/?#/, '');
+      const currentPath = window.location.pathname;
+      if (currentPath === '/' || currentPath === '' || currentPath === '/index.html') {
+        if (e && e.preventDefault) e.preventDefault();
+        const el = document.getElementById(targetId) || document.getElementById('collection');
+        if (el) {
+          const yOffset = -90;
+          const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        } else {
+          window.location.href = href;
+        }
       } else {
-        window.location.href = '/#collection';
+        window.location.href = href;
       }
     }
   };
 
-  const handleLinkClick = (e, href) => {
-    if (e) {
-      if (e.preventDefault) e.preventDefault();
-    }
-    if (href.startsWith('/#') || href.startsWith('#')) {
-      const targetId = href.replace(/^\/?#/, '');
-      const el = document.getElementById(targetId);
-      if (el) {
-        const yOffset = -80;
-        const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      } else {
-        window.location.href = href;
-      }
-    } else {
-      window.location.href = href;
-    }
+  const handleCategoryClick = (e, targetId) => {
+    handleLinkClick(e, `/#${targetId}`);
   };
 
   return (
@@ -242,11 +220,11 @@ export default function Footer({ onOpenPolicy }) {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('exclusiveCollections')}</h4>
           <ul className={styles.linkList}>
-            <li><button type="button" onClick={e => handleCategoryClick(e, 'classic')}>{t('classicAbayas')}</button></li>
-            <li><button type="button" onClick={e => handleCategoryClick(e, 'occasion')}>{t('occasionAbayas')}</button></li>
-            <li><button type="button" onClick={e => handleCategoryClick(e, 'winter')}>{t('winterCollection')}</button></li>
-            <li><button type="button" onClick={e => handleCategoryClick(e, 'daily')}>{t('dailyAbayas')}</button></li>
-            <li><button type="button" onClick={e => handleCategoryClick(e, 'new')}>{t('newArrivals')}</button></li>
+            <li><a href="/#cat-2" onClick={e => handleLinkClick(e, '/#cat-2')}>{t('classicAbayas')}</a></li>
+            <li><a href="/#cat-3" onClick={e => handleLinkClick(e, '/#cat-3')}>{t('occasionAbayas')}</a></li>
+            <li><a href="/#best-sellers" onClick={e => handleLinkClick(e, '/#best-sellers')}>{t('winterCollection')}</a></li>
+            <li><a href="/#cat-1" onClick={e => handleLinkClick(e, '/#cat-1')}>{t('dailyAbayas')}</a></li>
+            <li><a href="/#collection" onClick={e => handleLinkClick(e, '/#collection')}>{t('newArrivals')}</a></li>
             <li><a href="/gift-cards">{t('royalGiftCards')}</a></li>
           </ul>
         </div>
