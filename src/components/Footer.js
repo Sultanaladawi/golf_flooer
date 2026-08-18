@@ -175,24 +175,35 @@ export default function Footer({ onOpenPolicy }) {
             <span>{t('globalOnlineStore')}</span>
           </div>
 
-          {/* 🏛️ Commercial Register & Business Identity */}
+          {/* 🏛️ Official Commercial & Tax Trust Seal Card */}
           <div className={styles.crCard}>
             <div className={styles.crCardHeader}>
-              <ShieldCheck size={16} color="var(--gold-dim, #b8966c)" />
-              <span>ترخيص رسمي وموثق في الأردن</span>
+              <ShieldCheck size={18} color="var(--gold-dim, #b8966c)" />
+              <div>
+                <strong style={{ display: 'block', fontSize: '0.82rem', color: 'var(--espresso, #1a1a1a)' }}>ترخيص رسمي وموثق في الأردن</strong>
+                <span style={{ fontSize: '0.72rem', color: 'var(--gold-dim, #a6865d)' }}>وزارة الصناعة والتجارة & ضريبة الدخل</span>
+              </div>
             </div>
             <div className={styles.crDetailsGrid}>
               <div className={styles.crRow}>
+                <span className={styles.crLabel}>الاسم التجاري:</span>
+                <strong className={styles.crValueSmall}>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong>
+              </div>
+              <div className={styles.crRow}>
                 <span className={styles.crLabel}>السجل التجاري:</span>
-                <strong className={styles.crValue}>398210</strong>
+                <strong className={styles.crValue}>617219</strong>
               </div>
               <div className={styles.crRow}>
                 <span className={styles.crLabel}>الرقم الوطني للمنشأة:</span>
-                <strong className={styles.crValue}>200189473</strong>
+                <strong className={styles.crValue}>101071079</strong>
               </div>
               <div className={styles.crRow}>
-                <span className={styles.crLabel}>الاعتماد الرسمي:</span>
-                <span className={styles.crValueSmall}>دار زهرة بيسان للأزياء والعبايات</span>
+                <span className={styles.crLabel}>الرقم الضريبي:</span>
+                <strong className={styles.crValue}>81492545</strong>
+              </div>
+              <div className={styles.crRow}>
+                <span className={styles.crLabel}>الرقم الوطني للمكلف:</span>
+                <strong className={styles.crValue}>2000809648</strong>
               </div>
             </div>
           </div>
@@ -291,7 +302,7 @@ export default function Footer({ onOpenPolicy }) {
       <div className={styles.bottomBar}>
         <div className={styles.bottomInner}>
           <p className={styles.copyright}>
-            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان</strong> — العلامة الملكية المسجلة للعبايات والأزياء الفاخرة | سجل تجاري رقم: <strong>398210</strong>.
+            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong> — مؤسسة فردية مسجلة ومرخصة رسمياً في الأردن | سجل تجاري: <strong>617219</strong> | رقم وطني للمنشأة: <strong>101071079</strong> | رقم ضريبي: <strong>81492545</strong>.
           </p>
           <button onClick={scrollToTop} className={styles.scrollTopBtn} aria-label="العودة للأعلى">
             <span>العودة للأعلى</span>
