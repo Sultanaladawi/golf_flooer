@@ -75,13 +75,20 @@ async function deployViaFTP() {
   await client.ensureDir('/site/wwwroot');
   
   // Upload root server files
-  const rootFiles = ['index.html', 'main_server.js', 'package.json', 'web.config'];
+  const rootFiles = ['index.html', 'main_server.js', 'package.json', 'web.config', 'Zahrat_Beesan_Catalog_2026.pdf'];
   for (const f of rootFiles) {
     const src = path.join(localDeployDir, f);
     if (fs.existsSync(src)) {
       console.log(`⬆️ Uploading /site/wwwroot/${f}...`);
       await client.uploadFrom(src, `/site/wwwroot/${f}`);
     }
+  }
+
+  // Also upload to build/
+  const buildPdf = path.join(localDeployDir, 'build', 'Zahrat_Beesan_Catalog_2026.pdf');
+  if (fs.existsSync(buildPdf)) {
+    console.log(`⬆️ Uploading /site/wwwroot/build/Zahrat_Beesan_Catalog_2026.pdf...`);
+    await client.uploadFrom(buildPdf, `/site/wwwroot/build/Zahrat_Beesan_Catalog_2026.pdf`);
   }
 
   // Ensure directories exist in both root and build/
