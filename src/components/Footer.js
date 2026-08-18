@@ -239,7 +239,6 @@ export default function Footer({ onOpenPolicy }) {
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide')}</button></li>
             <li><a href="/account">{t('vipLounge')}</a></li>
             <li><a href="/blog">{t('magazineAndElegance')}</a></li>
-            <li><a href="/tech" style={{ color: 'var(--gold, #c5a880)', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>💻 زهرة بيسان تك (الحلول الرقمية)</a></li>
             <li><a href="/Zahrat_Beesan_Catalog_2026.pdf" download="Zahrat_Beesan_Catalog_2026.pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold, #c5a880)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>{t('downloadPdfCatalog')}</a></li>
           </ul>
         </div>
@@ -303,6 +302,58 @@ export default function Footer({ onOpenPolicy }) {
           </div>
         </div>
 
+      </div>
+
+      {/* 🌟 Standalone Zahrat Beesan Techno Card */}
+      <div style={{ maxWidth: '1240px', margin: '0 auto 35px', padding: '0 20px' }}>
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(30, 23, 17, 0.95) 0%, rgba(48, 36, 25, 0.9) 100%)',
+          border: '1px solid rgba(197, 168, 128, 0.35)',
+          borderRadius: '16px',
+          padding: '16px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '16px',
+          boxShadow: '0 8px 25px rgba(0, 0, 0, 0.12)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{
+              width: '42px', height: '42px', borderRadius: '12px',
+              background: 'rgba(197, 168, 128, 0.15)', border: '1px solid rgba(197, 168, 128, 0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem'
+            }}>
+              💻
+            </div>
+            <div>
+              <strong style={{ color: 'var(--gold, #c5a880)', fontSize: '1.02rem', display: 'block', marginBottom: '2px' }}>
+                {t('technoSolutionsTitle')}
+              </strong>
+              <span style={{ color: 'rgba(255, 255, 255, 0.75)', fontSize: '0.82rem' }}>
+                {t('technoSolutionsSubtitle')}
+              </span>
+            </div>
+          </div>
+          <a
+            href="/tech"
+            style={{
+              background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
+              color: '#ffffff',
+              padding: '10px 22px',
+              borderRadius: '25px',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              textDecoration: 'none',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              boxShadow: '0 4px 15px rgba(197, 168, 128, 0.3)'
+            }}
+          >
+            <span>{t('visitTechno')}</span>
+          </a>
+        </div>
       </div>
 
       {/* Bottom Footer Bar */}
