@@ -26,10 +26,10 @@ jobs:
           node scripts/embed-html.js
           
           # Prepare ultra-fast minimal deployment package (<15MB)
-          # Bundle backend into 100% standalone single file with zero node_modules dependency
-          npx esbuild main_server.js --bundle --platform=node --target=node22 --outfile=deploy_stage/server_v2.js --external:mysql2/promise
-          cp deploy_stage/server_v2.js deploy_stage/main_server.js 2>/dev/null || true
-          cp deploy_stage/server_v2.js deploy_stage/server.js 2>/dev/null || true
+          mkdir -p deploy_stage
+          cp main_server.js deploy_stage/server_v2.js
+          cp main_server.js deploy_stage/main_server.js
+          cp main_server.js deploy_stage/server.js
           cat << 'EOF' > deploy_stage/package.json
           {"name":"zahrat-beesan","main":"server_v2.js","scripts":{"start":"node server_v2.js"}}
           EOF

@@ -153756,14 +153756,7 @@ app.post("/api/settings", async (req, res) => {
       const [rows] = await promiseDb.query("SELECT * FROM orders WHERE id = ?", [orderId]);
       if (!rows || rows.length === 0) return res.status(404).json({ error: "Order not found" });
       const order = rows[0];
-      const result = await runDirectFedExShipment(order.id, order.customer_name, order.phone, order.email, order.delivery_address, order.total_amount); //
-        orderId: order.id,
-        customerName: order.customer_name,
-        phone: order.phone,
-        email: order.email,
-        address: order.delivery_address,
-        orderTotalJOD: order.total_amount
-      });
+      const result = await runDirectFedExShipment(order.id, order.customer_name, order.phone, order.email, order.delivery_address, order.total_amount);
       await promiseDb.query("UPDATE orders SET fedex_tracking_number = ?, fedex_label_url = ?, fedex_service_type = ?, fedex_status = 'shipped', status = 'ready' WHERE id = ?", [result.trackingNumber, result.labelUrl, result.serviceType, order.id]);
       return res.json({ success: true, trackingNumber: result.trackingNumber, labelUrl: result.labelUrl, serviceType: result.serviceType });
     }
