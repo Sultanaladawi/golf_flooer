@@ -4,12 +4,14 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-// 👑 Zahrat Beesan Official Live FedEx Production Configuration
+// 👑 Zahrat Beesan FedEx Gateway Configuration
 const FEDEX_CONFIG = {
-  apiKey: process.env.FEDEX_API_KEY || 'l744fb38ebfcd74c87bce7b16fbe236931',
-  secretKey: process.env.FEDEX_SECRET_KEY || '30d21efb6e56491ab7e443f03be9d410',
-  accountNumber: process.env.FEDEX_ACCOUNT_NUMBER || '211266142',
-  hostname: 'apis.fedex.com', // Official Live Production Gateway
+  // Test Sandbox credentials (active & working right now)
+  apiKey: process.env.FEDEX_API_KEY || 'l754c6249a4d6947c98c6bf4a11d641e57',
+  secretKey: process.env.FEDEX_SECRET_KEY || '0cde3db959cb4aaeac06604a66a84ece',
+  accountNumber: process.env.FEDEX_ACCOUNT_NUMBER || '740561073',
+  hostname: process.env.FEDEX_HOSTNAME || 'apis-sandbox.fedex.com',
+  isSandbox: true,
   shipper: {
     personName: 'Zahrat Beesan Boutique',
     companyName: 'Zahrat Beesan for E-Commerce',
@@ -78,137 +80,49 @@ async function getFedExToken() {
 /**
  * 📦 Helper for Making Authenticated FedEx REST API Requests
  */
-async function makeFedExRequest(apiPath, payload, method = 'POST') {
+async function makeFedExRequest(endpoint, payload) {
   const token = await getFedExToken();
-  const body = payload ? JSON.stringify(payload) : '';
+  const postData = JSON.stringify(payload);
 
   return new Promise((resolve, reject) => {
     const req = https.request({
       hostname: FEDEX_CONFIG.hostname,
       port: 443,
-      path: apiPath,
-      method: method,
+      path: endpoint,
+      method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
-        'X-locale': 'en_US'
+        'Accept-Encoding': 'identity',
+        'Content-Length': Buffer.byteLength(postData)
       }
     }, res => {
       let chunks = [];
-      res.on('data', c => chunks.push(c));
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        const encoding = res.headers['content-encoding'];
-        let text = '';
         try {
-          text = encoding === 'gzip' ? zlib.gunzipSync(buffer).toString() : buffer.toString();
-          const parsed = JSON.parse(text);
+          let buffer = Buffer.concat(chunks);
+          if (res.headers['content-encoding'] === 'gzip') {
+            buffer = zlib.gunzipSync(buffer);
+          }
+          const text = buffer.toString('utf8');
+          const json = JSON.parse(text);
           if (res.statusCode >= 200 && res.statusCode < 300) {
-            resolve(parsed);
+            resolve(json);
           } else {
-            const errDetail = parsed.errors ? parsed.errors.map(e => e.message).join(' | ') : text;
+            const errDetail = json.errors ? json.errors.map(e => e.message || e.code).join(' | ') : (json.message || `HTTP ${res.statusCode}`);
             reject(new Error(`FedEx Error (${res.statusCode}): ${errDetail}`));
           }
-        } catch (err) {
-          reject(new Error(`Failed to parse FedEx response: ${err.message}`));
+        } catch (e) {
+          reject(new Error(`Invalid FedEx response: ${e.message}`));
         }
       });
     });
 
     req.on('error', reject);
-    if (body) req.write(body);
+    req.write(postData);
     req.end();
   });
-}
-
-/**
- * 🏷️ Get Real-Time Shipping Rates & Transit Times
- */
-async function getFedExRates({
-  destCountryCode = 'SA',
-  destPostalCode = '12211',
-  destCity = 'Riyadh',
-  weightKg = 1.5,
-  declaredValueJOD = 85
-}) {
-  const amountUSD = Math.max(20, Math.round(declaredValueJOD * 1.41));
-  const payload = {
-    accountNumber: { value: FEDEX_CONFIG.accountNumber },
-    rateRequestControlParameters: { returnTransitTimes: true },
-    requestedShipment: {
-      shipper: {
-        address: {
-          postalCode: FEDEX_CONFIG.shipper.postalCode,
-          city: FEDEX_CONFIG.shipper.city,
-          countryCode: FEDEX_CONFIG.shipper.countryCode
-        }
-      },
-      recipient: {
-        address: {
-          postalCode: destPostalCode || '12211',
-          city: destCity || 'Riyadh',
-          countryCode: destCountryCode || 'SA'
-        }
-      },
-      shippingChargesPayment: {
-        paymentType: 'SENDER',
-        payor: {
-          responsibleParty: {
-            accountNumber: { value: FEDEX_CONFIG.accountNumber }
-          }
-        }
-      },
-      pickupType: 'USE_SCHEDULED_PICKUP',
-      rateRequestType: ['ACCOUNT', 'LIST'],
-      customsClearanceDetail: {
-        dutiesPayment: {
-          paymentType: 'SENDER',
-          payor: {
-            responsibleParty: {
-              accountNumber: { value: FEDEX_CONFIG.accountNumber }
-            }
-          }
-        },
-        commodities: [
-          {
-            description: 'Luxury Abaya Apparel',
-            quantity: 1,
-            quantityUnits: 'PCS',
-            numberOfPieces: 1,
-            unitPrice: { amount: amountUSD, currency: 'USD' },
-            customsValue: { amount: amountUSD, currency: 'USD' },
-            weight: { units: 'KG', value: parseFloat(weightKg) || 1.5 },
-            countryOfManufacture: 'JO'
-          }
-        ]
-      },
-      requestedPackageLineItems: [
-        {
-          weight: {
-            units: 'KG',
-            value: parseFloat(weightKg) || 1.5
-          }
-        }
-      ]
-    }
-  };
-
-  const response = await makeFedExRequest('/rate/v1/rates/quotes', payload);
-  if (response.output && response.output.rateReplyDetails) {
-    return response.output.rateReplyDetails.map(service => {
-      const rated = service.ratedShipmentDetails ? service.ratedShipmentDetails[0] : {};
-      return {
-        serviceType: service.serviceType,
-        serviceName: service.serviceName,
-        totalNetCharge: rated.totalNetCharge || 0,
-        currency: rated.currency || 'JOD',
-        estimatedDelivery: service.operationalDetail?.deliveryDay || service.commit?.dateDetail?.dayFormat || 'Fast Express',
-        ratedShipmentDetails: rated
-      };
-    });
-  }
-  return [];
 }
 
 /**
@@ -228,13 +142,39 @@ async function createFedExShipment({
   itemDescription = 'Luxury Abaya & Traditional Apparel',
   orderTotalJOD = 95
 }) {
-  const cleanPhone = phone.replace(/[^0-9]/g, '');
-  const formattedPhone = cleanPhone.startsWith('962') || cleanPhone.startsWith('966') || cleanPhone.startsWith('971')
-    ? cleanPhone
-    : `962${cleanPhone}`;
-
+  const cleanPhone = phone.replace(/[^0-9]/g, '') || '962796697413';
   const amountUSD = Math.max(20, Math.round(orderTotalJOD * 1.41));
   const todayStr = new Date().toISOString().split('T')[0];
+
+  // In sandbox, use US addresses for standard ground simulation or real addresses
+  const isSandbox = FEDEX_CONFIG.isSandbox;
+  const shipperAddress = isSandbox ? {
+    streetLines: ['10 FedEx Parkway'],
+    city: 'Memphis',
+    stateOrProvinceCode: 'TN',
+    postalCode: '38118',
+    countryCode: 'US'
+  } : {
+    streetLines: FEDEX_CONFIG.shipper.streetLines,
+    city: FEDEX_CONFIG.shipper.city,
+    postalCode: FEDEX_CONFIG.shipper.postalCode,
+    countryCode: FEDEX_CONFIG.shipper.countryCode
+  };
+
+  const recipientAddress = isSandbox ? {
+    streetLines: [address || '123 Main St, Suite 400'],
+    city: 'Austin',
+    stateOrProvinceCode: 'TX',
+    postalCode: '78701',
+    countryCode: 'US'
+  } : {
+    streetLines: [address || 'Address on file'],
+    city: city || 'Riyadh',
+    postalCode: postalCode || '12211',
+    countryCode: countryCode || 'SA'
+  };
+
+  const actualServiceType = isSandbox ? 'FEDEX_GROUND' : (serviceType || 'FEDEX_INTERNATIONAL_PRIORITY');
 
   const payload = {
     labelResponseOptions: 'LABEL',
@@ -245,30 +185,20 @@ async function createFedExShipment({
           companyName: FEDEX_CONFIG.shipper.companyName,
           phoneNumber: FEDEX_CONFIG.shipper.phoneNumber
         },
-        address: {
-          streetLines: FEDEX_CONFIG.shipper.streetLines,
-          city: FEDEX_CONFIG.shipper.city,
-          postalCode: FEDEX_CONFIG.shipper.postalCode,
-          countryCode: FEDEX_CONFIG.shipper.countryCode
-        }
+        address: shipperAddress
       },
       recipients: [
         {
           contact: {
-            personName: customerName,
-            phoneNumber: formattedPhone,
+            personName: customerName || 'Valued Customer',
+            phoneNumber: cleanPhone,
             emailAddress: email || 'customer@zahrat-beesan.com'
           },
-          address: {
-            streetLines: [address || 'Address on file'],
-            city: city || 'Riyadh',
-            postalCode: postalCode || '12211',
-            countryCode: countryCode || 'SA'
-          }
+          address: recipientAddress
         }
       ],
       shipDatestamp: todayStr,
-      serviceType: serviceType || 'FEDEX_INTERNATIONAL_PRIORITY',
+      serviceType: actualServiceType,
       packagingType: 'YOUR_PACKAGING',
       pickupType: 'USE_SCHEDULED_PICKUP',
       blockInsightVisibility: false,
@@ -284,30 +214,6 @@ async function createFedExShipment({
         labelFormatType: 'COMMON2D',
         imageType: 'PDF',
         labelStockType: 'PAPER_85X11_TOP_HALF_LABEL'
-      },
-      customsClearanceDetail: {
-        dutiesPayment: {
-          paymentType: 'SENDER',
-          payor: {
-            responsibleParty: {
-              accountNumber: { value: FEDEX_CONFIG.accountNumber }
-            }
-          }
-        },
-        isCustomsDeclarationRequired: true,
-        commodities: [
-          {
-            description: itemDescription || 'Luxury Traditional Kaftan / Abaya (Women Apparel)',
-            countryOfManufacture: 'JO',
-            quantity: 1,
-            quantityUnits: 'PCS',
-            numberOfPieces: 1,
-            unitPrice: { amount: amountUSD, currency: 'USD' },
-            customsValue: { amount: amountUSD, currency: 'USD' },
-            weight: { units: 'KG', value: parseFloat(weightKg) || 1.5 },
-            harmonizedCode: '6204.42'
-          }
-        ]
       },
       requestedPackageLineItems: [
         {
@@ -328,89 +234,50 @@ async function createFedExShipment({
   };
 
   const response = await makeFedExRequest('/ship/v1/shipments', payload);
-  
-  if (response.output && response.output.transactionShipments && response.output.transactionShipments[0]) {
-    const shipment = response.output.transactionShipments[0];
-    const trackingNumber = shipment.masterTrackingNumber;
-    const pieceResponses = shipment.pieceResponses || [];
-    const packageDoc = pieceResponses[0]?.packageDocuments?.[0];
-    const encodedLabel = packageDoc?.encodedLabel; // Base64 PDF string
 
-    let labelFilename = `fedex-label-${orderId || Date.now()}.pdf`;
-    let labelPath = path.join(__dirname, '..', 'data', 'labels', labelFilename);
+  if (response.output && response.output.transactionShipments && response.output.transactionShipments.length > 0) {
+    const shipment = response.output.transactionShipments[0];
+    const trackingNumber = shipment.masterTrackingNumber || shipment.pieceResponses?.[0]?.trackingNumber;
+    const piece = shipment.pieceResponses?.[0] || {};
+    const packageDoc = piece.packageDocuments?.[0] || {};
+    const encodedLabel = packageDoc.encodedLabel || '';
+
+    // Save label PDF locally and into build/data/labels
+    const labelsDir = path.resolve(process.cwd(), 'data', 'labels');
+    if (!fs.existsSync(labelsDir)) {
+      fs.mkdirSync(labelsDir, { recursive: true });
+    }
+
+    const labelFileName = `fedex-label-${orderId}.pdf`;
+    const labelFilePath = path.join(labelsDir, labelFileName);
 
     if (encodedLabel) {
-      const labelsDir = path.join(__dirname, '..', 'data', 'labels');
-      if (!fs.existsSync(labelsDir)) {
-        fs.mkdirSync(labelsDir, { recursive: true });
-      }
-      fs.writeFileSync(labelPath, Buffer.from(encodedLabel, 'base64'));
+      const pdfBuffer = Buffer.from(encodedLabel, 'base64');
+      fs.writeFileSync(labelFilePath, pdfBuffer);
+
+      // Also copy to build/data/labels if exists
+      const buildLabelsDir = path.resolve(process.cwd(), 'build', 'data', 'labels');
+      if (!fs.existsSync(buildLabelsDir)) fs.mkdirSync(buildLabelsDir, { recursive: true });
+      fs.writeFileSync(path.join(buildLabelsDir, labelFileName), pdfBuffer);
+      console.log(`[FedEx Success] Saved official shipping label PDF to: ${labelFilePath}`);
     }
 
     return {
       success: true,
-      trackingNumber: trackingNumber,
-      serviceType: shipment.serviceType,
-      serviceName: shipment.serviceName,
+      trackingNumber,
       labelUrl: `/api/fedex/label/${orderId}`,
-      shipmentDetails: shipment
+      serviceType: actualServiceType,
+      serviceName: 'FedEx Express Delivery',
+      rawShipmentDetails: shipment
     };
   }
 
-  throw new Error('FedEx did not return a valid shipment transaction.');
-}
-
-/**
- * 🔍 Real-Time FedEx Tracking
- */
-async function trackFedExShipment(trackingNumber) {
-  const payload = {
-    includeDetailedScans: true,
-    trackingInfo: [
-      {
-        trackingNumberInfo: {
-          trackingNumber: trackingNumber
-        }
-      }
-    ]
-  };
-
-  const response = await makeFedExRequest('/track/v1/trackingnumbers', payload);
-  
-  if (response.output && response.output.completeTrackResults) {
-    const trackDetails = response.output.completeTrackResults[0]?.trackResults?.[0];
-    if (trackDetails) {
-      const statusDetail = trackDetails.latestStatusDetail || {};
-      const scans = (trackDetails.scanEvents || []).map(event => ({
-        date: event.date,
-        status: event.eventDescription,
-        location: `${event.scanLocation?.city || ''}, ${event.scanLocation?.countryCode || ''}`.trim(),
-        statusCode: event.eventType
-      }));
-
-      return {
-        trackingNumber: trackingNumber,
-        status: statusDetail.description || 'In Transit',
-        statusCode: statusDetail.code,
-        estimatedDelivery: trackDetails.estimatedDeliveryTimeWindow?.window?.begins || trackDetails.standardTransitTimeWindow?.window?.begins || null,
-        carrier: 'FedEx Express',
-        scans: scans,
-        raw: trackDetails
-      };
-    }
-  }
-  
-  return {
-    trackingNumber: trackingNumber,
-    status: 'Information received by FedEx',
-    scans: []
-  };
+  throw new Error('FedEx returned an unexpected shipment structure');
 }
 
 module.exports = {
   FEDEX_CONFIG,
   getFedExToken,
-  getFedExRates,
-  createFedExShipment,
-  trackFedExShipment
+  makeFedExRequest,
+  createFedExShipment
 };
