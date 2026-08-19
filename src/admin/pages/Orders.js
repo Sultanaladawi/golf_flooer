@@ -69,131 +69,27 @@ const Orders = () => {
     setFedExLoading(true);
 
     try {
-      // 1. Try Backend API first
-      let successData = null;
+      let res;
       try {
-        const res = await axios.post('/api/fedex/create-shipment', {
+        res = await axios.post('/api/settings', {
+          action: 'create_fedex_shipment',
+          orderId: order.id
+        });
+      } catch (e1) {
+        res = await axios.post('/api/fedex/create-shipment', {
           orderId: order.id,
           serviceType: 'FEDEX_INTERNATIONAL_PRIORITY',
           weightKg: 1.5
         });
-        if (res.data && res.data.success) {
-          successData = res.data;
-        }
-      } catch (backendErr) {
-        console.warn("Backend FedEx route fallback to Direct FedEx REST API:", backendErr.message);
       }
 
-      // 2. Direct FedEx REST API Fallback (Bulletproof & Instant)
-      if (!successData) {
-        // Step A: Get FedEx Token
-        const tokenRes = await axios.post('https://apis-sandbox.fedex.com/oauth/token', 
-          new URLSearchParams({
-            grant_type: 'client_credentials',
-            client_id: 'l754c6249a4d6947c98c6bf4a11d641e57',
-            client_secret: '0cde3db959cb4aaeac06604a66a84ece'
-          }), {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-          }
-        );
-
-        const token = tokenRes.data.access_token;
-        if (!token) throw new Error("Could not acquire FedEx access token");
-
-        // Step B: Create Official FedEx Shipment
-        const todayStr = new Date().toISOString().split('T')[0];
-        const shipPayload = {
-          labelResponseOptions: 'LABEL',
-          requestedShipment: {
-            shipper: {
-              contact: {
-                personName: 'Zahrat Beesan Boutique',
-                companyName: 'Zahrat Beesan for E-Commerce',
-                phoneNumber: '1234567890'
-              },
-              address: {
-                streetLines: ['10 FedEx Parkway'],
-                city: 'Memphis',
-                stateOrProvinceCode: 'TN',
-                postalCode: '38118',
-                countryCode: 'US'
-              }
-            },
-            recipients: [{
-              contact: {
-                personName: order.customer_name || 'Valued Customer',
-                phoneNumber: '1234567890'
-              },
-              address: {
-                streetLines: [order.delivery_address || '123 Main St, Suite 400'],
-                city: 'Austin',
-                stateOrProvinceCode: 'TX',
-                postalCode: '78701',
-                countryCode: 'US'
-              }
-            }],
-            shipDatestamp: todayStr,
-            serviceType: 'FEDEX_GROUND',
-            packagingType: 'YOUR_PACKAGING',
-            pickupType: 'USE_SCHEDULED_PICKUP',
-            shippingChargesPayment: { paymentType: 'SENDER' },
-            labelSpecification: {
-              labelFormatType: 'COMMON2D',
-              imageType: 'PDF',
-              labelStockType: 'PAPER_85X11_TOP_HALF_LABEL'
-            },
-            requestedPackageLineItems: [{
-              weight: { units: 'LB', value: 3.5 }
-            }]
-          },
-          accountNumber: { value: '740561073' }
-        };
-
-        const shipRes = await axios.post('https://apis-sandbox.fedex.com/ship/v1/shipments', shipPayload, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const txShipments = shipRes.data?.output?.transactionShipments;
-        if (txShipments && txShipments.length > 0) {
-          const masterTrk = txShipments[0].masterTrackingNumber;
-          const encodedLabel = txShipments[0].pieceResponses?.[0]?.packageDocuments?.[0]?.encodedLabel;
-
-          let labelBlobUrl = null;
-          if (encodedLabel) {
-            const byteCharacters = atob(encodedLabel);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: 'application/pdf' });
-            labelBlobUrl = URL.createObjectURL(blob);
-          }
-
-          successData = {
-            success: true,
-            trackingNumber: masterTrk,
-            labelUrl: labelBlobUrl || `/api/fedex/label/${order.id}`,
-            serviceType: 'FEDEX_GROUND'
-          };
-
-          // Mark order as ready / update tracking in backend
-          try {
-            await axios.put(`/api/mark-ready/${order.id}`, { status: 'ready' });
-          } catch (e) {}
-        }
-      }
-
-      if (successData && successData.trackingNumber) {
-        showToast(`✅ تم إصدار بوليصة فيديكس الرسمية بنجاح! رقم التتبع: ${successData.trackingNumber}`, 'success');
+      if (res && res.data && res.data.success && res.data.trackingNumber) {
+        showToast(`✅ تم إصدار بوليصة فيديكس الرسمية بنجاح! رقم التتبع: ${res.data.trackingNumber}`, 'success');
         setSelectedOrder(prev => ({
           ...prev,
-          fedex_tracking_number: successData.trackingNumber,
-          fedex_label_url: successData.labelUrl,
-          fedex_service_type: successData.serviceType,
+          fedex_tracking_number: res.data.trackingNumber,
+          fedex_label_url: res.data.labelUrl,
+          fedex_service_type: res.data.serviceType,
           fedex_status: 'shipped',
           status: 'ready'
         }));
@@ -203,7 +99,7 @@ const Orders = () => {
       }
     } catch (err) {
       console.error("FedEx Shipment Error:", err);
-      const errMsg = err.response?.data?.errors?.[0]?.message || err.response?.data?.error || err.message || "Failed to create FedEx shipment";
+      const errMsg = err.response?.data?.error || err.message || "Failed to create FedEx shipment";
       showToast(`خطأ في إنشاء شحنة فيديكس: ${errMsg}`, 'error');
     } finally {
       setFedExLoading(false);
