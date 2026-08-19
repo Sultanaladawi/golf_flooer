@@ -33,6 +33,7 @@ jobs:
           {"name":"zahrat-beesan","main":"main_server.js","scripts":{"start":"node main_server.js"}}
           EOF
           cp web.config deploy_stage/ 2>/dev/null || true
+          echo "<!-- Azure Reload Trigger: $(date +%s) -->" >> deploy_stage/web.config
           cp .env.azure deploy_stage/ 2>/dev/null || true
           
           # Copy complete build folder to BOTH root and build/ subfolder
