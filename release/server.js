@@ -150628,6 +150628,19 @@ db.getConnection((err, connection) => {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
+      
+      // Ensure FedEx columns exist on orders table
+      const fedexCols = [
+        "ALTER TABLE orders ADD COLUMN fedex_tracking_number VARCHAR(100) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN fedex_label_url VARCHAR(500) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN fedex_status VARCHAR(100) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN fedex_service_type VARCHAR(100) DEFAULT NULL",
+        "ALTER TABLE orders ADD COLUMN fedex_created_at TIMESTAMP NULL"
+      ];
+      for (const colQuery of fedexCols) {
+        try { await promiseDb.query(colQuery); } catch (e) {}
+      }
+
       console.log("[Migration] Schema verification complete.");
     } catch (dbErr) {
       console.error("[Migration] Schema check failed:", dbErr.message);
