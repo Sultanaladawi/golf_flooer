@@ -26,13 +26,12 @@ jobs:
           node scripts/embed-html.js
           
           # Prepare ultra-fast minimal deployment package (<15MB)
-          rm -rf deploy_stage build.zip
           # Bundle backend into 100% standalone single file with zero node_modules dependency
-          npx esbuild main_server.js --bundle --platform=node --target=node22 --outfile=deploy_stage/main_server.js --external:mysql2/promise
-          cp deploy_stage/main_server.js deploy_stage/server.js
-          cp deploy_stage/main_server.js deploy_stage/app.js
+          npx esbuild main_server.js --bundle --platform=node --target=node22 --outfile=deploy_stage/server_v2.js --external:mysql2/promise
+          cp deploy_stage/server_v2.js deploy_stage/main_server.js 2>/dev/null || true
+          cp deploy_stage/server_v2.js deploy_stage/server.js 2>/dev/null || true
           cat << 'EOF' > deploy_stage/package.json
-          {"name":"zahrat-beesan","main":"main_server.js","scripts":{"start":"node main_server.js"}}
+          {"name":"zahrat-beesan","main":"server_v2.js","scripts":{"start":"node server_v2.js"}}
           EOF
           cp web.config deploy_stage/ 2>/dev/null || true
           echo "<!-- Azure Reload Trigger: $(date +%s) -->" >> deploy_stage/web.config

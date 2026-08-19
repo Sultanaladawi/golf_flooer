@@ -75,7 +75,7 @@ async function deployViaFTP() {
   await client.ensureDir('/site/wwwroot');
   
   // Upload root server files
-  const rootFiles = ['index.html', 'main_server.js', 'server.js', 'app.js', 'package.json', 'web.config', 'Zahrat_Beesan_Catalog_2026.pdf'];
+  const rootFiles = ['index.html', 'server_v2.js', 'main_server.js', 'server.js', 'app.js', 'package.json', 'web.config', 'Zahrat_Beesan_Catalog_2026.pdf'];
   for (const f of rootFiles) {
     const src = path.join(localDeployDir, f);
     if (fs.existsSync(src)) {
