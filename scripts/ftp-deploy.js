@@ -91,11 +91,23 @@ async function deployViaFTP() {
     await client.uploadFrom(buildPdf, `/site/wwwroot/build/Zahrat_Beesan_Catalog_2026.pdf`);
   }
 
-  // Ensure directories exist in both root and build/
+  // Ensure directories exist
+  await client.ensureDir('/site/wwwroot/server');
+  await client.ensureDir('/site/wwwroot/data/labels');
   await client.ensureDir('/site/wwwroot/static/js');
   await client.ensureDir('/site/wwwroot/static/css');
   await client.ensureDir('/site/wwwroot/build/static/js');
   await client.ensureDir('/site/wwwroot/build/static/css');
+
+  // Upload server files
+  const serverDir = path.join(localDeployDir, 'server');
+  if (fs.existsSync(serverDir)) {
+    const serverFiles = fs.readdirSync(serverDir);
+    for (const sf of serverFiles) {
+      console.log(`⬆️ Uploading server file: ${sf}...`);
+      await client.uploadFrom(path.join(serverDir, sf), `/site/wwwroot/server/${sf}`);
+    }
+  }
 
   // Upload build/index.html
   const buildIndex = path.join(localDeployDir, 'build', 'index.html');
