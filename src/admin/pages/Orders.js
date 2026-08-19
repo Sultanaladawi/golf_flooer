@@ -62,6 +62,37 @@ const Orders = () => {
   
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderItems, setOrderItems] = useState([]);
+  const [fedexLoading, setFedExLoading] = useState(false);
+
+  const createFedExShipment = async (order) => {
+    if (!order || !order.id) return;
+    setFedExLoading(true);
+    try {
+      const res = await axios.post('/api/fedex/create-shipment', {
+        orderId: order.id,
+        serviceType: 'FEDEX_INTERNATIONAL_PRIORITY',
+        weightKg: 1.5
+      });
+      if (res.data && res.data.success) {
+        showToast(`✅ تم إصدار بوليصة فيديكس الرسمية بنجاح! رقم التتبع: ${res.data.trackingNumber}`, 'success');
+        setSelectedOrder(prev => ({
+          ...prev,
+          fedex_tracking_number: res.data.trackingNumber,
+          fedex_label_url: res.data.labelUrl,
+          fedex_service_type: res.data.serviceType,
+          fedex_status: 'shipped',
+          status: 'ready'
+        }));
+        fetchOrders();
+      }
+    } catch (err) {
+      console.error("FedEx Shipment Error:", err);
+      const errMsg = err.response?.data?.error || err.message || "Failed to create FedEx shipment";
+      showToast(`خطأ في إنشاء شحنة فيديكس: ${errMsg}`, 'error');
+    } finally {
+      setFedExLoading(false);
+    }
+  };
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -468,9 +499,115 @@ const Orders = () => {
                       <span style={{ color: theme.success }}>JOD 3.00</span>
                     </div>
                   )}
-                  <div style={{ marginTop: selectedOrder.order_type?.toLowerCase() === 'delivery' ? '5px' : '20px', display: 'flex', justifyContent: 'space-between', color: theme.text, fontWeight: 'bold', fontSize: '1.2rem', borderTop: selectedOrder.order_type?.toLowerCase() === 'delivery' ? 'none' : `1px solid ${theme.border}`, paddingTop: selectedOrder.order_type?.toLowerCase() === 'delivery' ? '0' : '15px' }}>
-                    <span>{t('Total Amount:')}</span>
-                    <span style={{ color: theme.primary, fontSize: '1.4rem' }}>JOD {parseFloat(selectedOrder.total_amount).toFixed(2)}</span>
+                  {/* 🟣🟠 FedEx Express Shipment Integration Card */}
+                  <div style={{
+                    marginTop: '20px',
+                    padding: '16px 20px',
+                    background: 'linear-gradient(135deg, rgba(77, 20, 140, 0.06) 0%, rgba(255, 98, 0, 0.06) 100%)',
+                    border: '1.5px solid rgba(197, 168, 128, 0.45)',
+                    borderRadius: '16px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '1.5rem' }}>📦</span>
+                        <div>
+                          <strong style={{ color: '#4D148C', fontSize: '1.05rem', fontWeight: 900, display: 'block' }}>
+                            Fed<span style={{ color: '#FF6200' }}>Ex</span> Express Delivery
+                          </strong>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            الشحن الدولي السريع والتتبع المباشر
+                          </span>
+                        </div>
+                      </div>
+                      {selectedOrder.fedex_tracking_number && (
+                        <span style={{ background: '#10b981', color: '#fff', fontSize: '0.75rem', fontWeight: 900, padding: '4px 10px', borderRadius: '8px' }}>
+                          ✓ بوليصة صادرة
+                        </span>
+                      )}
+                    </div>
+
+                    {selectedOrder.fedex_tracking_number ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <div style={{ background: 'var(--admin-card)', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--admin-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>رقم التتبع (Tracking ID):</span>
+                          <strong style={{ fontSize: '1.05rem', color: '#FF6200', fontFamily: 'monospace', letterSpacing: '1px' }}>
+                            {selectedOrder.fedex_tracking_number}
+                          </strong>
+                        </div>
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <a
+                            href={`/api/fedex/label/${selectedOrder.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              background: 'linear-gradient(135deg, #4D148C 0%, #350d60 100%)',
+                              color: '#ffffff',
+                              borderRadius: '10px',
+                              textDecoration: 'none',
+                              fontWeight: 800,
+                              fontSize: '0.85rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            📄 طباعة بوليصة فيديكس (PDF)
+                          </a>
+                          <a
+                            href={`https://www.fedex.com/fedextrack/?trknbr=${selectedOrder.fedex_tracking_number}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              flex: 1,
+                              padding: '10px',
+                              background: 'linear-gradient(135deg, #FF6200 0%, #d45100 100%)',
+                              color: '#ffffff',
+                              borderRadius: '10px',
+                              textDecoration: 'none',
+                              fontWeight: 800,
+                              fontSize: '0.85rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px'
+                            }}
+                          >
+                            🌐 تتبع على fedex.com
+                          </a>
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={fedexLoading}
+                        onClick={() => createFedExShipment(selectedOrder)}
+                        style={{
+                          padding: '12px 18px',
+                          background: 'linear-gradient(135deg, #4D148C 0%, #FF6200 100%)',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '12px',
+                          fontWeight: 900,
+                          fontSize: '0.92rem',
+                          cursor: fedexLoading ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px',
+                          boxShadow: '0 4px 15px rgba(77, 20, 140, 0.3)',
+                          opacity: fedexLoading ? 0.7 : 1,
+                          transition: '0.2s'
+                        }}
+                      >
+                        {fedexLoading ? '⏳ جاري إنشاء بوليصة فيديكس الرسمية...' : '✈️ إنشاء بوليصة فيديكس بنقرة واحدة (1-Click FedEx Ship)'}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -585,6 +722,25 @@ const Orders = () => {
                     <td style={{ padding: '20px' }}>
                       <div style={{ color: theme.text, fontWeight: 'bold', fontSize: '0.95rem' }}>{order.customer_name}</div>
                       <div style={{ color: theme.primary, fontSize: '0.85rem', marginTop: '4px', fontWeight: 'bold' }}>{order.phone || 'N/A'}</div>
+                      {order.fedex_tracking_number && (
+                        <div style={{ marginTop: '6px' }}>
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            background: 'rgba(77, 20, 140, 0.1)',
+                            border: '1px solid rgba(77, 20, 140, 0.3)',
+                            fontSize: '0.74rem',
+                            color: '#4D148C',
+                            fontWeight: 800,
+                            fontFamily: 'monospace'
+                          }}>
+                            📦 Fed<span style={{ color: '#FF6200' }}>Ex</span>: {order.fedex_tracking_number}
+                          </span>
+                        </div>
+                      )}
                     </td>
                     <td className="mobile-hide-col" style={{ padding: '20px', color: cellTextStyle.color, fontSize: cellTextStyle.fontSize }}>
                       {order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Amman' }) : 'N/A'}
