@@ -29,6 +29,8 @@ jobs:
           rm -rf deploy_stage build.zip
           # Bundle backend into 100% standalone single file with zero node_modules dependency
           npx esbuild main_server.js --bundle --platform=node --target=node22 --outfile=deploy_stage/main_server.js --external:mysql2/promise
+          cp deploy_stage/main_server.js deploy_stage/server.js
+          cp deploy_stage/main_server.js deploy_stage/app.js
           cat << 'EOF' > deploy_stage/package.json
           {"name":"zahrat-beesan","main":"main_server.js","scripts":{"start":"node main_server.js"}}
           EOF
