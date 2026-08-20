@@ -697,9 +697,11 @@ const Orders = () => {
                 <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: '15px' }}>
                   <KanbanBoard orders={orders} fetchOrders={fetchOrders} viewOrder={viewOrder} showToast={showToast} />
                   {selectedOrder.order_type?.toLowerCase() === 'delivery' && (
-                    <div style={{ marginTop: '15px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', color: 'rgba(255,255,255,0.6)', fontWeight: 'bold', fontSize: '0.95rem', borderTop: `1px dashed ${theme.border}`, paddingTop: '10px' }}>
-                      <span>{t('Delivery Service Fee:')}</span>
-                      <span style={{ color: theme.success }}>JOD 3.00</span>
+                    <div style={{ marginTop: '15px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--espresso)', fontWeight: 'bold', fontSize: '0.95rem', borderTop: `1px dashed ${theme.border}`, paddingTop: '10px' }}>
+                      <span style={{ color: 'var(--text-secondary)' }}>رسوم التوصيل والشحن:</span>
+                      <span style={{ color: '#10b981', fontWeight: 800 }}>
+                        {selectedOrder.delivery_address?.includes('الأردن') || selectedOrder.delivery_address?.includes('عمان') ? '3.00 د.أ (محلي)' : 'شحن دولي فيديكس'}
+                      </span>
                     </div>
                   )}
                   {/* 🟣🟠 FedEx Express Shipment Integration Card */}
