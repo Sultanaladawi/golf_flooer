@@ -168,7 +168,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       }, 0);
 
       const totalWeight = Math.max(0.5, Math.round((computedWeight || 1) * 100) / 100);
-      const countryIso = WORLD_COUNTRIES.find(c => c.name === form.country)?.iso?.toUpperCase() || 'SA';
+      const countryIso = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country)?.iso?.toUpperCase() || 'SA';
       
       fetch('/api/shipping-rates', {
         method: 'POST',
@@ -925,12 +925,12 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         {(() => {
-                          const currentCountryObj = WORLD_COUNTRIES.find(c => c.name === form.country);
+                          const currentCountryObj = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
                           if (currentCountryObj && currentCountryObj.iso) {
                             return (
                               <img
                                 src={getFlagUrl(currentCountryObj.iso)}
-                                alt={currentCountryObj.name}
+                                alt={currentCountryObj.ar}
                                 style={{ width: '22px', height: '16px', objectFit: 'cover', borderRadius: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
                               />
                             );
