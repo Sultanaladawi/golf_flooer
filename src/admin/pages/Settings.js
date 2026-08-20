@@ -15,6 +15,7 @@ const Settings = () => {
   const [metaPixelId, setMetaPixelId] = useState('');
   const [snapPixelId, setSnapPixelId] = useState('');
   const [tiktokPixelId, setTiktokPixelId] = useState('');
+  const [paypalClientId, setPaypalClientId] = useState('');
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -35,6 +36,7 @@ const Settings = () => {
           setMetaPixelId(res.data.meta_pixel_id || '');
           setSnapPixelId(res.data.snap_pixel_id || '');
           setTiktokPixelId(res.data.tiktok_pixel_id || '');
+          setPaypalClientId(res.data.paypal_client_id || '');
         }
       } catch (err) {
         console.error('Failed to load settings', err);
@@ -54,7 +56,8 @@ const Settings = () => {
           wa_phone_number_id: waPhoneNumberId, wa_access_token: waAccessToken,
           meta_pixel_id: metaPixelId,
           snap_pixel_id: snapPixelId,
-          tiktok_pixel_id: tiktokPixelId
+          tiktok_pixel_id: tiktokPixelId,
+          paypal_client_id: paypalClientId
         }),
         axios.post('/api/admin/social-pixels', {
           meta_pixel_id: metaPixelId,
@@ -167,6 +170,30 @@ const Settings = () => {
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
             {t('CliQ Alias for receiving payments directly via name instead of phone number.')}
+          </p>
+        </div>
+
+        <div style={{ marginBottom: '35px' }}>
+          <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: 'var(--admin-text)' }}>
+            معرّف حساب باي بال للإنتاج (PayPal Live Client ID)
+          </label>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', insetInlineStart: '15px', top: '50%', transform: 'translateY(-50%)', fontSize: '1.2rem' }}>🅿️</span>
+            <input
+              type="text"
+              value={paypalClientId}
+              onChange={(e) => setPaypalClientId(e.target.value)}
+              placeholder="مثال: Af_... (من حساب PayPal Developer الخاص بك)"
+              style={{
+                width: '100%', padding: '15px 15px 15px 45px',
+                borderRadius: '12px', border: '1px solid var(--admin-border)',
+                background: 'var(--bg-surface)', color: 'var(--admin-text)',
+                fontSize: '1rem', outline: 'none', transition: '0.2s'
+              }}
+            />
+          </div>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '8px' }}>
+            لاستقبال مدفوعات البطاقات الائتمانية العالمية وحسابات PayPal مباشرة في حسابك التجاري.
           </p>
         </div>
 

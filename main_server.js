@@ -151429,7 +151429,7 @@ async function sendStoreNotificationEmail({ subject, title, senderName, senderEm
     const timeStr = (/* @__PURE__ */ new Date()).toLocaleTimeString("ar-JO", { timeZone: "Asia/Amman" });
     const info = await transporter.sendMail({
       from: `"\u0645\u062A\u062C\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646 \u0627\u0644\u0641\u0627\u062E\u0631" <${SMTP_USER}>`,
-      to: STORE_EMAIL,
+      to: [STORE_EMAIL, "sultanadawi2004@gmail.com"].filter(Boolean).join(", "),
       replyTo: senderEmail || STORE_EMAIL,
       subject: subject || `\u{1F4EC} [\u0625\u0634\u0639\u0627\u0631 \u062C\u062F\u064A\u062F] \u0645\u0646 \u0645\u062A\u062C\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646 (${timeStr})`,
       html: `
@@ -153983,50 +153983,6 @@ app.post("/api/shipping-rates", async (req, res) => {
   const defaultIntlRate = gulfCountries.includes(countryCode) ? 12 : 18;
   res.json({ success: true, amount: defaultIntlRate, currency: 'JOD', isFallback: true });
 });
-  const fedexClientId = process.env.FEDEX_CLIENT_ID || "l744fb38ebfcd74c87bce7b16fbe236931";
-  const fedexClientSecret = process.env.FEDEX_CLIENT_SECRET || "2771d602967246658269cc3a0ae4b4b9";
-  const fedexAccountNum = process.env.FEDEX_ACCOUNT_NUM || "211266142";
-  const FEDEX_BASE = "https://apis.fedex.com";
-  try {
-    const tokenRes = await fetch(`${FEDEX_BASE}/oauth/token`, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `grant_type=client_credentials&client_id=${encodeURIComponent(fedexClientId)}&client_secret=${encodeURIComponent(fedexClientSecret)}`
-    });
-    if (!tokenRes.ok) throw new Error("FedEx auth failed");
-    const tokenData = await tokenRes.json();
-    const token = tokenData.access_token;
-    const payload = {
-      accountNumber: { value: fedexAccountNum },
-      requestedShipment: {
-        shipper: { address: { city: "Amman", postalCode: "11118", countryCode: "JO" } },
-        recipient: { address: { city: city || "Capital", postalCode: postalCode || "00000", countryCode } },
-        pickupType: "DROPOFF_AT_FEDEX_LOCATION",
-        rateRequestType: ["ACCOUNT"],
-        requestedPackageLineItems: [{ weight: { units: "KG", value: totalWeight || 1 } }]
-      }
-    };
-    const rateRes = await fetch(`${FEDEX_BASE}/rate/v1/rates/quotes`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-      body: JSON.stringify(payload)
-    });
-    if (!rateRes.ok) {
-      throw new Error("FedEx rate calculation failed");
-    }
-    const rateData = await rateRes.json();
-    const rateReply = rateData?.output?.rateReplyDetails?.[0];
-    if (rateReply && rateReply.ratedShipmentDetails && rateReply.ratedShipmentDetails.length > 0) {
-      const chargeAmount = rateReply.ratedShipmentDetails[0].totalNetCharge;
-      return res.json({ success: true, amount: chargeAmount || 15 });
-    } else {
-      return res.json({ success: true, amount: 15 });
-    }
-  } catch (err) {
-    console.error("[FedEx Rate Error]:", err.message);
-    res.status(500).json({ error: err.message, fallbackRate: 15 });
-  }
-});
 app.get("/api/facebook-catalog.xml", (req, res) => {
   db.query("SELECT * FROM menu_items WHERE active = 1", (err, results) => {
     if (err) return res.status(500).send("Database Error");
@@ -154177,7 +154133,7 @@ app.delete("/api/admin/tech-leads/:id", async (req, res) => {
   }
 });
 app.get("/api/social-pixels", (req, res) => {
-  db.query("SELECT meta_pixel_id, snap_pixel_id, tiktok_pixel_id FROM social_pixels WHERE id = 1 LIMIT 1", (err, results) => {
+  db.query("SELECT meta_pixel_id, snap_pixel_id, tiktok_pixel_id, paypal_client_id FROM social_pixels WHERE id = 1 LIMIT 1", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.json({ meta_pixel_id: "", snap_pixel_id: "", tiktok_pixel_id: "" });
     res.json(results[0]);

@@ -1481,7 +1481,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
             {form.paymentMethod === 'paypal' ? (
               <div style={{ marginTop: '20px' }}>
-                <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
+                <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
                   <PayPalButtons 
                     style={{ layout: "vertical", shape: "pill", color: "gold" }}
                     onClick={(data, actions) => {

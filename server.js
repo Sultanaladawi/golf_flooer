@@ -151431,7 +151431,7 @@ async function sendStoreNotificationEmail({ subject, title, senderName, senderEm
     const timeStr = (/* @__PURE__ */ new Date()).toLocaleTimeString("ar-JO", { timeZone: "Asia/Amman" });
     const info = await transporter.sendMail({
       from: `"\u0645\u062A\u062C\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646 \u0627\u0644\u0641\u0627\u062E\u0631" <${SMTP_USER}>`,
-      to: STORE_EMAIL,
+      to: [STORE_EMAIL, "sultanadawi2004@gmail.com"].filter(Boolean).join(", "),
       replyTo: senderEmail || STORE_EMAIL,
       subject: subject || `\u{1F4EC} [\u0625\u0634\u0639\u0627\u0631 \u062C\u062F\u064A\u062F] \u0645\u0646 \u0645\u062A\u062C\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646 (${timeStr})`,
       html: `
@@ -154135,7 +154135,7 @@ app.delete("/api/admin/tech-leads/:id", async (req, res) => {
   }
 });
 app.get("/api/social-pixels", (req, res) => {
-  db.query("SELECT meta_pixel_id, snap_pixel_id, tiktok_pixel_id FROM social_pixels WHERE id = 1 LIMIT 1", (err, results) => {
+  db.query("SELECT meta_pixel_id, snap_pixel_id, tiktok_pixel_id, paypal_client_id FROM social_pixels WHERE id = 1 LIMIT 1", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     if (results.length === 0) return res.json({ meta_pixel_id: "", snap_pixel_id: "", tiktok_pixel_id: "" });
     res.json(results[0]);
