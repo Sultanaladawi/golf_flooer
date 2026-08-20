@@ -139,7 +139,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       return;
     }
     
-    if (form.country === 'الأردن') {
+    if (form.country === 'الأردن' || form.country === 'Jordan') {
       setShippingError('');
       setIsCalculatingShipping(false);
       const isAmman = !form.city.trim() || form.city.includes('عمان') || form.city.toLowerCase().includes('amman');
