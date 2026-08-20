@@ -220,27 +220,31 @@ const Orders = () => {
       doc.line(14, 38, 196, 38);
       
       // Customer & Order Info
+      const latinCust = toLatin(order.customer_name) || 'Guest Customer';
+      const latinAddr = toLatin(order.delivery_address) || 'N/A';
+
       doc.setFontSize(11);
       doc.setTextColor(45, 41, 38);
       doc.text(`Order ID: ORD-${String(order.id).padStart(3, '0')}`, 14, 46);
       doc.text(`Date: ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')}`, 14, 52);
-      doc.text(`Customer Name: ${order.customer_name || 'Guest'}`, 14, 58);
+      doc.text(`Customer Name: ${latinCust}`, 14, 58);
       doc.text(`Phone: ${order.phone || 'N/A'}`, 14, 64);
-      doc.text(`Fulfillment: ${String(order.order_type || 'Walk-in').toUpperCase()}`, 14, 70);
+      doc.text(`Fulfillment: ${String(order.order_type || 'Delivery').toUpperCase()}`, 14, 70);
       
       let tableStartY = 78;
       if (order.order_type?.toLowerCase() === 'delivery') {
-        const address = order.delivery_address || 'N/A';
-        doc.text(`Address: ${address}`, 14, 76);
-        tableStartY = 84;
+        const splitAddr = doc.splitTextToSize(`Address: ${latinAddr}`, 180);
+        doc.text(splitAddr, 14, 76);
+        tableStartY = 76 + (splitAddr.length * 6) + 4;
       }
       
       // Items table columns & data
       const tableColumn = ["Item Description", "Quantity", "Unit Price", "Subtotal"];
       const tableRows = items.map(item => {
         const { name } = parseItemNameAndSize(item.item_name);
+        const latinName = toLatin(name) || 'Luxury Abaya / Apparel';
         return [
-          name,
+          latinName,
           String(item.quantity),
           `JOD ${parseFloat(item.price || 0).toFixed(2)}`,
           `JOD ${(parseFloat(item.price || 0) * item.quantity).toFixed(2)}`
@@ -268,7 +272,7 @@ const Orders = () => {
       
       if (order.order_type?.toLowerCase() === 'delivery') {
         doc.setFontSize(10);
-        doc.text('Delivery Fee: JOD 3.00', 14, finalY);
+        doc.text('Delivery / Shipping Fee: JOD 3.00', 14, finalY);
         doc.setFontSize(13);
         doc.setFont('Helvetica', 'bold');
         doc.text(`Total Amount: JOD ${parseFloat(order.total_amount || 0).toFixed(2)}`, 14, finalY + 8);
@@ -283,7 +287,7 @@ const Orders = () => {
       doc.setFont('Helvetica', 'normal');
       doc.setFontSize(9);
       doc.setTextColor(140);
-      doc.text('Thank you for shopping with Zahrat Beesan! - شكراً لتسوقكم معنا', 14, textY);
+      doc.text('Thank you for shopping with Zahrat Beesan Luxury Boutique!', 14, textY);
       
       doc.save(`Zahrat_Beesan_Invoice_ORD_${order.id}.pdf`);
       
