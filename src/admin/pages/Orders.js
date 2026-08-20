@@ -200,6 +200,14 @@ const Orders = () => {
     fetchOrders();
   }, []);
 
+  const getOrderSeqNumber = (order) => {
+    if (!order) return 'ORD-001';
+    const sortedAsc = [...orders].sort((a, b) => (new Date(a.created_at) - new Date(b.created_at)) || (a.id - b.id));
+    const index = sortedAsc.findIndex(o => o.id === order.id);
+    const seq = index !== -1 ? (index + 1) : (order.id || 1);
+    return `ORD-${String(seq).padStart(3, '0')}`;
+  };
+
   const exportPDF = async () => {
     try {
       if (orders.length === 0) {
@@ -226,7 +234,7 @@ const Orders = () => {
       
       const tableColumn = ["Order No.", "Customer", "Phone", "Date & Time", "Total Amount", "Status"];
       const tableRows = orders.map(order => [
-        `ORD-${String(order.id).padStart(3, '0')}`,
+        getOrderSeqNumber(order),
         order.customer_name || 'N/A',
         order.phone || 'N/A',
         order.created_at ? new Date(order.created_at).toLocaleString('en-GB', { timeZone: 'Asia/Amman' }) : 'N/A',
@@ -300,7 +308,7 @@ const Orders = () => {
 
       doc.setFontSize(11);
       doc.setTextColor(45, 41, 38);
-      doc.text(`Order ID: ORD-${String(order.id).padStart(3, '0')}`, 14, 46);
+      doc.text(`Order ID: ${getOrderSeqNumber(order)}`, 14, 46);
       doc.text(`Date: ${order.created_at ? new Date(order.created_at).toLocaleDateString('en-GB') : new Date().toLocaleDateString('en-GB')}`, 14, 52);
       doc.text(`Customer Name: ${latinCust}`, 14, 58);
       doc.text(`Phone: ${order.phone || 'N/A'}`, 14, 64);
@@ -364,7 +372,7 @@ const Orders = () => {
       doc.setTextColor(140);
       doc.text('Thank you for shopping with Zahrat Beesan Luxury Boutique!', 14, textY);
       
-      doc.save(`Zahrat_Beesan_Invoice_ORD_${order.id}.pdf`);
+      doc.save(`Zahrat_Beesan_Invoice_${getOrderSeqNumber(order)}.pdf`);
       
       // Log Action
       axios.post('/api/log-action', { 
@@ -518,7 +526,7 @@ const Orders = () => {
 
       const headers = ["رقم الطلب", "اسم العميل", "رقم الهاتف", "العنوان والدولة", "طريقة الدفع", "تاريخ الطلب", "المبلغ الإجمالي (د.أ)", "الحالة", "رقم تتبع فيديكس"];
       const rows = orders.map(order => [
-        `ORD-${String(order.id).padStart(3, '0')}`,
+        getOrderSeqNumber(order),
         `"${(order.customer_name || '').replace(/"/g, '""')}"`,
         `"${(order.phone || '').replace(/"/g, '""')}"`,
         `"${(order.delivery_address || '').replace(/"/g, '""')}"`,
@@ -569,7 +577,7 @@ const Orders = () => {
       cleanPhone = '962' + cleanPhone;
     }
 
-    const orderIdStr = `ORD-${String(order.id).padStart(3, '0')}`;
+    const orderIdStr = getOrderSeqNumber(order);
     const orderAmount = parseFloat(order.total_amount || 0).toFixed(2);
     const fedexTrk = order.fedex_tracking_number;
     
@@ -685,7 +693,7 @@ const Orders = () => {
                 <button onClick={closeDetails} style={{ position: 'absolute', top: '20px', insetInlineEnd: '20px', background: 'none', border: 'none', color: '#888', cursor: 'pointer', fontSize: '1.5rem' }}>×</button>
                 <h3 style={{ color: theme.primary, margin: '0 0 5px 0', fontSize: '2rem', fontFamily: "'DM Serif Display', serif", fontWeight: 700 }}>
                   {t('Order Details')}{' '}
-                  <span style={{ display: 'inline-block', padding: '6px 12px', borderRadius: '10px', background: 'var(--admin-accent)', color: 'var(--admin-text)', fontWeight: 800, letterSpacing: '1px', fontSize: '1.1rem' }}>{`ORD-${String(selectedOrder.id).padStart(3, '0')}`}</span>
+                  <span style={{ display: 'inline-block', padding: '6px 12px', borderRadius: '10px', background: 'var(--admin-accent)', color: 'var(--admin-text)', fontWeight: 800, letterSpacing: '1px', fontSize: '1.1rem' }}>{getOrderSeqNumber(selectedOrder)}</span>
                 </h3>
               </div>
 
@@ -1001,7 +1009,7 @@ const Orders = () => {
             </thead>
             <tbody>
               {orders.length > 0 ? orders.map((order, idx) => {
-                const orderNo = `ORD-${String(order.id).padStart(3, '0')}`;
+                const orderNo = getOrderSeqNumber(order);
                 return (
                   <tr key={order.id} className="premium-row" style={{ borderBottom: `1px solid ${theme.border}` }} onClick={() => viewOrder(order)}>
                     <td style={{ padding: '20px', color: theme.text, fontWeight: 'bold' }}>
