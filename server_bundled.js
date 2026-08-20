@@ -154325,6 +154325,42 @@ app.get(/.*/, (req, res) => {
   }
   res.send('<!DOCTYPE html><html><head><meta charset="utf-8"><title>Zahrat Beesan</title></head><body><div id="root"></div><script>window.location.reload();</script></body></html>');
 });
+
+// Sequentially Renumber Orders starting from 1
+async function renumberOrdersSequentially() {
+  try {
+    const [allOrders] = await promiseDb.query("SELECT id FROM orders ORDER BY id ASC");
+    if (allOrders && allOrders.length > 0) {
+      await promiseDb.query("SET FOREIGN_KEY_CHECKS = 0");
+      for (let i = 0; i < allOrders.length; i++) {
+        const oldId = allOrders[i].id;
+        const newId = i + 1;
+        if (oldId !== newId) {
+          const tempId = 990000 + oldId;
+          await promiseDb.query("UPDATE orders SET id = ? WHERE id = ?", [tempId, oldId]);
+          await promiseDb.query("UPDATE order_items SET order_id = ? WHERE order_id = ?", [tempId, oldId]);
+          try { await promiseDb.query("UPDATE loyalty_points_history SET order_id = ? WHERE order_id = ?", [tempId, oldId]); } catch(e) {}
+          
+          await promiseDb.query("UPDATE orders SET id = ? WHERE id = ?", [newId, tempId]);
+          await promiseDb.query("UPDATE order_items SET order_id = ? WHERE order_id = ?", [newId, tempId]);
+          try { await promiseDb.query("UPDATE loyalty_points_history SET order_id = ? WHERE order_id = ?", [newId, tempId]); } catch(e) {}
+        }
+      }
+      await promiseDb.query(`ALTER TABLE orders AUTO_INCREMENT = ${allOrders.length + 1}`);
+      await promiseDb.query("SET FOREIGN_KEY_CHECKS = 1");
+      console.log(`✅ Orders successfully renumbered sequentially from 1 to ${allOrders.length}`);
+    }
+  } catch (err) {
+    console.error("[Renumber Orders Error]:", err.message);
+  }
+}
+setTimeout(() => { renumberOrdersSequentially(); }, 4000);
+
+app.post("/api/orders/renumber", async (req, res) => {
+  await renumberOrdersSequentially();
+  res.json({ success: true, message: "Orders sequentially renumbered from 1" });
+});
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`\u{1F680} [Zahrat Beesan] Server is LIVE and listening on port: ${PORT}`);
 });
