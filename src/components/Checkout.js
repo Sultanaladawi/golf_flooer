@@ -479,15 +479,9 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       if (!(form.address || '').trim()) e.address = 'يرجى إدخال تفاصيل العنوان';
       
       if (form.country && form.country !== 'الأردن' && form.paymentMethod === 'cod') {
-        e.paymentMethod = 'الدفع عند الاستلام متاح فقط داخل الأردن. يرجى اختيار الدفع بالتحويل البنكي أو المحفظة.';
+        e.paymentMethod = 'الدفع عند الاستلام متاح فقط داخل الأردن. يرجى اختيار الدفع عبر PayPal / بطاقات الائتمان.';
       }
     }
-
-    if (['cliq', 'wallet', 'transfer'].includes(form.paymentMethod) && !(form.transferReceipt || '').trim()) {
-      e.transferReceipt = 'يرجى إدخال رقم الحوالة المرجعي لتأكيد الدفع';
-    }
-
-    // Card payment is processed via Stripe Checkout session redirect, so no local fields validation is needed
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -510,10 +504,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
           })),
           order_type: 'delivery',
           delivery_address: `الدولة: ${form.country} - المدينة: ${form.city}${form.state ? ' / ' + form.state : ''} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: ${
-            form.paymentMethod === 'cod' ? 'عند الاستلام' : 
-            form.paymentMethod === 'card' ? 'بطاقة ائتمانية (Visa/MasterCard)' :
-            form.paymentMethod === 'cliq' ? ('تحويل كليك - رقم الحوالة: ' + form.transferReceipt) :
-            ('محفظة إلكترونية/تحويل بنكي - رقم الحوالة: ' + form.transferReceipt)
+            form.paymentMethod === 'cod' ? 'عند الاستلام (داخل الأردن)' : 'PayPal / Visa / MasterCard'
           } | رسوم التوصيل: ${shippingFee} JOD`,
           phone: form.phone.trim(),
           coupon_code: couponApplied ? couponApplied.code : null,
@@ -556,7 +547,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     e.preventDefault();
     if (!validate()) return;
 
-    if (['cod', 'cliq', 'wallet', 'transfer'].includes(form.paymentMethod)) {
+    if (form.paymentMethod === 'cod') {
       await new Promise(r => setTimeout(r, 1500));
       const resultStatus = await saveOrderToBackend();
 
@@ -1068,7 +1059,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                                   setForm(f => ({
                                     ...f,
                                     country: c.name,
-                                    paymentMethod: isJo ? f.paymentMethod : 'transfer'
+                                    paymentMethod: isJo ? f.paymentMethod : 'paypal'
                                   }));
                                   setErrors(err => ({ ...err, country: '' }));
                                   setShowCountrySelect(false);
@@ -1452,7 +1443,25 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                 </p>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+              {form.country !== 'الأردن' && (
+                <div style={{
+                  background: 'rgba(255, 98, 0, 0.06)',
+                  border: '1px solid rgba(255, 98, 0, 0.2)',
+                  borderRadius: '12px',
+                  padding: '10px 14px',
+                  marginBottom: '15px',
+                  fontSize: '0.85rem',
+                  color: 'var(--espresso)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}>
+                  <ShieldCheck size={18} style={{ color: '#FF6200', flexShrink: 0 }} />
+                  <span>الشحن الدولي متاح حصرياً عبر الدفع الإلكتروني الآمن (PayPal / Visa / MasterCard).</span>
+                </div>
+              )}
+
+              <div style={{ display: 'grid', gridTemplateColumns: form.country === 'الأردن' ? 'repeat(2, 1fr)' : '1fr', gap: '15px', marginBottom: '20px' }}>
                 {/* 1. COD - Only for Domestic (Jordan) */}
                 {form.country === 'الأردن' && (
                   <div
@@ -1469,11 +1478,11 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                   >
                     <Landmark size={24} style={{ margin: '0 auto 8px', color: form.paymentMethod === 'cod' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
                     <div style={{ fontSize: '0.95rem' }}>الدفع عند الاستلام</div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '2px' }}>داخل الأردن فقط</div>
+                    <div style={{ fontSize: '0.72rem', color: '#27ae60', fontWeight: 'bold', marginTop: '3px' }}>✓ متاح داخل الأردن فقط</div>
                   </div>
                 )}
 
-                {/* 2. PayPal - Available for EVERYONE (Global & Domestic) */}
+                {/* 2. PayPal / Visa / MasterCard - Global & Jordan */}
                 <div
                   onClick={() => {
                     setForm(f => ({ ...f, paymentMethod: 'paypal' }));
@@ -1486,66 +1495,16 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                     color: 'var(--espresso)', fontWeight: 'bold'
                   }}
                 >
-                  <i className="fab fa-paypal" style={{ fontSize: '24px', margin: '0 auto 8px', color: form.paymentMethod === 'paypal' ? '#003087' : 'var(--espresso-dim)', display: 'block' }} />
-                  <div style={{ fontSize: '0.95rem' }}>PayPal</div>
-                  <div style={{ fontSize: '0.7rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '2px' }}>كافة الدول (عالمي ومحلي)</div>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <i className="fab fa-paypal" style={{ fontSize: '22px', color: '#003087' }} />
+                    <i className="fab fa-cc-visa" style={{ fontSize: '22px', color: '#1A1F71' }} />
+                    <i className="fab fa-cc-mastercard" style={{ fontSize: '22px', color: '#EB001B' }} />
+                  </div>
+                  <div style={{ fontSize: '0.95rem' }}>PayPal / بطاقات الائتمان</div>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '3px' }}>Visa • MasterCard • PayPal</div>
                 </div>
               </div>
 
-              {['cliq', 'wallet', 'transfer'].includes(form.paymentMethod) && (
-                <div style={{
-                  padding: '20px',
-                  borderRadius: '12px',
-                  backgroundColor: 'var(--gold-glow)',
-                  border: '1px solid rgba(197, 168, 128, 0.3)',
-                  color: 'var(--espresso)',
-                  fontSize: '0.9rem',
-                  lineHeight: '1.6',
-                  textAlign: 'right',
-                  animation: 'fadeIn 0.3s ease'
-                }}>
-                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '12px' }}>
-                    <i className="fas fa-university" style={{ color: 'var(--gold-dim)' }} />
-                    <strong style={{ color: 'var(--gold-dim)', fontSize: '1.05rem' }}>بيانات التحويل ({form.paymentMethod === 'cliq' ? 'كليك CliQ' : 'المحفظة الإلكترونية / البنك'})</strong>
-                  </div>
-                  <p style={{ margin: '0 0 10px 0', fontWeight: 'bold' }}>
-                    يرجى تحويل مبلغ الطلب الإجمالي ({formatPrice(finalPrice)}) إلى حسابنا أدناه، ثم إدخال رقم الحوالة لتأكيد طلبك:
-                  </p>
-                  
-                  <div style={{ background: 'rgba(255,255,255,0.7)', padding: '15px', borderRadius: '8px', marginBottom: '15px', border: '1px solid rgba(196,164,132,0.2)' }}>
-                    {form.paymentMethod === 'cliq' ? (
-                      <div>
-                        <span style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem', display: 'block' }}>اسم مستعار كليك (CliQ Alias):</span>
-                        <strong style={{ fontSize: '1rem', letterSpacing: '1px' }}>{storeSettings?.cliqAlias || 'غير متوفر مؤقتاً'}</strong>
-                      </div>
-                    ) : (
-                      <>
-                        <div style={{ marginBottom: '10px' }}>
-                          <span style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem', display: 'block' }}>المحفظة الإلكترونية (Zain Cash / Orange Money):</span>
-                          <strong style={{ fontSize: '1rem', letterSpacing: '1px' }}>{storeSettings?.wallet || 'غير متوفر مؤقتاً'}</strong>
-                        </div>
-                        <div>
-                          <span style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem', display: 'block' }}>رقم الحساب البنكي (IBAN):</span>
-                          <strong style={{ fontSize: '1rem', letterSpacing: '1px' }}>{storeSettings?.iban || 'غير متوفر مؤقتاً'}</strong>
-                        </div>
-                      </>
-                    )}
-                  </div>
-
-                  <div className={styles.field} style={{ marginBottom: 0 }}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>الرقم المرجعي للحركة (Transfer Reference No.) <span style={{ color: 'red' }}>*</span></label>
-                    <input
-                      name="transferReceipt"
-                      value={form.transferReceipt}
-                      onChange={handleChange}
-                      placeholder="أدخل الرقم المرجعي للحركة أو آخر 4 أرقام من رقمك"
-                      className={styles.input}
-                      style={{ background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
-                    />
-                    {errors.transferReceipt && <p style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '4px', fontWeight: 'bold' }}>{errors.transferReceipt}</p>}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* General Feedback / Comments */}
@@ -1561,7 +1520,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
             {form.paymentMethod === 'paypal' ? (
               <div style={{ marginTop: '20px' }}>
-                <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture" }}>
+                <PayPalScriptProvider options={{ "client-id": process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
                   <PayPalButtons 
                     style={{ layout: "vertical", shape: "pill", color: "gold" }}
                     onClick={(data, actions) => {
