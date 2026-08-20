@@ -323,6 +323,66 @@ const Orders = () => {
       doc.setFontSize(8);
       doc.text('AIR WAYBILL', 74, 11);
 
+      // Robust Arabic to Latin Converter for International Waybill Standards
+      const toLatin = (text) => {
+        if (!text) return '';
+        let s = String(text);
+        s = s.replace(/،/g, ',')
+             .replace(/نورة/g, 'Noura')
+             .replace(/العتيبي/g, 'Al-Otaibi')
+             .replace(/سارة/g, 'Sarah')
+             .replace(/فاطمة/g, 'Fatima')
+             .replace(/مريم/g, 'Maryam')
+             .replace(/العنزي/g, 'Al-Anazi')
+             .replace(/الشمري/g, 'Al-Shammari')
+             .replace(/الغامدي/g, 'Al-Ghamdi')
+             .replace(/الزهراني/g, 'Al-Zahrani')
+             .replace(/الدوسري/g, 'Al-Dawsari')
+             .replace(/المطيري/g, 'Al-Mutairi')
+             .replace(/الحربي/g, 'Al-Harbi')
+             .replace(/السبيعي/g, 'Al-Subaie')
+             .replace(/القحطاني/g, 'Al-Qahtani')
+             .replace(/المملكة العربية السعودية/g, 'Saudi Arabia')
+             .replace(/السعودية/g, 'Saudi Arabia')
+             .replace(/الأردن/g, 'Jordan')
+             .replace(/الإمارات/g, 'UAE')
+             .replace(/الكويت/g, 'Kuwait')
+             .replace(/قطر/g, 'Qatar')
+             .replace(/الرياض/g, 'Riyadh')
+             .replace(/جدة/g, 'Jeddah')
+             .replace(/مكة/g, 'Makkah')
+             .replace(/الدمام/g, 'Dammam')
+             .replace(/عمان/g, 'Amman')
+             .replace(/دبي/g, 'Dubai')
+             .replace(/المدينة:/g, 'City:')
+             .replace(/المنطقة:/g, 'District:')
+             .replace(/تفاصيل العنوان:/g, 'Address:')
+             .replace(/حي/g, 'District')
+             .replace(/شارع/g, 'St.')
+             .replace(/فيلا/g, 'Villa')
+             .replace(/شقة/g, 'Apt.')
+             .replace(/بناية/g, 'Bldg.');
+
+        const map = {
+          'ا': 'a', 'أ': 'A', 'إ': 'E', 'آ': 'Aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
+          'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
+          'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a',
+          'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+          'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'h', 'ء': '', 'ئ': 'e', 'ؤ': 'o',
+          '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+        };
+
+        let out = '';
+        for (let i = 0; i < s.length; i++) {
+          const ch = s[i];
+          out += (map[ch] !== undefined) ? map[ch] : ch;
+        }
+        return out.replace(/\s+/g, ' ').trim();
+      };
+
+      const latinCustomer = toLatin(order.customer_name) || 'VALUED CUSTOMER';
+      const latinAddress = toLatin(order.delivery_address) || 'Address on file, Saudi Arabia';
+
       // Shipper Section (FROM)
       doc.setFillColor(245, 245, 245);
       doc.rect(4, 19, 94, 22, 'F');
@@ -332,7 +392,7 @@ const Orders = () => {
       doc.setTextColor(100);
       doc.setFontSize(7);
       doc.setFont('Helvetica', 'bold');
-      doc.text('FROM / SHIPPER (المرسل):', 6, 23);
+      doc.text('FROM / SHIPPER (SENDER):', 6, 23);
       doc.setTextColor(30);
       doc.setFontSize(8);
       doc.text('ZAHRAT BEESAN LUXURY BOUTIQUE', 6, 27);
@@ -351,13 +411,13 @@ const Orders = () => {
       doc.setTextColor(77, 20, 140);
       doc.setFontSize(7.5);
       doc.setFont('Helvetica', 'bold');
-      doc.text('SHIP TO / RECIPIENT (المستلم):', 6, 48);
+      doc.text('SHIP TO / RECIPIENT:', 6, 48);
       doc.setTextColor(0);
       doc.setFontSize(9.5);
-      doc.text(String(order.customer_name || 'VALUED CUSTOMER').toUpperCase(), 6, 53);
+      doc.text(latinCustomer.toUpperCase(), 6, 53);
       doc.setFont('Helvetica', 'normal');
       doc.setFontSize(8);
-      const splitAddress = doc.splitTextToSize(order.delivery_address || 'Address on file, Saudi Arabia', 90);
+      const splitAddress = doc.splitTextToSize(latinAddress, 90);
       doc.text(splitAddress, 6, 58);
       doc.setFont('Helvetica', 'bold');
       doc.text(`TEL: ${order.phone || '+966 50 000 0000'}`, 6, 72);
