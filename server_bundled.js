@@ -153943,6 +153943,48 @@ app.get("/api/clean-db", async (req, res) => {
 app.post("/api/shipping-rates", async (req, res) => {
   const { countryCode, city, postalCode, totalWeight } = req.body;
   if (!countryCode) return res.status(400).json({ error: "Country code is required" });
+
+  // Jordan Domestic Shipping Rules
+  if (countryCode === 'JO' || countryCode === 'JORDAN' || countryCode === 'الأردن') {
+    const isAmman = !city || city.includes('عمان') || city.toLowerCase().includes('amman');
+    const fee = isAmman ? 2 : 3;
+    return res.json({ success: true, amount: fee, currency: 'JOD', isDomestic: true });
+  }
+
+  // International FedEx Rate Calculation
+  try {
+    const payload = {
+      accountNumber: { value: fedexConfig.accountNumber || "740561073" },
+      rateRequestControlParameters: { returnTransitTimes: true },
+      requestedShipment: {
+        shipper: { address: { city: "Amman", postalCode: "11181", countryCode: "JO" } },
+        recipient: { address: { city: city || "Riyadh", postalCode: postalCode || "12345", countryCode: countryCode } },
+        pickupType: "USE_SCHEDULED_PICKUP",
+        rateRequestType: ["ACCOUNT", "LIST"],
+        requestedPackageLineItems: [{ weight: { units: "KG", value: totalWeight || 1.5 } }]
+      }
+    };
+
+    const rateData = await makeInlineFedExRequest('/rate/v1/rates/quotes', payload);
+    const rateReply = rateData?.output?.rateReplyDetails?.[0];
+    if (rateReply && rateReply.ratedShipmentDetails && rateReply.ratedShipmentDetails.length > 0) {
+      const netCharge = rateReply.ratedShipmentDetails[0].totalNetCharge;
+      const currency = rateReply.ratedShipmentDetails[0].currency || 'USD';
+      let amountJOD = netCharge;
+      if (currency === 'USD') {
+        amountJOD = Math.round((netCharge * 0.71) * 100) / 100;
+      }
+      return res.json({ success: true, amount: amountJOD, currency: 'JOD', rawRate: netCharge, rawCurrency: currency });
+    }
+  } catch (err) {
+    console.error("[FedEx Live Rate Error]:", err.message);
+  }
+
+  // Smart Regional Fallbacks based on Destination Zone
+  const gulfCountries = ['SA', 'AE', 'KW', 'QA', 'BH', 'OM'];
+  const defaultIntlRate = gulfCountries.includes(countryCode) ? 12 : 18;
+  res.json({ success: true, amount: defaultIntlRate, currency: 'JOD', isFallback: true });
+});
   const fedexClientId = process.env.FEDEX_CLIENT_ID || "l744fb38ebfcd74c87bce7b16fbe236931";
   const fedexClientSecret = process.env.FEDEX_CLIENT_SECRET || "2771d602967246658269cc3a0ae4b4b9";
   const fedexAccountNum = process.env.FEDEX_ACCOUNT_NUM || "211266142";

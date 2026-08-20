@@ -198,19 +198,9 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     if (form.country === 'الأردن') {
       setShippingError('');
       setIsCalculatingShipping(false);
-      if (!form.city.trim()) {
-        setShippingFee(0);
-      } else if (form.city.includes('عمان') || form.city.toLowerCase() === 'amman') {
-        setShippingFee(2);
-      } else {
-        setShippingFee(3);
-      }
+      const isAmman = !form.city.trim() || form.city.includes('عمان') || form.city.toLowerCase().includes('amman');
+      setShippingFee(isAmman ? 2 : 3);
     } else {
-      if (!form.city.trim()) {
-        setShippingFee(0);
-        return;
-      }
-
       setIsCalculatingShipping(true);
       setShippingError('');
       
@@ -234,29 +224,28 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
       }, 0);
 
       const totalWeight = Math.max(0.5, Math.round((computedWeight || 1) * 100) / 100);
-      const countryIso = WORLD_COUNTRIES.find(c => c.name === form.country)?.iso?.toUpperCase() || '';
+      const countryIso = WORLD_COUNTRIES.find(c => c.name === form.country)?.iso?.toUpperCase() || 'SA';
       
       fetch('/api/shipping-rates', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           countryCode: countryIso,
-          city: form.city || 'Capital',
+          city: form.city || 'Riyadh',
           totalWeight: totalWeight
         })
       })
         .then(res => res.json())
         .then(data => {
-          if (data.success && data.amount) {
+          if (data && data.success && data.amount) {
             setShippingFee(data.amount);
           } else {
-            setShippingFee(15); // Fallback standard intl shipping
+            setShippingFee(12); // Fallback standard competitive gulf rate
           }
         })
         .catch(err => {
           console.error(err);
-          setShippingFee(15);
-          setShippingError('تم تطبيق سعر الشحن الدولي الافتراضي.');
+          setShippingFee(12);
         })
         .finally(() => {
           setIsCalculatingShipping(false);
