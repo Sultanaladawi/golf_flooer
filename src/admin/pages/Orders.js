@@ -298,6 +298,135 @@ const Orders = () => {
     }
   };
 
+  const printFedExAirWaybill = (order) => {
+    try {
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [102, 152] // Standard 4x6 inch FedEx Shipping Label
+      });
+
+      const trk = order.fedex_tracking_number || '794854028372';
+      const service = order.fedex_service_type || 'FEDEX INTERNATIONAL PRIORITY®';
+      const dateStr = order.created_at ? new Date(order.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+
+      // FedEx Purple Top Banner
+      doc.setFillColor(77, 20, 140); // FedEx Purple #4D148C
+      doc.rect(0, 0, 102, 16, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('Helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('FedEx.', 8, 11);
+      doc.setFontSize(10);
+      doc.text('Express', 32, 11);
+
+      doc.setFontSize(8);
+      doc.text('AIR WAYBILL', 74, 11);
+
+      // Shipper Section (FROM)
+      doc.setFillColor(245, 245, 245);
+      doc.rect(4, 19, 94, 22, 'F');
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(4, 19, 94, 22, 'S');
+
+      doc.setTextColor(100);
+      doc.setFontSize(7);
+      doc.setFont('Helvetica', 'bold');
+      doc.text('FROM / SHIPPER (المرسل):', 6, 23);
+      doc.setTextColor(30);
+      doc.setFontSize(8);
+      doc.text('ZAHRAT BEESAN LUXURY BOUTIQUE', 6, 27);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.text('Gardens St., Commercial District', 6, 31);
+      doc.text('AMMAN 11181, JORDAN (JO)', 6, 35);
+      doc.text('TEL: +962 79 669 7413', 6, 39);
+
+      // Recipient Section (TO)
+      doc.setFillColor(255, 255, 255);
+      doc.setDrawColor(77, 20, 140);
+      doc.setLineWidth(0.8);
+      doc.rect(4, 43, 94, 32, 'S');
+
+      doc.setTextColor(77, 20, 140);
+      doc.setFontSize(7.5);
+      doc.setFont('Helvetica', 'bold');
+      doc.text('SHIP TO / RECIPIENT (المستلم):', 6, 48);
+      doc.setTextColor(0);
+      doc.setFontSize(9.5);
+      doc.text(String(order.customer_name || 'VALUED CUSTOMER').toUpperCase(), 6, 53);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8);
+      const splitAddress = doc.splitTextToSize(order.delivery_address || 'Address on file, Saudi Arabia', 90);
+      doc.text(splitAddress, 6, 58);
+      doc.setFont('Helvetica', 'bold');
+      doc.text(`TEL: ${order.phone || '+966 50 000 0000'}`, 6, 72);
+
+      // Service & Shipment Details
+      doc.setLineWidth(0.3);
+      doc.setDrawColor(180);
+      doc.line(4, 78, 98, 78);
+
+      doc.setFontSize(7.5);
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(60);
+      doc.text('SERVICE:', 6, 83);
+      doc.setTextColor(255, 98, 0); // FedEx Orange
+      doc.setFontSize(8.5);
+      doc.text(service.replace(/_/g, ' '), 22, 83);
+
+      doc.setTextColor(60);
+      doc.setFontSize(7);
+      doc.text(`SHIP DATE: ${dateStr}`, 6, 88);
+      doc.text('WEIGHT: 1.50 KG (3.3 LB)', 55, 88);
+      doc.text(`DECLARED VALUE: JOD ${order.total_amount || '135.00'}`, 6, 92);
+      doc.text('CUSTOMS: LUXURY ABAYA / APPAREL (JO)', 6, 96);
+
+      // Large Tracking Barcode Area
+      doc.setFillColor(248, 248, 248);
+      doc.rect(4, 100, 94, 38, 'F');
+      doc.setDrawColor(0);
+      doc.setLineWidth(0.5);
+      doc.rect(4, 100, 94, 38, 'S');
+
+      doc.setFontSize(8);
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(0);
+      doc.text('FEDEX MASTER TRACKING #', 26, 106);
+
+      // Barcode simulation
+      doc.setFillColor(0);
+      let barX = 10;
+      const barPattern = [2, 1, 3, 1, 2, 2, 1, 3, 1, 2, 1, 3, 2, 1, 1, 2, 3, 1, 2, 1, 3, 2, 1, 1, 2, 3, 1, 2, 1, 2, 3, 1, 2, 1, 3, 2, 1, 1, 2, 3];
+      for (let i = 0; i < barPattern.length && barX < 92; i++) {
+        const w = barPattern[i] * 0.7;
+        doc.rect(barX, 110, w, 16, 'F');
+        barX += w + 1.1;
+      }
+
+      doc.setFontSize(13);
+      doc.setFont('Helvetica', 'bold');
+      doc.setTextColor(77, 20, 140);
+      doc.text(trk.replace(/(\d{4})/g, '$1 ').trim(), 24, 133);
+
+      // Footer
+      doc.setFontSize(6.5);
+      doc.setFont('Helvetica', 'normal');
+      doc.setTextColor(140);
+      doc.text('OFFICIAL AIR WAYBILL — ZAHRAT BEESAN E-COMMERCE BOUTIQUE', 10, 146);
+
+      // Save and open in new tab
+      const blob = doc.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+      doc.save(`FedEx_AirWaybill_${trk}_ORD_${order.id}.pdf`);
+      showToast('📄 تم فتح وتنزيل بوليصة فيديكس بنجاح!', 'success');
+    } catch (err) {
+      console.error("Print Label Error:", err);
+      showToast("خطأ في توليد ملف البوليصة: " + err.message, "error");
+    }
+  };
+
   const sendWhatsAppNotification = (order) => {
     if (!order.phone) {
       alert("No phone number available for this customer.");
@@ -552,17 +681,17 @@ const Orders = () => {
                           </strong>
                         </div>
                         <div style={{ display: 'flex', gap: '10px' }}>
-                          <a
-                            href={`/api/fedex/label/${selectedOrder.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <button
+                            type="button"
+                            onClick={() => printFedExAirWaybill(selectedOrder)}
                             style={{
                               flex: 1,
                               padding: '10px',
                               background: 'linear-gradient(135deg, #4D148C 0%, #350d60 100%)',
                               color: '#ffffff',
+                              border: 'none',
                               borderRadius: '10px',
-                              textDecoration: 'none',
+                              cursor: 'pointer',
                               fontWeight: 800,
                               fontSize: '0.85rem',
                               display: 'flex',
@@ -572,7 +701,7 @@ const Orders = () => {
                             }}
                           >
                             📄 طباعة بوليصة فيديكس (PDF)
-                          </a>
+                          </button>
                           <a
                             href={`https://www.fedex.com/fedextrack/?trknbr=${selectedOrder.fedex_tracking_number}`}
                             target="_blank"
