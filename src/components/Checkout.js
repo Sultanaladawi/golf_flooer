@@ -1,55 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCart } from '../context/CartContext';
+import { useLanguage } from '../context/LanguageContext';
 import { trackPurchase } from '../utils/socialPixel';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
-import { City } from 'country-state-city';
 import { sendOrderConfirmationEmail } from '../utils/emailService';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-
-// Comprehensive list of world countries with flag ISO codes (flagcdn.com)
-const WORLD_COUNTRIES = [
-  { name: 'الأردن',           iso: 'jo' }, { name: 'السعودية',         iso: 'sa' },
-  { name: 'الإمارات',         iso: 'ae' }, { name: 'الكويت',           iso: 'kw' },
-  { name: 'قطر',              iso: 'qa' }, { name: 'البحرين',          iso: 'bh' },
-  { name: 'عمان',             iso: 'om' }, { name: 'مصر',              iso: 'eg' },
-  { name: 'السودان',          iso: 'sd' }, { name: 'اليمن',            iso: 'ye' },
-  { name: 'ليبيا',            iso: 'ly' }, { name: 'تونس',             iso: 'tn' },
-  { name: 'الجزائر',          iso: 'dz' }, { name: 'المغرب',           iso: 'ma' },
-  { name: 'موريتانيا',        iso: 'mr' }, { name: 'العراق',           iso: 'iq' },
-  { name: 'سوريا',            iso: 'sy' }, { name: 'لبنان',            iso: 'lb' },
-  { name: 'فلسطين',           iso: 'ps' }, { name: 'تركيا',            iso: 'tr' },
-  { name: 'إيران',            iso: 'ir' }, { name: 'باكستان',          iso: 'pk' },
-  { name: 'أفغانستان',        iso: 'af' }, { name: 'الهند',            iso: 'in' },
-  { name: 'بنغلاديش',         iso: 'bd' }, { name: 'إندونيسيا',        iso: 'id' },
-  { name: 'ماليزيا',          iso: 'my' }, { name: 'سنغافورة',         iso: 'sg' },
-  { name: 'بروناي',           iso: 'bn' }, { name: 'تايلاند',          iso: 'th' },
-  { name: 'الفلبين',          iso: 'ph' }, { name: 'المالديف',         iso: 'mv' },
-  { name: 'الصين',            iso: 'cn' }, { name: 'اليابان',          iso: 'jp' },
-  { name: 'كوريا الجنوبية',   iso: 'kr' }, { name: 'أستراليا',         iso: 'au' },
-  { name: 'نيوزيلندا',        iso: 'nz' }, { name: 'United States',    iso: 'us' },
-  { name: 'United Kingdom',   iso: 'gb' }, { name: 'Canada',           iso: 'ca' },
-  { name: 'Germany',          iso: 'de' }, { name: 'France',           iso: 'fr' },
-  { name: 'Italy',            iso: 'it' }, { name: 'Spain',            iso: 'es' },
-  { name: 'Netherlands',      iso: 'nl' }, { name: 'Belgium',          iso: 'be' },
-  { name: 'Sweden',           iso: 'se' }, { name: 'Norway',           iso: 'no' },
-  { name: 'Denmark',          iso: 'dk' }, { name: 'Switzerland',      iso: 'ch' },
-  { name: 'Austria',          iso: 'at' }, { name: 'Russia',           iso: 'ru' },
-  { name: 'Ukraine',          iso: 'ua' }, { name: 'Poland',           iso: 'pl' },
-  { name: 'Czech Republic',   iso: 'cz' }, { name: 'Hungary',          iso: 'hu' },
-  { name: 'Romania',          iso: 'ro' }, { name: 'Bulgaria',         iso: 'bg' },
-  { name: 'Greece',           iso: 'gr' }, { name: 'Portugal',         iso: 'pt' },
-  { name: 'Brazil',           iso: 'br' }, { name: 'Argentina',        iso: 'ar' },
-  { name: 'Mexico',           iso: 'mx' }, { name: 'Colombia',         iso: 'co' },
-  { name: 'Chile',            iso: 'cl' }, { name: 'South Africa',     iso: 'za' },
-  { name: 'Nigeria',          iso: 'ng' }, { name: 'Kenya',            iso: 'ke' },
-  { name: 'Ghana',            iso: 'gh' }, { name: 'Ethiopia',         iso: 'et' },
-  { name: 'Tanzania',         iso: 'tz' }, { name: 'دولة أخرى / Other', iso: null },
-];
+import { BILINGUAL_COUNTRIES, getCitiesForCountry } from '../utils/countryCityData';
 
 export default function Checkout({ onClose, onBack, initialStep = 'form', initialOrderId = null }) {
   const { items, totalPrice, clearCart } = useCart();
+  const { t, currentLang } = useLanguage();
   const { format } = useCurrency();
   const [step, setStep] = useState(initialStep);
   const [orderId, setOrderId] = useState(initialOrderId);
@@ -146,32 +108,14 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   }, []);
 
   useEffect(() => {
-    if (form.country === 'الأردن') {
-      const jordanGovernorates = [
-        'عمان', 'إربد', 'الزرقاء', 'المفرق', 'عجلون', 'جرش', 
-        'البلقاء', 'مادبا', 'الكرك', 'الطفيلة', 'معان', 'العقبة'
-      ].map(name => ({ name }));
-      setCountryCities(jordanGovernorates);
-      return;
-    }
+    const cities = getCitiesForCountry(form.country, currentLang);
+    setCountryCities(cities);
 
-    const currentCountryObj = WORLD_COUNTRIES.find(c => c.name === form.country);
-    if (currentCountryObj && currentCountryObj.iso) {
-      const cities = City.getCitiesOfCountry(currentCountryObj.iso.toUpperCase());
-      // Filter out duplicate city names
-      const uniqueCities = cities ? Array.from(new Set(cities.map(c => c.name))).map(name => {
-        return cities.find(c => c.name === name);
-      }) : [];
-      setCountryCities(uniqueCities);
-    } else {
-      setCountryCities([]);
-    }
-
-    const isJordan = form.country === 'الأردن' || form.country === 'JO' || form.country === 'Jordan' || form.country === 'jo';
-    if (!isJordan && (form.paymentMethod === 'cod' || form.paymentMethod === 'cliq' || form.paymentMethod === 'wallet')) {
+    const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
+    if (!isJordan && form.paymentMethod === 'cod') {
       setForm(f => ({ ...f, paymentMethod: 'paypal' }));
     }
-  }, [form.country]);
+  }, [form.country, currentLang]);
 
   // Store Settings
   const [storeSettings, setStoreSettings] = useState(null);
@@ -993,7 +937,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                           }
                           return null;
                         })()}
-                        <span>{form.country || 'اختر الدولة'}</span>
+                        <span>{
+                          (() => {
+                            const found = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
+                            if (found) return currentLang === 'en' ? found.en : found.ar;
+                            return form.country || (currentLang === 'en' ? 'Select Country' : 'اختر الدولة');
+                          })()
+                        }</span>
                       </div>
                       <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
                     </div>
@@ -1014,13 +964,13 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                         flexDirection: 'column',
                         overflow: 'hidden',
                         marginTop: '5px',
-                        direction: 'rtl'
+                        direction: currentLang === 'en' ? 'ltr' : 'rtl'
                       }}>
                         {/* Search field */}
                         <div style={{ padding: '8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
                           <input
                             type="text"
-                            placeholder="ابحثي عن الدولة..."
+                            placeholder={currentLang === 'en' ? "Search country..." : "ابحثي عن الدولة..."}
                             value={countrySearch}
                             onChange={(e) => setCountrySearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
@@ -1031,7 +981,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                               borderRadius: '8px',
                               fontSize: '0.85rem',
                               outline: 'none',
-                              direction: 'rtl',
+                              direction: currentLang === 'en' ? 'ltr' : 'rtl',
                               background: '#fff',
                               color: 'var(--espresso)'
                             }}
@@ -1039,18 +989,24 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                         </div>
                         {/* Country Options */}
                         <div style={{ overflowY: 'auto', flex: 1 }}>
-                          {WORLD_COUNTRIES.filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase()))
-                            .map(c => (
+                          {BILINGUAL_COUNTRIES.filter(c => {
+                            const q = countrySearch.toLowerCase();
+                            return c.ar.toLowerCase().includes(q) || c.en.toLowerCase().includes(q);
+                          }).map(c => {
+                            const isJo = c.iso === 'jo';
+                            const displayName = currentLang === 'en' ? c.en : c.ar;
+                            const isSelected = form.country === c.ar || form.country === c.en;
+                            return (
                               <div
-                                key={c.name}
+                                key={c.iso || c.en}
                                 onClick={() => {
-                                  const isJo = c.name === 'الأردن';
                                   setForm(f => ({
                                     ...f,
-                                    country: c.name,
+                                    country: c.ar,
+                                    city: '',
                                     paymentMethod: isJo ? f.paymentMethod : 'paypal'
                                   }));
-                                  setErrors(err => ({ ...err, country: '' }));
+                                  setErrors(err => ({ ...err, country: '', city: '' }));
                                   setShowCountrySelect(false);
                                   setCountrySearch('');
                                 }}
@@ -1062,27 +1018,31 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                                   gap: '12px',
                                   fontSize: '0.9rem',
                                   color: 'var(--espresso)',
-                                  background: form.country === c.name ? 'var(--gold-glow)' : 'transparent',
+                                  background: isSelected ? 'var(--gold-glow)' : 'transparent',
                                   transition: 'background 0.2s',
-                                  textAlign: 'right'
+                                  textAlign: currentLang === 'en' ? 'left' : 'right'
                                 }}
                                 onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                                onMouseLeave={e => e.currentTarget.style.background = form.country === c.name ? 'var(--gold-glow)' : 'transparent'}
+                                onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
                               >
                                 {c.iso && (
                                   <img
                                     src={getFlagUrl(c.iso)}
-                                    alt={c.name}
+                                    alt={displayName}
                                     style={{ width: '22px', height: '16px', objectFit: 'cover', borderRadius: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
                                   />
                                 )}
-                                <span style={{ flex: 1 }}>{c.name}</span>
-                                {form.country === c.name && <Check size={16} style={{ color: 'var(--gold)' }} />}
+                                <span style={{ flex: 1 }}>{displayName}</span>
+                                {isSelected && <Check size={16} style={{ color: 'var(--gold)' }} />}
                               </div>
-                            ))}
-                          {WORLD_COUNTRIES.filter(c => c.name.toLowerCase().includes(countrySearch.toLowerCase())).length === 0 && (
+                            );
+                          })}
+                          {BILINGUAL_COUNTRIES.filter(c => {
+                            const q = countrySearch.toLowerCase();
+                            return c.ar.toLowerCase().includes(q) || c.en.toLowerCase().includes(q);
+                          }).length === 0 && (
                             <div style={{ padding: '16px', textAlign: 'center', color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                              لا توجد نتائج مطابقة
+                              {currentLang === 'en' ? 'No matching country' : 'لا توجد نتائج مطابقة'}
                             </div>
                           )}
                         </div>
@@ -1093,12 +1053,15 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
                   {/* State / Province */}
                   <div className={styles.field}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>الولاية / المحافظة <span style={{ color: '#888', fontSize: '0.75rem' }}>(اختياري)</span></label>
+                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>
+                      {currentLang === 'en' ? 'State / Province / Region ' : 'الولاية / المنطقة '}
+                      <span style={{ color: '#888', fontSize: '0.75rem' }}>({currentLang === 'en' ? 'Optional' : 'اختياري'})</span>
+                    </label>
                     <input
                       name="state"
                       value={form.state}
                       onChange={handleChange}
-                      placeholder="مثال: California, محافظة الرياض، Yorkshire"
+                      placeholder={currentLang === 'en' ? "e.g. Riyadh Region, California, Makkah Province" : "مثال: منطقة الرياض، مكة المكرمة، كاليفورنيا"}
                       className={styles.input}
                       style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
                     />
@@ -1106,7 +1069,10 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
                   {/* City */}
                   <div className={styles.field} ref={citySelectRef} style={{ position: 'relative' }}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>المدينة <span style={{ color: 'red' }}>*</span></label>
+                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>
+                      {currentLang === 'en' ? 'City ' : 'المدينة '}
+                      <span style={{ color: 'red' }}>*</span>
+                    </label>
                     {countryCities.length > 0 ? (
                       <>
                         <div
@@ -1124,7 +1090,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                             borderRadius: '8px',
                           }}
                         >
-                          <span>{form.city || 'اختر المدينة'}</span>
+                          <span>{form.city || (currentLang === 'en' ? 'Select City / Governorate' : 'اختر المدينة / المحافظة')}</span>
                           <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
                         </div>
 
@@ -1144,49 +1110,55 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                             flexDirection: 'column',
                             overflow: 'hidden',
                             marginTop: '5px',
-                            direction: 'rtl'
+                            direction: currentLang === 'en' ? 'ltr' : 'rtl'
                           }}>
                             <div style={{ padding: '8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
                               <input
                                 type="text"
-                                placeholder="ابحثي عن المدينة..."
+                                placeholder={currentLang === 'en' ? "Search city / province..." : "ابحثي عن المدينة أو المحافظة..."}
                                 value={citySearch}
                                 onChange={(e) => setCitySearch(e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
                                 style={{
                                   width: '100%', padding: '8px 12px', border: '1px solid rgba(196,164,132,0.3)',
-                                  borderRadius: '8px', fontSize: '0.85rem', outline: 'none', direction: 'rtl',
+                                  borderRadius: '8px', fontSize: '0.85rem', outline: 'none',
+                                  direction: currentLang === 'en' ? 'ltr' : 'rtl',
                                   background: '#fff', color: 'var(--espresso)'
                                 }}
                               />
                             </div>
                             <div style={{ overflowY: 'auto', flex: 1 }}>
-                              {countryCities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase()))
-                                .map(c => (
-                                  <div
-                                    key={c.name}
-                                    onClick={() => {
-                                      setForm(f => ({ ...f, city: c.name }));
-                                      setErrors(err => ({ ...err, city: '' }));
-                                      setShowCitySelect(false);
-                                      setCitySearch('');
-                                    }}
-                                    style={{
-                                      padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                      justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--espresso)',
-                                      background: form.city === c.name ? 'var(--gold-glow)' : 'transparent',
-                                      transition: 'background 0.2s', textAlign: 'right'
-                                    }}
-                                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                                    onMouseLeave={e => e.currentTarget.style.background = form.city === c.name ? 'var(--gold-glow)' : 'transparent'}
-                                  >
-                                    <span>{c.name}</span>
-                                    {form.city === c.name && <Check size={16} style={{ color: 'var(--gold)' }} />}
-                                  </div>
-                                ))}
-                              {countryCities.filter(c => c.name.toLowerCase().includes(citySearch.toLowerCase())).length === 0 && (
+                              {countryCities.filter(c => {
+                                const q = citySearch.toLowerCase();
+                                return c.name.toLowerCase().includes(q) || (c.ar && c.ar.includes(q)) || (c.en && c.en.toLowerCase().includes(q));
+                              }).map(c => (
+                                <div
+                                  key={c.name}
+                                  onClick={() => {
+                                    setForm(f => ({ ...f, city: c.name }));
+                                    setErrors(err => ({ ...err, city: '' }));
+                                    setShowCitySelect(false);
+                                    setCitySearch('');
+                                  }}
+                                  style={{
+                                    padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--espresso)',
+                                    background: form.city === c.name ? 'var(--gold-glow)' : 'transparent',
+                                    transition: 'background 0.2s', textAlign: currentLang === 'en' ? 'left' : 'right'
+                                  }}
+                                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
+                                  onMouseLeave={e => e.currentTarget.style.background = form.city === c.name ? 'var(--gold-glow)' : 'transparent'}
+                                >
+                                  <span>{c.name}</span>
+                                  {form.city === c.name && <Check size={16} style={{ color: 'var(--gold)' }} />}
+                                </div>
+                              ))}
+                              {countryCities.filter(c => {
+                                const q = citySearch.toLowerCase();
+                                return c.name.toLowerCase().includes(q) || (c.ar && c.ar.includes(q)) || (c.en && c.en.toLowerCase().includes(q));
+                              }).length === 0 && (
                                 <div style={{ padding: '16px', textAlign: 'center', color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                                  لا توجد نتائج مطابقة
+                                  {currentLang === 'en' ? 'No matching city' : 'لا توجد نتائج مطابقة'}
                                 </div>
                               )}
                             </div>
@@ -1198,7 +1170,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
                         name="city"
                         value={form.city}
                         onChange={handleChange}
-                        placeholder="مثال: عمان، London, Dubai, New York"
+                        placeholder={currentLang === 'en' ? "e.g. Amman, Riyadh, Dubai, London" : "مثال: عمان، الرياض، دبي، لندن"}
                         className={styles.input}
                         style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
                       />
