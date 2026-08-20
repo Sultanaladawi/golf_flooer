@@ -12,8 +12,9 @@ const Settings = () => {
   const [fbPageId, setFbPageId] = useState('');
   const [fbAccessToken, setFbAccessToken] = useState('');
   const [igUserId, setIgUserId] = useState('');
-  const [waPhoneNumberId, setWaPhoneNumberId] = useState('');
-  const [waAccessToken, setWaAccessToken] = useState('');
+  const [metaPixelId, setMetaPixelId] = useState('');
+  const [snapPixelId, setSnapPixelId] = useState('');
+  const [tiktokPixelId, setTiktokPixelId] = useState('');
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -31,6 +32,9 @@ const Settings = () => {
           setIgUserId(res.data.ig_user_id || '');
           setWaPhoneNumberId(res.data.wa_phone_number_id || '');
           setWaAccessToken(res.data.wa_access_token || '');
+          setMetaPixelId(res.data.meta_pixel_id || '');
+          setSnapPixelId(res.data.snap_pixel_id || '');
+          setTiktokPixelId(res.data.tiktok_pixel_id || '');
         }
       } catch (err) {
         console.error('Failed to load settings', err);
@@ -42,7 +46,22 @@ const Settings = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
-      await axios.post('/api/settings', { iban, wallet, cliqAlias, fb_page_id: fbPageId, fb_access_token: fbAccessToken, ig_user_id: igUserId, wa_phone_number_id: waPhoneNumberId, wa_access_token: waAccessToken });
+      await Promise.all([
+        axios.post('/api/settings', { 
+          iban, wallet, cliqAlias, 
+          fb_page_id: fbPageId, fb_access_token: fbAccessToken, 
+          ig_user_id: igUserId, 
+          wa_phone_number_id: waPhoneNumberId, wa_access_token: waAccessToken,
+          meta_pixel_id: metaPixelId,
+          snap_pixel_id: snapPixelId,
+          tiktok_pixel_id: tiktokPixelId
+        }),
+        axios.post('/api/admin/social-pixels', {
+          meta_pixel_id: metaPixelId,
+          snap_pixel_id: snapPixelId,
+          tiktok_pixel_id: tiktokPixelId
+        })
+      ]);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -246,6 +265,33 @@ const Settings = () => {
           <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: 0 }}>
             من <a href="https://developers.facebook.com/apps/" target="_blank" rel="noreferrer" style={{ color: '#25D366' }}>Meta for Developers</a> — أنشئ تطبيق WhatsApp Business
           </p>
+        </div>
+
+        {/* Advertising & Tracking Pixels */}
+        <div style={{ padding: '20px', borderRadius: '16px', background: 'linear-gradient(135deg, rgba(254, 44, 85, 0.05) 0%, rgba(255, 252, 0, 0.05) 50%, rgba(24, 119, 242, 0.05) 100%)', border: '1px solid rgba(197, 168, 128, 0.3)', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
+            <span style={{ fontSize: '1.4rem' }}>🎯</span>
+            <div>
+              <span style={{ fontWeight: '800', color: 'var(--admin-text)', fontSize: '1.05rem', display: 'block' }}>بكسلات التتبع والحملات الإعلانية (Advertising & Conversion Pixels)</span>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>تتبع زيارات المتجر والمبيعات بدقة لحملات تيك توك، سناب شات، وفيسبوك/إنستغرام</span>
+            </div>
+          </div>
+          {[
+            { label: 'TikTok Pixel ID', val: tiktokPixelId, set: setTiktokPixelId, ph: 'مثال: C1234567890ABCDEFGH' },
+            { label: 'Snapchat Pixel ID', val: snapPixelId, set: setSnapPixelId, ph: 'مثال: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx' },
+            { label: 'Meta (Facebook & Instagram) Pixel ID', val: metaPixelId, set: setMetaPixelId, ph: 'مثال: 123456789012345' },
+          ].map(field => (
+            <div key={field.label} style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)' }}>{field.label}</label>
+              <input
+                type="text"
+                value={field.val}
+                onChange={e => field.set(e.target.value)}
+                placeholder={field.ph}
+                style={{ width: '100%', padding: '12px 15px', borderRadius: '10px', border: '1px solid var(--admin-border)', background: 'var(--bg-surface)', color: 'var(--admin-text)', fontSize: '0.9rem', outline: 'none' }}
+              />
+            </div>
+          ))}
         </div>
 
         <button

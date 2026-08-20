@@ -509,6 +509,46 @@ const Orders = () => {
     }
   };
 
+  const exportCSV = () => {
+    try {
+      if (orders.length === 0) {
+        alert("No orders available to export.");
+        return;
+      }
+
+      const headers = ["رقم الطلب", "اسم العميل", "رقم الهاتف", "العنوان والدولة", "طريقة الدفع", "تاريخ الطلب", "المبلغ الإجمالي (د.أ)", "الحالة", "رقم تتبع فيديكس"];
+      const rows = orders.map(order => [
+        `ORD-${String(order.id).padStart(3, '0')}`,
+        `"${(order.customer_name || '').replace(/"/g, '""')}"`,
+        `"${(order.phone || '').replace(/"/g, '""')}"`,
+        `"${(order.delivery_address || '').replace(/"/g, '""')}"`,
+        `"${(order.payment_method || 'Online').replace(/"/g, '""')}"`,
+        `"${order.created_at ? new Date(order.created_at).toLocaleString('ar-JO') : ''}"`,
+        parseFloat(order.total_amount || 0).toFixed(2),
+        (order.status || 'PENDING').toUpperCase(),
+        order.fedex_tracking_number || 'N/A'
+      ]);
+
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `Zahrat_Beesan_Orders_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      axios.post('/api/log-action', { 
+        action: 'Export Excel/CSV', 
+        details: 'Administrator exported sales/orders report to CSV/Excel.' 
+      }).catch(() => {});
+    } catch (e) {
+      console.error(e);
+      alert("Failed to export Excel report.");
+    }
+  };
+
   const sendWhatsAppNotification = (order) => {
     if (!order.phone) {
       alert("No phone number available for this customer.");
@@ -518,17 +558,28 @@ const Orders = () => {
     // Clean phone number: remove non-digits
     let cleanPhone = order.phone.replace(/\D/g, '');
     
-    // Prefix Jordan code if starting with local mobile digits
-    if (cleanPhone.startsWith('07')) {
+    // Prefix country code intelligently
+    if (cleanPhone.startsWith('07') && cleanPhone.length === 10) {
       cleanPhone = '962' + cleanPhone.substring(1);
-    } else if (!cleanPhone.startsWith('962') && cleanPhone.length === 9) {
+    } else if (cleanPhone.startsWith('05') && cleanPhone.length === 10) {
+      // Saudi Arabia or UAE mobile numbers
+      const isUAE = order.delivery_address?.includes('الإمارات') || order.delivery_address?.includes('دبي') || order.delivery_address?.includes('أبو ظبي');
+      cleanPhone = (isUAE ? '971' : '966') + cleanPhone.substring(1);
+    } else if (!cleanPhone.startsWith('962') && !cleanPhone.startsWith('966') && !cleanPhone.startsWith('971') && !cleanPhone.startsWith('965') && !cleanPhone.startsWith('974') && cleanPhone.length === 9) {
       cleanPhone = '962' + cleanPhone;
     }
 
     const orderIdStr = `ORD-${String(order.id).padStart(3, '0')}`;
-    const orderAmount = parseFloat(order.total_amount).toFixed(2);
+    const orderAmount = parseFloat(order.total_amount || 0).toFixed(2);
+    const fedexTrk = order.fedex_tracking_number;
     
-    const messageText = `مرحباً ${order.customer_name || 'عميلتنا العزيزة'}،%0A%0Aيسعدنا إبلاغكِ بأن طلبكِ رقم ${orderIdStr} بقيمة ${orderAmount} JOD قيد المتابعة حالياً في زهرة بيسان.%0A%0Aيمكنكِ تتبع حالة طلبكِ مباشرة عبر موقعنا باستخدام رقم طلبكِ: ${orderIdStr}%0A%0Aشكراً لثقتكِ بنا وبمنتجاتنا الراقية! 🌸`;
+    let messageText = '';
+    if (fedexTrk) {
+      const fedexLink = `https://www.fedex.com/fedextrack/?trknbr=${fedexTrk}`;
+      messageText = `أهلاً بكِ ${order.customer_name || 'عميلتنا العزيزة'} من متجر زهرة بيسان 🌸✨%0A%0Aتم شحن طلبكِ رقم ${orderIdStr} بنجاح عبر شركة فيديكس الدولية السريعة (FedEx Express) ✈️📦%0A%0A📌 رقم التتبع الدولي:%0A${fedexTrk}%0A%0A🔗 رابط تتبع الشحنة المباشر:%0A${encodeURIComponent(fedexLink)}%0A%0Aنشكر ثقتكِ بمتجر زهرة بيسان ونحن بخدمتكِ دائماً 💕`;
+    } else {
+      messageText = `مرحباً ${order.customer_name || 'عميلتنا العزيزة'} من متجر زهرة بيسان 🌸✨%0A%0Aيسعدنا إبلاغكِ بأن طلبكِ رقم ${orderIdStr} بقيمة ${orderAmount} د.أ قيد التجهيز والتوصيل الآن 🚚%0A%0Aشكراً لتسوقكِ معنا ونحن بخدمتكِ دائماً! 💕`;
+    }
     
     const url = `https://wa.me/${cleanPhone}?text=${messageText}`;
     window.open(url, '_blank');
@@ -901,14 +952,24 @@ const Orders = () => {
             {t('Pull Orders (Refresh)')}
           </button>
           <button 
+            onClick={exportCSV}
+            style={{
+              backgroundColor: '#107c41', color: '#ffffff', border: 'none', 
+              padding: '12px 22px', borderRadius: '12px', fontWeight: 'bold', 
+              display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+              transition: '0.3s', boxShadow: '0 8px 16px rgba(16, 124, 65, 0.2)'
+            }}>
+            <Download size={18} /> تصدير إكسل (Excel / CSV)
+          </button>
+          <button 
             onClick={exportPDF}
             style={{
               backgroundColor: theme.primary, color: theme.bg, border: 'none', 
-              padding: '14px 28px', borderRadius: '14px', fontWeight: 'bold', 
-              display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer',
-              transition: '0.3s', boxShadow: '0 10px 20px rgba(196, 164, 132, 0.2)'
+              padding: '12px 22px', borderRadius: '12px', fontWeight: 'bold', 
+              display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+              transition: '0.3s', boxShadow: '0 8px 16px rgba(196, 164, 132, 0.2)'
             }}>
-            <Download size={20} /> {t('Export PDF Report')}
+            <Download size={18} /> {t('Export PDF Report')}
           </button>
         </div>
       </div>
