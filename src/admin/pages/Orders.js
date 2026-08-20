@@ -37,6 +37,81 @@ const parseItemNameAndSize = (fullName) => {
   return { name: fullName, size: '' };
 };
 
+// Robust Arabic to Latin Converter for International Waybill & Invoice Standards
+const toLatin = (text) => {
+  if (!text) return '';
+  let s = String(text);
+  s = s.replace(/،/g, ',')
+       .replace(/نورة/g, 'Noura')
+       .replace(/العتيبي/g, 'Al-Otaibi')
+       .replace(/سارة/g, 'Sarah')
+       .replace(/فاطمة/g, 'Fatima')
+       .replace(/مريم/g, 'Maryam')
+       .replace(/العنزي/g, 'Al-Anazi')
+       .replace(/الشمري/g, 'Al-Shammari')
+       .replace(/الغامدي/g, 'Al-Ghamdi')
+       .replace(/الزهراني/g, 'Al-Zahrani')
+       .replace(/الدوسري/g, 'Al-Dawsari')
+       .replace(/المطيري/g, 'Al-Mutairi')
+       .replace(/الحربي/g, 'Al-Harbi')
+       .replace(/السبيعي/g, 'Al-Subaie')
+       .replace(/القحطاني/g, 'Al-Qahtani')
+       .replace(/عباية/g, 'Abaya')
+       .replace(/فستان/g, 'Dress')
+       .replace(/قفطان/g, 'Kaftan')
+       .replace(/طرحة/g, 'Tarha')
+       .replace(/حرير/g, 'Silk')
+       .replace(/كريب/g, 'Crepe')
+       .replace(/شيفون/g, 'Chiffon')
+       .replace(/ملكي/g, 'Royal')
+       .replace(/فاخر/g, 'Luxury')
+       .replace(/أسود/g, 'Black')
+       .replace(/بيج/g, 'Beige')
+       .replace(/كحلي/g, 'Navy')
+       .replace(/أخضر/g, 'Green')
+       .replace(/رمادي/g, 'Grey')
+       .replace(/زيتي/g, 'Olive')
+       .replace(/بني/g, 'Brown')
+       .replace(/مارون/g, 'Maroon')
+       .replace(/المملكة العربية السعودية/g, 'Saudi Arabia')
+       .replace(/السعودية/g, 'Saudi Arabia')
+       .replace(/الأردن/g, 'Jordan')
+       .replace(/الإمارات/g, 'UAE')
+       .replace(/الكويت/g, 'Kuwait')
+       .replace(/قطر/g, 'Qatar')
+       .replace(/الرياض/g, 'Riyadh')
+       .replace(/جدة/g, 'Jeddah')
+       .replace(/مكة/g, 'Makkah')
+       .replace(/المدينة/g, 'Madinah')
+       .replace(/الدمام/g, 'Dammam')
+       .replace(/عمان/g, 'Amman')
+       .replace(/دبي/g, 'Dubai')
+       .replace(/المدينة:/g, 'City:')
+       .replace(/المنطقة:/g, 'District:')
+       .replace(/تفاصيل العنوان:/g, 'Address:')
+       .replace(/حي/g, 'District')
+       .replace(/شارع/g, 'St.')
+       .replace(/فيلا/g, 'Villa')
+       .replace(/شقة/g, 'Apt.')
+       .replace(/بناية/g, 'Bldg.');
+
+  const map = {
+    'ا': 'a', 'أ': 'A', 'إ': 'E', 'آ': 'Aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
+    'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
+    'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a',
+    'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
+    'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'h', 'ء': '', 'ئ': 'e', 'ؤ': 'o',
+    '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
+  };
+
+  let out = '';
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    out += (map[ch] !== undefined) ? map[ch] : ch;
+  }
+  return out.replace(/\s+/g, ' ').trim();
+};
+
 const Orders = () => {
   const { t } = useAdminLang();
   const [orders, setOrders] = useState([]);
@@ -326,63 +401,6 @@ const Orders = () => {
 
       doc.setFontSize(8);
       doc.text('AIR WAYBILL', 74, 11);
-
-      // Robust Arabic to Latin Converter for International Waybill Standards
-      const toLatin = (text) => {
-        if (!text) return '';
-        let s = String(text);
-        s = s.replace(/،/g, ',')
-             .replace(/نورة/g, 'Noura')
-             .replace(/العتيبي/g, 'Al-Otaibi')
-             .replace(/سارة/g, 'Sarah')
-             .replace(/فاطمة/g, 'Fatima')
-             .replace(/مريم/g, 'Maryam')
-             .replace(/العنزي/g, 'Al-Anazi')
-             .replace(/الشمري/g, 'Al-Shammari')
-             .replace(/الغامدي/g, 'Al-Ghamdi')
-             .replace(/الزهراني/g, 'Al-Zahrani')
-             .replace(/الدوسري/g, 'Al-Dawsari')
-             .replace(/المطيري/g, 'Al-Mutairi')
-             .replace(/الحربي/g, 'Al-Harbi')
-             .replace(/السبيعي/g, 'Al-Subaie')
-             .replace(/القحطاني/g, 'Al-Qahtani')
-             .replace(/المملكة العربية السعودية/g, 'Saudi Arabia')
-             .replace(/السعودية/g, 'Saudi Arabia')
-             .replace(/الأردن/g, 'Jordan')
-             .replace(/الإمارات/g, 'UAE')
-             .replace(/الكويت/g, 'Kuwait')
-             .replace(/قطر/g, 'Qatar')
-             .replace(/الرياض/g, 'Riyadh')
-             .replace(/جدة/g, 'Jeddah')
-             .replace(/مكة/g, 'Makkah')
-             .replace(/الدمام/g, 'Dammam')
-             .replace(/عمان/g, 'Amman')
-             .replace(/دبي/g, 'Dubai')
-             .replace(/المدينة:/g, 'City:')
-             .replace(/المنطقة:/g, 'District:')
-             .replace(/تفاصيل العنوان:/g, 'Address:')
-             .replace(/حي/g, 'District')
-             .replace(/شارع/g, 'St.')
-             .replace(/فيلا/g, 'Villa')
-             .replace(/شقة/g, 'Apt.')
-             .replace(/بناية/g, 'Bldg.');
-
-        const map = {
-          'ا': 'a', 'أ': 'A', 'إ': 'E', 'آ': 'Aa', 'ب': 'b', 'ت': 't', 'ث': 'th',
-          'ج': 'j', 'ح': 'h', 'خ': 'kh', 'د': 'd', 'ذ': 'dh', 'ر': 'r', 'ز': 'z',
-          'س': 's', 'ش': 'sh', 'ص': 's', 'ض': 'd', 'ط': 't', 'ظ': 'z', 'ع': 'a',
-          'غ': 'gh', 'ف': 'f', 'ق': 'q', 'ك': 'k', 'ل': 'l', 'م': 'm', 'ن': 'n',
-          'ه': 'h', 'و': 'w', 'ي': 'y', 'ى': 'a', 'ة': 'h', 'ء': '', 'ئ': 'e', 'ؤ': 'o',
-          '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4', '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9'
-        };
-
-        let out = '';
-        for (let i = 0; i < s.length; i++) {
-          const ch = s[i];
-          out += (map[ch] !== undefined) ? map[ch] : ch;
-        }
-        return out.replace(/\s+/g, ' ').trim();
-      };
 
       const latinCustomer = toLatin(order.customer_name) || 'VALUED CUSTOMER';
       const latinAddress = toLatin(order.delivery_address) || 'Address on file, Saudi Arabia';
