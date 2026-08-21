@@ -1044,7 +1044,7 @@ export default function Checkout() {
                       <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card).</div>
                     </div>
 
-                    <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "ARDyvIMc9bA48NZVLTI18B63ctWU9GxHRCmxhW_fXxuaDD4hogMl6xKVDPigsUs_nRBgE1G7YxQb_2Mk", currency: "USD", intent: "capture", "enable-funding": "card" }}>
+                    <PayPalScriptProvider options={{ "client-id": (storeSettings?.paypal_client_id && storeSettings.paypal_client_id.trim()) || process.env.REACT_APP_PAYPAL_CLIENT_ID || "ARdYvIMc9bA48NZVLTI18B63ctWU9GxHRCmxhW_fXxuaDD4hogMl6xKVDPIgsUs_nRBgE1G7YxQb_2Mk", currency: "USD", intent: "capture" }}>
                       <PayPalButtons
                         style={{ layout: "vertical", shape: "pill", color: "gold" }}
                         onClick={(data, actions) => {
