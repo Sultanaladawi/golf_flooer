@@ -188,37 +188,15 @@ export default function Footer({ onOpenPolicy }) {
                   <strong className={styles.trustNumValue}>617219</strong>
                 </div>
                 <div className={styles.trustNumBox}>
-                  <span className={styles.trustNumLabel}>الرقم الوطني للمنشأة</span>
-                  <strong className={styles.trustNumValue}>101071079</strong>
-                </div>
-                <div className={styles.trustNumBox}>
                   <span className={styles.trustNumLabel}>الرقم الضريبي</span>
                   <strong className={styles.trustNumValue}>81492545</strong>
                 </div>
-              </div>
-
-              <div className={styles.trustFooterBadge}>
-                <span className={styles.verifiedDot} />
-                <span>مرخص رسمياً للتجارة الإلكترونية (رمز 479120)</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Column 2: Exclusive Collections */}
-        <div className={styles.col}>
-          <h4 className={styles.colHeader}>{t('exclusiveCollections') || 'التشكيلات الحصرية'}</h4>
-          <ul className={styles.linkList}>
-            <li><a href="/#collection" onClick={e => handleLinkClick(e, '/#collection')}>{t('classicAbayas') || 'العبايات الكلاسيكية'}</a></li>
-            <li><a href="/#collection" onClick={e => handleLinkClick(e, '/#collection')}>{t('occasionAbayas') || 'كولكشن المناسبات'}</a></li>
-            <li><a href="/#collection" onClick={e => handleLinkClick(e, '/#collection')}>{t('winterCollection') || 'الكولكشن الشتوي والملون'}</a></li>
-            <li><a href="/#collection" onClick={e => handleLinkClick(e, '/#collection')}>{t('dailyAbayas') || 'عبايات الاستخدام اليومي'}</a></li>
-            <li><a href="/#collection" onClick={e => handleLinkClick(e, '/#collection')}>{t('newArrivals') || 'أحدث الوصول الملكي'}</a></li>
-            <li><a href="/gift-cards">{t('royalGiftCards') || 'بطاقات الهدايا الملكية'}</a></li>
-          </ul>
-        </div>
-
-        {/* Column 3: Customer Care & Policies */}
+        {/* Column 2: Customer Care & Policies */}
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('customerCare') || 'خدمة العملاء والسياسات'}</h4>
           <ul className={styles.linkList}>
@@ -226,6 +204,7 @@ export default function Footer({ onOpenPolicy }) {
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy') || 'سياسة الخصوصية والشحن'}</button></li>
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan') || 'عن زهرة بيسان'}</button></li>
             <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide') || 'دليل المقاسات الذكي'}</button></li>
+            <li><a href="/gift-cards">{t('royalGiftCards') || 'بطاقات الهدايا الملكية'}</a></li>
             <li><a href="/account">{t('vipLounge') || 'حسابي وصالة كبار العملاء'}</a></li>
             <li><a href="/blog">{t('magazineAndElegance') || 'مجلة وأناقة زهرة بيسان'}</a></li>
             <li><a href="/Zahrat_Beesan_Catalog_2026.pdf" download="Zahrat_Beesan_Catalog_2026.pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold-dim, #96744c)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>📥 {t('downloadPdfCatalog') || 'تحميل كتالوج 2026 PDF'}</a></li>
@@ -321,7 +300,7 @@ export default function Footer({ onOpenPolicy }) {
       <div className={styles.bottomBar}>
         <div className={styles.bottomInner}>
           <p className={styles.copyright}>
-            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong> — مؤسسة فردية مسجلة ومرخصة رسمياً في الأردن | سجل تجاري: <strong>617219</strong> | رقم وطني للمنشأة: <strong>101071079</strong> | رقم ضريبي: <strong>81492545</strong>.
+            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong> — مؤسسة فردية مسجلة ومرخصة رسمياً في الأردن | سجل تجاري: <strong>617219</strong> | رقم ضريبي: <strong>81492545</strong>.
           </p>
           <button onClick={scrollToTop} className={styles.scrollTopBtn} aria-label="العودة للأعلى">
             <span>العودة للأعلى</span>
