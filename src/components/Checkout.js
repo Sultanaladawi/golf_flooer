@@ -434,16 +434,17 @@ export default function Checkout() {
         try {
           chargeData = await chargeRes.json();
         } catch(e) {
-          chargeData = { error: 'حدث خطأ أثناء الاتصال ببوابة الدفع' };
+          chargeData = { error: 'استجابة غير متوقعة من بوابة الدفع' };
         }
 
-        if (chargeData.success && chargeData.redirectUrl) {
+        if (chargeRes.ok && chargeData.success && chargeData.redirectUrl) {
           window.location.href = chargeData.redirectUrl;
         } else {
           setStep('form');
+          const errorMsg = chargeData.error || chargeData.message || (typeof chargeData === 'string' ? chargeData : 'يرجى التأكد من صحة البيانات أو المحاولة مجدداً.');
           showAlert({
-            title: 'تعذر الاتصال ببوابة الدفع',
-            message: chargeData.error || 'يرجى التأكد من البيانات أو اختيار وسيلة دفع أخرى.',
+            title: 'تعذر بدء الدفع الإلكتروني',
+            message: errorMsg,
             type: 'error'
           });
         }
