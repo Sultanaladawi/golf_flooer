@@ -19,6 +19,7 @@ import Footer             from './components/Footer';
 import Chatbot            from './components/Chatbot';
 import FloatingWidgets   from './components/FloatingWidgets';
 import Cart               from './components/Cart';
+import CartPage           from './components/CartPage';
 import Checkout           from './components/Checkout';
 import Wishlist           from './components/Wishlist';
 import OrderTracking      from './components/OrderTracking';
@@ -265,6 +266,7 @@ export default function App() {
 
                             <Route path="/product/:id" element={<ProductPage />} />
                             <Route path="/account" element={<Account />} />
+                            <Route path="/cart" element={<CartPage />} />
                             <Route path="/checkout" element={<Checkout />} />
                             <Route path="/ramadan" element={<RamadanLanding />} />
                             <Route path="/eid" element={<EidLanding />} />

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { trackPurchase } from '../utils/socialPixel';
@@ -8,15 +9,18 @@ import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap
 import { sendOrderConfirmationEmail } from '../utils/emailService';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { BILINGUAL_COUNTRIES, getCitiesForCountry } from '../utils/countryCityData';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
-export default function Checkout({ onClose, onBack, initialStep = 'form', initialOrderId = null }) {
+export default function Checkout() {
+  const navigate = useNavigate();
   const { items, totalPrice, clearCart } = useCart();
   const { t, currentLang } = useLanguage();
-  const { format } = useCurrency();
-  const [step, setStep] = useState(initialStep);
-  const [orderId, setOrderId] = useState(initialOrderId);
+  const { format: formatPrice } = useCurrency();
+  
+  const [step, setStep] = useState('form');
+  const [orderId, setOrderId] = useState(null);
   const [orderStatus, setOrderStatus] = useState('preparing');
-  const [timeRemaining, setTimeRemaining] = useState(120);
   
   const [form, setForm] = useState({
     name: '',
@@ -27,16 +31,14 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     city: '',
     area: '',
     address: '',
-    paymentMethod: 'cod', // Default to Cash on Delivery
-    transferReceipt: '', // Reference number for manual transfers
+    paymentMethod: 'cod',
+    transferReceipt: '',
     cardNumber: '',
     expiry: '',
     cvc: ''
   });
 
-  const [orderType] = useState('delivery'); // Online-only store — always delivery
   const [errors, setErrors] = useState({});
-  const [storeRating, setStoreRating] = useState(5);
   const [storeComment, setStoreComment] = useState('');
   const [outOfStockError, setOutOfStockError] = useState(null);
 
@@ -47,6 +49,108 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
 
+  const [showCountrySelect, setShowCountrySelect] = useState(false);
+  const [countrySearch, setCountrySearch] = useState('');
+  const countrySelectRef = useRef(null);
+
+  const [showCitySelect, setShowCitySelect] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const [countryCities, setCountryCities] = useState([]);
+  const citySelectRef = useRef(null);
+
+  const [storeSettings, setStoreSettings] = useState(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponApplied, setCouponApplied] = useState(null);
+  const [couponError, setCouponError] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  // Close selects on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (countrySelectRef.current && !countrySelectRef.current.contains(e.target)) {
+        setShowCountrySelect(false);
+      }
+      if (citySelectRef.current && !citySelectRef.current.contains(e.target)) {
+        setShowCitySelect(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Sync cities when country changes
+  useEffect(() => {
+    const cities = getCitiesForCountry(form.country, currentLang);
+    setCountryCities(cities);
+
+    const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
+    if (!isJordan && form.paymentMethod === 'cod') {
+      setForm(f => ({ ...f, paymentMethod: 'paypal' }));
+    }
+  }, [form.country, currentLang]);
+
+  // Load store settings
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => setStoreSettings(data))
+      .catch(console.error);
+  }, []);
+
+  // Shipping calculation
+  useEffect(() => {
+    if (!form.country || form.country === 'دولة أخرى / Other') {
+      setShippingFee(0);
+      return;
+    }
+    
+    if (form.country === 'الأردن' || form.country === 'Jordan') {
+      setShippingError('');
+      setIsCalculatingShipping(false);
+      const isAmman = !form.city.trim() || form.city.includes('عمان') || form.city.toLowerCase().includes('amman');
+      setShippingFee(isAmman ? 3 : 4);
+      return;
+    }
+
+    if (!form.city.trim()) {
+      setShippingFee(0);
+      return;
+    }
+
+    setIsCalculatingShipping(true);
+    setShippingError('');
+    
+    const matchedCountry = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
+    const countryCode = matchedCountry ? matchedCountry.code : 'SA';
+
+    fetch('/api/shipping/quote', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        countryCode: countryCode,
+        postalCode: '11111',
+        city: form.city.trim(),
+        weightKg: Math.max(1, items.reduce((acc, it) => acc + (it.qty || 1) * 0.8, 0)),
+        itemCount: items.reduce((acc, it) => acc + (it.qty || 1), 0),
+        subtotal: totalPrice
+      })
+    })
+      .then(res => res.json())
+      .then(data => {
+        setIsCalculatingShipping(false);
+        if (data.fee !== undefined) {
+          setShippingFee(parseFloat(data.fee) || 0);
+        } else {
+          setShippingFee(15);
+        }
+      })
+      .catch(() => {
+        setIsCalculatingShipping(false);
+        setShippingFee(15);
+      });
+  }, [form.country, form.city, totalPrice, items]);
+
+  // Location handler
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
       setLocationError('متصفحك لا يدعم تحديد الموقع');
@@ -61,7 +165,6 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
         try {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`);
           const data = await res.json();
-          
           if (data && data.address) {
             setForm(f => ({
               ...f,
@@ -73,353 +176,60 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
             }));
           }
         } catch (err) {
-          setLocationError('فشل في جلب المنطقة تلقائياً، يرجى الإدخال يدوياً');
+          setLocationError('فشل في جلب المنطقة تلقائياً');
         } finally {
           setIsLocating(false);
         }
       },
-      (err) => {
+      () => {
         setLocationError('يرجى السماح للمتصفح بالوصول لموقعك');
         setIsLocating(false);
       }
     );
   };
 
-  const [showCountrySelect, setShowCountrySelect] = useState(false);
-  const [countrySearch, setCountrySearch] = useState('');
-  const countrySelectRef = useRef(null);
-
-  const [showCitySelect, setShowCitySelect] = useState(false);
-  const [citySearch, setCitySearch] = useState('');
-  const [countryCities, setCountryCities] = useState([]);
-  const citySelectRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (countrySelectRef.current && !countrySelectRef.current.contains(e.target)) {
-        setShowCountrySelect(false);
-      }
-      if (citySelectRef.current && !citySelectRef.current.contains(e.target)) {
-        setShowCitySelect(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    const cities = getCitiesForCountry(form.country, currentLang);
-    setCountryCities(cities);
-
-    const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
-    if (!isJordan && form.paymentMethod === 'cod') {
-      setForm(f => ({ ...f, paymentMethod: 'paypal' }));
-    }
-  }, [form.country, currentLang]);
-
-  // Store Settings
-  const [storeSettings, setStoreSettings] = useState(null);
-  const [loyaltyInfo, setLoyaltyInfo] = useState({ points: 0 });
-  const [usePoints, setUsePoints] = useState(false);
-  const [isGift, setIsGift] = useState(false);
-  const [giftPackaging, setGiftPackaging] = useState('');
-  const [giftMessage, setGiftMessage] = useState('');
-
-
-  useEffect(() => {
-    fetch('/api/settings')
-      .then(res => res.json())
-      .then(data => setStoreSettings(data))
-      .catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    if (!form.country || form.country === 'دولة أخرى / Other') {
-      setShippingFee(0);
-      return;
-    }
-    
-    if (form.country === 'الأردن' || form.country === 'Jordan') {
-      setShippingError('');
-      setIsCalculatingShipping(false);
-      const isAmman = !form.city.trim() || form.city.includes('عمان') || form.city.toLowerCase().includes('amman');
-      setShippingFee(isAmman ? 2 : 3);
-    } else {
-      setIsCalculatingShipping(true);
-      setShippingError('');
-      
-      // Calculate real total weight from cart items
-      const parseItemWeightInKg = (weightStr) => {
-        if (!weightStr) return 0.8; // Default 0.8kg per abaya
-        const str = String(weightStr).toLowerCase();
-        const numMatch = str.match(/[\d.]+/);
-        if (!numMatch) return 0.8;
-        const num = parseFloat(numMatch[0]);
-        if (isNaN(num)) return 0.8;
-        if (str.includes('غرام') || str.includes('gram') || str.includes('غم') || (str.includes('g') && !str.includes('kg'))) {
-          return num >= 50 ? num / 1000 : num;
-        }
-        return num;
-      };
-
-      const computedWeight = items.reduce((acc, item) => {
-        const singleW = parseItemWeightInKg(item.weight);
-        return acc + (singleW * (item.quantity || 1));
-      }, 0);
-
-      const totalWeight = Math.max(0.5, Math.round((computedWeight || 1) * 100) / 100);
-      const countryIso = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country)?.iso?.toUpperCase() || 'SA';
-      
-      fetch('/api/shipping-rates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          countryCode: countryIso,
-          city: form.city || 'Riyadh',
-          totalWeight: totalWeight
-        })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data && data.success && data.amount) {
-            setShippingFee(data.amount);
-          } else {
-            setShippingFee(12); // Fallback standard competitive gulf rate
-          }
-        })
-        .catch(err => {
-          console.error(err);
-          setShippingFee(12);
-        })
-        .finally(() => {
-          setIsCalculatingShipping(false);
-        });
-    }
-  }, [form.country, form.city, items]);
-
-  // Abandoned Cart Tracker
-  useEffect(() => {
-    if (items.length === 0 || step === 'success') return;
-    
-    if (form.email || form.phone) {
-      const delayDebounce = setTimeout(() => {
-        fetch('/api/cart/abandoned', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: form.email,
-            phone: form.phone,
-            cartItems: items,
-            total: totalPrice
-          })
-        }).catch(() => {});
-      }, 2000); // Wait 2s after typing
-      
-      return () => clearTimeout(delayDebounce);
-    }
-  }, [form.email, form.phone, items, step, totalPrice]);
-
-  useEffect(() => {
-    const phoneClean = (form.phone || '').trim();
-    if (phoneClean.length >= 7) {
-      const delayDebounce = setTimeout(() => {
-        fetch(`/api/loyalty/member/${encodeURIComponent(phoneClean)}`)
-          .then(res => res.ok ? res.json() : null)
-          .then(data => {
-            if (data) setLoyaltyInfo(data);
-            else setLoyaltyInfo({ points: 0 });
-          })
-          .catch(() => setLoyaltyInfo({ points: 0 }));
-      }, 500);
-      return () => clearTimeout(delayDebounce);
-    } else {
-      setLoyaltyInfo({ points: 0 });
-      setUsePoints(false);
-    }
-  }, [form.phone]);
-
-  // Coupon State
-  const [couponCode, setCouponCode] = useState('');
-  const [couponApplied, setCouponApplied] = useState(null);
-  const [couponError, setCouponError] = useState('');
-  const [couponLoading, setCouponLoading] = useState(false);
-
-  // Gift Card State
-  const [giftCardCode, setGiftCardCode] = useState('');
-  const [giftCardApplied, setGiftCardApplied] = useState(null);
-  const [giftCardError, setGiftCardError] = useState('');
-  const [giftCardLoading, setGiftCardLoading] = useState(false);
-
-  const formatPrice = (n) => {
-    return format(n);
-  };
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleApplyCoupon = async (e) => {
-    e.preventDefault();
+  // Coupon handler
+  const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
     setCouponLoading(true);
     setCouponError('');
     try {
-      const res = await fetch(`/api/coupons/validate?code=${encodeURIComponent(couponCode.trim())}&subtotal=${totalPrice}`);
+      const res = await fetch('/api/coupons/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode.trim(), total: totalPrice })
+      });
       const data = await res.json();
-      if (!res.ok) {
-        setCouponError(data.error || 'كود الخصم غير صحيح أو منتهي');
-        setCouponApplied(null);
-      } else if (data.valid) {
+      if (res.ok && data.valid) {
         setCouponApplied(data);
         setCouponError('');
+      } else {
+        setCouponError(data.message || 'كود الخصم غير صالح');
+        setCouponApplied(null);
       }
-    } catch (err) {
-      console.error(err);
-      setCouponError('حدث خطأ أثناء التحقق من الكوبون');
+    } catch (e) {
+      setCouponError('تعذر التحقق من كود الخصم');
     } finally {
       setCouponLoading(false);
     }
   };
 
-  const handleApplyGiftCard = async (e) => {
-    e.preventDefault();
-    if (!giftCardCode.trim()) return;
-    setGiftCardLoading(true);
-    setGiftCardError('');
-    try {
-      const res = await fetch('/api/gift-cards/apply', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: giftCardCode.trim() })
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setGiftCardError(data.error || 'كود الهدية غير صحيح');
-        setGiftCardApplied(null);
-      } else if (data.success) {
-        setGiftCardApplied(data);
-        setGiftCardError('');
-      }
-    } catch (err) {
-      console.error(err);
-      setGiftCardError('حدث خطأ أثناء التحقق من البطاقة');
-    } finally {
-      setGiftCardLoading(false);
-    }
-  };
+  const couponDiscount = couponApplied ? (couponApplied.discount || (totalPrice * (couponApplied.percent / 100))) : 0;
+  const finalPrice = Math.max(totalPrice - couponDiscount + shippingFee, 0);
 
-  const discountAmount = couponApplied 
-    ? (couponApplied.discountType === 'percent' 
-        ? (totalPrice * (couponApplied.discountValue / 100)) 
-        : couponApplied.discountValue)
-    : 0;
-
-  const loyalty_redeem_ratio = parseFloat(storeSettings?.loyalty_redeem_ratio) || 0.01;
-  const loyalty_min_points = parseInt(storeSettings?.loyalty_min_points, 10) || 100;
-  
-  const canRedeem = loyaltyInfo.points >= loyalty_min_points;
-  const maxPossibleDiscount = Math.max(0, totalPrice - discountAmount);
-  const pointsToRedeem = Math.min(loyaltyInfo.points, Math.floor(maxPossibleDiscount / loyalty_redeem_ratio));
-  const pointsDiscountAmount = (usePoints && canRedeem) ? (pointsToRedeem * loyalty_redeem_ratio) : 0;
-
-  const subtotalAfterDiscount1 = Math.max(0, totalPrice - discountAmount - pointsDiscountAmount);
-  
-  const giftCardDiscountAmount = giftCardApplied ? Math.min(subtotalAfterDiscount1, giftCardApplied.balance) : 0;
-  const subtotalAfterDiscount = Math.max(0, subtotalAfterDiscount1 - giftCardDiscountAmount);
-
-  const giftFee = isGift ? (giftPackaging === 'silk_wrap' ? 5 : (giftPackaging === 'premium_box' ? 3 : 0)) : 0;
-  // Calculate final price including shipping fee
-  const finalPrice = subtotalAfterDiscount + giftFee + shippingFee;
-
-
-
-  useEffect(() => {
-    let interval;
-    if (step === 'success' && orderId) {
-      setTimeRemaining(prev => prev === 0 ? 120 : prev);
-
-      const syncWithServer = async () => {
-        try {
-          const res = await fetch(`/api/order-status/${orderId}`);
-          const data = await res.json();
-          if (data.status) setOrderStatus(data.status);
-
-          if (typeof data.seconds_left === 'number'
-              && data.status !== 'ready' && data.status !== 'completed') {
-            setTimeRemaining(data.seconds_left > 0 ? data.seconds_left : 0);
-          }
-        } catch (err) {
-          console.error('Sync Error:', err);
-        }
-      };
-
-      syncWithServer();
-      interval = setInterval(syncWithServer, 3000);
-    }
-    return () => clearInterval(interval);
-  }, [step, orderId]);
-
-  useEffect(() => {
-    if (step === 'success' && timeRemaining > 0) {
-      const timer = setTimeout(() => {
-        setTimeRemaining(t => t - 1);
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [step, timeRemaining]);
-
-  function formatCardNumber(v) {
-    return v.replace(/\D/g, '').slice(0, 16).replace(/(.{4})/g, '$1 ').trim();
-  }
-  function formatExpiry(v) {
-    const d = v.replace(/\D/g, '').slice(0, 4);
-    if (d.length >= 3) return `${d.slice(0, 2)}/${d.slice(2)}`;
-    return d;
-  }
-
-  function handleChange(e) {
-    let { name, value } = e.target;
-    if (name === 'cardNumber') value = formatCardNumber(value);
-    if (name === 'expiry') value = formatExpiry(value);
-    if (name === 'cvc') value = value.replace(/\D/g, '').slice(0, 4);
-    setForm(f => ({ ...f, [name]: value }));
-    setErrors(err => ({ ...err, [name]: '' }));
-  }
-
+  // Validation
   function validate() {
     const e = {};
-    const safeName = (form.name || '').trim();
-    const safeEmail = (form.email || '').trim();
-    const safePhone = (form.phone || '').trim();
-
-    if (!safeName) e.name = 'الاسم الكامل مطلوب';
-    
-    if (!safePhone) {
-      e.phone = 'رقم الهاتف مطلوب';
-    } else if (!/^\+?[\d\s\-().]{7,20}$/.test(safePhone)) {
-      e.phone = 'رقم هاتف غير صحيح (يقبل الأرقام الدولية مع رمز +)';
-    }
-
-    if (safeEmail && !safeEmail.includes('@')) {
-      e.email = 'صيغة البريد الإلكتروني غير صحيحة';
-    }
-
-    if (orderType === 'delivery') {
-      if (!(form.country || '').trim()) e.country = 'يرجى اختيار الدولة';
-      if (!(form.city || '').trim()) e.city = 'يرجى إدخال المدينة';
-      if (!(form.address || '').trim()) e.address = 'يرجى إدخال تفاصيل العنوان';
-      
-      if (form.country && form.country !== 'الأردن' && form.paymentMethod === 'cod') {
-        e.paymentMethod = 'الدفع عند الاستلام متاح فقط داخل الأردن. يرجى اختيار الدفع عبر PayPal / بطاقات الائتمان.';
-      }
-    }
-
+    if (!form.name.trim()) e.name = 'يرجى كتابة الاسم الكامل';
+    if (!form.phone.trim()) e.phone = 'يرجى كتابة رقم الهاتف للتوصيل';
+    if (!form.country.trim()) e.country = 'يرجى تحديد الدولة';
+    if (!form.city.trim()) e.city = 'يرجى تحديد أو كتابة المدينة';
+    if (!form.address.trim()) e.address = 'يرجى إدخال تفاصيل العنوان أو الشارع';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
+  // Save order to backend (Instantaneous)
   async function saveOrderToBackend() {
     try {
       const response = await fetch('/api/orders', {
@@ -430,25 +240,18 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
           email: form.email.trim() || null,
           total_amount: finalPrice,
           cartItems: items.map(item => ({
-            id: item.productId, // Use pure productId
-            name: `${item.name} (${item.size})`,
+            id: item.productId,
+            name: `${item.name} (${item.size || 'حر'})`,
             qty: item.qty,
             priceNum: item.priceNum
           })),
           order_type: 'delivery',
-          delivery_address: `الدولة: ${form.country} - المدينة: ${form.city}${form.state ? ' / ' + form.state : ''} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: ${
+          delivery_address: `الدولة: ${form.country} - المدينة: ${form.city} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: ${
             form.paymentMethod === 'cod' ? 'عند الاستلام (داخل الأردن)' : 'PayPal / Visa / MasterCard'
           } | رسوم التوصيل: ${shippingFee} JOD`,
           phone: form.phone.trim(),
           coupon_code: couponApplied ? couponApplied.code : null,
-          redeem_points: (usePoints && canRedeem) ? pointsToRedeem : 0,
-          points_discount: pointsDiscountAmount,
-          is_gift: isGift ? 1 : 0,
-          gift_message: giftMessage,
-          gift_packaging: giftPackaging,
-          gift_fee: giftFee,
-          gift_card_code: giftCardApplied ? giftCardCode : null,
-          gift_card_discount: giftCardDiscountAmount
+          is_gift: 0
         }),
       });
 
@@ -463,1120 +266,613 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
       if (result.success) {
         setOrderId(result.orderId);
-        setTimeRemaining(120);
-        try {
-          trackPurchase(result.orderId, finalPrice, items);
-        } catch (_) {}
+        try { trackPurchase(result.orderId, finalPrice, items); } catch (_) {}
         return 'success';
       }
       return 'error: فشل حفظ الطلب';
     } catch (error) {
-      console.error('API Error:', error);
       return 'error:' + error.message;
     }
   }
 
+  // Submit handler for COD
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
     if (form.paymentMethod === 'cod') {
       setStep('processing');
       const resultStatus = await saveOrderToBackend();
 
       if (resultStatus === 'success') {
-        // Send EmailJS Confirmation
-        try {
-           sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice);
-        } catch(e) {}
-        
+        try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
         clearCart();
         setStep('success');
-
-        // Save profile
-        try {
-          const raw = localStorage.getItem('yafa_profiles');
-          let profiles = raw ? JSON.parse(raw) : [];
-          if (!Array.isArray(profiles)) profiles = [];
-          const newProfile = {
-            name: form.name.trim(),
-            phone: form.phone.trim(),
-            email: form.email.trim(),
-            city: form.city,
-            area: form.area,
-            address: form.address
-          };
-          profiles = profiles.filter(p => p.name.toLowerCase() !== newProfile.name.toLowerCase());
-          profiles.unshift(newProfile);
-          if (profiles.length > 10) profiles = profiles.slice(0, 10);
-          localStorage.setItem('yafa_profiles', JSON.stringify(profiles));
-        } catch(e) {}
-
-        // Submit feedback if given
-        if (storeComment.trim()) {
-          fetch('/api/feedback/general', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              reviewer_name: form.name.trim() || 'عميلة',
-              comment: storeComment,
-              rating: storeRating
-            })
-          }).catch(err => console.error('Feedback error:', err));
-        }
       } else if (resultStatus === 'outofstock') {
         setStep('outofstock');
       } else {
         setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
       }
-    } else if (form.paymentMethod === 'card') {
-      // Card payment handled by PayPal
-      setStep('error:يرجى الدفع عبر PayPal.');
     }
   }
 
+  // ── SUCCESS SCREEN (Full-Page Royal Confirmation) ──
   if (step === 'success') {
     return (
-      <div className={styles.overlay} onClick={onClose} style={{ direction: 'rtl' }}>
-        <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ borderRadius: '30px', overflow: 'hidden' }}>
-          <div className={styles.modalBody} style={{ padding: '40px 30px', textAlign: 'center', background: 'var(--bg-surface)' }}>
-            
-            <div style={{ animation: 'fadeIn 0.5s ease' }}>
-              <div className={styles.successRing}>
-                <div className={styles.ringInner} style={{ borderColor: 'var(--gold)' }} />
-                <div className={styles.ringOuter} style={{ borderColor: 'var(--gold-glow)' }} />
-                <div style={{ 
-                  width: '80px', height: '80px', borderRadius: '50%', 
-                  background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: 'var(--shadow-gold)', zIndex: 2
-                }}>
-                  <Check size={40} style={{ color: 'var(--espresso)' }} />
-                </div>
-              </div>
-              <h2 style={{ fontFamily: "var(--font-primary)", fontSize: '2.2rem', color: 'var(--gold-dim)', margin: '20px 0 10px', fontWeight: '900' }}>تم تسجيل طلبكِ بنجاح!</h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '30px' }}>شكراً لكِ لتسوقكِ من زهرة بيسان. طلبكِ رقم <strong>#{orderId}</strong> قيد التجهيز وسيصلكِ قريباً.</p>
+      <div className={styles.checkoutPageWrapper}>
+        <Navbar />
+        <main className={styles.mainContainer}>
+          <div className={styles.successContainer}>
+            <div className={styles.successRing}>
+              <Check size={48} color="#ffffff" />
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', marginBottom: '30px', color: 'var(--gold-dim)', fontSize: '1rem', fontWeight: 'bold' }}>
-              <div style={{ width: '12px', height: '12px', borderRadius: '50%', background: 'var(--gold)', animation: 'pulse 1.5s infinite' }} />
-              حالة الطلب الحالية: <span style={{ color: 'var(--espresso)' }}>{orderStatus === 'preparing' ? 'قيد التجهيز والتغليف' : orderStatus}</span>
-            </div>
-
-            <button className="btn btn-primary" onClick={onClose} style={{
-              width: '100%', padding: '20px', borderRadius: '18px',
-              background: 'var(--gold)', color: 'var(--espresso)', border: 'none',
-              fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer',
-              boxShadow: 'var(--shadow-gold)'
-            }}>
-              العودة للمعرض
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === 'outofstock') {
-    return (
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        backgroundColor: 'rgba(250, 248, 245, 0.98)',
-        backdropFilter: 'blur(20px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'var(--espresso)', textAlign: 'center', padding: '30px',
-        animation: 'fadeIn 0.5s ease',
-        direction: 'rtl'
-      }}>
-        <div style={{ maxWidth: '500px', width: '100%' }}>
-          <div style={{
-            height: '4px',
-            background: 'linear-gradient(90deg, var(--gold), var(--gold-dim), var(--gold))',
-            borderRadius: '2px',
-            marginBottom: '30px'
-          }} />
-
-          <div style={{ 
-            color: 'var(--gold-dim)', 
-            marginBottom: '25px', 
-            display: 'flex', 
-            justifyContent: 'center'
-          }}>
-            <AlertTriangle size={85} strokeWidth={1} />
-          </div>
-
-          <h2 style={{ 
-            fontFamily: "var(--font-primary)", 
-            fontSize: '2.2rem', 
-            marginBottom: '20px', 
-            color: 'var(--gold-dim)'
-          }}>
-            نفدت الكمية المطلوبة
-          </h2>
-
-          <p style={{ 
-            fontSize: '1.1rem', 
-            lineHeight: '1.75', 
-            opacity: 0.9, 
-            marginBottom: '35px', 
-            color: 'var(--text-secondary)'
-          }}>
-            عذراً، يبدو أن أحد الموديلات في سلتكِ قد نفد للتو من المخزون أثناء إتمام الطلب.
-          </p>
-
-          <div style={{ 
-            padding: '25px', 
-            border: '1px solid var(--border)', 
-            borderRadius: '22px', 
-            backgroundColor: 'var(--gold-glow)',
-            boxShadow: 'var(--shadow-gold)',
-            marginBottom: '35px',
-            textAlign: 'right'
-          }}>
-            <p style={{ 
-              fontWeight: '900', 
-              fontSize: '0.85rem', 
-              letterSpacing: '1px', 
-              marginBottom: '12px', 
-              color: 'var(--gold-dim)'
-            }}>
-              تفاصيل المخزون:
+            <h1 style={{ fontFamily: 'var(--font-primary, serif)', fontSize: '2.5rem', color: 'var(--espresso)', margin: '0 0 10px 0' }}>
+              تم تسجيل طلبكِ الملكي بنجاح! 🌸
+            </h1>
+            <p style={{ color: '#666', fontSize: '1.15rem', marginBottom: '25px', lineHeight: '1.7' }}>
+              شكراً لتسوقكِ من زهرة بيسان. طلبكِ رقم <strong style={{ color: 'var(--gold-dim)', fontSize: '1.3rem' }}>#{orderId}</strong> قيد التجهيز والتغليف الفاخر وسيصلكِ في أقرب وقت.
             </p>
-            <div style={{ 
-              fontSize: '1rem', 
-              color: 'var(--espresso)', 
-              lineHeight: '1.6',
-              background: 'var(--bg-surface)',
-              padding: '12px 15px',
-              borderRadius: '12px',
-              borderRight: '4px solid var(--gold)'
-            }}>
-              {outOfStockError || 'المنتج المطلوب غير متوفر بالكمية المحددة حالياً.'}
+
+            <div style={{ backgroundColor: '#fcfaf7', padding: '20px', borderRadius: '16px', border: '1px solid rgba(197, 168, 128, 0.3)', marginBottom: '30px', textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                <span>اسم العميلة:</span>
+                <strong style={{ color: '#1a1a1a' }}>{form.name}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                <span>رقم الهاتف:</span>
+                <strong style={{ color: '#1a1a1a' }} dir="ltr">{form.phone}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                <span>عنوان التوصيل:</span>
+                <strong style={{ color: '#1a1a1a' }}>{form.country} - {form.city} ({form.address})</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+                <span>المبلغ الإجمالي المدفوع:</span>
+                <strong style={{ color: 'var(--gold-dim)', fontSize: '1.2rem' }}>{formatPrice(finalPrice)}</strong>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center' }}>
+              <button
+                onClick={() => navigate('/')}
+                style={{
+                  backgroundColor: 'var(--gold, #c5a880)',
+                  color: '#1a1008',
+                  border: 'none',
+                  padding: '16px 36px',
+                  borderRadius: '14px',
+                  fontSize: '1.05rem',
+                  fontWeight: '800',
+                  cursor: 'pointer'
+                }}
+              >
+                العودة للرئيسية ←
+              </button>
+              <button
+                onClick={() => window.print()}
+                style={{
+                  backgroundColor: 'transparent',
+                  color: '#444',
+                  border: '1.5px solid #ddd',
+                  padding: '16px 24px',
+                  borderRadius: '14px',
+                  fontSize: '1rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer'
+                }}
+              >
+                🖨️ طباعة الفاتورة
+              </button>
             </div>
           </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
-          <button 
-            onClick={() => {
-              setStep('form');
-              if (onBack) onBack();
-            }} 
-            style={{
-              width: '100%', 
-              padding: '18px', 
-              borderRadius: '18px',
-              background: 'var(--gold)', 
-              color: 'var(--espresso)', 
-              border: 'none',
-              fontWeight: '900', 
-              fontSize: '1.1rem', 
-              cursor: 'pointer',
-              boxShadow: 'var(--shadow-gold)'
-            }}
-          >
-            تعديل السلة والمحاولة مجدداً
+  // ── EMPTY CART REDIRECT ──
+  if (items.length === 0 && step !== 'success') {
+    return (
+      <div className={styles.checkoutPageWrapper}>
+        <Navbar />
+        <main className={styles.mainContainer} style={{ textAlign: 'center', padding: '160px 20px' }}>
+          <h2 style={{ fontSize: '2rem', color: 'var(--espresso)', marginBottom: '15px' }}>لا توجد منتجات في السلة لإتمام الطلب</h2>
+          <p style={{ color: '#666', marginBottom: '30px' }}>يرجى اختيار عبايتكِ المفضلة أولاً</p>
+          <button onClick={() => navigate('/#collection')} style={{ backgroundColor: 'var(--gold)', padding: '14px 32px', borderRadius: '12px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
+            تصفحي التشكيلة الآن ←
           </button>
-        </div>
+        </main>
+        <Footer />
       </div>
     );
   }
 
-  if (step && step.startsWith('error')) {
-    const errorMsg = step.replace('error', '').replace(':', '') || 'لم نتمكن من معالجة طلبكِ. يرجى التأكد من البيانات والمحاولة مجدداً.';
-    return (
-      <div className={styles.overlay} onClick={() => setStep('form')} style={{ direction: 'rtl' }}>
-        <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-          <div className={styles.errorScreen} style={{ padding: '40px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '4rem', color: '#dc3545', marginBottom: '20px' }}>
-              <i className="fas fa-exclamation-circle" />
-            </div>
-            <h2 style={{ fontSize: '2rem', color: 'var(--gold-dim)', marginBottom: '10px' }}>حدث خطأ ما</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '30px', wordBreak: 'break-word' }}>{errorMsg}</p>
-            <button
-              className="btn btn-primary"
-              onClick={() => setStep('form')}
-              style={{ width: '100%', padding: '15px', borderRadius: '12px', background: 'var(--gold)', color: 'var(--espresso)', border: 'none', fontWeight: 'bold', fontSize: '1.1rem', cursor: 'pointer' }}
-            >
-              حسناً، المحاولة مرة أخرى
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (step === 'processing') {
-    return (
-      <div className={styles.overlay} style={{ direction: 'rtl' }}><div className={styles.modal} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div className={styles.processingScreen} style={{ textAlign: 'center', padding: '50px 20px' }}>
-          <div className={styles.spinner} style={{ margin: '0 auto 20px', borderTopColor: 'var(--gold)' }} />
-          <p style={{ fontSize: '1.2rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>جاري تسجيل وإرسال طلبكِ الفاخر...</p>
-        </div>
-      </div></div>
-    );
-  }
+  // ── MAIN FULL-PAGE CHECKOUT ──
+  const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
 
   return (
-    <div className={styles.overlay} onClick={onClose} style={{ direction: 'rtl' }}>
-      <div className={`${styles.modal} ${styles.mainModal}`} onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-        <div className={styles.modalHead} style={{ borderBottom: '1px solid var(--border)' }}>
-          <button className={styles.backBtn} onClick={onBack} style={{ color: 'var(--gold-dim)' }}>
-            <i className="fas fa-arrow-right" /> رجوع للسلة
-          </button>
-          <h2 className={styles.modalTitle} style={{ color: 'var(--gold-dim)', fontFamily: 'var(--font-primary)' }}>الدفع وإتمام الطلب</h2>
-          <button className={styles.closeBtn} onClick={onClose} style={{ color: 'var(--gold-dim)' }}>
-            <i className="fas fa-times" />
-          </button>
+    <div className={styles.checkoutPageWrapper}>
+      <Navbar />
+
+      <main className={styles.mainContainer}>
+        {/* Breadcrumb */}
+        <div className={styles.breadcrumb}>
+          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>الرئيسية</Link>
+          <span>/</span>
+          <Link to="/cart" style={{ color: '#888', textDecoration: 'none' }}>سلة المشتريات</Link>
+          <span>/</span>
+          <span style={{ color: 'var(--gold-dim)', fontWeight: 'bold' }}>إتمام الطلب والدفع</span>
         </div>
 
-        <div className={styles.modalBody}>
-          {/* 1. Order Summary Section */}
-          <div className={styles.orderSummary} style={{ padding: '20px', backgroundColor: 'var(--gold-glow)', borderRadius: '20px', border: '1px solid var(--border)' }}>
-            <div className={styles.summaryLabel} style={{ marginBottom: '15px', color: 'var(--gold-dim)', fontWeight: '900', fontSize: '0.9rem' }}>ملخص الطلب</div>
-            {items.map(item => (
-              <div key={item.id} className={styles.sumItem} style={{ marginBottom: '8px', borderBottom: '1px solid var(--divider)' }}>
-                <span style={{ color: 'var(--espresso)' }}>{item.name} × {item.qty} {item.size && `(${item.size})`}</span>
-                <span style={{ fontWeight: 'bold', color: 'var(--gold-dim)' }}>{formatPrice(item.priceNum * item.qty)}</span>
-              </div>
-            ))}
+        {/* Page Header */}
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>إتمام الطلب والدفع الآمن</h1>
+          <p style={{ margin: 0, color: '#666', fontSize: '0.95rem' }}>
+            يرجى إدخال بيانات التوصيل واختيار طريقة الدفع المناسبة لكِ
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className={styles.checkoutGrid}>
             
-            {couponApplied && (
-              <div className={styles.sumItem} style={{ color: '#27ae60', fontWeight: 'bold', marginTop: '10px' }}>
-                <span>خصم الكوبون ({couponApplied.code})</span>
-                <span>-{formatPrice(discountAmount)}</span>
-              </div>
-            )}
+            {/* ── RIGHT COLUMN: Information & Payment ── */}
+            <div>
+              {/* 1. Customer Information Card */}
+              <div className={styles.sectionCard}>
+                <h3 className={styles.sectionTitle}>
+                  <User size={22} color="var(--gold-dim)" />
+                  <span>1. بيانات المستلمة والتواصل</span>
+                </h3>
 
-            {pointsDiscountAmount > 0 && (
-              <div className={styles.sumItem} style={{ color: '#c5a880', fontWeight: 'bold', marginTop: '5px' }}>
-                <span>خصم نقاط الولاء ({pointsToRedeem} نقطة)</span>
-                <span>-{formatPrice(pointsDiscountAmount)}</span>
-              </div>
-            )}
+                <div className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>الاسم الكامل *</label>
+                    <input
+                      type="text"
+                      className={styles.input}
+                      placeholder="مثال: سارة العبدالله"
+                      value={form.name}
+                      onChange={e => setForm({ ...form, name: e.target.value })}
+                    />
+                    {errors.name && <span className={styles.errorText}>{errors.name}</span>}
+                  </div>
 
-            <div className={styles.sumItem} style={{ marginTop: '5px' }}>
-              <span>رسوم الشحن والتوصيل</span>
-              {isCalculatingShipping ? (
-                <span style={{ color: 'var(--gold-dim)' }}>جاري الحساب...</span>
-              ) : (
-                <span style={{ color: (!form.city.trim() || shippingFee === 0) ? 'var(--espresso-dim)' : 'var(--espresso)', fontWeight: shippingFee > 0 ? 'bold' : 'normal', fontSize: (!form.city.trim() || shippingFee === 0) ? '0.8rem' : '1rem' }}>
-                  {!form.city.trim() ? 'يُحسب بعد إدخال المدينة' : (shippingFee === 0 ? 'مجاني' : `+${formatPrice(shippingFee)}`)}
-                </span>
-              )}
-            </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>رقم الهاتف / الواتساب *</label>
+                    <input
+                      type="tel"
+                      className={styles.input}
+                      placeholder="مثال: 0791234567 أو +966..."
+                      value={form.phone}
+                      onChange={e => setForm({ ...form, phone: e.target.value })}
+                      dir="ltr"
+                    />
+                    {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
+                  </div>
 
-            {isGift && giftFee > 0 && (
-              <div className={styles.sumItem} style={{ color: '#c5a880', marginTop: '5px' }}>
-                <span>رسوم التغليف الفاخر ({giftPackaging === 'silk_wrap' ? 'تغليف حرير ملكي' : 'كرتونة فاخرة'})</span>
-                <span style={{ fontWeight: 'bold' }}>+{formatPrice(giftFee)}</span>
-              </div>
-            )}
-
-            {giftCardApplied && (
-              <div className={styles.sumItem} style={{ color: '#27ae60', marginTop: '5px' }}>
-                <span>خصم بطاقة الهدية</span>
-                <span style={{ fontWeight: 'bold' }}>-{formatPrice(giftCardDiscountAmount)}</span>
-              </div>
-            )}
-
-            <div className={styles.sumTotal} style={{ marginTop: '15px', borderTop: '1px dashed var(--border-hover)', paddingTop: '15px' }}>
-              <span style={{ fontWeight: 'bold', color: 'var(--espresso)' }}>المجموع الكلي</span>
-              <span className={styles.sumTotalAmt} style={{ color: 'var(--gold-dim)' }}>{formatPrice(finalPrice)}</span>
-            </div>
-          </div>
-
-          {/* 2. Coupon Validation */}
-          <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)' }}>
-            <label className={styles.label} style={{ color: 'var(--gold-dim)', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>هل لديكِ كوبون خصم؟</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input
-                type="text"
-                placeholder="أدخلي كود الخصم (مثال: VIP10)"
-                value={couponCode}
-                onChange={e => setCouponCode(e.target.value.toUpperCase())}
-                className={styles.input}
-                style={{ flex: 1, textTransform: 'uppercase', background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
-                disabled={!!couponApplied}
-              />
-              <button
-                type="button"
-                onClick={handleApplyCoupon}
-                className="btn"
-                style={{ background: 'var(--gold)', color: 'var(--espresso)', fontWeight: 'bold', padding: '0 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
-                disabled={couponLoading || !!couponApplied}
-              >
-                {couponLoading ? 'جاري التحقق...' : 'تطبيق'}
-              </button>
-            </div>
-            {couponError && <p style={{ color: '#dc3545', fontSize: '0.85rem', marginTop: '5px', fontWeight: 'bold' }}>{couponError}</p>}
-            {couponApplied && (
-              <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <p style={{ color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={14} /> تم تطبيق الكود بنجاح: خصم بقيمة {couponApplied.discountValue}{couponApplied.discountType === 'percent' ? '%' : ' JOD'}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => { setCouponApplied(null); setCouponCode(''); }}
-                  style={{ background: 'none', border: 'none', color: '#dc3545', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  إلغاء الكوبون
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* 3. Gift Card Validation */}
-          <div style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)', marginTop: '15px' }}>
-            <label className={styles.label} style={{ color: 'var(--gold-dim)', fontWeight: 'bold', display: 'block', marginBottom: '10px' }}>هل لديكِ بطاقة هدية؟</label>
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input
-                type="text"
-                placeholder="أدخلي كود البطاقة (مثال: ZB-A1B2C3D4)"
-                value={giftCardCode}
-                onChange={e => setGiftCardCode(e.target.value.toUpperCase())}
-                className={styles.input}
-                style={{ flex: 1, textTransform: 'uppercase', background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
-                disabled={!!giftCardApplied}
-              />
-              <button
-                type="button"
-                onClick={handleApplyGiftCard}
-                className="btn"
-                style={{ background: 'var(--gold)', color: 'var(--espresso)', fontWeight: 'bold', padding: '0 20px', borderRadius: '8px', border: 'none', cursor: 'pointer' }}
-                disabled={giftCardLoading || !!giftCardApplied}
-              >
-                {giftCardLoading ? 'جاري...' : 'تطبيق'}
-              </button>
-            </div>
-            {giftCardError && <p style={{ color: '#dc3545', fontSize: '0.85rem', marginTop: '5px', fontWeight: 'bold' }}>{giftCardError}</p>}
-            {giftCardApplied && (
-              <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <p style={{ color: '#27ae60', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={14} /> تم تطبيق البطاقة: الرصيد المتاح {giftCardApplied.balance} JOD
-                </p>
-                <button
-                  type="button"
-                  onClick={() => { setGiftCardApplied(null); setGiftCardCode(''); }}
-                  style={{ background: 'none', border: 'none', color: '#dc3545', textDecoration: 'underline', cursor: 'pointer', fontSize: '0.8rem' }}
-                >
-                  إلغاء البطاقة
-                </button>
-              </div>
-            )}
-          </div>
-
-            <form className={styles.form} onSubmit={handleSubmit} noValidate>
-            
-            {/* Delivery Details — Online store only: always delivery */}
-            <div className={styles.formSection} style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)' }}>
-              <label className={styles.label} style={{ fontSize: '1.1rem', color: 'var(--gold-dim)', marginBottom: '15px', display: 'block', fontWeight: '800', textAlign: 'center' }}>عنوان التوصيل</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', justifyContent: 'center', marginBottom: '18px', padding: '12px', borderRadius: '12px', background: 'var(--gold-glow)', border: '1px solid var(--border)' }}>
-                <i className="fas fa-globe" style={{ fontSize: '1.3rem', color: 'var(--gold)' }} />
-                <div>
-                  <div style={{ fontWeight: '800', color: 'var(--espresso)', fontSize: '0.95rem' }}>توصيل دولي لجميع دول العالم</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--espresso-dim)' }}>نشحن إلى أي مكان حول العالم — تسوقي بلا حدود</div>
+                  <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
+                    <label className={styles.label}>البريد الإلكتروني (لاستلام الفاتورة وتتبع الشحنة)</label>
+                    <input
+                      type="email"
+                      className={styles.input}
+                      placeholder="name@example.com"
+                      value={form.email}
+                      onChange={e => setForm({ ...form, email: e.target.value })}
+                      dir="ltr"
+                    />
+                  </div>
                 </div>
               </div>
-              {(
-                <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+
+              {/* 2. Shipping Address Card */}
+              <div className={styles.sectionCard}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #f0f0f0', paddingBottom: '14px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: 'var(--espresso)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <MapPin size={22} color="var(--gold-dim)" />
+                    <span>2. عنوان التوصيل والشحن</span>
+                  </h3>
+                  
                   <button
                     type="button"
                     onClick={handleGetLocation}
                     disabled={isLocating}
                     style={{
-                      width: '100%',
-                      padding: '12px',
-                      background: 'var(--espresso)',
-                      color: 'var(--white)',
-                      border: 'none',
-                      borderRadius: '12px',
+                      background: 'none',
+                      border: '1px solid var(--gold)',
+                      color: 'var(--gold-dim)',
+                      padding: '6px 14px',
+                      borderRadius: '10px',
+                      fontSize: '0.82rem',
                       fontWeight: 'bold',
-                      fontSize: '0.95rem',
-                      cursor: isLocating ? 'not-allowed' : 'pointer',
+                      cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      transition: 'background 0.2s',
-                      marginBottom: '10px'
+                      gap: '6px'
                     }}
                   >
-                    <i className="fas fa-map-marker-alt" />
-                    {isLocating ? 'جاري تحديد الموقع...' : 'تحديد موقعي تلقائياً 📍'}
+                    <span>📍</span>
+                    <span>{isLocating ? 'جاري التحديد...' : 'تحديد موقعي تلقائياً'}</span>
                   </button>
-                  {locationError && <p style={{ color: '#dc3545', fontSize: '0.8rem', textAlign: 'center', marginTop: '-5px' }}>{locationError}</p>}
+                </div>
+                {locationError && <p style={{ color: '#dc2626', fontSize: '0.82rem', marginTop: '-10px', marginBottom: '15px' }}>{locationError}</p>}
 
-                  {/* Country Custom Dropdown */}
-                  <div className={styles.field} ref={countrySelectRef} style={{ position: 'relative' }}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>الدولة <span style={{ color: 'red' }}>*</span></label>
-                    <div
+                <div className={styles.formGrid}>
+                  {/* Country Selector */}
+                  <div className={styles.formGroup} ref={countrySelectRef} style={{ position: 'relative' }}>
+                    <label className={styles.label}>الدولة *</label>
+                    <div 
                       onClick={() => setShowCountrySelect(v => !v)}
                       className={styles.input}
-                      style={{
-                        background: 'var(--white)',
-                        border: '1px solid rgba(196,164,132,0.3)',
-                        color: 'var(--espresso)',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px 16px',
-                        borderRadius: '8px',
-                      }}
+                      style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        {(() => {
-                          const currentCountryObj = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
-                          if (currentCountryObj && currentCountryObj.iso) {
-                            return (
-                              <img
-                                src={getFlagUrl(currentCountryObj.iso)}
-                                alt={currentCountryObj.ar}
-                                style={{ width: '22px', height: '16px', objectFit: 'cover', borderRadius: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
-                              />
-                            );
-                          }
-                          return null;
-                        })()}
-                        <span>{
-                          (() => {
-                            const found = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
-                            if (found) return currentLang === 'en' ? found.en : found.ar;
-                            return form.country || (currentLang === 'en' ? 'Select Country' : 'اختر الدولة');
-                          })()
-                        }</span>
-                      </div>
-                      <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
+                      <span>{form.country}</span>
+                      <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>▼</span>
                     </div>
 
                     {showCountrySelect && (
                       <div style={{
                         position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        right: 0,
-                        background: '#fff',
-                        border: '1px solid var(--border)',
+                        top: 'calc(100% + 4px)',
+                        left: 0, right: 0,
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #ddd',
                         borderRadius: '12px',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                        zIndex: 9999,
-                        maxHeight: '280px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        overflow: 'hidden',
-                        marginTop: '5px',
-                        direction: currentLang === 'en' ? 'ltr' : 'rtl'
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                        zIndex: 999,
+                        maxHeight: '260px',
+                        overflowY: 'auto'
                       }}>
-                        {/* Search field */}
-                        <div style={{ padding: '8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
+                        <div style={{ padding: '8px' }}>
                           <input
                             type="text"
-                            placeholder={currentLang === 'en' ? "Search country..." : "ابحثي عن الدولة..."}
+                            placeholder="ابحثي عن الدولة..."
                             value={countrySearch}
-                            onChange={(e) => setCountrySearch(e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            style={{
-                              width: '100%',
-                              padding: '8px 12px',
-                              border: '1px solid rgba(196,164,132,0.3)',
-                              borderRadius: '8px',
-                              fontSize: '0.85rem',
-                              outline: 'none',
-                              direction: currentLang === 'en' ? 'ltr' : 'rtl',
-                              background: '#fff',
-                              color: 'var(--espresso)'
-                            }}
+                            onChange={e => setCountrySearch(e.target.value)}
+                            style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #eee', fontSize: '0.85rem' }}
+                            onClick={e => e.stopPropagation()}
                           />
                         </div>
-                        {/* Country Options */}
-                        <div style={{ overflowY: 'auto', flex: 1 }}>
-                          {BILINGUAL_COUNTRIES.filter(c => {
-                            const q = countrySearch.toLowerCase();
-                            return c.ar.toLowerCase().includes(q) || c.en.toLowerCase().includes(q);
-                          }).map(c => {
-                            const isJo = c.iso === 'jo';
-                            const displayName = currentLang === 'en' ? c.en : c.ar;
-                            const isSelected = form.country === c.ar || form.country === c.en;
-                            return (
-                              <div
-                                key={c.iso || c.en}
-                                onClick={() => {
-                                  setForm(f => ({
-                                    ...f,
-                                    country: c.ar,
-                                    city: '',
-                                    paymentMethod: isJo ? f.paymentMethod : 'paypal'
-                                  }));
-                                  setErrors(err => ({ ...err, country: '', city: '' }));
-                                  setShowCountrySelect(false);
-                                  setCountrySearch('');
-                                }}
-                                style={{
-                                  padding: '10px 16px',
-                                  cursor: 'pointer',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  gap: '12px',
-                                  fontSize: '0.9rem',
-                                  color: 'var(--espresso)',
-                                  background: isSelected ? 'var(--gold-glow)' : 'transparent',
-                                  transition: 'background 0.2s',
-                                  textAlign: currentLang === 'en' ? 'left' : 'right'
-                                }}
-                                onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                                onMouseLeave={e => e.currentTarget.style.background = isSelected ? 'var(--gold-glow)' : 'transparent'}
-                              >
-                                {c.iso && (
-                                  <img
-                                    src={getFlagUrl(c.iso)}
-                                    alt={displayName}
-                                    style={{ width: '22px', height: '16px', objectFit: 'cover', borderRadius: '2px', boxShadow: '0 1px 3px rgba(0,0,0,0.15)' }}
-                                  />
-                                )}
-                                <span style={{ flex: 1 }}>{displayName}</span>
-                                {isSelected && <Check size={16} style={{ color: 'var(--gold)' }} />}
-                              </div>
-                            );
-                          })}
-                          {BILINGUAL_COUNTRIES.filter(c => {
-                            const q = countrySearch.toLowerCase();
-                            return c.ar.toLowerCase().includes(q) || c.en.toLowerCase().includes(q);
-                          }).length === 0 && (
-                            <div style={{ padding: '16px', textAlign: 'center', color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                              {currentLang === 'en' ? 'No matching country' : 'لا توجد نتائج مطابقة'}
-                            </div>
-                          )}
-                        </div>
+                        {BILINGUAL_COUNTRIES.filter(c => c.ar.includes(countrySearch) || c.en.toLowerCase().includes(countrySearch.toLowerCase())).map(c => (
+                          <div
+                            key={c.code}
+                            onClick={() => {
+                              setForm({ ...form, country: c.ar, city: '' });
+                              setShowCountrySelect(false);
+                            }}
+                            style={{
+                              padding: '10px 16px',
+                              cursor: 'pointer',
+                              borderBottom: '1px solid #f5f5f5',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              fontSize: '0.9rem'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(197, 168, 128, 0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                          >
+                            <img src={getFlagUrl(c.code.toLowerCase())} alt={c.ar} style={{ width: '18px', height: '12px', objectFit: 'cover' }} />
+                            <span>{c.ar} ({c.en})</span>
+                          </div>
+                        ))}
                       </div>
                     )}
-                    {errors.country && <p style={{ color: '#dc3545', fontSize: '0.75rem', marginTop: '4px' }}>{errors.country}</p>}
+                    {errors.country && <span className={styles.errorText}>{errors.country}</span>}
                   </div>
 
-                  {/* State / Province */}
-                  <div className={styles.field}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>
-                      {currentLang === 'en' ? 'State / Province / Region ' : 'الولاية / المنطقة '}
-                      <span style={{ color: '#888', fontSize: '0.75rem' }}>({currentLang === 'en' ? 'Optional' : 'اختياري'})</span>
-                    </label>
-                    <input
-                      name="state"
-                      value={form.state}
-                      onChange={handleChange}
-                      placeholder={currentLang === 'en' ? "e.g. Riyadh Region, California, Makkah Province" : "مثال: منطقة الرياض، مكة المكرمة، كاليفورنيا"}
-                      className={styles.input}
-                      style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
-                    />
-                  </div>
-
-                  {/* City */}
-                  <div className={styles.field} ref={citySelectRef} style={{ position: 'relative' }}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>
-                      {currentLang === 'en' ? 'City ' : 'المدينة '}
-                      <span style={{ color: 'red' }}>*</span>
-                    </label>
+                  {/* City Selector / Input */}
+                  <div className={styles.formGroup} ref={citySelectRef} style={{ position: 'relative' }}>
+                    <label className={styles.label}>المدينة / المحافظة *</label>
                     {countryCities.length > 0 ? (
                       <>
-                        <div
+                        <div 
                           onClick={() => setShowCitySelect(v => !v)}
                           className={styles.input}
-                          style={{
-                            background: 'var(--white)',
-                            border: '1px solid rgba(196,164,132,0.3)',
-                            color: 'var(--espresso)',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            padding: '12px 16px',
-                            borderRadius: '8px',
-                          }}
+                          style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                         >
-                          <span>{form.city || (currentLang === 'en' ? 'Select City / Governorate' : 'اختر المدينة / المحافظة')}</span>
-                          <span style={{ fontSize: '0.8rem', opacity: 0.7 }}>▼</span>
+                          <span>{form.city || 'اختاري المدينة...'}</span>
+                          <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>▼</span>
                         </div>
 
                         {showCitySelect && (
                           <div style={{
                             position: 'absolute',
-                            top: '100%',
-                            left: 0,
-                            right: 0,
-                            background: '#fff',
-                            border: '1px solid var(--border)',
+                            top: 'calc(100% + 4px)',
+                            left: 0, right: 0,
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #ddd',
                             borderRadius: '12px',
-                            boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                            zIndex: 9999,
-                            maxHeight: '250px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            overflow: 'hidden',
-                            marginTop: '5px',
-                            direction: currentLang === 'en' ? 'ltr' : 'rtl'
+                            boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
+                            zIndex: 999,
+                            maxHeight: '220px',
+                            overflowY: 'auto'
                           }}>
-                            <div style={{ padding: '8px', borderBottom: '1px solid var(--border)', background: 'var(--bg-elevated)' }}>
-                              <input
-                                type="text"
-                                placeholder={currentLang === 'en' ? "Search city / province..." : "ابحثي عن المدينة أو المحافظة..."}
-                                value={citySearch}
-                                onChange={(e) => setCitySearch(e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                style={{
-                                  width: '100%', padding: '8px 12px', border: '1px solid rgba(196,164,132,0.3)',
-                                  borderRadius: '8px', fontSize: '0.85rem', outline: 'none',
-                                  direction: currentLang === 'en' ? 'ltr' : 'rtl',
-                                  background: '#fff', color: 'var(--espresso)'
+                            {countryCities.map(city => (
+                              <div
+                                key={city}
+                                onClick={() => {
+                                  setForm({ ...form, city: city });
+                                  setShowCitySelect(false);
                                 }}
-                              />
-                            </div>
-                            <div style={{ overflowY: 'auto', flex: 1 }}>
-                              {countryCities.filter(c => {
-                                const q = citySearch.toLowerCase();
-                                return c.name.toLowerCase().includes(q) || (c.ar && c.ar.includes(q)) || (c.en && c.en.toLowerCase().includes(q));
-                              }).map(c => (
-                                <div
-                                  key={c.name}
-                                  onClick={() => {
-                                    setForm(f => ({ ...f, city: c.name }));
-                                    setErrors(err => ({ ...err, city: '' }));
-                                    setShowCitySelect(false);
-                                    setCitySearch('');
-                                  }}
-                                  style={{
-                                    padding: '10px 16px', cursor: 'pointer', display: 'flex', alignItems: 'center',
-                                    justifyContent: 'space-between', fontSize: '0.9rem', color: 'var(--espresso)',
-                                    background: form.city === c.name ? 'var(--gold-glow)' : 'transparent',
-                                    transition: 'background 0.2s', textAlign: currentLang === 'en' ? 'left' : 'right'
-                                  }}
-                                  onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-elevated)'}
-                                  onMouseLeave={e => e.currentTarget.style.background = form.city === c.name ? 'var(--gold-glow)' : 'transparent'}
-                                >
-                                  <span>{c.name}</span>
-                                  {form.city === c.name && <Check size={16} style={{ color: 'var(--gold)' }} />}
-                                </div>
-                              ))}
-                              {countryCities.filter(c => {
-                                const q = citySearch.toLowerCase();
-                                return c.name.toLowerCase().includes(q) || (c.ar && c.ar.includes(q)) || (c.en && c.en.toLowerCase().includes(q));
-                              }).length === 0 && (
-                                <div style={{ padding: '16px', textAlign: 'center', color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                                  {currentLang === 'en' ? 'No matching city' : 'لا توجد نتائج مطابقة'}
-                                </div>
-                              )}
-                            </div>
+                                style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', fontSize: '0.9rem' }}
+                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(197, 168, 128, 0.1)'}
+                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                              >
+                                {city}
+                              </div>
+                            ))}
                           </div>
                         )}
                       </>
                     ) : (
                       <input
-                        name="city"
-                        value={form.city}
-                        onChange={handleChange}
-                        placeholder={currentLang === 'en' ? "e.g. Amman, Riyadh, Dubai, London" : "مثال: عمان، الرياض، دبي، لندن"}
+                        type="text"
                         className={styles.input}
-                        style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
+                        placeholder="مثال: الرياض، دبي، المنامة..."
+                        value={form.city}
+                        onChange={e => setForm({ ...form, city: e.target.value })}
                       />
                     )}
-                    {errors.city && <p style={{ color: '#dc3545', fontSize: '0.75rem', marginTop: '4px' }}>{errors.city}</p>}
+                    {errors.city && <span className={styles.errorText}>{errors.city}</span>}
                   </div>
 
-                  {/* Area */}
-                  <div className={styles.field}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>الحي / المنطقة <span style={{ color: '#888', fontSize: '0.75rem' }}>(اختياري)</span></label>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>المنطقة / الحي</label>
                     <input
-                      name="area"
-                      value={form.area}
-                      onChange={handleChange}
-                      placeholder="مثال: الجاردنز، Chelsea, Downtown"
+                      type="text"
                       className={styles.input}
-                      style={{ background: 'var(--white)', border: '1px solid rgba(196,164,132,0.3)', color: 'var(--espresso)' }}
+                      placeholder="مثال: حي الروضة، دابوق، الصويفية..."
+                      value={form.area}
+                      onChange={e => setForm({ ...form, area: e.target.value })}
                     />
                   </div>
 
-                  {/* Full Address */}
-                  <div className={styles.field}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)' }}>العنوان بالتفصيل <span style={{ color: 'red' }}>*</span></label>
-                    <textarea
-                      name="address"
-                      value={form.address}
-                      onChange={handleChange}
-                      placeholder="مثال: 123 Main Street, Apt 4B"
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>الشارع / رقم البناية / تفاصيل إضافية *</label>
+                    <input
+                      type="text"
                       className={styles.input}
-                      style={{ background: 'var(--white)', border: '1px solid rgba(196, 164, 132, 0.3)', color: 'var(--espresso)', minHeight: '60px', resize: 'vertical' }}
+                      placeholder="مثال: شارع المدينة المنورة، مجمع رقم 14"
+                      value={form.address}
+                      onChange={e => setForm({ ...form, address: e.target.value })}
                     />
-                    {errors.address && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.address}</p>}
+                    {errors.address && <span className={styles.errorText}>{errors.address}</span>}
                   </div>
                 </div>
-              )}
-
-            </div>
-
-            {/* Contact Details */}
-            <div className={styles.formSection} style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)' }}>
-              <h4 style={{ color: 'var(--gold-dim)', marginBottom: '15px' }}>معلومات الاتصال</h4>
-              <div className={styles.field} style={{ marginBottom: '15px' }}>
-                <label className={styles.label} style={{ color: 'var(--espresso)' }}>الاسم الكامل <span style={{ color: 'red' }}>*</span></label>
-                <input
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className={styles.input}
-                  placeholder="الرجاء كتابة الاسم الكامل"
-                  style={{ background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
-                />
-                {errors.name && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.name}</p>}
               </div>
 
-              <div className={styles.field} style={{ marginBottom: '15px' }}>
-                <label className={styles.label} style={{ color: 'var(--espresso)' }}>رقم الهاتف <span style={{ color: 'red' }}>*</span></label>
-                <input
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className={styles.input}
-                  placeholder="مثال: 0791234567"
-                  style={{ background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
-                />
-                {errors.phone && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.phone}</p>}
-              </div>
+              {/* 3. Payment Methods Card */}
+              <div className={styles.sectionCard}>
+                <h3 className={styles.sectionTitle}>
+                  <CreditCard size={22} color="var(--gold-dim)" />
+                  <span>3. طريقة الدفع</span>
+                </h3>
 
-              {loyaltyInfo.points > 0 && (
-                <div style={{
-                  padding: '16px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, rgba(197,168,128,0.1) 0%, rgba(197,168,128,0.02) 100%)',
-                  border: '1px solid rgba(197,168,128,0.3)',
-                  marginBottom: '20px',
-                  animation: 'fadeIn 0.4s ease'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '0.88rem', fontWeight: 'bold', color: 'var(--gold-dim)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      ✨ {loyaltyInfo.customer_name ? `مرحباً بكِ ${loyaltyInfo.customer_name}` : 'رصيد نقاط الولاء'}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: '#fff', background: 'rgba(197,168,128,0.2)', padding: '2px 8px', borderRadius: '10px', fontWeight: '700' }}>
-                      {loyaltyInfo.points} نقطة
-                    </span>
-                  </div>
-                  
-                  {canRedeem ? (
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', margin: 0, fontSize: '0.82rem', color: 'var(--espresso)' }}>
-                      <input 
-                        type="checkbox" checked={usePoints} onChange={e => setUsePoints(e.target.checked)}
-                        style={{ width: '16px', height: '16px', accentColor: 'var(--gold-dim)' }}
-                      />
-                      استبدال {pointsToRedeem} نقطة للحصول على خصم بقيمة <strong>{formatPrice(pointsDiscountAmount)}</strong>
-                    </label>
-                  ) : (
-                    <div style={{ fontSize: '0.75rem', color: '#c5a880', opacity: 0.8 }}>
-                      الحد الأدنى لاستبدال النقاط هو {loyalty_min_points} نقطة. اجمعي المزيد من النقاط مع كل طلب!
+                <div className={styles.paymentGrid}>
+                  {/* Option A: Cash on Delivery (Jordan only) */}
+                  {isJordan && (
+                    <div
+                      onClick={() => setForm({ ...form, paymentMethod: 'cod' })}
+                      className={styles.paymentCard}
+                      style={{
+                        border: form.paymentMethod === 'cod' ? '2px solid var(--gold)' : '1.5px solid #e0e0e0',
+                        backgroundColor: form.paymentMethod === 'cod' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
+                      }}
+                    >
+                      <div style={{ fontSize: '1.6rem' }}>💵</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>عند الاستلام (داخل الأردن)</div>
+                      <div style={{ fontSize: '0.78rem', color: '#777' }}>ادفعي نقداً عند استلام طلبكِ</div>
                     </div>
                   )}
-                </div>
-              )}
 
-              <div className={styles.field}>
-                <label className={styles.label} style={{ color: 'var(--espresso)' }}>البريد الإلكتروني <span style={{ color: '#888', fontSize: '0.75rem' }}>(اختياري)</span></label>
-                <input
-                  name="email"
-                  type="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  className={styles.input}
-                  placeholder="example@domain.com"
-                  style={{ background: 'var(--white)', border: '1px solid var(--border)', color: 'var(--espresso)' }}
-                />
-                {errors.email && <p style={{ color: '#dc3545', fontSize: '0.75rem' }}>{errors.email}</p>}
-              </div>
-            </div>
-
-            {/* Gift Options Section - Temporarily Hidden per user request */}
-            {false && (
-            <div style={{
-              background: 'var(--bg-surface)',
-              border: '1px solid var(--border)',
-              borderRadius: '20px',
-              padding: '24px',
-              marginBottom: '20px',
-              textAlign: 'right',
-              direction: 'rtl'
-            }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: '0 0 12px 0' }}>
-                <input 
-                  type="checkbox" checked={isGift} onChange={e => {
-                    setIsGift(e.target.checked);
-                    if (e.target.checked && !giftPackaging) {
-                      setGiftPackaging('premium_box');
-                    }
-                  }}
-                  style={{ width: '18px', height: '18px', accentColor: 'var(--gold-dim)' }}
-                />
-                <span style={{ fontSize: '1rem', fontWeight: 'bold', color: 'var(--gold-dim)' }}>✨ هل ترغبين في إرسال الطلب كهدية؟</span>
-              </label>
-
-              {isGift && (
-                <div style={{ marginTop: '16px', animation: 'fadeIn 0.3s ease' }}>
-                  <div style={{ marginBottom: '15px' }}>
-                    <label className={styles.label} style={{ color: 'var(--espresso)', marginBottom: '8px', display: 'block', fontSize: '0.82rem' }}>نوع تغليف الهدية:</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                      <button 
-                        type="button"
-                        onClick={() => setGiftPackaging('premium_box')}
-                        style={{
-                          padding: '14px', borderRadius: '12px',
-                          border: `1px solid ${giftPackaging === 'premium_box' ? 'var(--gold-dim)' : 'var(--border)'}`,
-                          background: giftPackaging === 'premium_box' ? 'rgba(197,168,128,0.1)' : 'var(--white)',
-                          color: 'var(--espresso)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem', transition: '0.2s'
-                        }}
-                      >
-                        كرتونة فاخرة (+3 JOD)
-                      </button>
-                      <button 
-                        type="button"
-                        onClick={() => setGiftPackaging('silk_wrap')}
-                        style={{
-                          padding: '14px', borderRadius: '12px',
-                          border: `1px solid ${giftPackaging === 'silk_wrap' ? 'var(--gold-dim)' : 'var(--border)'}`,
-                          background: giftPackaging === 'silk_wrap' ? 'rgba(197,168,128,0.1)' : 'var(--white)',
-                          color: 'var(--espresso)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem', transition: '0.2s'
-                        }}
-                      >
-                        تغليف حرير ملكي (+5 JOD)
-                      </button>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className={styles.label} style={{ color: 'var(--espresso)', marginBottom: '8px', display: 'block', fontSize: '0.82rem' }}>رسالة بطاقة الإهداء:</label>
-                    <textarea 
-                      value={giftMessage}
-                      onChange={e => setGiftMessage(e.target.value)}
-                      placeholder="اكتبي رسالة الإهداء التي سيتم إرفاقها مع الهدية داخل العبوة..."
-                      style={{
-                        width: '100%', height: '80px', padding: '12px', borderRadius: '12px',
-                        border: '1px solid var(--border)', background: 'var(--white)',
-                        color: 'var(--espresso)', outline: 'none', resize: 'none', fontSize: '0.82rem'
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-            )}
-
-            {/* Policy Notice Box */}
-            <div style={{
-              background: 'rgba(196, 164, 132, 0.06)',
-              border: '1px solid var(--border)',
-              borderRadius: '20px',
-              padding: '20px',
-              marginBottom: '20px',
-              textAlign: 'right',
-              fontSize: '0.9rem',
-              color: 'var(--espresso)',
-              lineHeight: '1.6',
-              boxShadow: '0 4px 15px rgba(0, 0, 0, 0.02)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', color: 'var(--gold-dim)', fontWeight: '800', fontSize: '1rem' }}>
-                <AlertTriangle size={20} style={{ color: 'var(--gold)' }} />
-                <span>سياسة التوصيل، التبديل والاسترجاع:</span>
-              </div>
-              <ul style={{ margin: 0, paddingRight: '20px', listStyleType: 'disc' }}>
-                <li style={{ marginBottom: '8px' }}>
-                  <strong>التبديل والترجيع:</strong> متاح <strong>داخل الأردن فقط</strong> فوراً أثناء تواجد كابتن التوصيل.
-                </li>
-                <li style={{ marginBottom: '8px' }}>
-                  <strong>أجور التوصيل:</strong> مبلغ ورسوم التوصيل <strong>غير قابلة للاسترداد</strong> وتكون على حساب العميل في حال التبديل أو الترجيع.
-                </li>
-                <li style={{ marginBottom: '8px' }}>
-                  <strong>خارج الأردن:</strong> جميع الشحنات الخارجية نهائية ولا يوجد لها تبديل أو ترجيع.
-                </li>
-                <li>
-                  <strong>الدفع عند الاستلام:</strong> متوفر <strong>داخل الأردن فقط</strong>.
-                </li>
-              </ul>
-            </div>
-
-            {/* Payment Method Selection */}
-            <div className={styles.formSection} style={{ background: 'var(--bg-surface)', padding: '20px', borderRadius: '20px', border: '1px solid var(--border)' }}>
-              <label className={styles.label} style={{ fontSize: '1.1rem', color: 'var(--gold-dim)', marginBottom: '15px', display: 'block', fontWeight: '800', textAlign: 'center' }}>طريقة الدفع</label>
-              
-              {errors.paymentMethod && (
-                <p style={{ color: '#dc3545', fontSize: '0.85rem', textAlign: 'center', marginTop: '-5px', marginBottom: '15px', fontWeight: 'bold' }}>
-                  {errors.paymentMethod}
-                </p>
-              )}
-
-              {form.country !== 'الأردن' && (
-                <div style={{
-                  background: 'rgba(255, 98, 0, 0.06)',
-                  border: '1px solid rgba(255, 98, 0, 0.2)',
-                  borderRadius: '12px',
-                  padding: '10px 14px',
-                  marginBottom: '15px',
-                  fontSize: '0.85rem',
-                  color: 'var(--espresso)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <ShieldCheck size={18} style={{ color: '#FF6200', flexShrink: 0 }} />
-                  <span>الشحن الدولي متاح حصرياً عبر الدفع الإلكتروني الآمن (PayPal / Visa / MasterCard).</span>
-                </div>
-              )}
-
-              <div style={{ display: 'grid', gridTemplateColumns: form.country === 'الأردن' ? 'repeat(2, 1fr)' : '1fr', gap: '15px', marginBottom: '20px' }}>
-                {/* 1. COD - Only for Domestic (Jordan) */}
-                {form.country === 'الأردن' && (
+                  {/* Option B: Direct Card & PayPal (Worldwide + Jordan) */}
                   <div
-                    onClick={() => {
-                      setForm(f => ({ ...f, paymentMethod: 'cod' }));
-                      setErrors(err => ({ ...err, paymentMethod: '' }));
-                    }}
+                    onClick={() => setForm({ ...form, paymentMethod: 'paypal' })}
+                    className={styles.paymentCard}
                     style={{
-                      padding: '18px 12px', textAlign: 'center', borderRadius: '14px', cursor: 'pointer', transition: '0.3s',
-                      border: form.paymentMethod === 'cod' ? '2px solid var(--gold)' : '2px solid var(--border)',
-                      backgroundColor: form.paymentMethod === 'cod' ? 'var(--gold-glow)' : 'var(--white)',
-                      color: 'var(--espresso)', fontWeight: 'bold'
+                      border: form.paymentMethod === 'paypal' ? '2px solid var(--gold)' : '1.5px solid #e0e0e0',
+                      backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
+                      gridColumn: isJordan ? 'auto' : '1 / -1'
                     }}
                   >
-                    <Landmark size={24} style={{ margin: '0 auto 8px', color: form.paymentMethod === 'cod' ? 'var(--gold-dim)' : 'var(--espresso-dim)' }} />
-                    <div style={{ fontSize: '0.95rem' }}>الدفع عند الاستلام</div>
-                    <div style={{ fontSize: '0.72rem', color: '#27ae60', fontWeight: 'bold', marginTop: '3px' }}>✓ متاح داخل الأردن فقط</div>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
+                      <span>💳</span>
+                      <span>🅿️</span>
+                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                      بطاقة بنكية (Visa / MasterCard) أو PayPal
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
+                      دفع إلكتروني آمن ومباشر
+                    </div>
+                  </div>
+                </div>
+
+                {/* PayPal & Direct Card Buttons */}
+                {form.paymentMethod === 'paypal' && (
+                  <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
+                    {/* Guidance Tip Box */}
+                    <div style={{
+                      background: 'linear-gradient(135deg, rgba(0, 48, 135, 0.05) 0%, rgba(0, 156, 222, 0.05) 100%)',
+                      border: '1px solid rgba(0, 156, 222, 0.25)',
+                      borderRadius: '14px',
+                      padding: '14px 18px',
+                      marginBottom: '20px',
+                      fontSize: '0.88rem',
+                      lineHeight: '1.6'
+                    }}>
+                      <div style={{ fontWeight: 'bold', color: '#003087', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span>💳</span>
+                        <span>طرق الدفع الإلكتروني المتاحة:</span>
+                      </div>
+                      <div>• <strong>لديكِ حساب PayPal؟</strong> اختاري الزر الأصفر (PayPal).</div>
+                      <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card) دون الحاجة لإنشاء أي حساب في PayPal!</div>
+                    </div>
+
+                    <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
+                      <PayPalButtons
+                        style={{ layout: "vertical", shape: "pill", color: "gold" }}
+                        onClick={(data, actions) => {
+                          if (!validate()) {
+                            alert('يرجى استكمال الحقول المطلوبة أولاً (الاسم، رقم الهاتف، والمدينة والعنوان).');
+                            return actions.reject();
+                          }
+                          return actions.resolve();
+                        }}
+                        createOrder={(data, actions) => {
+                          const usdAmount = (finalPrice * 1.41).toFixed(2);
+                          return actions.order.create({
+                            purchase_units: [
+                              {
+                                amount: {
+                                  currency_code: "USD",
+                                  value: usdAmount
+                                },
+                                description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
+                              }
+                            ]
+                          });
+                        }}
+                        onApprove={async (data, actions) => {
+                          try {
+                            setStep('processing');
+                            await actions.order.capture();
+                            const resultStatus = await saveOrderToBackend();
+                            if (resultStatus === 'success') {
+                              try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
+                              clearCart();
+                              setStep('success');
+                            } else {
+                              setStep('error:حدث خطأ أثناء تسجيل الطلب');
+                            }
+                          } catch (err) {
+                            setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
+                          }
+                        }}
+                        onCancel={() => alert('تم إلغاء عملية الدفع. يمكنكِ إعادة المحاولة في أي وقت.')}
+                        onError={(err) => alert('حدث تضارب أثناء الاتصال ببوابة الدفع. يرجى المحاولة مجدداً.')}
+                      />
+                    </PayPalScriptProvider>
+                  </div>
+                )}
+              </div>
+
+              {/* Notes */}
+              <div className={styles.sectionCard}>
+                <label className={styles.label} style={{ display: 'block', marginBottom: '8px' }}>
+                  ملاحظات أو تعليمات خاصة بمندوب التوصيل:
+                </label>
+                <textarea
+                  placeholder="مثال: يرجى الاتصال قبل الوصول بـ 15 دقيقة..."
+                  value={storeComment}
+                  onChange={e => setStoreComment(e.target.value)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #ddd', minHeight: '60px', fontFamily: 'inherit' }}
+                />
+              </div>
+            </div>
+
+            {/* ── LEFT COLUMN: Order Summary (Sticky) ── */}
+            <div className={styles.orderSummarySticky}>
+              <h3 style={{ margin: '0 0 18px 0', fontSize: '1.3rem', color: 'var(--espresso)', borderBottom: '1px solid #f0f0f0', paddingBottom: '12px', fontFamily: 'var(--font-primary, serif)' }}>
+                ملخص مشترياتكِ ({items.length})
+              </h3>
+
+              {/* Items List Preview */}
+              <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '20px' }}>
+                {items.map(item => (
+                  <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
+                    <img src={item.image || '/12.png'} alt={item.name} style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#777' }}>الكمية: {item.qty} {item.size && `| المقاس: ${item.size}`}</div>
+                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--gold-dim)' }}>
+                      {formatPrice(item.priceNum * item.qty)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Price Details */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.92rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                  <span>المجموع الفرعي:</span>
+                  <strong style={{ color: '#1a1a1a' }}>{formatPrice(totalPrice)}</strong>
+                </div>
+
+                {couponDiscount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#15803d' }}>
+                    <span>خصم الكوبون ({couponApplied?.code}):</span>
+                    <strong>-{formatPrice(couponDiscount)}</strong>
                   </div>
                 )}
 
-                {/* 2. PayPal / Visa / MasterCard - Global & Jordan */}
-                <div
-                  onClick={() => {
-                    setForm(f => ({ ...f, paymentMethod: 'paypal' }));
-                    setErrors(err => ({ ...err, paymentMethod: '' }));
-                  }}
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
+                  <span>رسوم الشحن والتوصيل:</span>
+                  {isCalculatingShipping ? (
+                    <span style={{ color: 'var(--gold-dim)' }}>جاري الحساب...</span>
+                  ) : (
+                    <strong style={{ color: shippingFee === 0 ? '#15803d' : '#1a1a1a' }}>
+                      {shippingFee === 0 ? 'شحن مجاني' : `+${formatPrice(shippingFee)}`}
+                    </strong>
+                  )}
+                </div>
+              </div>
+
+              {/* Grand Total */}
+              <div className={styles.sumTotal}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--espresso)' }}>المبلغ الإجمالي:</span>
+                <div style={{ textAlign: 'left' }}>
+                  <div className={styles.sumTotalAmt}>{formatPrice(finalPrice)}</div>
+                  {useCurrency().currency?.code !== 'JOD' && (
+                    <div style={{ fontSize: '0.8rem', color: '#888' }}>
+                      ≈ {finalPrice.toFixed(2)} دينار أردني
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Confirm Button for COD */}
+              {form.paymentMethod === 'cod' && (
+                <button
+                  type="submit"
+                  disabled={step === 'processing'}
                   style={{
-                    padding: '18px 12px', textAlign: 'center', borderRadius: '14px', cursor: 'pointer', transition: '0.3s',
-                    border: form.paymentMethod === 'paypal' ? '2px solid var(--gold)' : '2px solid var(--border)',
-                    backgroundColor: form.paymentMethod === 'paypal' ? 'var(--gold-glow)' : 'var(--white)',
-                    color: 'var(--espresso)', fontWeight: 'bold'
+                    width: '100%',
+                    backgroundColor: 'var(--gold, #c5a880)',
+                    color: '#1a1008',
+                    border: 'none',
+                    padding: '18px 24px',
+                    borderRadius: '16px',
+                    fontSize: '1.15rem',
+                    fontWeight: '900',
+                    cursor: step === 'processing' ? 'not-allowed' : 'pointer',
+                    marginTop: '25px',
+                    boxShadow: '0 10px 25px rgba(197, 168, 128, 0.4)',
+                    transition: 'transform 0.2s',
+                    opacity: step === 'processing' ? 0.7 : 1
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                    <i className="fab fa-paypal" style={{ fontSize: '22px', color: '#003087' }} />
-                    <i className="fab fa-cc-visa" style={{ fontSize: '22px', color: '#1A1F71' }} />
-                    <i className="fab fa-cc-mastercard" style={{ fontSize: '22px', color: '#EB001B' }} />
-                  </div>
-                  <div style={{ fontSize: '0.95rem' }}>PayPal / بطاقات الائتمان</div>
-                  <div style={{ fontSize: '0.72rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '3px' }}>Visa • MasterCard • PayPal</div>
-                </div>
-              </div>
+                  {step === 'processing' ? 'جاري تأكيد الطلب...' : `تأكيد الطلب الآن (${formatPrice(finalPrice)}) ←`}
+                </button>
+              )}
 
+              {/* Security badges */}
+              <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f0f0f0', fontSize: '0.78rem', color: '#777', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div>🔒 تسوق آمن ومحمي 100%</div>
+                <div>🚚 توصيل سريع مع خدمة التتبع المباشر</div>
+              </div>
             </div>
 
-            {/* General Feedback / Comments */}
-            <div style={{ backgroundColor: 'var(--gold-glow)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-              <h4 style={{ margin: '0 0 10px 0', color: 'var(--gold-dim)', fontSize: '1.1rem' }}>ملاحظات أو تعليقات إضافية للطلب:</h4>
-              <textarea
-                placeholder="اكتبي أي ملاحظات للتوصيل (مثال: يرجى الاتصال قبل الوصول...)"
-                value={storeComment}
-                onChange={(e) => setStoreComment(e.target.value)}
-                style={{ width: '100%', padding: '12px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--white)', color: 'var(--espresso)', minHeight: '60px', fontFamily: 'inherit', resize: 'vertical' }}
-              />
-            </div>
+          </div>
+        </form>
+      </main>
 
-            {form.paymentMethod === 'paypal' ? (
-              <div style={{ marginTop: '20px' }}>
-                <div style={{
-                  background: 'linear-gradient(135deg, rgba(0, 48, 135, 0.06) 0%, rgba(0, 156, 222, 0.06) 100%)',
-                  border: '1px solid rgba(0, 156, 222, 0.25)',
-                  borderRadius: '12px',
-                  padding: '12px 16px',
-                  marginBottom: '15px',
-                  fontSize: '0.85rem',
-                  color: 'var(--espresso)'
-                }}>
-                  <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: '#003087' }}>
-                    <span>💳</span>
-                    <span>خيارات الدفع الإلكتروني المتاحة:</span>
-                  </div>
-                  <div>• <strong>لديكِ حساب PayPal؟</strong> اختاري الزر الأصفر (PayPal).</div>
-                  <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card) دون الحاجة لإنشاء حساب PayPal.</div>
-                </div>
-
-                <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
-                  <PayPalButtons 
-                    style={{ layout: "vertical", shape: "pill", color: "gold" }}
-                    onClick={(data, actions) => {
-                      if (!validate()) {
-                        alert('يرجى استكمال الحقول المطلوبة أولاً (الاسم الكامل، رقم الهاتف، والمدينة والعنوان).');
-                        return actions.reject();
-                      }
-                      return actions.resolve();
-                    }}
-                    createOrder={(data, actions) => {
-                      const usdAmount = (finalPrice * 1.41).toFixed(2);
-                      return actions.order.create({
-                        purchase_units: [
-                          {
-                            amount: {
-                              currency_code: "USD",
-                              value: usdAmount
-                            },
-                            description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
-                          }
-                        ]
-                      });
-                    }}
-                    onApprove={async (data, actions) => {
-                      try {
-                        setStep('processing');
-                        await actions.order.capture();
-                        const resultStatus = await saveOrderToBackend();
-                        
-                        if (resultStatus === 'success') {
-                          try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
-                          clearCart();
-                          setStep('success');
-                        } else if (resultStatus === 'outofstock') {
-                          setStep('outofstock');
-                        } else {
-                          setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
-                        }
-                      } catch (err) {
-                        setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
-                      }
-                    }}
-                    onCancel={() => {
-                      alert('تم إلغاء عملية الدفع عبر PayPal. يمكنك إعادة المحاولة في أي وقت.');
-                    }}
-                    onError={(err) => {
-                      console.error('[PayPal Error]:', err);
-                      alert('حدث تضارب أثناء الاتصال ببوابة PayPal. يرجى المحاولة مجدداً.');
-                    }}
-                  />
-                </PayPalScriptProvider>
-              </div>
-            ) : (
-              <button 
-                type="submit" 
-                className={`btn btn-primary ${styles.payBtn}`} 
-                disabled={step === 'processing'}
-                style={{
-                  background: 'var(--gold)',
-                  padding: '20px',
-                  borderRadius: '15px',
-                  fontSize: '1.2rem',
-                  fontWeight: '800',
-                  boxShadow: '0 10px 25px rgba(196, 164, 132, 0.2)',
-                  border: 'none',
-                  cursor: step === 'processing' ? 'not-allowed' : 'pointer',
-                  color: 'var(--espresso)',
-                  width: '100%',
-                  transition: 'all 0.3s',
-                  opacity: step === 'processing' ? 0.7 : 1
-                }}
-              >
-                {step === 'processing' ? 'جاري إرسال الطلب...' : `تأكيد وإتمام الطلب بقيمة ${formatPrice(finalPrice)}`}
-              </button>
-            )}
-          </form>
-        </div>
-      </div>
+      <Footer />
     </div>
   );
 }

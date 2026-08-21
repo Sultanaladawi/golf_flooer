@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Home, Grid, ShoppingBag, Heart, PackageSearch } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTracking }) {
+  const navigate = useNavigate();
   const { totalItems } = useCart();
   const { wishlist } = useWishlist();
   const { t } = useLanguage();
@@ -63,7 +65,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
       </a>
 
       {/* Cart (Center Action with Badge) */}
-      <button onClick={onOpenCart} style={{
+      <button onClick={() => navigate('/cart')} style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
