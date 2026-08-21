@@ -137,3 +137,23 @@ html {
   button { padding: 10px 15px !important; }
 }
 
+/* Mobile Optimization & Touch UX Overrides */
+@media screen and (max-width: 768px) {
+  body {
+    overflow-x: hidden !important;
+    padding-bottom: 70px !important; /* Prevents mobile bottom bar from overlapping footer */
+  }
+  .top-policies-row {
+    display: none !important;
+  }
+  /* Prevent horizontal cutoffs */
+  .section-wrap, .container, main {
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+  /* Smooth touch targets */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+

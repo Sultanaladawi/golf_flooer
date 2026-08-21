@@ -150917,7 +150917,7 @@ app.post("/api/orders", async (req, res) => {
     }
     await conn.commit();
     try {
-      await sendStoreNotificationEmail({
+      sendStoreNotificationEmail({
         subject: `\u{1F6CD}\uFE0F [\u0637\u0644\u0628 \u0634\u0631\u0627\u0621 \u062C\u062F\u064A\u062F #${orderId}] \u0628\u0642\u064A\u0645\u0629 ${totalAmount} JOD \u0645\u0646 ${customer_name}`,
         title: "\u0648\u0635\u0644 \u0637\u0644\u0628 \u0634\u0631\u0627\u0621 \u062C\u062F\u064A\u062F \u0639\u0644\u0649 \u0645\u062A\u062C\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646!",
         senderName: customer_name,

@@ -481,7 +481,7 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
     if (!validate()) return;
 
     if (form.paymentMethod === 'cod') {
-      await new Promise(r => setTimeout(r, 1500));
+      setStep('processing');
       const resultStatus = await saveOrderToBackend();
 
       if (resultStatus === 'success') {
@@ -1481,6 +1481,23 @@ export default function Checkout({ onClose, onBack, initialStep = 'form', initia
 
             {form.paymentMethod === 'paypal' ? (
               <div style={{ marginTop: '20px' }}>
+                <div style={{
+                  background: 'linear-gradient(135deg, rgba(0, 48, 135, 0.06) 0%, rgba(0, 156, 222, 0.06) 100%)',
+                  border: '1px solid rgba(0, 156, 222, 0.25)',
+                  borderRadius: '12px',
+                  padding: '12px 16px',
+                  marginBottom: '15px',
+                  fontSize: '0.85rem',
+                  color: 'var(--espresso)'
+                }}>
+                  <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: '#003087' }}>
+                    <span>💳</span>
+                    <span>خيارات الدفع الإلكتروني المتاحة:</span>
+                  </div>
+                  <div>• <strong>لديكِ حساب PayPal؟</strong> اختاري الزر الأصفر (PayPal).</div>
+                  <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card) دون الحاجة لإنشاء حساب PayPal.</div>
+                </div>
+
                 <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
                   <PayPalButtons 
                     style={{ layout: "vertical", shape: "pill", color: "gold" }}

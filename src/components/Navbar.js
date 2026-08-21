@@ -287,7 +287,7 @@ export default function Navbar({ onCartOpen, onWishlistOpen, onTrackOrderOpen, o
             gap: '15px',
             flexWrap: 'wrap'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="top-policies-row" style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
               <button 
                 onClick={() => onOpenPolicy && onOpenPolicy('privacy')} 
                 onMouseEnter={e => e.currentTarget.style.color = '#b8966c'}

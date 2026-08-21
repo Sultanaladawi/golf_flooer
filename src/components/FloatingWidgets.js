@@ -43,7 +43,7 @@ const socialLinks = [
 function SocialSidebar() {
   const [hovered, setHovered] = useState(null);
   return (
-    <div style={{ position: 'fixed', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', zIndex: 9999 }}>
+    <div className="zb-social-sidebar" style={{ position: 'fixed', left: 0, top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', zIndex: 9999 }}>
       {socialLinks.map((s) => (
         <a
           key={s.label}
@@ -293,17 +293,10 @@ function WhatsAppButton() {
         title="بدء محادثة الواتساب"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        className="zb-floating-wa"
         style={{
-          position: 'fixed', bottom: '100px', left: '2rem',
-          width: '56px', height: '56px',
-          background: '#25D366', color: '#fff',
-          borderRadius: '50%', border: 'none',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-          boxShadow: hovered ? '0 8px 24px rgba(37,211,102,0.6)' : '0 4px 16px rgba(37,211,102,0.4)',
           transform: hovered ? 'scale(1.08)' : 'scale(1)',
-          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-          zIndex: 8998,
+          boxShadow: hovered ? '0 8px 24px rgba(37,211,102,0.6)' : '0 4px 16px rgba(37,211,102,0.4)',
         }}
       >
         <WhatsAppIcon />
@@ -321,18 +314,10 @@ function LoyaltyFloatingButton({ onOpenLoyalty }) {
       title="نقاط الولاء الملكية"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      className="zb-floating-loyalty"
       style={{
-        position: 'fixed', bottom: '168px', left: '2rem',
-        width: '50px', height: '50px',
-        background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', color: '#1a1209',
-        borderRadius: '50%', border: '1.5px solid rgba(255,255,255,0.4)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer',
-        boxShadow: hovered ? '0 8px 24px rgba(197,168,128,0.6)' : '0 4px 16px rgba(197,168,128,0.35)',
         transform: hovered ? 'scale(1.08)' : 'scale(1)',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease',
-        zIndex: 8998,
-        fontSize: '1.2rem'
+        boxShadow: hovered ? '0 8px 24px rgba(197,168,128,0.6)' : '0 4px 16px rgba(197,168,128,0.35)',
       }}
     >
       🏆
@@ -343,6 +328,59 @@ function LoyaltyFloatingButton({ onOpenLoyalty }) {
 export default function FloatingWidgets({ onOpenLoyalty }) {
   return (
     <>
+      <style>{`
+        .zb-floating-wa {
+          position: fixed;
+          bottom: 100px;
+          left: 2rem;
+          width: 56px;
+          height: 56px;
+          background: #25D366;
+          color: #fff;
+          border-radius: 50%;
+          border: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 8998;
+          box-shadow: 0 4px 16px rgba(37,211,102,0.4);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .zb-floating-loyalty {
+          position: fixed;
+          bottom: 168px;
+          left: 2rem;
+          width: 50px;
+          height: 50px;
+          background: linear-gradient(135deg, #c5a880 0%, #a6865d 100%);
+          color: #1a1209;
+          border-radius: 50%;
+          border: 1.5px solid rgba(255,255,255,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          z-index: 8998;
+          font-size: 1.2rem;
+          box-shadow: 0 4px 16px rgba(197,168,128,0.35);
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        @media (max-width: 768px) {
+          .zb-social-sidebar {
+            display: none !important;
+          }
+          .zb-floating-wa {
+            bottom: 76px !important;
+            left: 14px !important;
+            width: 46px !important;
+            height: 46px !important;
+          }
+          .zb-floating-loyalty {
+            display: none !important;
+          }
+        }
+      `}</style>
       <LoyaltyFloatingButton onOpenLoyalty={onOpenLoyalty} />
       <WhatsAppButton />
     </>
