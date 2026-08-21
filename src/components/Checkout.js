@@ -60,6 +60,8 @@ export default function Checkout() {
     }
   }, []);
   
+  const isDevEnvironment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -69,7 +71,7 @@ export default function Checkout() {
     city: '',
     area: '',
     address: '',
-    paymentMethod: 'tap',
+    paymentMethod: isDevEnvironment ? 'tap' : 'cod',
     transferReceipt: '',
     cardNumber: '',
     expiry: '',
@@ -840,30 +842,32 @@ export default function Checkout() {
                 </h3>
 
                 <div className={styles.paymentGrid}>
-                  {/* Option 1: Tap Payments (Visa, MasterCard, Mada, Apple Pay) */}
-                  <div
-                    onClick={() => setForm({ ...form, paymentMethod: 'tap' })}
-                    className={styles.paymentCard}
-                    style={{
-                      border: form.paymentMethod === 'tap' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
-                      backgroundColor: form.paymentMethod === 'tap' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
-                      position: 'relative'
-                    }}
-                  >
-                    <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
-                      موصى به
+                  {/* Option 1: Tap Payments (Visa, MasterCard, Mada, Apple Pay) - Active in Local Dev until Live account approved */}
+                  {isDevEnvironment && (
+                    <div
+                      onClick={() => setForm({ ...form, paymentMethod: 'tap' })}
+                      className={styles.paymentCard}
+                      style={{
+                        border: form.paymentMethod === 'tap' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
+                        backgroundColor: form.paymentMethod === 'tap' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
+                        position: 'relative'
+                      }}
+                    >
+                      <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
+                        موصى به (تجريبي)
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
+                        <span>💳</span>
+                        <span>🍏</span>
+                      </div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                        بطاقة بنكية أو Apple Pay
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
+                        Visa / MasterCard / مدى / Apple Pay
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
-                      <span>💳</span>
-                      <span>🍏</span>
-                    </div>
-                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                      بطاقة بنكية أو Apple Pay
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
-                      Visa / MasterCard / مدى / Apple Pay
-                    </div>
-                  </div>
+                  )}
 
                   {/* Option 2: Cash on Delivery (Jordan only) */}
                   {isJordan && (

@@ -38,6 +38,7 @@ const WhatsAppIcon = () => (
 );
 
 export default function Footer({ onOpenPolicy }) {
+  const isDevEnvironment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   const { currentLang, t } = useLanguage();
   const [email, setEmail] = useState('');
   const [subMsg, setSubMsg] = useState('');
@@ -274,27 +275,29 @@ export default function Footer({ onOpenPolicy }) {
 
       </div>
 
-      {/* 🌟 Standalone Zahrat Beesan Techno Card */}
-      <div style={{ maxWidth: '1340px', margin: '0 auto 35px', padding: '0 20px' }}>
-        <div className={styles.technoCard}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            <div className={styles.technoIcon}>
-              💻
+      {/* 🌟 Standalone Zahrat Beesan Techno Card (Local Dev only until 100% completed) */}
+      {isDevEnvironment && (
+        <div style={{ maxWidth: '1340px', margin: '0 auto 35px', padding: '0 20px' }}>
+          <div className={styles.technoCard}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div className={styles.technoIcon}>
+                💻
+              </div>
+              <div>
+                <strong className={styles.technoTitle}>
+                  {t('technoSolutionsTitle') || 'زهرة بيسان للحلول التقنية والبرمجيات'}
+                </strong>
+                <span className={styles.technoSubtitle}>
+                  {t('technoSolutionsSubtitle') || 'تطوير المتاجر الإلكترونية، الأنظمة السحابية والذكاء الاصطناعي للأعمال'}
+                </span>
+              </div>
             </div>
-            <div>
-              <strong className={styles.technoTitle}>
-                {t('technoSolutionsTitle') || 'زهرة بيسان للحلول التقنية والبرمجيات'}
-              </strong>
-              <span className={styles.technoSubtitle}>
-                {t('technoSolutionsSubtitle') || 'تطوير المتاجر الإلكترونية، الأنظمة السحابية والذكاء الاصطناعي للأعمال'}
-              </span>
-            </div>
+            <a href="/tech" className={styles.technoBtn}>
+              <span>{t('visitTechno') || 'زيارة البوابة التقنية ←'}</span>
+            </a>
           </div>
-          <a href="/tech" className={styles.technoBtn}>
-            <span>{t('visitTechno') || 'زيارة البوابة التقنية ←'}</span>
-          </a>
         </div>
-      </div>
+      )}
 
       {/* Bottom Footer Bar */}
       <div className={styles.bottomBar}>
