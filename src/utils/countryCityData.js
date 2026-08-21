@@ -318,3 +318,121 @@ export function getCitiesForCountry(countryIdentifier, lang = 'ar') {
 
   return [];
 }
+
+export function getCountryIso(countryIdentifier) {
+  if (!countryIdentifier) return 'jo';
+  const lower = String(countryIdentifier).toLowerCase().trim();
+  for (const c of BILINGUAL_COUNTRIES) {
+    if (c.iso && (c.ar.toLowerCase() === lower || c.en.toLowerCase() === lower || c.iso === lower)) {
+      return c.iso;
+    }
+  }
+  return 'jo';
+}
+
+export function matchCountryFromAddress(detectedAddress) {
+  if (!detectedAddress) return 'الأردن';
+  const raw = typeof detectedAddress === 'string' ? detectedAddress : JSON.stringify(detectedAddress);
+  const lower = raw.toLowerCase();
+
+  for (const c of BILINGUAL_COUNTRIES) {
+    if (c.iso && (lower.includes(c.ar.toLowerCase()) || lower.includes(c.en.toLowerCase()) || lower.includes(c.iso))) {
+      return c.ar;
+    }
+  }
+  if (lower.includes('jordan') || lower.includes('أردن') || lower.includes('عمان') || lower.includes('amman')) return 'الأردن';
+  if (lower.includes('saudi') || lower.includes('سعودي') || lower.includes('riyadh') || lower.includes('رياض')) return 'السعودية';
+  if (lower.includes('emirates') || lower.includes('إمارات') || lower.includes('امارات') || lower.includes('dubai') || lower.includes('دبي')) return 'الإمارات';
+  if (lower.includes('kuwait') || lower.includes('كويت')) return 'الكويت';
+  if (lower.includes('qatar') || lower.includes('قطر')) return 'قطر';
+  if (lower.includes('bahrain') || lower.includes('بحرين')) return 'البحرين';
+  if (lower.includes('oman') || lower.includes('سلطنة عمان')) return 'عمان';
+  return 'الأردن';
+}
+
+export function matchCityFromAddress(data, countryIso) {
+  if (!data) return '';
+  const addr = data.address || {};
+  const rawText = `${addr.city || ''} ${addr.town || ''} ${addr.village || ''} ${addr.state || ''} ${addr.county || ''} ${addr.municipality || ''} ${addr.suburb || ''} ${addr.neighbourhood || ''} ${data.display_name || ''}`.toLowerCase();
+
+  const iso = countryIso || 'jo';
+  const cities = COUNTRY_CITIES_MAP[iso] || [];
+
+  // Special Jordan Governorates & Districts
+  if (iso === 'jo') {
+    if (rawText.includes('عاصمة') || rawText.includes('amman') || rawText.includes('عمان') || rawText.includes('ماركا') || rawText.includes('الجامعة') || rawText.includes('طارق') || rawText.includes('صويلح') || rawText.includes('خلدا') || rawText.includes('تلاع العلي') || rawText.includes('عبدون') || rawText.includes('دير غبار') || rawText.includes('الشميساني') || rawText.includes('جبل عمان') || rawText.includes('طبربور') || rawText.includes('شفا بدران') || rawText.includes('أبو نصير') || rawText.includes('الجبيهة') || rawText.includes('بيادر وادي السير') || rawText.includes('مرج الحمام') || rawText.includes('سحاب') || rawText.includes('الجيزة') || rawText.includes('الموقر') || rawText.includes('ناعور') || rawText.includes('الهاشمي') || rawText.includes('النصر') || rawText.includes('بسمان') || rawText.includes('اليرموك') || rawText.includes('بدر') || rawText.includes('رأس العين') || rawText.includes('زهران') || rawText.includes('العبدلي')) {
+      return 'عمان';
+    }
+    if (rawText.includes('البلقاء') || rawText.includes('balqa') || rawText.includes('السلط') || rawText.includes('salt') || rawText.includes('الفحيص') || rawText.includes('ماحص') || rawText.includes('عين الباشا') || rawText.includes('دير علا') || rawText.includes('الشونة الجنوبية')) {
+      return 'السلط / البلقاء';
+    }
+    if (rawText.includes('الزرقاء') || rawText.includes('zarqa') || rawText.includes('الرصيفة') || rawText.includes('الهاشمية') || rawText.includes('بيرين') || rawText.includes('الظليل') || rawText.includes('الأزرق')) {
+      return 'الزرقاء';
+    }
+    if (rawText.includes('إربد') || rawText.includes('اربد') || rawText.includes('irbid') || rawText.includes('الرمثا') || rawText.includes('بني عبيد') || rawText.includes('بني كنانة') || rawText.includes('الكورة') || rawText.includes('الأغوار الشمالية') || rawText.includes('الطيبة') || rawText.includes('الوسطية') || rawText.includes('المزار الشمالي')) {
+      return 'إربد';
+    }
+    if (rawText.includes('العقبة') || rawText.includes('aqaba') || rawText.includes('القويرة') || rawText.includes('وادي رم')) {
+      return 'العقبة';
+    }
+    if (rawText.includes('مادبا') || rawText.includes('madaba') || rawText.includes('ذيبان')) {
+      return 'مادبا';
+    }
+    if (rawText.includes('جرش') || rawText.includes('jerash') || rawText.includes('المصطبة') || rawText.includes('برما')) {
+      return 'جرش';
+    }
+    if (rawText.includes('عجلون') || rawText.includes('ajloun') || rawText.includes('كفرنجة') || rawText.includes('صخرة')) {
+      return 'عجلون';
+    }
+    if (rawText.includes('المفرق') || rawText.includes('mafraq') || rawText.includes('الرويشد') || rawText.includes('بلعما') || rawText.includes('الخالدية')) {
+      return 'المفرق';
+    }
+    if (rawText.includes('الكرك') || rawText.includes('karak') || rawText.includes('المزار الجنوبي') || rawText.includes('القصر') || rawText.includes('الأغوار الجنوبية') || rawText.includes('عي') || rawText.includes('فقوع') || rawText.includes('القطرانة')) {
+      return 'الكرك';
+    }
+    if (rawText.includes('الطفيلة') || rawText.includes('tafilah') || rawText.includes('بصيرا') || rawText.includes('الحسا')) {
+      return 'الطفيلة';
+    }
+    if (rawText.includes('معان') || rawText.includes('maan') || rawText.includes('البتراء') || rawText.includes('البترا') || rawText.includes('وادي موسى') || rawText.includes('الشوبك') || rawText.includes('الحسينية')) {
+      return 'معان';
+    }
+  }
+
+  // Exact & partial search in city list for any country
+  for (const c of cities) {
+    if (rawText.includes(c.ar.toLowerCase())) return c.ar;
+  }
+  for (const c of cities) {
+    if (c.en && rawText.includes(c.en.toLowerCase())) return c.ar;
+  }
+
+  // Saudi Arabia special matches
+  if (iso === 'sa') {
+    if (rawText.includes('الرياض') || rawText.includes('riyadh')) return 'الرياض';
+    if (rawText.includes('جدة') || rawText.includes('jeddah')) return 'جدة';
+    if (rawText.includes('مكة') || rawText.includes('makkah')) return 'مكة المكرمة';
+    if (rawText.includes('المدينة') || rawText.includes('medina') || rawText.includes('madinah')) return 'المدينة المنورة';
+    if (rawText.includes('الدمام') || rawText.includes('dammam')) return 'الدمام';
+    if (rawText.includes('الخبر') || rawText.includes('khobar')) return 'الخبر';
+    if (rawText.includes('الظهران') || rawText.includes('dhahran')) return 'الظهران';
+    if (rawText.includes('الأحساء') || rawText.includes('الهفوف') || rawText.includes('ahsa')) return 'الأحساء';
+    if (rawText.includes('القصيم') || rawText.includes('بريدة') || rawText.includes('عنيزة')) return 'بريدة / القصيم';
+    if (rawText.includes('تبوك') || rawText.includes('tabuk')) return 'تبوك';
+    if (rawText.includes('عسير') || rawText.includes('أبها') || rawText.includes('خميس مشيط')) return 'أبها / خميس مشيط';
+    if (rawText.includes('الطائف') || rawText.includes('taif')) return 'الطائف';
+  }
+
+  // UAE special matches
+  if (iso === 'ae') {
+    if (rawText.includes('دبي') || rawText.includes('dubai')) return 'دبي';
+    if (rawText.includes('أبوظبي') || rawText.includes('ابوظبي') || rawText.includes('abu dhabi')) return 'أبوظبي';
+    if (rawText.includes('الشارقة') || rawText.includes('sharjah')) return 'الشارقة';
+    if (rawText.includes('عجمان') || rawText.includes('ajman')) return 'عجمان';
+    if (rawText.includes('رأس الخيمة') || rawText.includes('ras al khaimah')) return 'رأس الخيمة';
+    if (rawText.includes('الفجيرة') || rawText.includes('fujairah')) return 'الفجيرة';
+    if (rawText.includes('العين') || rawText.includes('al ain')) return 'العين';
+  }
+
+  // Fallback to detected city or state
+  return addr.city || addr.town || addr.village || addr.state || '';
+}

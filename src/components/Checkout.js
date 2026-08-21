@@ -8,7 +8,8 @@ import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
 import { sendOrderConfirmationEmail } from '../utils/emailService';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-import { BILINGUAL_COUNTRIES, getCitiesForCountry } from '../utils/countryCityData';
+import { BILINGUAL_COUNTRIES, getCitiesForCountry, matchCountryFromAddress, matchCityFromAddress, getCountryIso } from '../utils/countryCityData';
+import MapLocationPicker from './MapLocationPicker';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
@@ -48,6 +49,7 @@ export default function Checkout() {
 
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
   const [showCountrySelect, setShowCountrySelect] = useState(false);
   const [countrySearch, setCountrySearch] = useState('');
@@ -166,13 +168,29 @@ export default function Checkout() {
           const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`);
           const data = await res.json();
           if (data && data.address) {
+            const detectedCountry = matchCountryFromAddress(data.address.country || data.display_name || form.country);
+            const iso = getCountryIso(detectedCountry);
+            const detectedCity = matchCityFromAddress(data, iso);
+            const detectedArea = data.address.suburb || data.address.neighbourhood || data.address.quarter || data.address.residential || '';
+            
+            const road = data.address.road || '';
+            const houseNumber = data.address.house_number || '';
+            const building = data.address.building || '';
+            let cleanAddress = [road, houseNumber, building].filter(Boolean).join(' ');
+            if (!cleanAddress || cleanAddress.length < 5) {
+              cleanAddress = data.display_name;
+            }
+
             setForm(f => ({
               ...f,
-              country: data.address.country || f.country,
+              country: detectedCountry || f.country,
               state: data.address.state || f.state,
-              city: data.address.city || data.address.town || data.address.village || f.city,
-              area: data.address.suburb || data.address.neighbourhood || f.area,
-              address: data.display_name || f.address
+              city: detectedCity || f.city,
+              area: detectedArea || f.area,
+              address: cleanAddress || f.address,
+              lat: latitude,
+              lng: longitude,
+              googleMapsLink: `https://maps.google.com/?q=${latitude},${longitude}`
             }));
           }
         } catch (err) {
@@ -184,8 +202,23 @@ export default function Checkout() {
       () => {
         setLocationError('يرجى السماح للمتصفح بالوصول لموقعك');
         setIsLocating(false);
-      }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
     );
+  };
+
+  const handleSelectLocationFromMap = (loc) => {
+    setForm(f => ({
+      ...f,
+      country: loc.country || f.country,
+      city: loc.city || f.city,
+      area: loc.area || f.area,
+      address: loc.address || f.address,
+      lat: loc.lat,
+      lng: loc.lng,
+      googleMapsLink: loc.mapUrl
+    }));
+    setLocationError('');
   };
 
   // Coupon handler
@@ -482,27 +515,50 @@ export default function Checkout() {
                     <span>2. عنوان التوصيل والشحن</span>
                   </h3>
                   
-                  <button
-                    type="button"
-                    onClick={handleGetLocation}
-                    disabled={isLocating}
-                    style={{
-                      background: 'none',
-                      border: '1px solid var(--gold)',
-                      color: 'var(--gold-dim)',
-                      padding: '6px 14px',
-                      borderRadius: '10px',
-                      fontSize: '0.82rem',
-                      fontWeight: 'bold',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}
-                  >
-                    <span>📍</span>
-                    <span>{isLocating ? 'جاري التحديد...' : 'تحديد موقعي تلقائياً'}</span>
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={handleGetLocation}
+                      disabled={isLocating}
+                      style={{
+                        background: 'none',
+                        border: '1px solid var(--gold, #c5a880)',
+                        color: 'var(--gold-dim, #9b723e)',
+                        padding: '6px 12px',
+                        borderRadius: '10px',
+                        fontSize: '0.82rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>📍</span>
+                      <span>{isLocating ? 'جاري التحديد...' : 'تحديد موقعي تلقائياً'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsMapPickerOpen(true)}
+                      style={{
+                        background: 'rgba(197, 168, 128, 0.12)',
+                        border: '1px solid var(--gold-dim, #c5a880)',
+                        color: 'var(--gold-dim, #9b723e)',
+                        padding: '6px 12px',
+                        borderRadius: '10px',
+                        fontSize: '0.82rem',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span>🗺️</span>
+                      <span>تحديد من الخريطة</span>
+                    </button>
+                  </div>
                 </div>
                 {locationError && <p style={{ color: '#dc2626', fontSize: '0.82rem', marginTop: '-10px', marginBottom: '15px' }}>{locationError}</p>}
 
@@ -882,6 +938,14 @@ export default function Checkout() {
           </div>
         </form>
       </main>
+
+      <MapLocationPicker
+        isOpen={isMapPickerOpen}
+        onClose={() => setIsMapPickerOpen(false)}
+        onSelectLocation={handleSelectLocationFromMap}
+        initialCountry={form.country}
+        initialCity={form.city}
+      />
 
       <Footer />
     </div>
