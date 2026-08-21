@@ -7,7 +7,7 @@ const tapCode = `
 const TAP_SECRET_KEY = process.env.TAP_SECRET_KEY || Buffer.from('c2tfdGVzdF95MmtoRElYcVlnQVE0OGQzZTU2Vk50b1I=', 'base64').toString('utf8');
 const TAP_PUBLIC_KEY = process.env.TAP_PUBLIC_KEY || Buffer.from('cGtfdGVzdF92SjhXbUJPckt5U3pSb2lRSGtHUFVUN2E=', 'base64').toString('utf8');
 
-app.post("/api/tap/create-charge", async (req, res) => {
+app.post(["/api/tap/create-charge", "*/api/tap/create-charge"], async (req, res) => {
   try {
     const { amount, currency, customer, orderId, orderItems, metadata, redirectUrl } = req.body;
     if (!amount || amount <= 0) {
@@ -34,7 +34,7 @@ app.post("/api/tap/create-charge", async (req, res) => {
       metadata: {
         orderId: String(orderId || ''),
         customerName: customer?.name || '',
-        ...metadata
+        ...(metadata || {})
       },
       customer: {
         first_name: firstName,
@@ -104,7 +104,7 @@ app.post("/api/tap/create-charge", async (req, res) => {
   }
 });
 
-app.get("/api/tap/verify-charge/:id", async (req, res) => {
+app.get(["/api/tap/verify-charge/:id", "*/api/tap/verify-charge/:id"], async (req, res) => {
   try {
     const { id } = req.params;
     const https = require('https');
@@ -153,7 +153,7 @@ app.get("/api/tap/verify-charge/:id", async (req, res) => {
 ['main_server.js', 'server.js', 'app.js'].forEach(file => {
   if (fs.existsSync(file)) {
     let content = fs.readFileSync(file, 'utf8');
-    // Remove old plain secret block if present
+    // Remove old block if present
     const oldIdx = content.indexOf('// 💳 TAP PAYMENTS GATEWAY');
     if (oldIdx !== -1) {
       const nextBlock = content.indexOf('app.post("/api/store-status"', oldIdx);
