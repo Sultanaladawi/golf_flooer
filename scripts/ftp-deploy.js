@@ -151,43 +151,10 @@ async function deployViaFTP() {
     console.log('app_offline remove notice:', e.message);
   }
 
+
   console.log('🎉 ALL FRESH ASSETS TRANSFERRED TO AZURE IN SECONDS VIA FTPS!');
   client.close();
-
-  // Trigger Azure App Service restart to guarantee immediate pickup of new node server process
-  try {
-    const msdeployProfile = profileBlocks.find(b => (getAttr(b, 'publishMethod') || '').toLowerCase() === 'msdeploy') || profileBlocks[0];
-    const rawUrl = getAttr(msdeployProfile, 'publishUrl') || '';
-    const scmHost = rawUrl.replace(/^https?:\/\//i, '').replace(/^ftp:\/\//i, '').replace(/:\d+$/, '').trim();
-    const scmUser = getAttr(msdeployProfile, 'userName') || userName;
-    const scmPwd = getAttr(msdeployProfile, 'userPWD') || userPWD;
-    const auth = 'Basic ' + Buffer.from(`${scmUser}:${scmPwd}`).toString('base64');
-    
-    const https = require('https');
-    await new Promise((resolve) => {
-      console.log(`🔄 Triggering Azure restart at ${scmHost} for ${scmUser}...`);
-      const req = https.request({
-        hostname: scmHost,
-        port: 443,
-        path: '/api/restart',
-        method: 'POST',
-        headers: {
-          'Authorization': auth,
-          'Content-Length': 0
-        }
-      }, res => {
-        console.log(`🔄 Azure App Service Restart HTTP status: ${res.statusCode}`);
-        resolve();
-      });
-      req.on('error', (e) => {
-        console.log(`⚠️ Restart notice: ${e.message}`);
-        resolve();
-      });
-      req.end();
-    });
-  } catch (err) {
-    console.log('⚠️ Restart trigger optional notice:', err.message);
-  }
+  console.log('✅ Azure deployment complete — app_offline removed, worker will restart automatically.');
 }
 
 async function runWithRetry() {
