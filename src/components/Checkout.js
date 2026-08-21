@@ -62,21 +62,81 @@ export default function Checkout() {
   
   const isDevEnvironment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    country: 'الأردن',
-    state: '',
-    city: '',
-    area: '',
-    address: '',
-    paymentMethod: isDevEnvironment ? 'tap' : 'cod',
-    transferReceipt: '',
-    cardNumber: '',
-    expiry: '',
-    cvc: ''
+  // 💾 Auto-restore saved customer shipping details for seamless 1-click checkout
+  const [hasRestoredData, setHasRestoredData] = useState(false);
+
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = localStorage.getItem('zb_customer_shipping_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.name || parsed.phone || parsed.address)) {
+          return {
+            name: parsed.name || '',
+            email: parsed.email || '',
+            phone: parsed.phone || '',
+            country: parsed.country || 'الأردن',
+            state: parsed.state || '',
+            city: parsed.city || '',
+            area: parsed.area || '',
+            address: parsed.address || '',
+            paymentMethod: isDevEnvironment ? 'tap' : 'cod',
+            transferReceipt: '',
+            cardNumber: '',
+            expiry: '',
+            cvc: ''
+          };
+        }
+      }
+    } catch (e) {}
+    return {
+      name: '',
+      email: '',
+      phone: '',
+      country: 'الأردن',
+      state: '',
+      city: '',
+      area: '',
+      address: '',
+      paymentMethod: isDevEnvironment ? 'tap' : 'cod',
+      transferReceipt: '',
+      cardNumber: '',
+      expiry: '',
+      cvc: ''
+    };
   });
+
+  // Track if saved data was active
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('zb_customer_shipping_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && (parsed.name || parsed.phone || parsed.address)) {
+          setHasRestoredData(true);
+        }
+      }
+    } catch (e) {}
+  }, []);
+
+  // 💾 Auto-save all customer shipping inputs in localStorage in real-time
+  useEffect(() => {
+    try {
+      if (form.name.trim() || form.phone.trim() || form.address.trim() || form.email.trim()) {
+        const toSave = {
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          country: form.country,
+          state: form.state,
+          city: form.city,
+          area: form.area,
+          address: form.address
+        };
+        localStorage.setItem('zb_customer_shipping_data', JSON.stringify(toSave));
+      }
+    } catch (e) {}
+  }, [form.name, form.email, form.phone, form.country, form.state, form.city, form.area, form.address]);
 
   const [errors, setErrors] = useState({});
   const [storeComment, setStoreComment] = useState('');
@@ -593,6 +653,44 @@ export default function Checkout() {
                   <User size={22} color="var(--gold-dim)" />
                   <span>1. بيانات المستلمة والتواصل</span>
                 </h3>
+
+                {hasRestoredData && (
+                  <div style={{
+                    marginBottom: '16px',
+                    backgroundColor: 'rgba(197, 168, 128, 0.1)',
+                    border: '1px solid rgba(197, 168, 128, 0.3)',
+                    borderRadius: '10px',
+                    padding: '8px 14px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.82rem',
+                    color: 'var(--gold-dim, #9b723e)'
+                  }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>✨</span>
+                      <span>تم استرجاع بياناتكِ السابقة تلقائياً لتسهيل وسرعة طلبكِ</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        try { localStorage.removeItem('zb_customer_shipping_data'); } catch(e){}
+                        setForm(f => ({ ...f, name: '', email: '', phone: '', address: '', area: '', city: '' }));
+                        setHasRestoredData(false);
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#888',
+                        fontSize: '0.76rem',
+                        cursor: 'pointer',
+                        textDecoration: 'underline'
+                      }}
+                    >
+                      تعبئة كعنوان جديد
+                    </button>
+                  </div>
+                )}
 
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
