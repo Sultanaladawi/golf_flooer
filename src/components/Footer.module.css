@@ -1,191 +1,104 @@
+/* =========================================================
+   👑 LUXURY ASSAF-STYLE FOOTER — ZAHRAT BEESAN
+   ========================================================= */
+
 .footer {
-  background: var(--cream-dark, #f2efe9);
-  color: var(--espresso, #1a1a1a);
-  padding: 0 0 20px;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 70px 20px 30px;
   position: relative;
-  overflow: hidden;
-  border-top: 1.5px solid rgba(197, 168, 128, 0.35);
-  font-family: 'DM Sans', 'Inter', 'Cairo', sans-serif;
-  transition: background 0.3s ease, color 0.3s ease;
+  border-top: 1px solid rgba(197, 168, 128, 0.2);
+  font-family: inherit;
 }
 
-/* 👑 Top Royal Assurances Banner */
-.topAssuranceBanner {
-  background: linear-gradient(135deg, rgba(197, 168, 128, 0.12) 0%, rgba(197, 168, 128, 0.05) 100%);
-  color: var(--espresso, #1a1a1a);
-  border-bottom: 1px solid rgba(197, 168, 128, 0.25);
-  padding: 24px 0;
-  margin-bottom: 40px;
-}
-
-.assuranceInner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 30px;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 25px;
-}
-
-.assuranceItem {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.assuranceIcon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(197, 168, 128, 0.15);
-  border: 1.5px solid rgba(197, 168, 128, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--gold-dim, #9f7d4e);
-}
-
-.assuranceTitle {
-  display: block;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--espresso, #1a1a1a);
-  margin-bottom: 2px;
-}
-
-.assuranceDesc {
-  margin: 0;
-  font-size: 0.82rem;
-  color: var(--espresso-mid, #4a4a4a);
-  line-height: 1.4;
-}
-
-/* Main Grid */
 .inner {
-  max-width: 1280px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 30px 30px;
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr;
-  gap: 35px;
+  grid-template-columns: 1.4fr 1fr 1fr 1.3fr;
+  gap: 40px;
+  padding-bottom: 50px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .brandCol {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
-.logoImg {
-  height: 55px;
-  width: auto;
-  object-fit: contain;
-  border-radius: 10px;
-}
-
-.brandDesc {
-  color: var(--espresso-mid, #4a4a4a);
-  font-size: 0.9rem;
-  font-weight: 500;
-  line-height: 1.8;
+.brandLogo {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-size: 2.2rem;
+  letter-spacing: 4px;
+  font-weight: 900;
+  color: #ffffff;
   margin: 0;
+  text-transform: uppercase;
 }
 
-.socialGroup {
+.brandSlogan {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+.trustBadgesRow {
   display: flex;
-  gap: 10px;
-  margin-top: 5px;
+  align-items: center;
+  gap: 15px;
+  margin-top: 8px;
 }
 
-.socialIcon {
-  width: 38px;
-  height: 38px;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.35);
-  border-radius: 50%;
+.trustBadgeBox {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.8);
+  border-right: 2px solid rgba(197, 168, 128, 0.4);
+  padding-right: 12px;
+}
+
+.trustBadgeLabel {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.trustBadgeVal {
+  font-weight: 800;
+  color: var(--gold, #c5a880);
+  font-family: monospace;
+  font-size: 0.88rem;
+  direction: ltr;
+}
+
+.saudiBadgeIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  background: #006c35;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--espresso, #1a1a1a);
-  text-decoration: none;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
-}
-
-.socialIconInsta:hover {
-  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-  transform: translateY(-4px) scale(1.1);
-  box-shadow: 0 8px 20px rgba(225, 48, 108, 0.4);
-}
-
-.socialIconFb:hover {
-  background: #1877F2 !important;
-  color: #ffffff !important;
-  border-color: transparent !important;
-  transform: translateY(-4px) scale(1.1);
-  box-shadow: 0 8px 20px rgba(24, 119, 242, 0.4);
-}
-
-.socialIconTikTok:hover {
-  background: #010101 !important;
-  color: #00f2fe !important;
-  border-color: #fe2c55 !important;
-  transform: translateY(-4px) scale(1.1);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
-}
-
-.socialIconSnap:hover {
-  background: #FFFC00 !important;
-  color: #000000 !important;
-  border-color: transparent !important;
-  transform: translateY(-4px) scale(1.1);
-  box-shadow: 0 8px 20px rgba(255, 252, 0, 0.5);
-}
-
-.onlineBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: rgba(197, 168, 128, 0.15);
-  border: 1px solid rgba(197, 168, 128, 0.3);
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--espresso, #1a1a1a);
-  width: fit-content;
-}
-
-.liveDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #16a34a;
-  box-shadow: 0 0 8px rgba(22, 163, 74, 0.5);
+  color: #fff;
+  font-size: 1.4rem;
 }
 
 .colHeader {
-  font-size: 1.05rem;
-  font-weight: 900;
-  color: var(--gold-dim, #96744c);
-  margin: 0 0 20px;
-  position: relative;
-  padding-bottom: 8px;
-}
-
-.colHeader::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  inset-inline-start: 0;
-  width: 35px;
-  height: 2.5px;
-  background: var(--gold, #c5a880);
-  border-radius: 2px;
-  box-shadow: 0 0 6px rgba(197, 168, 128, 0.4);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 10px 0;
+  letter-spacing: 0.5px;
 }
 
 .linkList {
@@ -194,523 +107,184 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 11px;
 }
 
 .linkList li a,
-.linkList li button,
-.footerLink {
-  color: var(--espresso, #1a1a1a) !important;
+.linkList li button {
+  color: rgba(255, 255, 255, 0.75);
   text-decoration: none;
-  font-size: 0.92rem !important;
-  font-weight: 700 !important;
-  font-family: inherit !important;
+  font-size: 0.92rem;
+  font-weight: 500;
   background: none;
   border: none;
   padding: 0;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+  transition: color 0.2s ease, transform 0.2s ease;
   display: inline-block;
-  text-align: start;
+  text-align: right;
 }
 
 .linkList li a:hover,
-.linkList li button:hover,
-.footerLink:hover {
-  color: var(--gold-dim, #96744c) !important;
-  transform: translateX(4px);
+.linkList li button:hover {
+  color: var(--gold, #c5a880);
+  transform: translateX(-4px);
 }
 
-.contactItem {
+/* Contact Rows with Boxed Icons (Assaf Style) */
+.contactBoxRow {
   display: flex;
   align-items: center;
-  gap: 10px;
-  color: var(--espresso, #1a1a1a) !important;
+  justify-content: flex-start;
+  gap: 14px;
+  color: #ffffff;
   text-decoration: none;
-  font-size: 0.92rem !important;
-  font-weight: 700 !important;
-  margin-bottom: 14px;
-  transition: all 0.25s ease;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  transition: opacity 0.2s ease;
 }
 
-.contactItem:hover {
-  color: var(--gold-dim, #96744c) !important;
-  transform: translateX(3px);
+.contactBoxRow:hover {
+  opacity: 0.85;
 }
 
-.newsletterDesc {
-  font-size: 0.85rem;
-  color: var(--espresso-mid, #4a4a4a);
-  line-height: 1.6;
-  margin: 0 0 14px;
-}
-
-.newsletterForm {
+.contactBoxIcon {
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+/* Floating Scroll to top Button (Assaf Style) */
+.scrollToTopBtn {
+  position: absolute;
+  top: -24px;
+  left: 40px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #000000;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, background-color 0.25s ease;
+  z-index: 10;
+}
+
+.scrollToTopBtn:hover {
+  transform: translateY(-4px);
+  background: var(--gold, #c5a880);
+}
+
+/* ── Bottom Bar ── */
+.bottomBar {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 30px;
+  max-width: 1440px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.copyrightText {
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.85rem;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+/* Payment Chips Row (Assaf Clean White Badges) */
+.paymentBadgesRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.payBadge {
+  background: #ffffff;
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #1a1a1a;
+}
+
+.payBadge img {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Square Framed Social Icons (Assaf Style) */
+.socialSquareGroup {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.inputWrap {
-  display: flex;
-  align-items: center;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.4);
-  border-radius: 12px;
-  padding: 4px 6px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-}
-
-.newsletterInput {
-  flex: 1;
-  border: none;
-  background: transparent;
-  outline: none;
-  padding: 8px 10px;
-  font-size: 0.85rem;
-  color: var(--espresso, #1a1a1a);
-  font-family: inherit;
-}
-
-.newsletterInput::placeholder {
-  color: var(--espresso-dim, #888888);
-}
-
-.subscribeBtn {
-  background: linear-gradient(135deg, #c5a880 0%, #a6865d 100%);
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
+.socialSquareBtn {
   width: 36px;
   height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-
-.subscribeBtn:hover {
-  transform: scale(1.05);
-}
-
-.subscribeSuccessMsg {
-  font-size: 0.82rem;
-  color: var(--gold-dim, #96744c);
-  margin: 4px 0 0;
-  font-weight: 800;
-}
-
-.paymentSection {
-  margin-top: 20px;
-}
-
-.paymentTitle {
-  display: block;
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--espresso-mid, #4a4a4a);
-  margin-bottom: 8px;
-}
-
-.paymentBadges {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.payChip {
-  font-size: 0.74rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 6px;
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.35);
-  color: var(--espresso, #1a1a1a);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-}
-
-/* 🏛️ Official Commercial & Tax Trust Seal Card */
-.trustSealCard {
-  margin-top: 10px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: var(--bg-surface, #ffffff);
-  border: 1.5px solid rgba(197, 168, 128, 0.4);
-  box-shadow: 0 6px 20px rgba(197, 168, 128, 0.12), 0 2px 6px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: all 0.3s ease;
-}
-
-.trustSealCard:hover {
-  border-color: var(--gold, #c5a880);
-  box-shadow: 0 10px 25px rgba(197, 168, 128, 0.22);
-  transform: translateY(-2px);
-}
-
-.trustSealHeader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(197, 168, 128, 0.25);
-}
-
-.trustBadgeIconWrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  background: rgba(197, 168, 128, 0.18);
-  border: 1px solid rgba(197, 168, 128, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--gold-dim, #96744c);
-}
-
-.trustHeaderText {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.trustTag {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: var(--espresso, #1a1a1a);
-  letter-spacing: 0.2px;
-}
-
-.trustMinistry {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--gold-dim, #96744c);
-}
-
-.trustSealBody {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.trustRow {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.trustLabel {
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--espresso-mid, #665b52);
-}
-
-.trustName {
-  font-size: 0.82rem;
-  font-weight: 900;
-  color: var(--espresso, #1a1a1a);
-  line-height: 1.4;
-}
-
-.trustNumbersGrid {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.trustNumBox {
-  background: var(--cream-dark, #faf8f5);
-  border: 1px solid rgba(197, 168, 128, 0.35);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
   border-radius: 8px;
-  padding: 6px 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.trustNumLabel {
-  font-size: 0.74rem;
-  font-weight: 700;
-  color: var(--espresso-mid, #665b52);
-}
-
-.trustNumValue {
-  font-size: 0.9rem;
-  font-weight: 900;
-  color: var(--espresso, #111111);
-  font-family: 'DM Sans', monospace, sans-serif;
-  letter-spacing: 0.5px;
-  direction: ltr;
-}
-
-.trustFooterBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--gold-dim, #8f6a3d);
-  background: rgba(197, 168, 128, 0.12);
-  padding: 4px 10px;
-  border-radius: 6px;
-  border: 1px solid rgba(197, 168, 128, 0.25);
-  width: fit-content;
-}
-
-.verifiedDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #16a34a;
-  box-shadow: 0 0 6px rgba(22, 163, 74, 0.5);
-}
-
-/* Standalone Techno Card */
-.technoCard {
-  background: var(--bg-surface, #ffffff);
-  border: 1.5px solid rgba(197, 168, 128, 0.4);
-  border-radius: 16px;
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  box-shadow: 0 6px 20px rgba(197, 168, 128, 0.12), 0 2px 6px rgba(0,0,0,0.02);
-}
-
-.technoIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(197, 168, 128, 0.18);
-  border: 1px solid rgba(197, 168, 128, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
-}
-
-.technoTitle {
-  color: var(--espresso, #1a1a1a);
-  font-size: 1.05rem;
-  font-weight: 900;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.technoSubtitle {
-  color: var(--espresso-mid, #4a4a4a);
-  font-size: 0.84rem;
-}
-
-.technoBtn {
-  background: linear-gradient(135deg, #c5a880 0%, #a6865d 100%);
   color: #ffffff;
-  padding: 10px 22px;
-  border-radius: 25px;
-  font-weight: 800;
-  font-size: 0.88rem;
   text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 4px 15px rgba(197, 168, 128, 0.35);
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.technoBtn:hover {
+.socialSquareBtn:hover {
+  border-color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
 
-/* Bottom Bar */
-.bottomBar {
-  border-top: 1px solid rgba(197, 168, 128, 0.25);
-  padding-top: 20px;
-  margin-top: 15px;
-  background: rgba(197, 168, 128, 0.08);
-}
-
-.bottomInner {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.copyright {
-  margin: 0;
-  font-size: 0.85rem;
-  color: var(--espresso-mid, #4a4a4a);
-  line-height: 1.7;
-}
-
-.copyright strong {
-  color: var(--espresso, #1a1a1a);
-}
-
-.scrollTopBtn {
-  background: var(--bg-surface, #ffffff);
-  border: 1px solid rgba(197, 168, 128, 0.4);
-  color: var(--gold-dim, #96744c);
-  padding: 6px 16px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.25s ease;
-}
-
-.scrollTopBtn:hover {
-  background: #c5a880;
-  color: #ffffff;
-  border-color: #c5a880;
-}
-
-/* ══════════════════════════════════════
-   🌑 Dark Mode Overrides for Footer
-   ══════════════════════════════════════ */
-:global([data-theme="dark"]) .footer {
-  background: linear-gradient(180deg, #18120d 0%, #110c08 100%);
-  color: #f5f2eb;
-  border-top: 2px solid #c5a880;
-}
-
-:global([data-theme="dark"]) .topAssuranceBanner {
-  background: linear-gradient(135deg, #241b12 0%, #3a2b1d 50%, #241b12 100%);
-  border-bottom: 1px solid rgba(197, 168, 128, 0.4);
-}
-
-:global([data-theme="dark"]) .assuranceTitle {
-  color: #e5c287;
-}
-
-:global([data-theme="dark"]) .assuranceDesc {
-  color: #e0ded9;
-}
-
-:global([data-theme="dark"]) .brandDesc {
-  color: #dcd8d0;
-}
-
-:global([data-theme="dark"]) .socialIcon {
-  background: rgba(197, 168, 128, 0.15);
-  color: #f5f2eb;
-}
-
-:global([data-theme="dark"]) .colHeader {
-  color: #e5c287;
-}
-
-:global([data-theme="dark"]) .linkList li a,
-:global([data-theme="dark"]) .linkList li button,
-:global([data-theme="dark"]) .footerLink {
-  color: #f0ece4 !important;
-}
-
-:global([data-theme="dark"]) .contactItem {
-  color: #f0ece4 !important;
-}
-
-:global([data-theme="dark"]) .payChip {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
-:global([data-theme="dark"]) .trustSealCard {
-  background: linear-gradient(145deg, #241b12 0%, #1c150e 100%);
-  border: 1.5px solid #c5a880;
-}
-
-:global([data-theme="dark"]) .trustTag {
-  color: #ffffff;
-}
-
-:global([data-theme="dark"]) .trustMinistry {
-  color: #e5c287;
-}
-
-:global([data-theme="dark"]) .trustName {
-  color: #ffd700;
-}
-
-:global([data-theme="dark"]) .trustNumBox {
-  background: #140e0a;
-  border-color: rgba(197, 168, 128, 0.4);
-}
-
-:global([data-theme="dark"]) .trustNumLabel {
-  color: #dcd7cf;
-}
-
-:global([data-theme="dark"]) .trustNumValue {
-  color: #ffd700;
-}
-
-:global([data-theme="dark"]) .technoCard {
-  background: linear-gradient(135deg, #241b12 0%, #1c150e 100%);
-  border-color: #c5a880;
-}
-
-:global([data-theme="dark"]) .technoTitle {
-  color: #ffd700;
-}
-
-:global([data-theme="dark"]) .technoSubtitle {
-  color: #e0ded9;
-}
-
-:global([data-theme="dark"]) .bottomBar {
-  background: #0e0906;
-}
-
-:global([data-theme="dark"]) .copyright {
-  color: #dcd7cf;
-}
-
-:global([data-theme="dark"]) .copyright strong {
-  color: #ffd700;
-}
-
-/* Responsive */
-@media (max-width: 1100px) {
+@media (max-width: 1024px) {
   .inner {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .inner {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: 30px;
   }
-  .assuranceInner {
-    grid-template-columns: repeat(2, 1fr);
+  .bottomBar {
+    flex-direction: column;
+    text-align: center;
+    gap: 20px;
   }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .inner {
     grid-template-columns: 1fr;
-    padding: 0 20px 25px;
+    gap: 30px;
   }
-  .assuranceInner {
-    grid-template-columns: 1fr;
-    padding: 0 20px;
-  }
-  .bottomInner {
-    flex-direction: column;
-    text-align: center;
+  .scrollToTopBtn {
+    left: 20px;
+    top: -20px;
+    width: 42px;
+    height: 42px;
   }
 }
