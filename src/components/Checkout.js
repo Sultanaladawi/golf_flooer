@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart, getSafeImageUrl } from '../context/CartContext';
+import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { trackPurchase } from '../utils/socialPixel';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
@@ -795,7 +795,7 @@ export default function Checkout() {
                       src={getItemImage(item)} 
                       alt={item.name} 
                       style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} 
-                      onError={(e) => { e.target.onerror = null; e.target.src = '/favicon-512.png'; }}
+                      onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE_DATA_URI; }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.88rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>

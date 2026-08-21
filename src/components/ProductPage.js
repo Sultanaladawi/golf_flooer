@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -182,8 +182,8 @@ export default function ProductPage() {
       name: product.name,
       price: product.price_display,
       priceNum: parseFloat(product.price_num) || 0,
-      image: images[0] || '/favicon-512.png',
-      image_url: images[0] || '/favicon-512.png',
+      image: images[0] || FALLBACK_IMAGE_DATA_URI,
+      image_url: images[0] || FALLBACK_IMAGE_DATA_URI,
       size: selectedSize,
       weight: currentWeight,
       variant: selectedVariant ? selectedVariant.color_name : null,

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart, getSafeImageUrl } from '../context/CartContext';
+import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import Navbar from './Navbar';
@@ -185,7 +185,7 @@ export default function CartPage() {
                           src={getItemImage(item)} 
                           alt={item.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => { e.target.onerror = null; e.target.src = '/favicon-512.png'; }}
+                          onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE_DATA_URI; }}
                         />
                       </div>
 

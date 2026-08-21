@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, ChevronRight, ChevronLeft, Play, ShoppingBag, Ruler, Shirt, Sparkles, CheckCircle2, Share2 } from 'lucide-react';
-import { useCart } from '../context/CartContext';
+import { useCart, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import styles from './ProductModal.module.css';
@@ -367,8 +367,8 @@ export default function ProductModal({ model, onClose }) {
       priceNum: priceNumVal,
       price: `${priceNumVal.toFixed(2)} JOD`,
       size: sizeVal,
-      image: imagesArray[0] || '/favicon-512.png',
-      image_url: imagesArray[0] || '/favicon-512.png',
+      image: imagesArray[0] || FALLBACK_IMAGE_DATA_URI,
+      image_url: imagesArray[0] || FALLBACK_IMAGE_DATA_URI,
       variantId: selectedVariant ? selectedVariant.id : null,
       variantName: selectedVariant ? selectedVariant.color_name : null
     });

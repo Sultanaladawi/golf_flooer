@@ -59,11 +59,13 @@ function cartReducer(state, action) {
     }
 }
 
+export const FALLBACK_IMAGE_DATA_URI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' viewBox='0 0 400 500'%3E%3Crect width='100%25' height='100%25' fill='%23faf7f2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23c5a880'%3Eزهرة بيسان%3C/text%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%238c7355'%3EHAUTE COUTURE%3C/text%3E%3C/svg%3E";
+
 export const getSafeImageUrl = (img) => {
-  if (!img || typeof img !== 'string') return '/favicon-512.png';
+  if (!img || typeof img !== 'string') return FALLBACK_IMAGE_DATA_URI;
   let trimmed = img.trim();
-  if (!trimmed || trimmed === '12.png' || trimmed === '/12.png' || trimmed === '/images/12.png') {
-    return '/favicon-512.png';
+  if (!trimmed || trimmed === '12.png' || trimmed === '/12.png' || trimmed === '/images/12.png' || trimmed.includes('favicon-512.png')) {
+    return FALLBACK_IMAGE_DATA_URI;
   }
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
     return trimmed;
@@ -79,7 +81,7 @@ export const getSafeImageUrl = (img) => {
 
 const STORAGE_KEY = 'Zahrat Beesan_Online_cart';
 
-const CART_VERSION = 4; // Increment to auto-fix and sanitize all cached carts
+const CART_VERSION = 5; // Bump to force-sanitize all carts to safe Data URI
 
 function sanitizeCart(cart) {
   if (!cart || !Array.isArray(cart.items)) return { items: [], _v: CART_VERSION };
@@ -104,10 +106,9 @@ function loadCart() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return { items: [], _v: CART_VERSION };
     const parsed = JSON.parse(stored);
-    // If cart version is old or missing, sanitize all items
     if (!parsed._v || parsed._v < CART_VERSION) {
       const fixed = sanitizeCart(parsed);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(fixed)); // Save fixed cart immediately
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(fixed));
       return fixed;
     }
     return parsed;

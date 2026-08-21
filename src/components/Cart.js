@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart, getSafeImageUrl } from '../context/CartContext';
+import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -91,7 +91,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
                 <img
                   src={getItemImage(item)}
                   alt={item.name}
-                  onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE_DATA_URI; }}
                   style={{ width: '65px', height: '85px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(196, 164, 132, 0.2)' }}
                 />
                 <div style={{ flex: 1 }}>
