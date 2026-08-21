@@ -41,6 +41,7 @@ jobs:
           # Copy complete build folder to BOTH root and build/ subfolder
           mkdir -p deploy_stage/build deploy_stage/public deploy_stage/scripts deploy_stage/server deploy_stage/data/labels
           cp -r server/* deploy_stage/server/ 2>/dev/null || true
+          cp server/tapRoutes.js deploy_stage/server/tapRoutes.js 2>/dev/null || true
           cp -r build/static deploy_stage/build/
           cp build/index.html deploy_stage/build/
           cp -r build/static deploy_stage/

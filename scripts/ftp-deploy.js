@@ -74,6 +74,15 @@ async function deployViaFTP() {
 
   await client.ensureDir('/site/wwwroot');
   
+  const offlinePath = path.join(localDeployDir, 'app_offline.htm');
+  fs.writeFileSync(offlinePath, '<html><body>Updating server...</body></html>', 'utf8');
+  try {
+    console.log('🛑 Placing app_offline.htm to cleanly recycle IIS worker and release locks...');
+    await client.uploadFrom(offlinePath, '/site/wwwroot/app_offline.htm');
+  } catch (e) {
+    console.log('app_offline notice:', e.message);
+  }
+
   // Upload root server files
   const rootFiles = ['index.html', 'server_v2.js', 'main_server.js', 'server.js', 'app.js', 'package.json', 'web.config', 'Zahrat_Beesan_Catalog_2026.pdf'];
   for (const f of rootFiles) {
@@ -135,6 +144,13 @@ async function deployViaFTP() {
     }
   }
 
+  try {
+    console.log('🚀 Removing app_offline.htm to start fresh worker with new code...');
+    await client.remove('/site/wwwroot/app_offline.htm');
+  } catch (e) {
+    console.log('app_offline remove notice:', e.message);
+  }
+
   console.log('🎉 ALL FRESH ASSETS TRANSFERRED TO AZURE IN SECONDS VIA FTPS!');
   client.close();
 
@@ -143,11 +159,13 @@ async function deployViaFTP() {
     const msdeployProfile = profileBlocks.find(b => (getAttr(b, 'publishMethod') || '').toLowerCase() === 'msdeploy') || profileBlocks[0];
     const rawUrl = getAttr(msdeployProfile, 'publishUrl') || '';
     const scmHost = rawUrl.replace(/^https?:\/\//i, '').replace(/^ftp:\/\//i, '').replace(/:\d+$/, '').trim();
-    const auth = 'Basic ' + Buffer.from(`${userName}:${userPWD}`).toString('base64');
+    const scmUser = getAttr(msdeployProfile, 'userName') || userName;
+    const scmPwd = getAttr(msdeployProfile, 'userPWD') || userPWD;
+    const auth = 'Basic ' + Buffer.from(`${scmUser}:${scmPwd}`).toString('base64');
     
     const https = require('https');
     await new Promise((resolve) => {
-      console.log(`🔄 Triggering Azure restart at ${scmHost}...`);
+      console.log(`🔄 Triggering Azure restart at ${scmHost} for ${scmUser}...`);
       const req = https.request({
         hostname: scmHost,
         port: 443,
