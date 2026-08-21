@@ -200,14 +200,14 @@ export default function Footer({ onOpenPolicy }) {
         <div className={styles.col}>
           <h4 className={styles.colHeader}>{t('customerCare') || 'خدمة العملاء والسياسات'}</h4>
           <ul className={styles.linkList}>
-            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('returns')}>{t('exchangeReturnPolicy') || 'سياسة الاستبدال والاسترجاع'}</button></li>
-            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy') || 'سياسة الخصوصية والشحن'}</button></li>
-            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan') || 'عن زهرة بيسان'}</button></li>
-            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide') || 'دليل المقاسات الذكي'}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('returns')}>{t('exchangeReturnPolicy') || 'سياسة الاستبدال والإرجاع'}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('privacy')}>{t('privacyPolicy') || 'سياسة الاستخدام والخصوصية'}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('about')}>{t('aboutZahratBeesan') || 'عن دار زهرة بيسان'}</button></li>
+            <li><button type="button" onClick={() => onOpenPolicy && onOpenPolicy('size')}>{t('smartSizeGuide') || 'حاسبة ومساعد المقاسات الذكي'}</button></li>
             <li><a href="/gift-cards">{t('royalGiftCards') || 'بطاقات الهدايا الملكية'}</a></li>
-            <li><a href="/account">{t('vipLounge') || 'حسابي وصالة كبار العملاء'}</a></li>
-            <li><a href="/blog">{t('magazineAndElegance') || 'مجلة وأناقة زهرة بيسان'}</a></li>
-            <li><a href="/Zahrat_Beesan_Catalog_2026.pdf" download="Zahrat_Beesan_Catalog_2026.pdf" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--gold-dim, #96744c)', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>📥 {t('downloadPdfCatalog') || 'تحميل كتالوج 2026 PDF'}</a></li>
+            <li><a href="/account">{t('vipLounge') || 'نادي العضوية الملكي (VIP Lounge)'}</a></li>
+            <li><a href="/blog">{t('magazineAndElegance') || 'مجلة زهرة بيسان والأناقة'}</a></li>
+            <li><a href="/Zahrat_Beesan_Catalog_2026.pdf" download="Zahrat_Beesan_Catalog_2026.pdf" target="_blank" rel="noopener noreferrer">{t('downloadPdfCatalog') || 'تحميل كتالوج المنتجات (PDF)'}</a></li>
           </ul>
         </div>
 
