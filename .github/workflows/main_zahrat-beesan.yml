@@ -24,6 +24,7 @@ jobs:
           CI=false GENERATE_SOURCEMAP=false DISABLE_ESLINT_PLUGIN=true NODE_OPTIONS="--max-old-space-size=4096" npm run build
           node scripts/create-aliases.js
           node scripts/embed-html.js
+          node scripts/insert-tap-clean.js
           
           # Prepare ultra-fast minimal deployment package (<15MB)
           mkdir -p deploy_stage
