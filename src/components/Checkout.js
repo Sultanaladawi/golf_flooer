@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart, getSafeImageUrl } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { trackPurchase } from '../utils/socialPixel';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
@@ -394,21 +394,8 @@ export default function Checkout() {
   // ── MAIN FULL-PAGE CHECKOUT ──
   const getItemImage = (item) => {
     if (!item) return '/favicon-512.png';
-    if (item.image && typeof item.image === 'string') {
-      const trimmed = item.image.trim();
-      if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
-        if (trimmed.startsWith('/') || trimmed.startsWith('http') || trimmed.startsWith('data:')) return trimmed;
-        return `/images/${trimmed}`;
-      }
-    }
-    if (item.images && Array.isArray(item.images)) {
-      const valid = item.images.filter(i => i && i !== '12.png' && i !== '/12.png');
-      if (valid.length > 0) {
-        if (valid[0].startsWith('/') || valid[0].startsWith('http') || valid[0].startsWith('data:')) return valid[0];
-        return `/images/${valid[0]}`;
-      }
-    }
-    return '/favicon-512.png';
+    const rawImg = item.image || (item.images && item.images[0]) || item.image_url;
+    return getSafeImageUrl(rawImg);
   };
 
   const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';

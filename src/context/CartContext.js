@@ -7,16 +7,21 @@ function cartReducer(state, action) {
   switch (action.type) {
     case 'ADD_ITEM': {
       const addQty = action.item.qty || 1;
-      const existing = state.items.find(i => i.id === action.item.id);
+      const formattedItem = {
+        ...action.item,
+        image: getSafeImageUrl(action.item.image),
+        qty: addQty
+      };
+      const existing = state.items.find(i => i.id === formattedItem.id);
       if (existing) {
         return {
           ...state,
           items: state.items.map(i =>
-            i.id === action.item.id ? { ...i, qty: i.qty + addQty } : i
+            i.id === formattedItem.id ? { ...i, qty: i.qty + addQty } : i
           ),
         };
       }
-      return { ...state, items: [...state.items, { ...action.item, qty: addQty }] };
+      return { ...state, items: [...state.items, formattedItem] };
     }
 
     case 'REMOVE_ITEM':
@@ -54,9 +59,27 @@ function cartReducer(state, action) {
     }
 }
 
+export const getSafeImageUrl = (img) => {
+  if (!img || typeof img !== 'string') return '/favicon-512.png';
+  let trimmed = img.trim();
+  if (!trimmed || trimmed === '12.png' || trimmed === '/12.png' || trimmed === '/images/12.png') {
+    return '/favicon-512.png';
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/')) {
+    trimmed = trimmed.substring(1);
+  }
+  if (trimmed.startsWith('images/') || trimmed.startsWith('uploads/')) {
+    return `/${trimmed}`;
+  }
+  return `/images/${trimmed}`;
+};
+
 const STORAGE_KEY = 'Zahrat Beesan_Online_cart';
 
-const CART_VERSION = 2; // Increment this to force-fix old cached carts
+const CART_VERSION = 4; // Increment to auto-fix and sanitize all cached carts
 
 function sanitizeCart(cart) {
   if (!cart || !Array.isArray(cart.items)) return { items: [], _v: CART_VERSION };
@@ -66,9 +89,12 @@ function sanitizeCart(cart) {
     items: cart.items.map(item => {
       const price = parseFloat(item.priceNum);
       const isAddon = String(item.id).startsWith('addon-');
-      // Any addon with zero/missing price gets corrected to 0.50
       const fixedPrice = isAddon && (!price || price <= 0) ? 0.50 : (price || 0);
-      return { ...item, priceNum: fixedPrice };
+      return { 
+        ...item, 
+        priceNum: fixedPrice,
+        image: getSafeImageUrl(item.image)
+      };
     })
   };
 }

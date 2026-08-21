@@ -367,7 +367,8 @@ export default function ProductModal({ model, onClose }) {
       priceNum: priceNumVal,
       price: `${priceNumVal.toFixed(2)} JOD`,
       size: sizeVal,
-      image: imagesArray[0] || '/12.png',
+      image: imagesArray[0] || '/favicon-512.png',
+      image_url: imagesArray[0] || '/favicon-512.png',
       variantId: selectedVariant ? selectedVariant.id : null,
       variantName: selectedVariant ? selectedVariant.color_name : null
     });
