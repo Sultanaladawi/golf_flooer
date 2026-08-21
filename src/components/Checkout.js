@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
+import { useCart, getSafeImageUrl, extractItemImage, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAlert } from '../context/AlertContext';
 import { trackPurchase } from '../utils/socialPixel';
@@ -428,9 +428,7 @@ export default function Checkout() {
 
   // ── MAIN FULL-PAGE CHECKOUT ──
   const getItemImage = (item) => {
-    if (!item) return '/favicon-512.png';
-    const rawImg = item.image || (item.images && item.images[0]) || item.image_url;
-    return getSafeImageUrl(rawImg);
+    return extractItemImage(item);
   };
 
   const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';

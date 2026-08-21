@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
+import { useCart, getSafeImageUrl, extractItemImage, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -64,9 +64,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
   }
 
   const getItemImage = (item) => {
-    if (!item) return '/favicon-512.png';
-    const rawImg = item.image || (item.images && item.images[0]) || item.image_url;
-    return getSafeImageUrl(rawImg);
+    return extractItemImage(item);
   };
 
   return (

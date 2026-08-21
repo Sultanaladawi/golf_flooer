@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
+import { useCart, getSafeImageUrl, extractItemImage, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import Navbar from './Navbar';
@@ -61,9 +61,7 @@ export default function CartPage() {
   const finalCartTotal = Math.max(totalPrice - discountAmount, 0);
 
   const getItemImage = (item) => {
-    if (!item) return '/favicon-512.png';
-    const rawImg = item.image || (item.images && item.images[0]) || item.image_url;
-    return getSafeImageUrl(rawImg);
+    return extractItemImage(item);
   };
 
   return (

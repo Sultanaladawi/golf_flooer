@@ -7,9 +7,11 @@ function cartReducer(state, action) {
   switch (action.type) {
     case 'ADD_ITEM': {
       const addQty = action.item.qty || 1;
+      const safeImg = extractItemImage(action.item);
       const formattedItem = {
         ...action.item,
-        image: getSafeImageUrl(action.item.image),
+        image: safeImg,
+        image_url: safeImg,
         qty: addQty
       };
       const existing = state.items.find(i => i.id === formattedItem.id);
@@ -61,6 +63,27 @@ function cartReducer(state, action) {
 
 export const FALLBACK_IMAGE_DATA_URI = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' viewBox='0 0 400 500'%3E%3Crect width='100%25' height='100%25' fill='%23faf7f2'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='22' font-weight='bold' fill='%23c5a880'%3Eزهرة بيسان%3C/text%3E%3Ctext x='50%25' y='58%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='12' fill='%238c7355'%3EHAUTE COUTURE%3C/text%3E%3C/svg%3E";
 
+export const KNOWN_PRODUCT_IMAGES = {
+  1: '/images/1786519839820-435844472_1782492481694060.jpg',
+  2: '/images/1786519868822-566777010_1782578073971672.jpg',
+  3: '/images/1786519923811-220582796_1782498825982749.jpg',
+  4: '/images/1786520138944-678591191_1782578415985393.jpg',
+  5: '/images/1786519963536-904099534_1782471925397618.jpg',
+  6: '/images/1786520124449-599738462_1782322285332873.jpg',
+  7: '/images/1786520099931-964389640_1786371335661564.jpg',
+  8: '/images/1786520013728-54_20260308_113803_0011.png',
+  16: '/images/1786520070249-773310884_1786299536249054.jpg',
+  'تاج بيسان': '/images/1786519839820-435844472_1782492481694060.jpg',
+  'اللؤلؤة': '/images/1786519868822-566777010_1782578073971672.jpg',
+  'السلطانة': '/images/1786519923811-220582796_1782498825982749.jpg',
+  'الأميرة': '/images/1786520138944-678591191_1782578415985393.jpg',
+  'الياقوتة': '/images/1786519963536-904099534_1782471925397618.jpg',
+  'اليشمك': '/images/1786520124449-599738462_1782322285332873.jpg',
+  'ثوب بيسان': '/images/1786520099931-964389640_1786371335661564.jpg',
+  'الأناقة السوداء': '/images/1786520013728-54_20260308_113803_0011.png',
+  'الأندلس': '/images/1786520070249-773310884_1786299536249054.jpg'
+};
+
 export const getSafeImageUrl = (img) => {
   if (!img || typeof img !== 'string') return FALLBACK_IMAGE_DATA_URI;
   let trimmed = img.trim();
@@ -79,9 +102,39 @@ export const getSafeImageUrl = (img) => {
   return `/images/${trimmed}`;
 };
 
+export const extractItemImage = (item) => {
+  if (!item) return FALLBACK_IMAGE_DATA_URI;
+
+  const idMatch = KNOWN_PRODUCT_IMAGES[item.id] || KNOWN_PRODUCT_IMAGES[item.productId];
+  const nameStr = String(item.name || '');
+  let nameMatch = null;
+  for (const [key, path] of Object.entries(KNOWN_PRODUCT_IMAGES)) {
+    if (isNaN(key) && nameStr.includes(key)) {
+      nameMatch = path;
+      break;
+    }
+  }
+
+  let raw = item.image || item.image_url || item.images || item.img || '';
+  if (Array.isArray(raw)) raw = raw[0];
+  if (typeof raw === 'string' && raw.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) raw = parsed[0];
+    } catch (_) {}
+  }
+
+  if (!raw || typeof raw !== 'string' || raw.includes('data:image/svg') || raw.includes('favicon-512') || raw === '12.png' || raw === '/12.png') {
+    if (idMatch) return idMatch;
+    if (nameMatch) return nameMatch;
+  }
+
+  return getSafeImageUrl(raw);
+};
+
 const STORAGE_KEY = 'Zahrat Beesan_Online_cart';
 
-const CART_VERSION = 5; // Bump to force-sanitize all carts to safe Data URI
+const CART_VERSION = 6; // Bump to auto-resolve true images for all items in existing carts
 
 function sanitizeCart(cart) {
   if (!cart || !Array.isArray(cart.items)) return { items: [], _v: CART_VERSION };
@@ -92,10 +145,12 @@ function sanitizeCart(cart) {
       const price = parseFloat(item.priceNum);
       const isAddon = String(item.id).startsWith('addon-');
       const fixedPrice = isAddon && (!price || price <= 0) ? 0.50 : (price || 0);
+      const resolvedImage = extractItemImage(item);
       return { 
         ...item, 
         priceNum: fixedPrice,
-        image: getSafeImageUrl(item.image)
+        image: resolvedImage,
+        image_url: resolvedImage
       };
     })
   };
