@@ -24,6 +24,10 @@ export default function Checkout() {
   const [step, setStep] = useState('form');
   const [orderId, setOrderId] = useState(null);
   const [orderStatus, setOrderStatus] = useState('preparing');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
   
   const [form, setForm] = useState({
     name: '',

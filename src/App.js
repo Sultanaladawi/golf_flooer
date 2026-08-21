@@ -7,6 +7,7 @@ import { StoreProvider, useStore } from './context/StoreContext';
 import { CurrencyProvider } from './context/CurrencyContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { AlertProvider } from './context/AlertContext';
+import ScrollToTop from './components/ScrollToTop';
 import Navbar             from './components/Navbar';
 import Hero               from './components/Hero';
 import Menu               from './components/Menu';
@@ -250,6 +251,7 @@ export default function App() {
       <AlertProvider>
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <BrowserRouter>
+            <ScrollToTop />
             <ThemeLoader />
             <StoreProvider>
               <CurrencyProvider>

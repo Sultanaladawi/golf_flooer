@@ -69,10 +69,10 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ direction: currentLang.dir || 'rtl' }}>
-        <div className={styles.modalHead}>
+      <div className={styles.drawer} onClick={e => e.stopPropagation()} style={{ direction: currentLang.dir || 'rtl' }}>
+        <div className={styles.drawerHead}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h2 className={styles.modalTitle}>{t('cartTitle')}</h2>
+            <h2 className={styles.drawerTitle}>{t('cartTitle')}</h2>
             {totalItems > 0 && (
               <span style={{ fontSize: '0.9rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>({totalItems})</span>
             )}
