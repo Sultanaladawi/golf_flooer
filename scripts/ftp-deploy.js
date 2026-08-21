@@ -190,10 +190,23 @@ async function deployViaFTP() {
   }
 }
 
-deployViaFTP().then(() => {
-  console.log('✅ FTPS Deployment Complete!');
-  process.exit(0);
-}).catch(err => {
-  console.error('❌ FTP Error:', err);
-  process.exit(1);
-});
+async function runWithRetry() {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log(`🚀 Starting FTPS Deployment Attempt ${attempt}/3...`);
+      await deployViaFTP();
+      console.log('✅ FTPS Deployment Complete!');
+      process.exit(0);
+    } catch (err) {
+      console.error(`⚠️ Attempt ${attempt} failed with:`, err.message);
+      if (attempt === 3) {
+        console.error('❌ All 3 FTP deployment attempts failed.');
+        process.exit(1);
+      }
+      console.log('⏳ Retrying in 3 seconds...');
+      await new Promise(r => setTimeout(r, 3000));
+    }
+  }
+}
+
+runWithRetry();
