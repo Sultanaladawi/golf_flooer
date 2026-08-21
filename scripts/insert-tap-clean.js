@@ -29,7 +29,7 @@ app.post("/api/tap/create-charge", async (req, res) => {
       currency: currency || 'JOD',
       threeDSecure: true,
       save_card: false,
-      description: \`طلب من متجر زهرة بيسان #\${orderId || 'New'} (\${orderItems?.length || 1} قطعة)\`,
+      description: \`Order from Zahrat Beesan #\${orderId || 'New'}\`,
       statement_descriptor: "Zahrat Beesan",
       metadata: {
         orderId: String(orderId || ''),
@@ -45,17 +45,12 @@ app.post("/api/tap/create-charge", async (req, res) => {
           number: localPhone
         }
       },
-      source: {
-        id: "src_all"
-      },
-      redirect: {
-        url: finalRedirectUrl
-      }
+      source: { id: "src_all" },
+      redirect: { url: finalRedirectUrl }
     };
 
     const postData = JSON.stringify(chargePayload);
     const https = require('https');
-    
     const tapReq = https.request({
       hostname: 'api.tap.company',
       path: '/v2/charges',
@@ -71,18 +66,13 @@ app.post("/api/tap/create-charge", async (req, res) => {
       tapRes.on('end', () => {
         try {
           const json = JSON.parse(body);
-          if (tapRes.statusCode >= 200 && tapRes.statusCode < 300 && json.transaction?.url) {
-            console.log(\`[Tap Payments] Created charge \${json.id} successfully: \${json.transaction.url}\`);
-            res.json({
-              success: true,
-              chargeId: json.id,
-              redirectUrl: json.transaction.url
-            });
+          if (tapRes.statusCode >= 200 && tapRes.statusCode < 300 && json.transaction && json.transaction.url) {
+            console.log('[Tap Payments] Charge created:', json.id);
+            res.json({ success: true, chargeId: json.id, redirectUrl: json.transaction.url });
           } else {
-            console.error(\`[Tap Payments Error]:\`, json);
+            console.error('[Tap Payments Error]:', json);
             res.status(tapRes.statusCode || 400).json({
-              error: json.errors?.[0]?.description || json.message || "Failed to create Tap charge",
-              details: json
+              error: (json.errors && json.errors[0] && json.errors[0].description) || json.message || "Failed to create Tap charge"
             });
           }
         } catch(e) {
@@ -90,12 +80,10 @@ app.post("/api/tap/create-charge", async (req, res) => {
         }
       });
     });
-
     tapReq.on('error', (e) => {
-      console.error(\`[Tap Payments Request Error]:\`, e.message);
+      console.error('[Tap Payments Request Error]:', e.message);
       res.status(500).json({ error: e.message });
     });
-
     tapReq.write(postData);
     tapReq.end();
   } catch (err) {
@@ -108,41 +96,24 @@ app.get("/api/tap/verify-charge/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const https = require('https');
-    
     const tapReq = https.request({
       hostname: 'api.tap.company',
-      path: \`/v2/charges/\${id}\`,
+      path: '/v2/charges/' + id,
       method: 'GET',
-      headers: {
-        'Authorization': \`Bearer \${TAP_SECRET_KEY}\`
-      }
+      headers: { 'Authorization': 'Bearer ' + TAP_SECRET_KEY }
     }, (tapRes) => {
       let body = '';
       tapRes.on('data', chunk => body += chunk);
-      tapRes.on('end', async () => {
+      tapRes.on('end', () => {
         try {
           const json = JSON.parse(body);
-          if (json.status === 'CAPTURED') {
-            const orderId = json.metadata?.orderId;
-            if (orderId) {
-              try {
-                db.query("UPDATE orders SET payment_status = 'paid', status = 'confirmed' WHERE id = ?", [orderId]);
-              } catch(e) {}
-            }
-            res.json({ success: true, status: 'CAPTURED', charge: json });
-          } else {
-            res.json({ success: false, status: json.status, message: json.response?.message || 'Payment not completed' });
-          }
+          res.json({ success: json.status === 'CAPTURED', status: json.status, charge: json });
         } catch(e) {
-          res.status(500).json({ error: "Invalid response from Tap verify" });
+          res.status(500).json({ error: "Invalid response" });
         }
       });
     });
-
-    tapReq.on('error', (e) => {
-      res.status(500).json({ error: e.message });
-    });
-
+    tapReq.on('error', (e) => res.status(500).json({ error: e.message }));
     tapReq.end();
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -150,16 +121,45 @@ app.get("/api/tap/verify-charge/:id", async (req, res) => {
 });
 `;
 
+// Marker so we don't double-insert
+const TAP_MARKER = '// 💳 TAP PAYMENTS GATEWAY';
+
 ['main_server.js', 'server.js', 'app.js'].forEach(file => {
-  if (fs.existsSync(file)) {
-    let content = fs.readFileSync(file, 'utf8');
-    const target = 'app.get("/api/fedex/track/:trackingNumber"';
-    const idx = content.indexOf(target);
-    if (idx !== -1) {
-      const nextIdx = content.indexOf('app.get("/api/store-status"', idx) !== -1 ? content.indexOf('app.get("/api/store-status"', idx) : content.indexOf('app.post("/api/store-status"', idx);
-      content = content.slice(0, nextIdx) + '\n\n' + tapCode + '\n\n' + content.slice(nextIdx);
-      fs.writeFileSync(file, content, 'utf8');
-      console.log(`✅ Cleanly inserted Tap Payments into ${file}`);
-    }
+  if (!fs.existsSync(file)) return;
+
+  let content = fs.readFileSync(file, 'utf8');
+
+  // Skip if already has Tap routes
+  if (content.includes(TAP_MARKER)) {
+    console.log(`⏩ ${file} already has Tap routes, skipping.`);
+    return;
+  }
+
+  // Insert BEFORE the catch-all wildcard route (critical - must be before it)
+  const catchall = content.indexOf('app.get(/.*/, ');
+  if (catchall !== -1) {
+    content = content.slice(0, catchall) + tapCode + '\n\n' + content.slice(catchall);
+    fs.writeFileSync(file, content, 'utf8');
+    console.log(`✅ Inserted Tap Payments before catchall into ${file}`);
+    return;
+  }
+
+  // Fallback: try other wildcard patterns
+  const catchall2 = content.indexOf('app.get(/.*/)');
+  if (catchall2 !== -1) {
+    content = content.slice(0, catchall2) + tapCode + '\n\n' + content.slice(catchall2);
+    fs.writeFileSync(file, content, 'utf8');
+    console.log(`✅ Inserted Tap Payments before catchall (pattern2) into ${file}`);
+    return;
+  }
+
+  // Last resort: before app.listen
+  const listenIdx = content.lastIndexOf('app.listen(');
+  if (listenIdx !== -1) {
+    content = content.slice(0, listenIdx) + tapCode + '\n\n' + content.slice(listenIdx);
+    fs.writeFileSync(file, content, 'utf8');
+    console.log(`✅ Inserted Tap Payments before listen into ${file}`);
+  } else {
+    console.log(`⚠️ Could not find insertion point in ${file}`);
   }
 });
