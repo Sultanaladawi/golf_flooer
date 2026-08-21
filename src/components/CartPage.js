@@ -60,6 +60,25 @@ export default function CartPage() {
   const discountAmount = couponApplied ? (couponApplied.discount || (totalPrice * (couponApplied.percent / 100))) : 0;
   const finalCartTotal = Math.max(totalPrice - discountAmount, 0);
 
+  const getItemImage = (item) => {
+    if (!item) return '/12.png';
+    if (item.image && typeof item.image === 'string') {
+      const trimmed = item.image.trim();
+      if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
+        if (trimmed.startsWith('/') || trimmed.startsWith('http') || trimmed.startsWith('data:')) return trimmed;
+        return `/images/${trimmed}`;
+      }
+    }
+    if (item.images && Array.isArray(item.images)) {
+      const valid = item.images.filter(i => i && i !== '12.png' && i !== '/12.png');
+      if (valid.length > 0) {
+        if (valid[0].startsWith('/') || valid[0].startsWith('http') || valid[0].startsWith('data:')) return valid[0];
+        return `/images/${valid[0]}`;
+      }
+    }
+    return '/12.png';
+  };
+
   return (
     <div style={{ backgroundColor: '#FAF8F5', minHeight: '100vh', direction: 'rtl', color: '#1a1a1a', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
@@ -176,7 +195,7 @@ export default function CartPage() {
                       {/* Product Thumbnail */}
                       <div style={{ width: '85px', height: '110px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f5f5f5', border: '1px solid #eee' }}>
                         <img 
-                          src={item.image || '/12.png'} 
+                          src={getItemImage(item)} 
                           alt={item.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={(e) => { e.target.src = '/12.png'; }}

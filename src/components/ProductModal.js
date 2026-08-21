@@ -93,18 +93,25 @@ export default function ProductModal({ model, onClose }) {
       }
     }
   } else {
-    // Default product images
-    if (model.image_url && typeof model.image_url === 'string' && model.image_url.trim()) {
-      imagesArray.push(model.image_url.trim());
-    }
+    // Default product images: prioritize real gallery images first
     try {
       const raw = typeof model.images === 'string' ? JSON.parse(model.images) : model.images;
       const extraImgs = Array.isArray(raw) ? raw : (raw ? [raw] : []);
       extraImgs.forEach(img => {
-        if (img && !imagesArray.includes(img)) imagesArray.push(img);
+        if (img && img !== '12.png' && img !== '/12.png' && !imagesArray.includes(img)) {
+          imagesArray.push(img);
+        }
       });
     } catch (e) {}
-    if (imagesArray.length === 0 && model.image) {
+
+    if (model.image_url && typeof model.image_url === 'string' && model.image_url.trim()) {
+      const trimmed = model.image_url.trim();
+      if (trimmed !== '12.png' && trimmed !== '/12.png' && !imagesArray.includes(trimmed)) {
+        imagesArray.push(trimmed);
+      }
+    }
+
+    if (imagesArray.length === 0 && model.image && model.image !== '12.png' && model.image !== '/12.png') {
       imagesArray = [model.image];
     }
 

@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { shopInfo } from '../data/shopData';
 import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
@@ -60,11 +59,15 @@ export default function Navbar({ onOpenPolicy }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
+  
+  // Independent dropdown states for Country and Language
   const [showCountryModal, setShowCountryModal] = useState(false);
+  const [showLangModal, setShowLangModal] = useState(false);
   
   const searchInputRef = useRef(null);
   const searchDebounceRef = useRef(null);
   const countryRef = useRef(null);
+  const langRef = useRef(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -72,8 +75,22 @@ export default function Navbar({ onOpenPolicy }) {
 
   const { totalItems } = useCart();
   const { currency, setCurrency, currencies } = useCurrency();
-  const { langCode, currentLang, changeLanguage: setAppLang, t } = useLanguage();
+  const { langCode, currentLang, changeLanguage, languages, t } = useLanguage();
   const { customer, openLoginModal } = useCustomerAuth();
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (countryRef.current && !countryRef.current.contains(e.target)) {
+        setShowCountryModal(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target)) {
+        setShowLangModal(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Scroll listener
   useEffect(() => {
@@ -138,74 +155,164 @@ export default function Navbar({ onOpenPolicy }) {
   return (
     <>
       <header className={`${styles.header} ${isDarkText ? styles.scrolled : ''}`} style={{ direction: currentLang.dir || 'rtl' }}>
-        {/* ── 1. Top Strip Bar (Assaf Style) ── */}
+        {/* ── 1. Top Strip Bar (Assaf Style with Separated Country & Language) ── */}
         <div className={`${styles.topBar} ${isDarkText ? styles.topBarScrolled : ''}`}>
-          {/* Right: Language & Country Selector */}
-          <div ref={countryRef} style={{ position: 'relative' }}>
-            <button 
-              onClick={() => setShowCountryModal(v => !v)}
-              className={styles.topBarLink}
-              style={{ color: topTextColor }}
-              title="تغيير الدولة واللغة"
-            >
-              <GlobeIcon />
-              <span>{langCode === 'ar' ? 'العربية' : 'English'}</span>
-              <span style={{ opacity: 0.5 }}>|</span>
-              <span>متجر {currency?.name || 'الأردن'}</span>
-              <LocationPinIcon />
-              <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>▼</span>
-            </button>
+          
+          {/* Right Section: Separated Country Selector and Language Switcher */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+            
+            {/* 📍 A. Independent Country & Currency Selector */}
+            <div ref={countryRef} style={{ position: 'relative' }}>
+              <button 
+                onClick={() => {
+                  setShowCountryModal(v => !v);
+                  setShowLangModal(false);
+                }}
+                className={styles.topBarLink}
+                style={{ color: topTextColor }}
+                title="تغيير الدولة والعملة"
+              >
+                <img 
+                  src={getFlagUrl(currency?.iso || 'jo')} 
+                  alt={currency?.name} 
+                  style={{ width: '16px', height: '11px', borderRadius: '2px', objectFit: 'cover' }} 
+                />
+                <span>متجر {currency?.name || 'الأردن'} ({currency?.code || 'JOD'})</span>
+                <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>▼</span>
+              </button>
 
-            {/* Country & Language Dropdown */}
-            {showCountryModal && (
-              <div style={{
-                position: 'absolute',
-                top: 'calc(100% + 8px)',
-                right: 0,
-                background: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid rgba(197, 168, 128, 0.3)',
-                boxShadow: '0 20px 50px rgba(0,0,0,0.18)',
-                padding: '12px 0',
-                minWidth: '260px',
-                maxHeight: '380px',
-                overflowY: 'auto',
-                zIndex: 9999,
-                direction: 'rtl',
-                color: '#1a1a1a'
-              }}>
-                <div style={{ padding: '6px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', borderBottom: '1px solid #eee' }}>
-                  اختاري الدولة والعملة
+              {showCountryModal && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(197, 168, 128, 0.3)',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.18)',
+                  padding: '12px 0',
+                  minWidth: '260px',
+                  maxHeight: '380px',
+                  overflowY: 'auto',
+                  zIndex: 9999,
+                  direction: 'rtl',
+                  color: '#1a1a1a'
+                }}>
+                  <div style={{ padding: '6px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', borderBottom: '1px solid #eee' }}>
+                    اختاري الدولة والعملة
+                  </div>
+                  {currencies.map(c => (
+                    <button
+                      key={c.code}
+                      onClick={() => {
+                        setCurrency(c);
+                        setShowCountryModal(false);
+                      }}
+                      style={{
+                        width: '100%',
+                        padding: '10px 16px',
+                        background: currency?.code === c.code ? 'rgba(197, 168, 128, 0.12)' : 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        fontSize: '0.86rem',
+                        fontWeight: currency?.code === c.code ? '700' : '500',
+                        color: '#1a1a1a',
+                        textAlign: 'right'
+                      }}
+                    >
+                      <img src={getFlagUrl(c.iso || 'jo')} alt={c.name} style={{ width: '20px', height: '14px', borderRadius: '2px', objectFit: 'cover' }} />
+                      <span style={{ flex: 1 }}>{c.name}</span>
+                      <span style={{ color: 'var(--gold-dim)', fontSize: '0.8rem', fontWeight: 'bold' }}>{c.symbol || c.code}</span>
+                    </button>
+                  ))}
                 </div>
-                {currencies.map(c => (
+              )}
+            </div>
+
+            <span style={{ color: topTextColor, opacity: 0.3 }}>|</span>
+
+            {/* 🌐 B. Independent Language Switcher */}
+            <div ref={langRef} style={{ position: 'relative' }}>
+              <button 
+                onClick={() => {
+                  setShowLangModal(v => !v);
+                  setShowCountryModal(false);
+                }}
+                className={styles.topBarLink}
+                style={{ color: topTextColor }}
+                title="تغيير لغة المتجر"
+              >
+                <GlobeIcon />
+                <span>{langCode === 'ar' ? 'العربية' : 'English'}</span>
+                <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>▼</span>
+              </button>
+
+              {showLangModal && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  right: 0,
+                  background: '#ffffff',
+                  borderRadius: '16px',
+                  border: '1px solid rgba(197, 168, 128, 0.3)',
+                  boxShadow: '0 20px 50px rgba(0,0,0,0.18)',
+                  padding: '8px 0',
+                  minWidth: '160px',
+                  zIndex: 9999,
+                  direction: 'rtl',
+                  color: '#1a1a1a'
+                }}>
                   <button
-                    key={c.code}
                     onClick={() => {
-                      setCurrency(c);
-                      setShowCountryModal(false);
+                      changeLanguage('ar');
+                      setShowLangModal(false);
                     }}
                     style={{
                       width: '100%',
                       padding: '10px 16px',
-                      background: currency?.code === c.code ? 'rgba(197, 168, 128, 0.12)' : 'none',
+                      background: langCode === 'ar' ? 'rgba(197, 168, 128, 0.12)' : 'none',
                       border: 'none',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '10px',
+                      gap: '8px',
                       fontSize: '0.86rem',
-                      fontWeight: currency?.code === c.code ? '700' : '500',
-                      color: '#1a1a1a',
-                      textAlign: 'right'
+                      fontWeight: langCode === 'ar' ? '700' : '500',
+                      color: '#1a1a1a'
                     }}
                   >
-                    <img src={getFlagUrl(c.iso || 'jo')} alt={c.name} style={{ width: '20px', height: '14px', borderRadius: '2px', objectFit: 'cover' }} />
-                    <span style={{ flex: 1 }}>{c.name}</span>
-                    <span style={{ color: 'var(--gold-dim)', fontSize: '0.8rem', fontWeight: 'bold' }}>{c.symbol || c.code}</span>
+                    <span>🇸🇦</span>
+                    <span>العربية (AR)</span>
                   </button>
-                ))}
-              </div>
-            )}
+                  <button
+                    onClick={() => {
+                      changeLanguage('en');
+                      setShowLangModal(false);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '10px 16px',
+                      background: langCode === 'en' ? 'rgba(197, 168, 128, 0.12)' : 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '0.86rem',
+                      fontWeight: langCode === 'en' ? '700' : '500',
+                      color: '#1a1a1a'
+                    }}
+                  >
+                    <span>🇬🇧</span>
+                    <span>English (EN)</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
           </div>
 
           {/* Left: Support Email */}

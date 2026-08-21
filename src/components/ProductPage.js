@@ -117,13 +117,21 @@ export default function ProductPage() {
     if (selectedVariant && selectedVariant.images && selectedVariant.images.length > 0) {
       imgs = selectedVariant.images;
     } else {
-      if (product.image_url && typeof product.image_url === 'string' && product.image_url.trim()) {
-        imgs.push(product.image_url.trim());
-      }
       const rawImgs = Array.isArray(product.images) ? product.images : [];
       rawImgs.forEach(src => {
-        if (src && !imgs.includes(src)) imgs.push(src);
+        if (src && src !== '12.png' && src !== '/12.png' && !imgs.includes(src)) {
+          imgs.push(src);
+        }
       });
+      if (product.image_url && typeof product.image_url === 'string' && product.image_url.trim()) {
+        const trimmed = product.image_url.trim();
+        if (trimmed !== '12.png' && trimmed !== '/12.png' && !imgs.includes(trimmed)) {
+          imgs.push(trimmed);
+        }
+      }
+      if (imgs.length === 0 && product.image && product.image !== '12.png' && product.image !== '/12.png') {
+        imgs = [product.image];
+      }
     }
     imgs = imgs.map(src => {
       if (!src) return '/12.png';

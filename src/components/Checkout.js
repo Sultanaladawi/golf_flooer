@@ -392,6 +392,25 @@ export default function Checkout() {
   }
 
   // ── MAIN FULL-PAGE CHECKOUT ──
+  const getItemImage = (item) => {
+    if (!item) return '/12.png';
+    if (item.image && typeof item.image === 'string') {
+      const trimmed = item.image.trim();
+      if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
+        if (trimmed.startsWith('/') || trimmed.startsWith('http') || trimmed.startsWith('data:')) return trimmed;
+        return `/images/${trimmed}`;
+      }
+    }
+    if (item.images && Array.isArray(item.images)) {
+      const valid = item.images.filter(i => i && i !== '12.png' && i !== '/12.png');
+      if (valid.length > 0) {
+        if (valid[0].startsWith('/') || valid[0].startsWith('http') || valid[0].startsWith('data:')) return valid[0];
+        return `/images/${valid[0]}`;
+      }
+    }
+    return '/12.png';
+  };
+
   const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
 
   return (
@@ -785,7 +804,7 @@ export default function Checkout() {
               <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '20px' }}>
                 {items.map(item => (
                   <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                    <img src={item.image || '/12.png'} alt={item.name} style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} />
+                    <img src={getItemImage(item)} alt={item.name} style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.88rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
                       <div style={{ fontSize: '0.78rem', color: '#777' }}>الكمية: {item.qty} {item.size && `| المقاس: ${item.size}`}</div>

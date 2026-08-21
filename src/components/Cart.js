@@ -63,15 +63,36 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
     );
   }
 
+  const getItemImage = (item) => {
+    if (!item) return '/12.png';
+    if (item.image && typeof item.image === 'string') {
+      const trimmed = item.image.trim();
+      if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
+        if (trimmed.startsWith('/') || trimmed.startsWith('http') || trimmed.startsWith('data:')) return trimmed;
+        return `/images/${trimmed}`;
+      }
+    }
+    if (item.images && Array.isArray(item.images)) {
+      const valid = item.images.filter(i => i && i !== '12.png' && i !== '/12.png');
+      if (valid.length > 0) {
+        if (valid[0].startsWith('/') || valid[0].startsWith('http') || valid[0].startsWith('data:')) return valid[0];
+        return `/images/${valid[0]}`;
+      }
+    }
+    return '/12.png';
+  };
+
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.drawer} onClick={e => e.stopPropagation()}>
-        <div className={styles.drawerHead}>
-          <div className={styles.drawerTitleRow}>
-            <h2 className={styles.drawerTitle}>{t('cart')}</h2>
-            <span className={styles.itemCount}>{totalItems} {totalItems === 1 ? t('piece') : t('pieces')}</span>
+      <div className={styles.modal} onClick={e => e.stopPropagation()} style={{ direction: currentLang.dir || 'rtl' }}>
+        <div className={styles.modalHead}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 className={styles.modalTitle}>{t('cartTitle')}</h2>
+            {totalItems > 0 && (
+              <span style={{ fontSize: '0.9rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>({totalItems})</span>
+            )}
           </div>
-          <button className={styles.closeBtn} onClick={onClose} aria-label={t('closeLabel')}>
+          <button className={styles.closeBtn} onClick={onClose} aria-label={t('close')}>
             <i className="fas fa-times" />
           </button>
         </div>
@@ -80,14 +101,12 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
           {items.map(item => (
             <div key={item.id} className={styles.cartItem}>
               <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                {item.image && (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
-                    style={{ width: '65px', height: '85px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(196, 164, 132, 0.2)' }}
-                  />
-                )}
+                <img
+                  src={getItemImage(item)}
+                  alt={item.name}
+                  onError={(e) => { e.target.onerror = null; e.target.src = '/12.png'; }}
+                  style={{ width: '65px', height: '85px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(196, 164, 132, 0.2)' }}
+                />
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div className={styles.itemInfo}>
