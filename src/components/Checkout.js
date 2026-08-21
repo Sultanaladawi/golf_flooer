@@ -393,7 +393,7 @@ export default function Checkout() {
 
   // ── MAIN FULL-PAGE CHECKOUT ──
   const getItemImage = (item) => {
-    if (!item) return '/12.png';
+    if (!item) return '/favicon-512.png';
     if (item.image && typeof item.image === 'string') {
       const trimmed = item.image.trim();
       if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
@@ -408,7 +408,7 @@ export default function Checkout() {
         return `/images/${valid[0]}`;
       }
     }
-    return '/12.png';
+    return '/favicon-512.png';
   };
 
   const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
@@ -804,7 +804,12 @@ export default function Checkout() {
               <div style={{ maxHeight: '240px', overflowY: 'auto', marginBottom: '20px' }}>
                 {items.map(item => (
                   <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
-                    <img src={getItemImage(item)} alt={item.name} style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} />
+                    <img 
+                      src={getItemImage(item)} 
+                      alt={item.name} 
+                      style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} 
+                      onError={(e) => { e.target.onerror = null; e.target.src = '/favicon-512.png'; }}
+                    />
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: '0.88rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
                       <div style={{ fontSize: '0.78rem', color: '#777' }}>الكمية: {item.qty} {item.size && `| المقاس: ${item.size}`}</div>

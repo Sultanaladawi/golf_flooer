@@ -64,7 +64,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
   }
 
   const getItemImage = (item) => {
-    if (!item) return '/12.png';
+    if (!item) return '/favicon-512.png';
     if (item.image && typeof item.image === 'string') {
       const trimmed = item.image.trim();
       if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
@@ -79,7 +79,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
         return `/images/${valid[0]}`;
       }
     }
-    return '/12.png';
+    return '/favicon-512.png';
   };
 
   return (

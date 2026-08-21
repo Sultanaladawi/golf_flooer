@@ -61,7 +61,7 @@ export default function CartPage() {
   const finalCartTotal = Math.max(totalPrice - discountAmount, 0);
 
   const getItemImage = (item) => {
-    if (!item) return '/12.png';
+    if (!item) return '/favicon-512.png';
     if (item.image && typeof item.image === 'string') {
       const trimmed = item.image.trim();
       if (trimmed && trimmed !== '12.png' && trimmed !== '/12.png' && trimmed !== '/images/12.png') {
@@ -76,7 +76,7 @@ export default function CartPage() {
         return `/images/${valid[0]}`;
       }
     }
-    return '/12.png';
+    return '/favicon-512.png';
   };
 
   return (
@@ -198,7 +198,7 @@ export default function CartPage() {
                           src={getItemImage(item)} 
                           alt={item.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                          onError={(e) => { e.target.src = '/12.png'; }}
+                          onError={(e) => { e.target.onerror = null; e.target.src = '/favicon-512.png'; }}
                         />
                       </div>
 
