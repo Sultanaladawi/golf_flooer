@@ -151106,6 +151106,13 @@ app.get("/api/fedex/track/:trackingNumber", async (req, res) => {
     const { trackingNumber } = req.params;
     const trackingInfo = await fedexService.trackFedExShipment(trackingNumber);
     res.json({ success: true, trackingInfo });
+  } catch (err) {
+    console.error("[FedEx Tracking Error]:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
 
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -151114,7 +151121,7 @@ app.get("/api/fedex/track/:trackingNumber", async (req, res) => {
 const TAP_SECRET_KEY = process.env.TAP_SECRET_KEY || Buffer.from('c2tfdGVzdF95MmtoRElYcVlnQVE0OGQzZTU2Vk50b1I=', 'base64').toString('utf8');
 const TAP_PUBLIC_KEY = process.env.TAP_PUBLIC_KEY || Buffer.from('cGtfdGVzdF92SjhXbUJPckt5U3pSb2lRSGtHUFVUN2E=', 'base64').toString('utf8');
 
-app.post(["/api/tap/create-charge", "*/api/tap/create-charge"], async (req, res) => {
+app.post("/api/tap/create-charge", async (req, res) => {
   try {
     const { amount, currency, customer, orderId, orderItems, metadata, redirectUrl } = req.body;
     if (!amount || amount <= 0) {
@@ -151211,7 +151218,7 @@ app.post(["/api/tap/create-charge", "*/api/tap/create-charge"], async (req, res)
   }
 });
 
-app.get(["/api/tap/verify-charge/:id", "*/api/tap/verify-charge/:id"], async (req, res) => {
+app.get("/api/tap/verify-charge/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const https = require('https');
@@ -151257,10 +151264,6 @@ app.get(["/api/tap/verify-charge/:id", "*/api/tap/verify-charge/:id"], async (re
 });
 
 
-
-
-
-// ══════════════════════════════════════════════════════════════════════════════
 app.post("/api/store-status", (req, res) => {
   const { status } = req.body;
   db.query("DELETE FROM site_settings WHERE `key` = ?", ["store_status"], (err) => {
