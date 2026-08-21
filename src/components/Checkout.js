@@ -27,6 +27,37 @@ export default function Checkout() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const urlParams = new URLSearchParams(window.location.search);
+    const tapId = urlParams.get('tap_id');
+    const retOrderId = urlParams.get('order_id');
+    if (tapId) {
+      setStep('processing');
+      if (retOrderId) setOrderId(retOrderId);
+      fetch(`/api/tap/verify-charge/${tapId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.status === 'CAPTURED') {
+            clearCart();
+            setStep('success');
+            try { trackPurchase(data.charge?.amount || finalPrice, 'JOD'); } catch (_) {}
+          } else {
+            setStep('form');
+            showAlert({
+              title: 'لم تكتمل عملية الدفع',
+              message: data.message || 'تم إلغاء عملية الدفع أو لم تتم الموافقة على البطاقة. يمكنكِ إعادة المحاولة أو اختيار وسيلة دفع أخرى.',
+              type: 'warning'
+            });
+          }
+        })
+        .catch(() => {
+          setStep('form');
+          showAlert({
+            title: 'تعذر التحقق من الدفع',
+            message: 'حدث خطأ أثناء التحقق من حالة الدفع. يرجى التواصل معنا للتأكيد.',
+            type: 'error'
+          });
+        });
+    }
   }, []);
   
   const [form, setForm] = useState({
@@ -38,7 +69,7 @@ export default function Checkout() {
     city: '',
     area: '',
     address: '',
-    paymentMethod: 'cod',
+    paymentMethod: 'tap',
     transferReceipt: '',
     cardNumber: '',
     expiry: '',
@@ -314,11 +345,16 @@ export default function Checkout() {
     }
   }
 
-  // Submit handler for COD
+  // Submit handler for COD & Tap Payments
   async function handleSubmit(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!validate()) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      showAlert({
+        title: 'يرجى استكمال البيانات',
+        message: 'يرجى إدخال الاسم، رقم الهاتف، والمدينة وتفاصيل العنوان قبل إتمام الطلب.',
+        type: 'warning'
+      });
       return;
     }
 
@@ -334,6 +370,78 @@ export default function Checkout() {
         setStep('outofstock');
       } else {
         setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
+      }
+    } else if (form.paymentMethod === 'tap') {
+      setStep('processing');
+      try {
+        // 1. Create order
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: form.name.trim(),
+            email: form.email.trim() || null,
+            total_amount: finalPrice,
+            cartItems: items.map(item => ({
+              id: item.productId || item.id,
+              name: `${item.name} (${item.size || 'حر'})`,
+              qty: item.qty,
+              priceNum: item.priceNum
+            })),
+            order_type: 'delivery',
+            delivery_address: `الدولة: ${form.country} - المدينة: ${form.city} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: بطاقة بنكية / Apple Pay (Tap Payments) | رسوم التوصيل: ${shippingFee} JOD`,
+            phone: form.phone.trim(),
+            coupon_code: couponApplied ? couponApplied.code : null,
+            is_gift: 0
+          }),
+        });
+
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          setStep('form');
+          showAlert({ title: 'تعذر تسجيل الطلب', message: result.error || 'حدث خطأ أثناء تجهيز الطلب.', type: 'error' });
+          return;
+        }
+
+        const newOrderId = result.orderId;
+        setOrderId(newOrderId);
+
+        // 2. Call Tap Charge API
+        const chargeRes = await fetch('/api/tap/create-charge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: finalPrice,
+            currency: 'JOD',
+            orderId: newOrderId,
+            orderItems: items,
+            customer: {
+              name: form.name.trim(),
+              email: form.email.trim(),
+              phone: form.phone.trim()
+            },
+            redirectUrl: `${window.location.origin}/checkout?order_id=${newOrderId}`
+          })
+        });
+
+        const chargeData = await chargeRes.json();
+        if (chargeData.success && chargeData.redirectUrl) {
+          window.location.href = chargeData.redirectUrl;
+        } else {
+          setStep('form');
+          showAlert({
+            title: 'تعذر الاتصال ببوابة الدفع',
+            message: chargeData.error || 'يرجى التأكد من البيانات أو اختيار وسيلة دفع أخرى.',
+            type: 'error'
+          });
+        }
+      } catch (err) {
+        setStep('form');
+        showAlert({
+          title: 'حدث خطأ غير متوقع',
+          message: err.message || 'تعذر بدء عملية الدفع.',
+          type: 'error'
+        });
       }
     }
   }
@@ -719,13 +827,38 @@ export default function Checkout() {
                 </h3>
 
                 <div className={styles.paymentGrid}>
-                  {/* Option A: Cash on Delivery (Jordan only) */}
+                  {/* Option 1: Tap Payments (Visa, MasterCard, Mada, Apple Pay) */}
+                  <div
+                    onClick={() => setForm({ ...form, paymentMethod: 'tap' })}
+                    className={styles.paymentCard}
+                    style={{
+                      border: form.paymentMethod === 'tap' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
+                      backgroundColor: form.paymentMethod === 'tap' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
+                      موصى به
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
+                      <span>💳</span>
+                      <span>🍏</span>
+                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                      بطاقة بنكية أو Apple Pay
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
+                      Visa / MasterCard / مدى / Apple Pay
+                    </div>
+                  </div>
+
+                  {/* Option 2: Cash on Delivery (Jordan only) */}
                   {isJordan && (
                     <div
                       onClick={() => setForm({ ...form, paymentMethod: 'cod' })}
                       className={styles.paymentCard}
                       style={{
-                        border: form.paymentMethod === 'cod' ? '2px solid var(--gold)' : '1.5px solid #e0e0e0',
+                        border: form.paymentMethod === 'cod' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
                         backgroundColor: form.paymentMethod === 'cod' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
                       }}
                     >
@@ -735,28 +868,45 @@ export default function Checkout() {
                     </div>
                   )}
 
-                  {/* Option B: Direct Card & PayPal (Worldwide + Jordan) */}
+                  {/* Option 3: PayPal (Worldwide) */}
                   <div
                     onClick={() => setForm({ ...form, paymentMethod: 'paypal' })}
                     className={styles.paymentCard}
                     style={{
-                      border: form.paymentMethod === 'paypal' ? '2px solid var(--gold)' : '1.5px solid #e0e0e0',
-                      backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
-                      gridColumn: isJordan ? 'auto' : '1 / -1'
+                      border: form.paymentMethod === 'paypal' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
+                      backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
                     }}
                   >
-                    <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
-                      <span>💳</span>
-                      <span>🅿️</span>
-                    </div>
+                    <div style={{ fontSize: '1.6rem' }}>🅿️</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                      بطاقة بنكية (Visa / MasterCard) أو PayPal
+                      حساب PayPal
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
-                      دفع إلكتروني آمن ومباشر
+                    <div style={{ fontSize: '0.78rem', color: '#777' }}>
+                      دفع إلكتروني آمن عالمياً
                     </div>
                   </div>
                 </div>
+
+                {/* Tap Payments Banner */}
+                {form.paymentMethod === 'tap' && (
+                  <div style={{
+                    marginTop: '20px',
+                    background: 'linear-gradient(135deg, rgba(197, 168, 128, 0.12) 0%, rgba(197, 168, 128, 0.04) 100%)',
+                    border: '1px solid rgba(197, 168, 128, 0.35)',
+                    borderRadius: '14px',
+                    padding: '16px 20px',
+                    fontSize: '0.9rem',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{ fontWeight: 'bold', color: 'var(--espresso)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>🔒</span>
+                      <span>دفع آمن ومباشر عبر بوابة Tap Payments</span>
+                    </div>
+                    <div style={{ color: '#666', fontSize: '0.86rem' }}>
+                      يقبل بطاقات <strong>Visa</strong>، <strong>MasterCard</strong>، <strong>مدى (Mada)</strong>، و <strong>Apple Pay</strong> مع دعم التحقق الآمن الثلاثي 3D Secure.
+                    </div>
+                  </div>
+                )}
 
                 {/* PayPal & Direct Card Buttons */}
                 {form.paymentMethod === 'paypal' && (
@@ -773,10 +923,10 @@ export default function Checkout() {
                     }}>
                       <div style={{ fontWeight: 'bold', color: '#003087', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>💳</span>
-                        <span>طرق الدفع الإلكتروني المتاحة:</span>
+                        <span>طرق الدفع عبر PayPal:</span>
                       </div>
                       <div>• <strong>لديكِ حساب PayPal؟</strong> اختاري الزر الأصفر (PayPal).</div>
-                      <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card) دون الحاجة لإنشاء أي حساب في PayPal!</div>
+                      <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card).</div>
                     </div>
 
                     <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
@@ -918,6 +1068,36 @@ export default function Checkout() {
                   )}
                 </div>
               </div>
+
+              {/* Confirm Button for Tap Payments */}
+              {form.paymentMethod === 'tap' && (
+                <button
+                  type="submit"
+                  disabled={step === 'processing'}
+                  style={{
+                    width: '100%',
+                    background: 'linear-gradient(135deg, #c5a880 0%, #b38e5d 100%)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '18px 24px',
+                    borderRadius: '16px',
+                    fontSize: '1.12rem',
+                    fontWeight: '900',
+                    cursor: step === 'processing' ? 'not-allowed' : 'pointer',
+                    marginTop: '25px',
+                    boxShadow: '0 10px 25px rgba(197, 168, 128, 0.45)',
+                    transition: 'transform 0.2s',
+                    opacity: step === 'processing' ? 0.7 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px'
+                  }}
+                >
+                  <CreditCard size={20} />
+                  <span>{step === 'processing' ? 'جاري تجهيز الدفع...' : `المتابعة للدفع الآمن بالبطاقة (${formatPrice(finalPrice)}) ←`}</span>
+                </button>
+              )}
 
               {/* Confirm Button for COD */}
               {form.paymentMethod === 'cod' && (
