@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart, getSafeImageUrl, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAlert } from '../context/AlertContext';
 import { trackPurchase } from '../utils/socialPixel';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
@@ -18,6 +19,7 @@ export default function Checkout() {
   const { items, totalPrice, clearCart } = useCart();
   const { t, currentLang } = useLanguage();
   const { format: formatPrice } = useCurrency();
+  const { showAlert, showToast } = useAlert();
   
   const [step, setStep] = useState('form');
   const [orderId, setOrderId] = useState(null);
@@ -780,7 +782,11 @@ export default function Checkout() {
                         style={{ layout: "vertical", shape: "pill", color: "gold" }}
                         onClick={(data, actions) => {
                           if (!validate()) {
-                            alert('يرجى استكمال الحقول المطلوبة أولاً (الاسم، رقم الهاتف، والمدينة والعنوان).');
+                            showAlert({
+                              title: 'يرجى استكمال البيانات',
+                              message: 'يرجى إدخال الاسم، رقم الهاتف، والمدينة وتفاصيل العنوان قبل إتمام الدفع.',
+                              type: 'warning'
+                            });
                             return actions.reject();
                           }
                           return actions.resolve();
@@ -815,8 +821,16 @@ export default function Checkout() {
                             setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
                           }
                         }}
-                        onCancel={() => alert('تم إلغاء عملية الدفع. يمكنكِ إعادة المحاولة في أي وقت.')}
-                        onError={(err) => alert('حدث تضارب أثناء الاتصال ببوابة الدفع. يرجى المحاولة مجدداً.')}
+                        onCancel={() => showAlert({
+                          title: 'إلغاء عملية الدفع',
+                          message: 'تم إلغاء عملية الدفع الإلكتروني. سلة مشترياتكِ محفوظة ويمكنكِ إعادة المحاولة في أي وقت أو اختيار الدفع عند الاستلام.',
+                          type: 'info'
+                        })}
+                        onError={(err) => showAlert({
+                          title: 'تعذر الاتصال بالدفع',
+                          message: 'حدث تعذر أثناء الاتصال ببوابة الدفع. يرجى التحقق من البطاقة والمحاولة مجدداً.',
+                          type: 'error'
+                        })}
                       />
                     </PayPalScriptProvider>
                   </div>
