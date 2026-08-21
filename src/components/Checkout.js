@@ -983,25 +983,23 @@ export default function Checkout() {
                     </div>
                   )}
 
-                  {/* Option 3: PayPal (Worldwide) - Hidden on live until account fully verified */}
-                  {isDevEnvironment && (
-                    <div
-                      onClick={() => setForm({ ...form, paymentMethod: 'paypal' })}
-                      className={styles.paymentCard}
-                      style={{
-                        border: form.paymentMethod === 'paypal' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
-                        backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
-                      }}
-                    >
-                      <div style={{ fontSize: '1.6rem' }}>🅿️</div>
-                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                        حساب PayPal
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: '#777' }}>
-                        دفع إلكتروني آمن عالمياً
-                      </div>
+                  {/* Option 3: PayPal (Worldwide) */}
+                  <div
+                    onClick={() => setForm({ ...form, paymentMethod: 'paypal' })}
+                    className={styles.paymentCard}
+                    style={{
+                      border: form.paymentMethod === 'paypal' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
+                      backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
+                    }}
+                  >
+                    <div style={{ fontSize: '1.6rem' }}>🅿️</div>
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                      حساب PayPal
                     </div>
-                  )}
+                    <div style={{ fontSize: '0.78rem', color: '#777' }}>
+                      دفع إلكتروني آمن عالمياً
+                    </div>
+                  </div>
                 </div>
 
                 {/* Tap Payments Banner */}
