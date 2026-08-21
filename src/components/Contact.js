@@ -1,276 +1,366 @@
-import { useState } from 'react';
-import { Star } from 'lucide-react';
+import React from 'react';
 import { shopInfo } from '../data/shopData';
 import { useReveal } from '../hooks/useReveal';
 import { useLanguage } from '../context/LanguageContext';
+import { MessageCircle, Sparkles, Clock, Globe, ArrowLeft, ArrowRight } from 'lucide-react';
 import styles from './Contact.module.css';
-
-const validate = {
-  name:    v => v.trim().length < 2   ? 'يرجى إدخال اسمكِ الكريم.' : '',
-  email:   v => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? 'يرجى إدخال بريد إلكتروني صالح.' : '',
-  message: v => v.trim().length < 10  ? 'مضمون الرسالة قصير جداً (10 أحرف كحد أدنى).' : '',
-};
 
 export default function Contact() {
   const { t, currentLang } = useLanguage();
   const [infoRef, infoVis] = useReveal();
-  const [formRef, formVis] = useReveal();
+  const [channelsRef, channelsVis] = useReveal();
 
-  const [formType, setFormType] = useState('message'); // 'message' or 'review'
-  const [rating, setRating] = useState(5);
-  const [fields, setFields] = useState({ name: '', email: '', message: '' });
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
-  const [done, setDone] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState('');
+  const isRtl = currentLang.dir !== 'ltr';
+  const ArrowIcon = isRtl ? ArrowLeft : ArrowRight;
 
-  const change = e => {
-    const { name, value } = e.target;
-    setFields(p => ({ ...p, [name]: value }));
-    if (touched[name] && validate[name]) {
-      setErrors(p => ({ ...p, [name]: validate[name](value) }));
+  const socialLinks = [
+    {
+      id: 'instagram',
+      name: 'إنستغرام',
+      nameEn: 'Instagram',
+      handle: shopInfo.instagramHandle || '@zahratbeesanshop',
+      url: shopInfo.instagram || 'https://www.instagram.com/zahratbeesanshop/',
+      desc: 'جلسات التصوير الحصرية، كولكشن المناسبات، وأحدث الإطلالات الملكية.',
+      icon: <i className="fab fa-instagram" style={{ fontSize: '1.4rem' }} />,
+      color: '#E1306C',
+      bgColor: 'rgba(225, 48, 108, 0.08)',
+      btnText: 'متابعة على إنستغرام'
+    },
+    {
+      id: 'tiktok',
+      name: 'تيك توك',
+      nameEn: 'TikTok',
+      handle: '@zahratbeesanshop',
+      url: shopInfo.tiktok || 'https://www.tiktok.com/@zahratbeesanshop',
+      desc: 'فيديوهات بدقة عالية لاستعراض انسيابية الأقمشة ودقة التطريز اليدوي.',
+      icon: <i className="fab fa-tiktok" style={{ fontSize: '1.4rem' }} />,
+      color: '#000000',
+      bgColor: 'rgba(0, 0, 0, 0.06)',
+      btnText: 'مشاهدة على تيك توك'
+    },
+    {
+      id: 'snapchat',
+      name: 'سناب شات',
+      nameEn: 'Snapchat',
+      handle: '@zahratbeesan',
+      url: shopInfo.snapchat || 'https://www.snapchat.com/add/zahratbeesan',
+      desc: 'كواليس يومية حصرية وتغطيات فورية للقطع والتصاميم الجديدة.',
+      icon: <i className="fab fa-snapchat-ghost" style={{ fontSize: '1.4rem' }} />,
+      color: '#FFFC00',
+      iconColor: '#e6b800',
+      bgColor: 'rgba(255, 252, 0, 0.12)',
+      btnText: 'إضافة على سناب شات'
+    },
+    {
+      id: 'facebook',
+      name: 'فيسبوك',
+      nameEn: 'Facebook',
+      handle: 'Zahrat Beesan',
+      url: shopInfo.facebook || 'https://web.facebook.com/profile.php?id=61592655440235',
+      desc: 'مجتمع عميلاتنا الفاخر، آراء السيدات، وآخر الأخبار والمناسبات.',
+      icon: <i className="fab fa-facebook-f" style={{ fontSize: '1.3rem' }} />,
+      color: '#1877F2',
+      bgColor: 'rgba(24, 119, 242, 0.08)',
+      btnText: 'زيارة الصفحة'
     }
-  };
+  ];
 
-  const blur = e => {
-    const { name, value } = e.target;
-    setTouched(p => ({ ...p, [name]: true }));
-    if (validate[name]) {
-      setErrors(p => ({ ...p, [name]: validate[name](value) }));
-    }
-  };
-
-  const submit = async e => {
-    e.preventDefault();
-    let errs = {};
-    if (formType === 'message') {
-      errs = {
-        name: validate.name(fields.name),
-        email: validate.email(fields.email),
-        message: validate.message(fields.message)
-      };
-    } else {
-      errs = {
-        message: fields.message.trim().length < 5 ? 'مضمون التقييم قصير جداً (5 أحرف كحد أدنى).' : ''
-      };
-    }
-    setErrors(errs);
-    
-    if (formType === 'message') {
-      setTouched({ name: true, email: true, message: true });
-    } else {
-      setTouched({ message: true });
-    }
-
-    if (!Object.values(errs).every(x => !x)) return;
-
-    setSubmitting(true);
-    setSubmitError('');
-
-    try {
-      if (formType === 'message') {
-        const response = await fetch('/api/contact', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: fields.name.trim(),
-            email: fields.email.trim(),
-            message: fields.message.trim(),
-          }),
-        });
-
-        if (!response.ok) throw new Error('حدث خطأ في الإرسال');
-      } else {
-        const response = await fetch('/api/reviews', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customerName: fields.name.trim() || 'عميلة زهرة بيسان',
-            comment: fields.message.trim(),
-            rating: rating,
-            productName: 'تقييم عام للمتجر'
-          }),
-        });
-
-        if (!response.ok) throw new Error('حدث خطأ في تقديم التقييم');
-      }
-      
-      setDone(true);
-    } catch (error) {
-      console.error('Submit error:', error);
-      setSubmitError(error.message || 'تعذر الإرسال حالياً. يُرجى المحاولة لاحقاً.');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const whatsappUrl = `https://wa.me/962796697413?text=${encodeURIComponent('مرحباً زهرة بيسان 🌸، يسعدني التواصل معكم للاستفسار عن تشكيلة العبايات والمقاسات.')}`;
 
   return (
-    <section className={styles.section} id="contact" style={{ direction: currentLang.dir || 'rtl' }}>
-      <div className="section-wrap">
-        <div className={styles.inner}>
+    <section className={styles.section} id="contact" style={{ padding: '80px 0', backgroundColor: '#faf9f6', direction: isRtl ? 'rtl' : 'ltr' }}>
+      <div className="section-wrap" style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 20px' }}>
+        
+        {/* Top Header */}
+        <div style={{ textAlign: 'center', marginBottom: '50px' }}>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: 'rgba(197, 168, 128, 0.12)',
+            color: 'var(--gold-dim, #a67c48)',
+            padding: '6px 18px',
+            borderRadius: '20px',
+            fontSize: '0.85rem',
+            fontWeight: '800',
+            marginBottom: '12px'
+          }}>
+            <Sparkles size={16} />
+            <span>تواصل VIP وخدمة العميلات</span>
+          </div>
+          <h2 style={{
+            fontFamily: 'var(--font-primary, serif)',
+            fontSize: '2.4rem',
+            fontWeight: '900',
+            color: 'var(--espresso, #1a1a1a)',
+            margin: '0 0 12px 0'
+          }}>
+            يسعدنا تواصلكِ معنا
+          </h2>
+          <p style={{
+            maxWidth: '650px',
+            margin: '0 auto',
+            color: '#666',
+            fontSize: '1.02rem',
+            lineHeight: '1.7'
+          }}>
+            فريق مستشارات الأناقة في <strong>زهرة بيسان</strong> متواجد دائماً للإجابة على استفساراتكِ، المساعدة في اختيار المقاس المناسب، وتنسيق إطلالتكِ الملكية مباشرة عبر الواتساب ومواقع التواصل.
+          </p>
+        </div>
+
+        {/* Grid Layout */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+          gap: '30px',
+          alignItems: 'stretch'
+        }}>
           
-          <div ref={infoRef} className={`${styles.info} reveal ${infoVis ? 'vis' : ''}`} style={{ textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
-            <div className="label" style={{ color: 'var(--gold)' }}>{t('contactBadge')}</div>
-            <div className="divider" style={{ background: 'var(--gold)' }} />
-            <h2 className="h2" style={{ color: 'var(--espresso)' }}>{t('contactTitle')}</h2>
-            <p className={styles.infoDesc} style={{ color: 'var(--espresso-mid)' }}>
-              {t('contactDescription')}
-            </p>
+          {/* ── WhatsApp VIP Hero Card ── */}
+          <div 
+            ref={infoRef}
+            className={`reveal ${infoVis ? 'vis' : ''}`}
+            style={{
+              background: 'linear-gradient(145deg, #181512 0%, #2a221a 100%)',
+              borderRadius: '28px',
+              padding: '40px 32px',
+              color: '#ffffff',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              boxShadow: '0 20px 45px rgba(0, 0, 0, 0.25)',
+              border: '1.5px solid rgba(197, 168, 128, 0.4)',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Background Glow Accent */}
+            <div style={{
+              position: 'absolute',
+              top: '-40px',
+              left: '-40px',
+              width: '180px',
+              height: '180px',
+              background: 'radial-gradient(circle, rgba(197, 168, 128, 0.25) 0%, transparent 70%)',
+              pointerEvents: 'none'
+            }} />
 
-            <div className={styles.contactDetails} style={{ display: 'flex', flexDirection: 'column', gap: '22px', margin: '30px 0' }}>
-               <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                  <i className="fas fa-globe" style={{ color: 'var(--gold, #c5a880)', fontSize: '1.25rem', marginTop: '4px' }} />
-                  <div>
-                    <strong style={{ color: 'var(--espresso, #2c1d11)', fontSize: '1.02rem', fontWeight: 800, display: 'block', marginBottom: '4px' }}>{t('globalBoutique')}</strong>
-                    <p style={{ color: 'var(--espresso, #2c1d11)', fontSize: '0.92rem', fontWeight: 700, margin: 0, opacity: 0.9 }}>{t('globalBoutiqueDesc')}</p>
-                  </div>
-               </div>
-               <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                  <i className="fas fa-envelope" style={{ color: 'var(--gold, #c5a880)', fontSize: '1.25rem', marginTop: '4px' }} />
-                  <div>
-                    <strong style={{ color: 'var(--espresso, #2c1d11)', fontSize: '1.02rem', fontWeight: 800, display: 'block', marginBottom: '4px' }}>{t('emailContact')}</strong>
-                    <a 
-                      href={`mailto:${shopInfo.email}`} 
-                      style={{ color: 'var(--espresso, #2c1d11)', fontSize: '0.92rem', fontWeight: 700, margin: 0, textDecoration: 'none', direction: 'ltr', display: 'inline-block', transition: 'color 0.25s ease' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'var(--gold, #b8966c)'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'var(--espresso, #2c1d11)'}
-                    >
-                      {shopInfo.email}
-                    </a>
-                  </div>
-               </div>
-               <div className={styles.detailItem} style={{ display: 'flex', gap: '15px', alignItems: 'flex-start' }}>
-                  <i className="fab fa-instagram" style={{ color: 'var(--gold, #c5a880)', fontSize: '1.25rem', marginTop: '4px' }} />
-                  <div>
-                    <strong style={{ color: 'var(--espresso, #2c1d11)', fontSize: '1.02rem', fontWeight: 800, display: 'block', marginBottom: '4px' }}>Instagram</strong>
-                    <a 
-                      href={shopInfo.instagram} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      style={{ color: 'var(--espresso, #2c1d11)', fontSize: '0.92rem', fontWeight: 700, margin: 0, textDecoration: 'none', direction: 'ltr', display: 'inline-block', fontFamily: 'system-ui, sans-serif', transition: 'color 0.25s ease' }}
-                      onMouseEnter={e => e.currentTarget.style.color = 'var(--gold, #b8966c)'}
-                      onMouseLeave={e => e.currentTarget.style.color = 'var(--espresso, #2c1d11)'}
-                    >
-                      {shopInfo.instagramHandle}
-                    </a>
-                  </div>
-               </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '18px',
+                  backgroundColor: '#25D366',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 20px rgba(37, 211, 102, 0.35)'
+                }}>
+                  <MessageCircle size={32} />
+                </div>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  padding: '6px 14px',
+                  borderRadius: '20px',
+                  fontSize: '0.82rem',
+                  fontWeight: '700',
+                  color: '#e8decb'
+                }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#25D366', display: 'inline-block', boxShadow: '0 0 8px #25D366' }} />
+                  <span>متواجدون للرد الفوري 24/7</span>
+                </div>
+              </div>
+
+              <h3 style={{
+                fontFamily: 'var(--font-primary, serif)',
+                fontSize: '1.65rem',
+                fontWeight: '900',
+                color: 'var(--gold-light, #f0dfc8)',
+                margin: '0 0 10px 0'
+              }}>
+                المستشارة الشخصية عبر واتساب
+              </h3>
+              
+              <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff', marginBottom: '16px', direction: 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
+                +962 7 9669 7413
+              </div>
+
+              <p style={{ color: '#d1c7bc', fontSize: '0.94rem', lineHeight: '1.7', margin: '0 0 24px 0' }}>
+                تواصلي معنا مباشرة عبر الواتساب للحصول على استشارة فورية وتنسيق إطلالتكِ، الإجابة عن أدق تفاصيل الأقمشة والمقاسات، ومتابعة طلباتكِ الخاصة خطوة بخطوة.
+              </p>
+
+              {/* Feature Highlights */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#eae4dc' }}>
+                  <span style={{ color: 'var(--gold, #c5a880)', fontWeight: 'bold' }}>✓</span>
+                  <span>مساعدة مخصصة في اختيار المقاس المناسب</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#eae4dc' }}>
+                  <span style={{ color: 'var(--gold, #c5a880)', fontWeight: 'bold' }}>✓</span>
+                  <span>تأكيد الطلبات وتتبع الشحن الدولي والمحلي</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#eae4dc' }}>
+                  <span style={{ color: 'var(--gold, #c5a880)', fontWeight: 'bold' }}>✓</span>
+                  <span>استقبال الطلبات الخاصة والمقاسات المحددة</span>
+                </div>
+              </div>
             </div>
 
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '12px 20px', borderRadius: '20px', background: 'var(--gold-glow)', border: '1px solid var(--border)' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#22c55e', animation: 'pulse 2s infinite', display: 'inline-block' }} />
-              <span style={{ fontWeight: '700', color: 'var(--espresso)', fontSize: '0.9rem' }}>{t('online247')}</span>
-            </div>
+            <a
+              href={whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                backgroundColor: '#25D366',
+                color: '#ffffff',
+                padding: '16px 28px',
+                borderRadius: '16px',
+                textDecoration: 'none',
+                fontWeight: '900',
+                fontSize: '1.05rem',
+                boxShadow: '0 8px 25px rgba(37, 211, 102, 0.4)',
+                transition: 'transform 0.2s, box-shadow 0.2s'
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 12px 30px rgba(37, 211, 102, 0.55)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 25px rgba(37, 211, 102, 0.4)';
+              }}
+            >
+              <MessageCircle size={22} />
+              <span>محادثة فورية عبر واتساب</span>
+              <ArrowIcon size={18} />
+            </a>
           </div>
 
-          <div ref={formRef} className={`${styles.formWrap} reveal ${formVis ? 'vis' : ''}`}>
-            {!done ? (
-              <form onSubmit={submit} noValidate style={{ background: 'var(--bg-card)', padding: '30px', borderRadius: '24px', border: '1px solid var(--border)' }}>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '24px', background: 'var(--bg-base)', padding: '4px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                  <button 
-                    type="button" 
-                    onClick={() => { setFormType('message'); setSubmitError(''); }} 
-                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: formType === 'message' ? 'var(--gold)' : 'transparent', color: formType === 'message' ? '#000' : 'var(--espresso-dim)', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    {t('contactUs')}
-                  </button>
-                  <button 
-                    type="button" 
-                    onClick={() => { setFormType('review'); setSubmitError(''); }} 
-                    style={{ flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: formType === 'review' ? 'var(--gold)' : 'transparent', color: formType === 'review' ? '#000' : 'var(--espresso-dim)', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }}
-                  >
-                    {t('storeReviewTab')}
-                  </button>
-                </div>
-
-                <h3 className={styles.formTitle} style={{ color: 'var(--espresso)', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right', marginBottom: '20px' }}>
-                  {formType === 'message' ? t('sendMessageTitle') : t('storeReviewTab')}
-                </h3>
-                
-                <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
-                  <label htmlFor="name" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                    {t('fullNameLabel')}
-                  </label>
-                  <input
-                    id="name" name="name" type="text" placeholder={t('namePlaceholder')}
-                    value={fields.name} onChange={change} onBlur={blur}
-                    className={errors.name && formType === 'message' ? styles.er : ''}
-                    style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}
-                  />
-                  {errors.name && formType === 'message' && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.name}</span>}
-                </div>
-
-                {formType === 'message' && (
-                  <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
-                    <label htmlFor="email" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>{t('emailLabel')}</label>
-                    <input
-                      id="email" name="email" type="email" placeholder="you@example.com"
-                      value={fields.email} onChange={change} onBlur={blur}
-                      className={errors.email ? styles.er : ''}
-                      style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}
-                    />
-                    {errors.email && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.email}</span>}
+          {/* ── Social Media Channels Grid ── */}
+          <div
+            ref={channelsRef}
+            className={`reveal ${channelsVis ? 'vis' : ''}`}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              justifyContent: 'space-between'
+            }}
+          >
+            {socialLinks.map(social => (
+              <a
+                key={social.id}
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '20px',
+                  padding: '20px 24px',
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  border: '1px solid rgba(197, 168, 128, 0.25)',
+                  boxShadow: '0 6px 18px rgba(0, 0, 0, 0.04)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 12px 25px rgba(197, 168, 128, 0.2)';
+                  e.currentTarget.style.borderColor = 'var(--gold, #c5a880)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 6px 18px rgba(0, 0, 0, 0.04)';
+                  e.currentTarget.style.borderColor = 'rgba(197, 168, 128, 0.25)';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    width: '52px',
+                    height: '52px',
+                    borderRadius: '14px',
+                    backgroundColor: social.bgColor,
+                    color: social.iconColor || social.color,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {social.icon}
                   </div>
-                )}
-
-                {formType === 'review' && (
-                  <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', textAlign: 'right' }}>
-                    <label style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>تقييمكِ بالنجوم</label>
-                    <div style={{ display: 'flex', gap: '6px', direction: 'rtl', justifyContent: 'flex-start' }}>
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <button key={s} type="button" onClick={() => setRating(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>
-                          <Star size={26} fill={s <= rating ? 'var(--gold)' : 'none'} stroke={s <= rating ? 'var(--gold)' : 'var(--espresso-dim)'} />
-                        </button>
-                      ))}
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '800', color: 'var(--espresso, #1a1a1a)' }}>
+                        {social.name}
+                      </h4>
+                      <span style={{ fontSize: '0.82rem', color: 'var(--gold-dim, #a67c48)', fontWeight: '700', direction: 'ltr' }}>
+                        {social.handle}
+                      </span>
                     </div>
+                    <p style={{ margin: 0, fontSize: '0.86rem', color: '#666', lineHeight: '1.4' }}>
+                      {social.desc}
+                    </p>
                   </div>
-                )}
-
-                <div className={styles.fg} style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '25px', textAlign: 'right' }}>
-                  <label htmlFor="message" style={{ color: 'var(--espresso-dim)', fontSize: '0.85rem' }}>
-                    {formType === 'message' ? 'نص الرسالة' : 'رأيكِ وتجربتكِ'}
-                  </label>
-                  <textarea
-                    id="message" name="message" rows={5}
-                    placeholder={formType === 'message' ? 'كيف يمكننا مساعدتكِ؟' : 'اكتبي رأيكِ هنا...'}
-                    value={fields.message} onChange={change} onBlur={blur}
-                    className={errors.message ? styles.er : ''}
-                    style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', color: 'var(--espresso)', padding: '12px 15px', borderRadius: '10px', outline: 'none', textAlign: 'right' }}
-                  />
-                  {errors.message && <span style={{ color: '#ef4444', fontSize: '0.78rem' }}>{errors.message}</span>}
                 </div>
 
-                {submitError && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '15px' }}>{submitError}</p>}
-
-                <button type="submit" className="btn btn-primary" disabled={submitting} style={{ width: '100%', display: 'flex', justifyContent: 'center', background: 'var(--gold)', color: '#000', fontWeight: 'bold' }}>
-                  {submitting ? 'جاري الإرسال...' : (formType === 'message' ? 'إرسال الرسالة' : 'إرسال التقييم')}
-                </button>
-              </form>
-            ) : (
-              <div className={styles.success} style={{ background: 'var(--bg-card)', padding: '50px 30px', borderRadius: '24px', textAlign: 'center', border: '1px solid var(--gold)' }}>
-                <div className={styles.successIcon} style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'var(--gold-glow)', color: 'var(--gold)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '1.5rem' }}>
-                  <i className="fas fa-check" />
+                <div style={{
+                  padding: '8px 14px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(197, 168, 128, 0.1)',
+                  color: 'var(--gold-dim, #9b723e)',
+                  fontWeight: '800',
+                  fontSize: '0.85rem',
+                  whiteSpace: 'nowrap',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  <span>زيارة</span>
+                  <ArrowIcon size={14} />
                 </div>
-                <h3 style={{ color: 'var(--espresso)', fontSize: '1.5rem', marginBottom: '10px' }}>
-                  {formType === 'message' ? 'تم استلاف رسالتكِ بنجاح' : 'شكراً لتقييمكِ الجميل!'}
-                </h3>
-                <p style={{ color: 'var(--espresso-mid)', fontSize: '0.95rem' }}>
-                  {formType === 'message' 
-                    ? 'نشكركِ على تواصلكِ معنا، وسنقوم بالرد عليكِ في أقرب وقت ممكن.' 
-                    : 'يسعدنا جداً مشاركتكِ لرأيكِ، ويساعدنا ذلك على تقديم الأفضل دائماً لعشاق زهرة بيسان.'}
-                </p>
-                <button 
-                  type="button" 
-                  onClick={() => { setDone(false); setFields({ name: '', email: '', message: '' }); setRating(5); }} 
-                  style={{ marginTop: '20px', background: 'none', border: 'none', color: 'var(--gold)', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}
-                >
-                  {formType === 'message' ? 'إرسال رسالة أخرى' : 'كتابة تقييم آخر'}
-                </button>
-              </div>
-            )}
+              </a>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Global Delivery Note */}
+        <div style={{
+          marginTop: '45px',
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          padding: '18px 24px',
+          border: '1px solid rgba(197, 168, 128, 0.2)',
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: 'space-around',
+          gap: '20px',
+          textAlign: 'center'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--espresso, #2c1d11)', fontWeight: '700', fontSize: '0.92rem' }}>
+            <Globe size={20} color="var(--gold-dim, #a67c48)" />
+            <span>متجر إلكتروني عالمي — شحن سريع لكافة دول العالم</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--espresso, #2c1d11)', fontWeight: '700', fontSize: '0.92rem' }}>
+            <Clock size={20} color="var(--gold-dim, #a67c48)" />
+            <span>رد فوري خلال دقائق عبر الواتساب</span>
           </div>
         </div>
+
       </div>
     </section>
   );
