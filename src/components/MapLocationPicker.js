@@ -309,7 +309,8 @@ export default function MapLocationPicker({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '16px',
+      padding: '12px',
+      overflowY: 'auto',
       direction: 'rtl'
     }}>
       <div style={{
@@ -317,27 +318,28 @@ export default function MapLocationPicker({
         borderRadius: '20px',
         width: '100%',
         maxWidth: '750px',
-        height: '90vh',
-        maxHeight: '750px',
+        maxHeight: '94vh',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
-        border: '1px solid rgba(197, 168, 128, 0.3)'
+        border: '1px solid rgba(197, 168, 128, 0.3)',
+        margin: 'auto'
       }}>
         {/* Modal Header */}
         <div style={{
-          padding: '16px 20px',
+          padding: '12px 18px',
           borderBottom: '1px solid #f0f0f0',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#faf8f5'
+          backgroundColor: '#faf8f5',
+          flexShrink: 0
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{
-              width: '36px',
-              height: '36px',
+              width: '34px',
+              height: '34px',
               borderRadius: '10px',
               backgroundColor: 'rgba(197, 168, 128, 0.2)',
               color: 'var(--gold-dim, #a67c48)',
@@ -345,13 +347,13 @@ export default function MapLocationPicker({
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <MapPin size={20} />
+              <MapPin size={18} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: '800', color: 'var(--espresso, #1a1a1a)' }}>
+              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: '800', color: 'var(--espresso, #1a1a1a)' }}>
                 تحديد موقع التوصيل على الخريطة
               </h3>
-              <p style={{ margin: '2px 0 0', fontSize: '0.8rem', color: '#777' }}>
+              <p style={{ margin: '1px 0 0', fontSize: '0.78rem', color: '#777' }}>
                 انقري على الخريطة أو اسحبي الدبوس لتحديد عنوانك بدقة متناهية
               </p>
             </div>
@@ -370,12 +372,12 @@ export default function MapLocationPicker({
               justifyContent: 'center'
             }}
           >
-            <X size={22} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Search & GPS Bar */}
-        <div style={{ padding: '12px 20px', backgroundColor: '#fff', borderBottom: '1px solid #f0f0f0', display: 'flex', gap: '10px' }}>
+        <div style={{ padding: '10px 18px', backgroundColor: '#fff', borderBottom: '1px solid #f0f0f0', display: 'flex', gap: '8px', flexShrink: 0 }}>
           <form onSubmit={handleSearch} style={{ flex: 1, display: 'flex', gap: '8px' }}>
             <div style={{ position: 'relative', flex: 1 }}>
               <input
@@ -385,34 +387,34 @@ export default function MapLocationPicker({
                 placeholder="ابحثي عن حي، شارع، أو معلم..."
                 style={{
                   width: '100%',
-                  padding: '10px 38px 10px 14px',
+                  padding: '8px 36px 8px 12px',
                   borderRadius: '10px',
                   border: '1px solid #ddd',
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   outline: 'none',
                   boxSizing: 'border-box'
                 }}
               />
-              <Search size={18} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
+              <Search size={16} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#999' }} />
             </div>
             <button
               type="submit"
               disabled={isSearching}
               style={{
-                padding: '0 16px',
+                padding: '0 14px',
                 borderRadius: '10px',
                 border: 'none',
                 backgroundColor: 'var(--espresso, #1a1a1a)',
                 color: '#fff',
                 fontWeight: 'bold',
-                fontSize: '0.85rem',
+                fontSize: '0.82rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
               }}
             >
-              {isSearching ? <Loader2 size={16} className="spin" /> : 'بحث'}
+              {isSearching ? <Loader2 size={15} className="spin" /> : 'بحث'}
             </button>
           </form>
 
@@ -421,13 +423,13 @@ export default function MapLocationPicker({
             onClick={handleGpsClick}
             disabled={isLocatingUser}
             style={{
-              padding: '0 14px',
+              padding: '0 12px',
               borderRadius: '10px',
               border: '1px solid var(--gold-dim, #c5a880)',
               backgroundColor: 'rgba(197, 168, 128, 0.1)',
               color: 'var(--gold-dim, #9b723e)',
               fontWeight: '700',
-              fontSize: '0.85rem',
+              fontSize: '0.82rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
@@ -435,13 +437,13 @@ export default function MapLocationPicker({
               whiteSpace: 'nowrap'
             }}
           >
-            {isLocatingUser ? <Loader2 size={16} className="spin" /> : <Navigation size={16} />}
+            {isLocatingUser ? <Loader2 size={15} className="spin" /> : <Navigation size={15} />}
             موقعي الحالي
           </button>
         </div>
 
         {/* Map Viewport */}
-        <div style={{ flex: 1, position: 'relative', minHeight: '280px', backgroundColor: '#e5e3df' }}>
+        <div style={{ flex: '1 1 auto', position: 'relative', height: '260px', minHeight: '180px', backgroundColor: '#e5e3df' }}>
           {isLoadingLeaflet && (
             <div style={{
               position: 'absolute',
@@ -453,8 +455,8 @@ export default function MapLocationPicker({
               backgroundColor: '#faf8f5',
               zIndex: 10
             }}>
-              <Loader2 size={32} className="spin" style={{ color: 'var(--gold-dim, #c5a880)', marginBottom: '10px' }} />
-              <div style={{ color: '#666', fontSize: '0.9rem', fontWeight: 'bold' }}>جاري تحميل الخريطة التفاعلية...</div>
+              <Loader2 size={28} className="spin" style={{ color: 'var(--gold-dim, #c5a880)', marginBottom: '8px' }} />
+              <div style={{ color: '#666', fontSize: '0.85rem', fontWeight: 'bold' }}>جاري تحميل الخريطة التفاعلية...</div>
             </div>
           )}
           <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
@@ -462,42 +464,43 @@ export default function MapLocationPicker({
 
         {/* Selected Location Summary & Confirm Button */}
         <div style={{
-          padding: '16px 20px',
+          padding: '12px 18px',
           backgroundColor: '#faf8f5',
           borderTop: '1px solid #eee',
           display: 'flex',
           flexDirection: 'column',
-          gap: '12px'
+          gap: '10px',
+          flexShrink: 0
         }}>
           <div style={{
             backgroundColor: '#fff',
-            padding: '12px 14px',
-            borderRadius: '12px',
+            padding: '10px 12px',
+            borderRadius: '10px',
             border: '1px solid #e8e8e8',
-            fontSize: '0.88rem'
+            fontSize: '0.84rem'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', color: 'var(--gold-dim, #9b723e)', fontWeight: 'bold' }}>
-              <MapPin size={16} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', color: 'var(--gold-dim, #9b723e)', fontWeight: 'bold' }}>
+              <MapPin size={15} />
               <span>الموقع المحدد للتوصيل:</span>
-              {isGeocoding && <span style={{ fontSize: '0.75rem', color: '#999' }}>(جاري استخراج تفاصيل العنوان...)</span>}
+              {isGeocoding && <span style={{ fontSize: '0.72rem', color: '#999' }}>(جاري استخراج تفاصيل العنوان...)</span>}
             </div>
-            <div style={{ color: '#333', fontSize: '0.85rem', lineHeight: '1.4', wordBreak: 'break-word' }}>
+            <div style={{ color: '#333', fontSize: '0.82rem', lineHeight: '1.35', wordBreak: 'break-word', maxHeight: '45px', overflowY: 'auto' }}>
               {locationDetails.displayName || locationDetails.address || 'انقري على الخريطة لتحديد عنوانك بالتفصيل'}
             </div>
             {(locationDetails.city || locationDetails.country) && (
-              <div style={{ marginTop: '6px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              <div style={{ marginTop: '5px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                 {locationDetails.country && (
-                  <span style={{ fontSize: '0.75rem', backgroundColor: '#f0f0f0', padding: '2px 8px', borderRadius: '6px', color: '#555' }}>
+                  <span style={{ fontSize: '0.72rem', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '5px', color: '#555' }}>
                     🇯🇴 {locationDetails.country}
                   </span>
                 )}
                 {locationDetails.city && (
-                  <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(197, 168, 128, 0.15)', color: 'var(--gold-dim, #9b723e)', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>
+                  <span style={{ fontSize: '0.72rem', backgroundColor: 'rgba(197, 168, 128, 0.15)', color: 'var(--gold-dim, #9b723e)', padding: '2px 6px', borderRadius: '5px', fontWeight: 'bold' }}>
                     📍 المدينة: {locationDetails.city}
                   </span>
                 )}
                 {locationDetails.area && (
-                  <span style={{ fontSize: '0.75rem', backgroundColor: '#f0f0f0', padding: '2px 8px', borderRadius: '6px', color: '#555' }}>
+                  <span style={{ fontSize: '0.72rem', backgroundColor: '#f0f0f0', padding: '2px 6px', borderRadius: '5px', color: '#555' }}>
                     🏘️ الحي: {locationDetails.area}
                   </span>
                 )}
@@ -505,19 +508,19 @@ export default function MapLocationPicker({
             )}
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '8px' }}>
             <button
               type="button"
               onClick={onClose}
               style={{
                 flex: 1,
-                padding: '12px 16px',
-                borderRadius: '12px',
+                padding: '10px 14px',
+                borderRadius: '10px',
                 border: '1px solid #ddd',
                 backgroundColor: '#fff',
                 color: '#555',
                 fontWeight: 'bold',
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 cursor: 'pointer'
               }}
             >
@@ -529,22 +532,22 @@ export default function MapLocationPicker({
               disabled={!selectedCoords}
               style={{
                 flex: 2,
-                padding: '12px 20px',
-                borderRadius: '12px',
+                padding: '10px 16px',
+                borderRadius: '10px',
                 border: 'none',
                 backgroundColor: 'var(--gold-dim, #c5a880)',
                 color: '#fff',
                 fontWeight: '800',
-                fontSize: '0.98rem',
+                fontSize: '0.92rem',
                 cursor: selectedCoords ? 'pointer' : 'not-allowed',
                 boxShadow: '0 4px 15px rgba(197, 168, 128, 0.35)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px'
+                gap: '6px'
               }}
             >
-              <Check size={18} />
+              <Check size={16} />
               تأكيد هذا الموقع واعتماده
             </button>
           </div>
