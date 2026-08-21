@@ -151246,10 +151246,7 @@ app.get("/api/tap/verify-charge/:id", async (req, res) => {
 
 
 
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+
 
 // ══════════════════════════════════════════════════════════════════════════════
 app.post("/api/store-status", (req, res) => {

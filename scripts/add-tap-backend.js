@@ -150,7 +150,7 @@ app.get("/api/tap/verify-charge/:id", async (req, res) => {
 });
 `;
 
-['server.js', 'app.js'].forEach(file => {
+['main_server.js', 'server.js', 'app.js'].forEach(file => {
   if (fs.existsSync(file)) {
     let content = fs.readFileSync(file, 'utf8');
     // Remove old plain secret block if present

@@ -396,7 +396,13 @@ export default function Checkout() {
           }),
         });
 
-        const result = await response.json();
+        let result = {};
+        try {
+          result = await response.json();
+        } catch(e) {
+          result = { error: 'حدث خطأ في الاتصال بالخادم' };
+        }
+
         if (!response.ok || !result.success) {
           setStep('form');
           showAlert({ title: 'تعذر تسجيل الطلب', message: result.error || 'حدث خطأ أثناء تجهيز الطلب.', type: 'error' });
@@ -424,7 +430,13 @@ export default function Checkout() {
           })
         });
 
-        const chargeData = await chargeRes.json();
+        let chargeData = {};
+        try {
+          chargeData = await chargeRes.json();
+        } catch(e) {
+          chargeData = { error: 'حدث خطأ أثناء الاتصال ببوابة الدفع' };
+        }
+
         if (chargeData.success && chargeData.redirectUrl) {
           window.location.href = chargeData.redirectUrl;
         } else {
@@ -438,8 +450,8 @@ export default function Checkout() {
       } catch (err) {
         setStep('form');
         showAlert({
-          title: 'حدث خطأ غير متوقع',
-          message: err.message || 'تعذر بدء عملية الدفع.',
+          title: 'تعذر بدء الدفع',
+          message: err.message || 'يرجى المحاولة مجدداً أو اختيار الدفع عند الاستلام.',
           type: 'error'
         });
       }
