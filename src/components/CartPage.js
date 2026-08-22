@@ -372,67 +372,86 @@ export default function CartPage() {
                 border: '1px solid rgba(197, 168, 128, 0.35)',
                 boxShadow: '0 15px 40px rgba(0,0,0,0.05)'
               }}>
-                <h2 style={{ fontSize: '1.4rem', color: 'var(--espresso)', margin: '0 0 20px 0', borderBottom: '1px solid #f0f0f0', paddingBottom: '14px', fontFamily: 'var(--font-primary, serif)' }}>
+                <h2 style={{ fontSize: '1.35rem', color: 'var(--espresso)', margin: '0 0 18px 0', borderBottom: '1px solid #f0f0f0', paddingBottom: '12px', fontFamily: 'var(--font-primary, serif)', fontWeight: '800' }}>
                   ملخص الطلب
                 </h2>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', fontSize: '0.95rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '18px', fontSize: '0.95rem' }}>
+                  {/* مجموع المنتجات */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                    <span>المجموع الفرعي:</span>
-                    <strong style={{ color: '#1a1a1a' }}>{formatPrice(subTotal)}</strong>
+                    <span>مجموع المنتجات:</span>
+                    <strong style={{ color: '#1a1a1a', fontWeight: '700' }}>{formatPrice(subTotal)}</strong>
                   </div>
 
-                  {bundleDiscount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#15803d' }}>
-                      <span>خصم البكج الملكي:</span>
-                      <strong>- {formatPrice(bundleDiscount)}</strong>
-                    </div>
-                  )}
-
-                  {discountAmount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#15803d' }}>
-                      <span>خصم الكوبون ({couponApplied?.code}):</span>
-                      <strong>- {formatPrice(discountAmount)}</strong>
-                    </div>
-                  )}
-
+                  {/* تكلفة الشحن */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                    <span>الشحن والتوصيل:</span>
-                    <span style={{ color: '#15803d', fontWeight: 'bold' }}>يُحسب في الخطوة التالية</span>
+                    <span>تكلفة الشحن:</span>
+                    <strong style={{ color: '#15803d', fontWeight: '700' }}>0 JOD (أو يُحسب لاحقاً)</strong>
                   </div>
+
+                  {/* الخصم باللون الأحمر */}
+                  {(discountAmount > 0 || bundleDiscount > 0) && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 'bold' }}>
+                      <span>الخصم {couponApplied ? `(${couponApplied.code})` : ''}:</span>
+                      <span>-{formatPrice(discountAmount + bundleDiscount)}</span>
+                    </div>
+                  )}
                 </div>
 
+                {/* الإجمالي مع عدد المنتجات والسعر الأصلي المشطوب إن وجد */}
                 <div style={{
-                  borderTop: '2px dashed rgba(197, 168, 128, 0.3)',
+                  borderTop: '1px solid #eee',
                   paddingTop: '16px',
-                  marginBottom: '25px',
+                  marginBottom: '14px',
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'baseline'
+                  alignItems: 'center'
                 }}>
-                  <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--espresso)' }}>المجموع الإجمالي:</span>
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontSize: '1.6rem', fontWeight: '900', color: 'var(--gold-dim)' }}>
-                      {formatPrice(finalCartTotal)}
-                    </div>
-                    {currency && currency.code !== 'JOD' && (
-                      <div style={{ fontSize: '0.8rem', color: '#888' }}>
-                        ≈ {finalCartTotal.toFixed(2)} دينار أردني
-                      </div>
+                  <span style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--espresso)' }}>
+                    الإجمالي ({items.reduce((s, i) => s + i.qty, 0)} {items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات'}):
+                  </span>
+                  <div style={{ textAlign: 'left', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                    {(discountAmount > 0 || bundleDiscount > 0) && (
+                      <span style={{ fontSize: '1.1rem', color: '#999', textDecoration: 'line-through' }}>
+                        {formatPrice(subTotal)}
+                      </span>
                     )}
+                    <span style={{ fontSize: '1.55rem', fontWeight: '900', color: 'var(--espresso)' }}>
+                      {formatPrice(finalCartTotal)}
+                    </span>
                   </div>
                 </div>
 
-                {/* Primary Proceed to Checkout Button */}
+                {/* شارة التوفير الفاخرة */}
+                {(discountAmount > 0 || bundleDiscount > 0) && (
+                  <div style={{
+                    backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                    border: '1px solid rgba(22, 163, 74, 0.25)',
+                    borderRadius: '20px',
+                    padding: '6px 14px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    color: '#15803d',
+                    fontWeight: '800',
+                    fontSize: '0.88rem',
+                    marginBottom: '20px'
+                  }}>
+                    <span>🎉</span>
+                    <span>التوفير {formatPrice(discountAmount + bundleDiscount)}</span>
+                  </div>
+                )}
+
+                {/* زر إتمام الطلب الفاخر */}
                 <button
                   onClick={() => navigate('/checkout')}
                   style={{
                     width: '100%',
-                    backgroundColor: 'var(--gold, #c5a880)',
-                    color: '#1a1008',
+                    backgroundColor: '#302820',
+                    color: '#ffffff',
                     border: 'none',
-                    padding: '18px 24px',
-                    borderRadius: '16px',
+                    padding: '16px 24px',
+                    borderRadius: '14px',
                     fontSize: '1.15rem',
                     fontWeight: '900',
                     cursor: 'pointer',
@@ -440,14 +459,15 @@ export default function CartPage() {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '10px',
-                    boxShadow: '0 10px 25px rgba(197, 168, 128, 0.4)',
-                    transition: 'all 0.25s ease'
+                    boxShadow: '0 8px 24px rgba(48, 40, 32, 0.35)',
+                    transition: 'all 0.25s ease',
+                    marginTop: (discountAmount > 0 || bundleDiscount > 0) ? '0' : '10px'
                   }}
-                  onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-                  onMouseLeave={e => e.currentTarget.style.transform = 'none'}
+                  onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.backgroundColor = '#1f1a15'; }}
+                  onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.backgroundColor = '#302820'; }}
                 >
-                  <span>المتابعة لإتمام الطلب والدفع</span>
-                  <span style={{ fontSize: '1.3rem' }}>←</span>
+                  <span>إتمام الطلب</span>
+                  <span style={{ fontSize: '1.2rem' }}>←</span>
                 </button>
 
                 {/* Safe Shopping Guarantee Badges */}

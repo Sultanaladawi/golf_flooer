@@ -1610,43 +1610,74 @@ export default function Checkout() {
               </div>
 
               {/* Price Details */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.92rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>المجموع الفرعي:</span>
-                  <strong style={{ color: '#1a1a1a' }}>{formatPrice(totalPrice)}</strong>
+                  <span>مجموع المنتجات:</span>
+                  <strong style={{ color: '#1a1a1a', fontWeight: '700' }}>{formatPrice(totalPrice)}</strong>
                 </div>
 
-                {couponDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#15803d' }}>
-                    <span>خصم الكوبون ({couponApplied?.code}):</span>
-                    <strong>-{formatPrice(couponDiscount)}</strong>
-                  </div>
-                )}
-
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>رسوم الشحن والتوصيل:</span>
+                  <span>تكلفة الشحن:</span>
                   {isCalculatingShipping ? (
                     <span style={{ color: 'var(--gold-dim)' }}>جاري الحساب...</span>
                   ) : (
-                    <strong style={{ color: shippingFee === 0 ? '#15803d' : '#1a1a1a' }}>
-                      {shippingFee === 0 ? 'شحن مجاني' : `+${formatPrice(shippingFee)}`}
+                    <strong style={{ color: shippingFee === 0 ? '#15803d' : '#1a1a1a', fontWeight: '700' }}>
+                      {shippingFee === 0 ? '0 JOD (مجاناً)' : `+${formatPrice(shippingFee)}`}
                     </strong>
                   )}
                 </div>
+
+                {couponDiscount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 'bold' }}>
+                    <span>الخصم {couponApplied?.code ? `(${couponApplied.code})` : ''}:</span>
+                    <span>-{formatPrice(couponDiscount)}</span>
+                  </div>
+                )}
               </div>
 
-              {/* Grand Total */}
-              <div className={styles.sumTotal}>
-                <span style={{ fontSize: '1.1rem', fontWeight: 'bold', color: 'var(--espresso)' }}>المبلغ الإجمالي:</span>
-                <div style={{ textAlign: 'left' }}>
-                  <div className={styles.sumTotalAmt}>{formatPrice(finalPrice)}</div>
-                  {useCurrency().currency?.code !== 'JOD' && (
-                    <div style={{ fontSize: '0.8rem', color: '#888' }}>
-                      ≈ {finalPrice.toFixed(2)} دينار أردني
-                    </div>
+              {/* Grand Total Row */}
+              <div style={{
+                borderTop: '1px solid #eee',
+                paddingTop: '16px',
+                marginBottom: '14px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
+                <span style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--espresso)' }}>
+                  الإجمالي ({items.reduce((s, i) => s + i.qty, 0)} {items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات'}):
+                </span>
+                <div style={{ textAlign: 'left', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                  {couponDiscount > 0 && (
+                    <span style={{ fontSize: '1.1rem', color: '#999', textDecoration: 'line-through' }}>
+                      {formatPrice(totalPrice + shippingFee)}
+                    </span>
                   )}
+                  <span style={{ fontSize: '1.55rem', fontWeight: '900', color: 'var(--espresso)' }}>
+                    {formatPrice(finalPrice)}
+                  </span>
                 </div>
               </div>
+
+              {/* Savings Badge */}
+              {couponDiscount > 0 && (
+                <div style={{
+                  backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                  border: '1px solid rgba(22, 163, 74, 0.25)',
+                  borderRadius: '20px',
+                  padding: '6px 14px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  color: '#15803d',
+                  fontWeight: '800',
+                  fontSize: '0.88rem',
+                  marginBottom: '10px'
+                }}>
+                  <span>🎉</span>
+                  <span>التوفير {formatPrice(couponDiscount)}</span>
+                </div>
+              )}
 
               {/* Confirm Button for PayTabs / MEPS Cards & Apple Pay */}
               {form.paymentMethod === 'paytabs' && (

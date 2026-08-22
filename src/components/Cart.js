@@ -185,30 +185,56 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
 
         <div className={styles.summary}>
           <div className={styles.summaryRow}>
-            <span>{t('subtotal')}</span>
-            <span>{formatPrice(subTotal)}</span>
+            <span>مجموع المنتجات:</span>
+            <strong>{formatPrice(subTotal)}</strong>
           </div>
-          {isBundleApplied && (
-            <div className={styles.summaryRow} style={{ color: 'var(--gold)', fontWeight: 'bold' }}>
-              <span><i className="fas fa-tags" /> {t('bundleDiscountLabel')}</span>
+          {bundleDiscount > 0 && (
+            <div className={styles.summaryRow} style={{ color: '#dc2626', fontWeight: 'bold' }}>
+              <span>الخصم:</span>
               <span>- {formatPrice(bundleDiscount)}</span>
             </div>
           )}
           <div className={styles.summaryRow}>
-            <span>{t('deliveryFee')}</span>
-            <span style={{ color: 'var(--espresso)' }}>{t('calcAtCheckout')}</span>
+            <span>تكلفة الشحن:</span>
+            <span style={{ color: '#15803d', fontWeight: 'bold' }}>0 JOD (يُحسب عند الدفع)</span>
           </div>
-          <div className={`${styles.summaryRow} ${styles.totalRow}`}>
-            <span>{t('totalLabel')}</span>
-            <span>{formatPrice(totalPrice)}</span>
+          <div className={`${styles.summaryRow} ${styles.totalRow}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>الإجمالي ({items.reduce((s, i) => s + i.qty, 0)} {items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات'}):</span>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+              {bundleDiscount > 0 && (
+                <span style={{ fontSize: '0.95rem', color: '#999', textDecoration: 'line-through' }}>
+                  {formatPrice(subTotal)}
+                </span>
+              )}
+              <span>{formatPrice(totalPrice)}</span>
+            </div>
           </div>
 
-          <button className={styles.checkoutBtn} onClick={() => customer ? onCheckout() : openLoginModal(onCheckout)} style={{ background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)', border: 'none', color: '#ffffff', boxShadow: '0 6px 20px rgba(197, 168, 128, 0.35)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <i className="fas fa-shield-alt" />
-              <span>{t('confirmOrder')}</span>
+          {bundleDiscount > 0 && (
+            <div style={{
+              backgroundColor: 'rgba(22, 163, 74, 0.1)',
+              border: '1px solid rgba(22, 163, 74, 0.25)',
+              borderRadius: '20px',
+              padding: '5px 12px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              color: '#15803d',
+              fontWeight: '800',
+              fontSize: '0.85rem',
+              margin: '6px 0 14px'
+            }}>
+              <span>🎉</span>
+              <span>التوفير {formatPrice(bundleDiscount)}</span>
             </div>
-            <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '8px', fontSize: '1rem' }}>{formatPrice(totalPrice)}</span>
+          )}
+
+          <button className={styles.checkoutBtn} onClick={() => customer ? onCheckout() : openLoginModal(onCheckout)} style={{ background: '#302820', border: 'none', color: '#ffffff', boxShadow: '0 6px 20px rgba(48, 40, 32, 0.35)', borderRadius: '14px', padding: '14px 20px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 'bold', fontSize: '1.05rem', cursor: 'pointer' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>إتمام الطلب</span>
+              <span>←</span>
+            </div>
+            <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.95rem' }}>{formatPrice(totalPrice)}</span>
           </button>
           
           <button className={styles.clearBtn} onClick={clearCart}>
