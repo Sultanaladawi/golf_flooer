@@ -18,8 +18,8 @@ export const CustomerAuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = (email) => {
-    const user = { email };
+  const login = (userData) => {
+    const user = typeof userData === 'string' ? { email: userData } : (userData || {});
     setCustomer(user);
     localStorage.setItem('zahrat_customer', JSON.stringify(user));
     setIsLoginModalOpen(false);

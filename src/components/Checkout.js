@@ -9,13 +9,16 @@ import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
 import { sendOrderConfirmationEmail } from '../utils/emailService';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-import { BILINGUAL_COUNTRIES, getCitiesForCountry, matchCountryFromAddress, matchCityFromAddress, getCountryIso } from '../utils/countryCityData';
+import { useCustomerAuth } from '../context/CustomerAuthContext';
+import { GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from 'jwt-decode';
 import MapLocationPicker from './MapLocationPicker';
 import Navbar from './Navbar';
 import Footer from './Footer';
 
 export default function Checkout() {
   const navigate = useNavigate();
+  const { customer, openLoginModal, login } = useCustomerAuth();
   const { items, totalPrice, clearCart } = useCart();
   const { t, currentLang } = useLanguage();
   const { format: formatPrice } = useCurrency();
@@ -24,6 +27,16 @@ export default function Checkout() {
   const [step, setStep] = useState('form');
   const [orderId, setOrderId] = useState(null);
   const [orderStatus, setOrderStatus] = useState('preparing');
+
+  useEffect(() => {
+    if (customer && customer.email) {
+      setForm(prev => ({
+        ...prev,
+        email: customer.email,
+        name: prev.name || customer.name || ''
+      }));
+    }
+  }, [customer]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -629,6 +642,109 @@ export default function Checkout() {
 
   const isJordan = form.country === 'الأردن' || form.country === 'Jordan' || form.country === 'JO' || form.country === 'jo';
 
+  // ── AUTH GATE: Require customer login / registration before checking out ──
+  if (!customer) {
+    return (
+      <div className={styles.checkoutPageWrapper}>
+        <Navbar />
+        <main className={styles.mainContainer} style={{ minHeight: '65vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px 20px' }}>
+          <div style={{
+            maxWidth: '500px',
+            width: '100%',
+            background: 'rgba(255, 255, 255, 0.98)',
+            borderRadius: '24px',
+            padding: '40px 28px',
+            boxShadow: '0 20px 50px rgba(197, 168, 128, 0.2)',
+            border: '1.5px solid rgba(197, 168, 128, 0.35)',
+            textAlign: 'center'
+          }}>
+            <div style={{
+              width: '80px',
+              height: '80px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, var(--gold, #c5a880) 0%, var(--gold-dim, #a6865d) 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px',
+              color: '#fff',
+              boxShadow: '0 10px 25px rgba(197, 168, 128, 0.4)'
+            }}>
+              <User size={38} />
+            </div>
+
+            <h2 style={{ fontFamily: 'var(--font-primary, serif)', fontSize: '1.75rem', color: 'var(--espresso)', margin: '0 0 10px' }}>
+              تسجيل الدخول لإتمام الطلب 👑
+            </h2>
+            <p style={{ color: '#666', fontSize: '0.96rem', lineHeight: '1.7', marginBottom: '28px' }}>
+              لتسجيل طلبكِ الملكي، وحفظ عناوينكِ وإرسال الفاتورة الرسمية وتتبع الشحنة مباشرة إلى بريدكِ الإلكتروني، يرجى تسجيل الدخول أو إنشاء حسابكِ أولاً.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center' }}>
+                <GoogleLogin
+                  onSuccess={(credentialResponse) => {
+                    try {
+                      const decoded = jwtDecode(credentialResponse.credential);
+                      if (decoded && decoded.email) {
+                        login({
+                          email: decoded.email,
+                          name: decoded.name || '',
+                          picture: decoded.picture || ''
+                        });
+                      }
+                    } catch (e) {}
+                  }}
+                  onError={() => console.log('Login Failed')}
+                  useOneTap
+                  theme="filled_black"
+                  shape="pill"
+                  size="large"
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px', margin: '6px 0' }}>
+                <div style={{ flex: 1, height: '1px', background: '#eee' }}></div>
+                <span style={{ fontSize: '0.82rem', color: '#999' }}>أو بالبريد الإلكتروني</span>
+                <div style={{ flex: 1, height: '1px', background: '#eee' }}></div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => openLoginModal()}
+                style={{
+                  width: '100%',
+                  background: 'linear-gradient(135deg, #2c2523 0%, #1a1615 100%)',
+                  color: '#d4af37',
+                  border: '1.5px solid #d4af37',
+                  padding: '14px 20px',
+                  borderRadius: '14px',
+                  fontSize: '1.05rem',
+                  fontWeight: 'bold',
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '10px'
+                }}
+              >
+                <User size={18} />
+                <span>تسجيل الدخول / إنشاء حساب</span>
+              </button>
+            </div>
+
+            <div style={{ marginTop: '24px', paddingTop: '15px', borderTop: '1px solid #f0f0f0', fontSize: '0.8rem', color: '#888', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+              <span>🔒</span>
+              <span>بياناتكِ مشفرة ومحمية بأعلى معايير الأمان الملكية</span>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.checkoutPageWrapper}>
       <Navbar />
@@ -656,6 +772,40 @@ export default function Checkout() {
             
             {/* ── RIGHT COLUMN: Information & Payment ── */}
             <div>
+              {/* Logged in Customer Royal Badge */}
+              <div style={{
+                backgroundColor: 'rgba(197, 168, 128, 0.1)',
+                border: '1.5px solid rgba(197, 168, 128, 0.35)',
+                borderRadius: '16px',
+                padding: '14px 18px',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  {customer.picture ? (
+                    <img src={customer.picture} alt="Avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2px solid var(--gold)' }} />
+                  ) : (
+                    <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--gold) 0%, var(--gold-dim) 100%)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <User size={20} />
+                    </div>
+                  )}
+                  <div>
+                    <div style={{ fontWeight: 'bold', color: 'var(--espresso)', fontSize: '0.95rem' }}>
+                      {customer.name || 'عميلة زهرة بيسان'}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#666' }}>
+                      {customer.email} (سيتم إرسال الفاتورة والتأكيد فوراً لهذا البريد 📧)
+                    </div>
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.78rem', background: '#ffffff', color: 'var(--gold-dim)', padding: '4px 10px', borderRadius: '10px', fontWeight: 'bold', border: '1px solid rgba(197, 168, 128, 0.3)', whiteSpace: 'nowrap' }}>
+                  حساب مؤكد ✅
+                </span>
+              </div>
+
               {/* 1. Customer Information Card */}
               <div className={styles.sectionCard}>
                 <h3 className={styles.sectionTitle}>

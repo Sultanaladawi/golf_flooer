@@ -15,14 +15,22 @@ export default function LoginModal() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (email.trim()) {
-      login(email.trim());
+      login({ email: email.trim() });
     }
   };
 
   const handleGoogleSuccess = (credentialResponse) => {
-    const decoded = jwtDecode(credentialResponse.credential);
-    if (decoded && decoded.email) {
-      login(decoded.email);
+    try {
+      const decoded = jwtDecode(credentialResponse.credential);
+      if (decoded && decoded.email) {
+        login({
+          email: decoded.email,
+          name: decoded.name || decoded.given_name || '',
+          picture: decoded.picture || ''
+        });
+      }
+    } catch (e) {
+      console.error('Google decode error:', e);
     }
   };
 
