@@ -71,6 +71,32 @@ export default function Checkout() {
             type: 'error'
           });
         });
+      return;
+    }
+
+    const paytabsOrderId = urlParams.get('paytabs_order_id');
+    if (paytabsOrderId) {
+      setStep('processing');
+      setOrderId(paytabsOrderId);
+      fetch(`/api/paytabs/verify/${paytabsOrderId}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success && data.status === 'paid') {
+            clearCart();
+            setStep('success');
+            try { trackPurchase(finalPrice, 'JOD'); } catch (_) {}
+          } else {
+            setStep('form');
+            showAlert({
+              title: 'تنبيه بوابة الدفع',
+              message: 'لم تكتمل عملية الدفع أو تم إلغاؤها. سلة مشترياتك محفوظة.',
+              type: 'warning'
+            });
+          }
+        })
+        .catch(() => {
+          setStep('form');
+        });
     }
   }, []);
   
@@ -447,74 +473,57 @@ export default function Checkout() {
       } else {
         setStep(resultStatus.startsWith('error') ? resultStatus : 'error:' + resultStatus);
       }
-    } else if (form.paymentMethod === 'tap') {
+    } else if (form.paymentMethod === 'paytabs') {
       setStep('processing');
       try {
-        // Save pending order details in sessionStorage so it only gets saved to database upon CAPTURED verification
-        const pendingOrderPayload = {
-          customer_name: form.name.trim(),
-          email: form.email.trim() || null,
-          total_amount: finalPrice,
-          cartItems: items.map(item => ({
-            id: item.productId || item.id,
-            name: `${item.name} (${item.size || 'حر'})`,
-            qty: item.qty,
-            priceNum: item.priceNum
-          })),
-          order_type: 'delivery',
-          delivery_address: `الدولة: ${form.country} - المدينة: ${form.city} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: بطاقة بنكية / Apple Pay (Tap Payments) | رسوم التوصيل: ${shippingFee} JOD`,
-          phone: form.phone.trim(),
-          coupon_code: couponApplied ? couponApplied.code : null,
-          is_gift: 0
-        };
-        try { sessionStorage.setItem('zb_pending_tap_order', JSON.stringify(pendingOrderPayload)); } catch (_) {}
-
-        // Call Tap Charge API directly
-        const chargeRes = await fetch('/api/tap/create-charge', {
+        const ptRes = await fetch('/api/paytabs/create-payment', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amount: finalPrice,
-            currency: 'JOD',
-            orderId: 'TAP-' + Date.now(),
-            orderItems: items,
-            customer: {
-              name: form.name.trim(),
-              email: form.email.trim(),
-              phone: form.phone.trim()
-            },
-            redirectUrl: `${window.location.origin}/checkout?tap_callback=1`
+            customer_name: form.name.trim(),
+            email: form.email.trim() || null,
+            phone: form.phone.trim(),
+            country: form.country,
+            city: form.city.trim(),
+            delivery_address: `المنطقة: ${form.area} - تفاصيل: ${form.address}`,
+            items: items.map(item => ({
+              id: item.productId || item.id,
+              name: `${item.name} (${item.size || 'حر'})`,
+              qty: item.qty,
+              priceNum: item.priceNum
+            })),
+            total_amount: finalPrice,
+            shipping_fee: shippingFee
           })
         });
 
-        let chargeData = {};
+        let ptData = {};
         try {
-          chargeData = await chargeRes.json();
-        } catch(e) {
-          chargeData = { error: 'استجابة غير متوقعة من بوابة الدفع' };
+          ptData = await ptRes.json();
+        } catch (e) {
+          ptData = { error: 'استجابة غير متوقعة من بوابة الدفع' };
         }
 
-        if (chargeRes.ok && chargeData.success && chargeData.redirectUrl) {
-          window.location.href = chargeData.redirectUrl;
+        if (ptRes.ok && ptData.success && ptData.redirect_url) {
+          window.location.href = ptData.redirect_url;
         } else {
           setStep('form');
-          const errorMsg = chargeData.error || chargeData.message || (typeof chargeData === 'string' ? chargeData : 'يرجى التأكد من صحة البيانات أو اختيار الدفع عبر PayPal.');
           showAlert({
-            title: 'بوابة الدفع غير متاحة حالياً',
-            message: 'بوابة الدفع عبر البطاقات قيد التفعيل حالياً. يمكنكِ إتمام الطلب باختيار الدفع عبر PayPal أو الدفع عند الاستلام.',
-            type: 'info'
+            title: 'تنبيه بوابة الدفع',
+            message: ptData.error || 'تعذر بدء عملية الدفع عبر PayTabs/MEPS حالياً. يرجى التأكد من البيانات أو اختيار الدفع عند الاستلام.',
+            type: 'warning'
           });
         }
       } catch (err) {
         setStep('form');
         showAlert({
           title: 'تعذر بدء الدفع',
-          message: 'يرجى اختيار الدفع عبر PayPal أو الدفع عند الاستلام.',
-          type: 'info'
+          message: 'حدث خطأ في الاتصال. يرجى المحاولة مجدداً أو اختيار الدفع عند الاستلام.',
+          type: 'error'
         });
       }
     }
-  }
+  };
 
   // ── SUCCESS SCREEN (Full-Page Royal Confirmation) ──
   if (step === 'success') {
@@ -935,7 +944,32 @@ export default function Checkout() {
                 </h3>
 
                 <div className={styles.paymentGrid}>
-                  {/* Option 1: Cash on Delivery (Jordan only) */}
+                  {/* Option 1: Direct Cards & Apple Pay (MEPS / PayTabs Jordan) */}
+                  <div
+                    onClick={() => setForm({ ...form, paymentMethod: 'paytabs' })}
+                    className={styles.paymentCard}
+                    style={{
+                      border: form.paymentMethod === 'paytabs' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
+                      backgroundColor: form.paymentMethod === 'paytabs' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
+                      position: 'relative'
+                    }}
+                  >
+                    <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
+                      موصى به (فوري وآمن) ⚡
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
+                      <span>💳</span>
+                      <span>🍏</span>
+                    </div>
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                      بطاقة بنكية أو Apple Pay
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
+                      Visa • MasterCard • مدى • Apple Pay
+                    </div>
+                  </div>
+
+                  {/* Option 2: Cash on Delivery (Jordan only) */}
                   {isJordan && (
                     <div
                       onClick={() => setForm({ ...form, paymentMethod: 'cod' })}
@@ -951,7 +985,7 @@ export default function Checkout() {
                     </div>
                   )}
 
-                  {/* Option 2: Cards & PayPal (Global & Jordan) */}
+                  {/* Option 3: PayPal (Worldwide) */}
                   <div
                     onClick={() => setForm({ ...form, paymentMethod: 'paypal' })}
                     className={styles.paymentCard}
@@ -960,18 +994,36 @@ export default function Checkout() {
                       backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
                     }}
                   >
-                    <div style={{ display: 'flex', gap: '6px', fontSize: '1.5rem', alignItems: 'center' }}>
-                      <span>💳</span>
-                      <span>🅿️</span>
-                    </div>
+                    <div style={{ fontSize: '1.6rem' }}>🅿️</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                      بطاقة بنكية / PayPal
+                      حساب PayPal
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
-                      Visa • MasterCard • بطاقات الائتمان • PayPal
+                    <div style={{ fontSize: '0.78rem', color: '#777' }}>
+                      دفع إلكتروني آمن عالمياً
                     </div>
                   </div>
                 </div>
+
+                {/* PayTabs MEPS Card & Apple Pay Info Banner */}
+                {form.paymentMethod === 'paytabs' && (
+                  <div style={{
+                    marginTop: '20px',
+                    background: 'linear-gradient(135deg, rgba(197, 168, 128, 0.12) 0%, rgba(197, 168, 128, 0.04) 100%)',
+                    border: '1px solid rgba(197, 168, 128, 0.35)',
+                    borderRadius: '14px',
+                    padding: '16px 20px',
+                    fontSize: '0.9rem',
+                    lineHeight: '1.6'
+                  }}>
+                    <div style={{ fontWeight: 'bold', color: 'var(--espresso)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span>🔒</span>
+                      <span>دفع فوري وآمن ومشفر عبر بوابة MEPS / PayTabs Jordan الرسمية</span>
+                    </div>
+                    <div style={{ color: '#666', fontSize: '0.86rem' }}>
+                      يقبل بطاقات <strong>Visa</strong>، <strong>MasterCard</strong>، <strong>مدى (Mada)</strong>، و <strong>Apple Pay</strong> مع دعم التحقق البنكي الآمن 3D Secure.
+                    </div>
+                  </div>
+                )}
 
                 {/* PayPal & Direct Card Buttons */}
                 {form.paymentMethod === 'paypal' && (
@@ -1154,23 +1206,23 @@ export default function Checkout() {
                 </div>
               </div>
 
-              {/* Confirm Button for Tap Payments */}
-              {form.paymentMethod === 'tap' && (
+              {/* Confirm Button for PayTabs / MEPS Cards & Apple Pay */}
+              {form.paymentMethod === 'paytabs' && (
                 <button
                   type="submit"
                   disabled={step === 'processing'}
                   style={{
                     width: '100%',
-                    background: 'linear-gradient(135deg, #c5a880 0%, #b38e5d 100%)',
-                    color: '#ffffff',
-                    border: 'none',
+                    background: 'linear-gradient(135deg, #2c2523 0%, #1a1615 100%)',
+                    color: '#d4af37',
+                    border: '1.5px solid #d4af37',
                     padding: '18px 24px',
                     borderRadius: '16px',
-                    fontSize: '1.12rem',
+                    fontSize: '1.15rem',
                     fontWeight: '900',
                     cursor: step === 'processing' ? 'not-allowed' : 'pointer',
                     marginTop: '25px',
-                    boxShadow: '0 10px 25px rgba(197, 168, 128, 0.45)',
+                    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.25)',
                     transition: 'transform 0.2s',
                     opacity: step === 'processing' ? 0.7 : 1,
                     display: 'flex',
@@ -1179,8 +1231,8 @@ export default function Checkout() {
                     gap: '10px'
                   }}
                 >
-                  <CreditCard size={20} />
-                  <span>{step === 'processing' ? 'جاري تجهيز الدفع...' : `المتابعة للدفع الآمن بالبطاقة (${formatPrice(finalPrice)}) ←`}</span>
+                  <CreditCard size={22} color="#d4af37" />
+                  <span>{step === 'processing' ? 'جاري فتح بوابة الدفع الآمنة...' : `المتابعة للدفع بالبطاقة أو Apple Pay (${formatPrice(finalPrice)}) 🔒`}</span>
                 </button>
               )}
 
