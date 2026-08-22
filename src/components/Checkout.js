@@ -9,6 +9,10 @@ import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
 import { sendOrderConfirmationEmail } from '../utils/emailService';
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { BILINGUAL_COUNTRIES, getCitiesForCountry, matchCountryFromAddress, matchCityFromAddress, getCountryIso } from '../utils/countryCityData';
+import MapLocationPicker from './MapLocationPicker';
+import Navbar from './Navbar';
+import Footer from './Footer';
 
 export default function Checkout() {
   const navigate = useNavigate();
