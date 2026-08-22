@@ -223,7 +223,7 @@ export default function Checkout() {
       setShippingError('');
       setIsCalculatingShipping(false);
       const isAmman = !form.city.trim() || form.city.includes('عمان') || form.city.toLowerCase().includes('amman');
-      setShippingFee(isAmman ? 3 : 4);
+      setShippingFee(isAmman ? 2 : 3);
       return;
     }
 
