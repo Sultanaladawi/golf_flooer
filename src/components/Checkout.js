@@ -543,6 +543,149 @@ export default function Checkout() {
     }
   };
 
+  const downloadInvoicePDF = () => {
+    try {
+      const printWindow = window.open('', '_blank', 'width=800,height=900');
+      if (!printWindow) {
+        window.print();
+        return;
+      }
+
+      const invoiceItemsHtml = (items || []).map((item, idx) => `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 12px; text-align: center; color: #777;">${idx + 1}</td>
+          <td style="padding: 12px; font-weight: bold; color: #222; text-align: right;">
+            ${item.name || 'عباية ملكية'}
+            ${item.size ? `<span style="display: block; font-size: 11px; color: #888; font-weight: normal;">المقاس: ${item.size}</span>` : ''}
+          </td>
+          <td style="padding: 12px; text-align: center; color: #444;">${item.qty || 1}</td>
+          <td style="padding: 12px; text-align: left; font-weight: 600; color: #222;">${(item.priceNum || 0).toFixed(2)} د.أ</td>
+          <td style="padding: 12px; text-align: left; font-weight: bold; color: #a6865d;">${((item.priceNum || 0) * (item.qty || 1)).toFixed(2)} د.أ</td>
+        </tr>
+      `).join('');
+
+      const orderNumber = orderId || 'ORD-' + Date.now().toString().slice(-6);
+      const today = new Date().toLocaleDateString('ar-JO', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      const invoiceHtml = `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="UTF-8">
+          <title>فاتورة شراء #${orderNumber} - بوتيك زهرة بيسان</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap');
+            * { box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+            body { margin: 0; padding: 30px; background: #fff; color: #333; }
+            .invoice-card { max-width: 750px; margin: 0 auto; border: 1.5px solid #d4af37; border-radius: 18px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0e6d6; padding-bottom: 20px; margin-bottom: 20px; }
+            .logo { font-size: 24px; font-weight: 900; color: #2c2523; }
+            .logo span { color: #c5a880; font-size: 16px; margin-right: 8px; }
+            .badge { background: #fbf8f3; color: #a6865d; border: 1px solid #d4af37; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; background: #faf8f5; padding: 18px; border-radius: 12px; }
+            .info-title { font-size: 11px; color: #888; font-weight: bold; text-transform: uppercase; margin-bottom: 4px; }
+            .info-val { font-size: 14px; font-weight: 700; color: #222; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+            th { background: #2c2523; color: #d4af37; padding: 10px 12px; font-size: 13px; text-align: right; }
+            th:first-child { border-top-right-radius: 8px; }
+            th:last-child { border-top-left-radius: 8px; text-align: left; }
+            .totals { width: 280px; margin-right: auto; background: #faf8f5; padding: 16px; border-radius: 12px; border: 1px solid #eee; }
+            .totals-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: #666; }
+            .totals-row.grand { border-top: 1.5px solid #d4af37; margin-top: 8px; padding-top: 10px; font-size: 16px; font-weight: 900; color: #2c2523; }
+            .footer-note { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ddd; font-size: 12px; color: #888; }
+            @media print {
+              body { padding: 0; }
+              .invoice-card { border: none; box-shadow: none; max-width: 100%; }
+              .no-print { display: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="no-print" style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.print()" style="background: linear-gradient(135deg, #c5a880, #a6865d); color: #fff; border: none; padding: 12px 30px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(197,168,128,0.4);">
+              🖨️ طباعة الفاتورة أو حفظ كـ PDF
+            </button>
+          </div>
+          <div class="invoice-card">
+            <div class="header">
+              <div>
+                <div class="logo">زهرة بيسان <span>ZAHRAT BEESAN</span></div>
+                <div style="font-size: 12px; color: #888; margin-top: 4px;">بوتيك العبايات والفساتين الملكية الفاخرة</div>
+              </div>
+              <div style="text-align: left;">
+                <div class="badge">فاتورة إلكترونية ضريبية معتمدة</div>
+                <div style="font-size: 13px; font-weight: bold; color: #222; margin-top: 6px;">#${orderNumber}</div>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div>
+                <div class="info-title">بيانات العميلة</div>
+                <div class="info-val">${form.name || 'عميلة زهرة بيسان'}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;" dir="ltr">${form.phone || ''}</div>
+                <div style="font-size: 12px; color: #666;">${form.email || ''}</div>
+              </div>
+              <div>
+                <div class="info-title">تفاصيل التوصيل والشحن</div>
+                <div class="info-val">${form.country || 'الأردن'} - ${form.city || 'عمان'}</div>
+                <div style="font-size: 12px; color: #666; margin-top: 2px;">${form.address || ''}</div>
+                <div style="font-size: 11px; color: #999; margin-top: 4px;">تاريخ الطلب: ${today}</div>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;">#</th>
+                  <th>المنتج / الوصف</th>
+                  <th style="text-align: center;">الكمية</th>
+                  <th style="text-align: left;">سعر الوحدة</th>
+                  <th style="text-align: left;">المجموع</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${invoiceItemsHtml}
+              </tbody>
+            </table>
+
+            <div class="totals">
+              <div class="totals-row">
+                <span>المجموع الفرعي:</span>
+                <span style="font-weight: 600;">${(finalPrice - shippingFee).toFixed(2)} د.أ</span>
+              </div>
+              <div class="totals-row">
+                <span>رسوم التوصيل:</span>
+                <span style="font-weight: 600;">${shippingFee.toFixed(2)} د.أ</span>
+              </div>
+              <div class="totals-row grand">
+                <span>المبلغ الإجمالي:</span>
+                <span style="color: #a6865d;">${finalPrice.toFixed(2)} د.أ</span>
+              </div>
+            </div>
+
+            <div class="footer-note">
+              <div>🌸 شكراً لتسوقكِ من بوتيك زهرة بيسان! نسعد دائماً بخدمتكِ.</div>
+              <div style="margin-top: 4px; font-size: 11px; color: #aaa;">عمان، الأردن • هاتف: 0796697413 • www.zahratbeesan.com</div>
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              setTimeout(function() { window.print(); }, 350);
+            };
+          </script>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.open();
+      printWindow.document.write(invoiceHtml);
+      printWindow.document.close();
+    } catch (e) {
+      console.error('Invoice error:', e);
+      window.print();
+    }
+  };
+
   // ── SUCCESS SCREEN (Full-Page Royal Confirmation) ──
   if (step === 'success') {
     return (
@@ -596,19 +739,23 @@ export default function Checkout() {
                 العودة للرئيسية ←
               </button>
               <button
-                onClick={() => window.print()}
+                onClick={downloadInvoicePDF}
                 style={{
-                  backgroundColor: 'transparent',
-                  color: '#444',
-                  border: '1.5px solid #ddd',
-                  padding: '16px 24px',
+                  background: 'linear-gradient(135deg, #2c2523 0%, #1a1615 100%)',
+                  color: '#d4af37',
+                  border: '1.5px solid #d4af37',
+                  padding: '16px 28px',
                   borderRadius: '14px',
                   fontSize: '1rem',
                   fontWeight: 'bold',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                🖨️ طباعة الفاتورة
+                <span>📄 طباعة وتحميل الفاتورة الرسمية</span>
               </button>
             </div>
           </div>
