@@ -26,6 +26,7 @@ jobs:
           node scripts/embed-html.js
           node scripts/insert-tap-clean.js
           node scripts/patch-paypal-route.js
+          node scripts/patch-customer-order-email.js
 
           
           # Prepare ultra-fast minimal deployment package (<15MB)
