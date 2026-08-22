@@ -1025,7 +1025,6 @@ export default function Checkout() {
                                 given_name: firstName,
                                 surname: lastName
                               },
-                              email_address: form.email ? form.email.trim() : undefined,
                               phone: cleanDigits ? {
                                 phone_type: "MOBILE",
                                 phone_number: {
@@ -1035,6 +1034,10 @@ export default function Checkout() {
                               address: {
                                 country_code: iso
                               }
+                            },
+                            application_context: {
+                              shipping_preference: 'NO_SHIPPING',
+                              user_action: 'PAY_NOW'
                             }
                           });
                         }}
