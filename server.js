@@ -151427,6 +151427,51 @@ db.query("SHOW COLUMNS FROM categories", (err, columns) => {
   }
 });
 
+
+async function sendCustomerOrderWhatsApp({ orderId, customerName, phone, totalAmount, cartItems }) {
+  if (!phone) return;
+  try {
+    const promiseDb = db.promise();
+    const [rows] = await promiseDb.query("SELECT `key`, `value` FROM site_settings WHERE `key` IN ('wa_phone_number_id', 'wa_access_token')");
+    const settings = {};
+    rows.forEach(r => settings[r.key] = r.value);
+    
+    const waPhoneId = settings.wa_phone_number_id || process.env.WA_PHONE_NUMBER_ID;
+    const waToken = settings.wa_access_token || process.env.WA_ACCESS_TOKEN;
+
+    if (!waPhoneId || !waToken) {
+      console.log('[WhatsApp Notice] WhatsApp Cloud API credentials not configured yet in /admin/settings.');
+      return;
+    }
+
+    let cleanPhone = phone.replace(/\D/g, '');
+    if (cleanPhone.startsWith('07') && cleanPhone.length === 10) cleanPhone = '962' + cleanPhone.substring(1);
+    if (cleanPhone.startsWith('05') && cleanPhone.length === 10) cleanPhone = '966' + cleanPhone.substring(1);
+
+    const itemsSummary = Array.isArray(cartItems) ? cartItems.map(i => `• ${i.name} (x${i.qty})`).join('\n') : '';
+    const messageBody = `مرحباً ${customerName || 'عزيزتنا'} 🌸\n\nتم تأكيد طلبكِ بنجاح من *بوتيك زهرة بيسان الفاخر* 👑\n\n📌 *رقم الطلب:* #ORD-${String(orderId).padStart(3, '0')}\n💰 *المجموع:* ${parseFloat(totalAmount).toFixed(2)} JOD\n\n🛍️ *القطع المطلوبة:*\n${itemsSummary}\n\n🚚 جاري الآن تجهيز وتغليف طلبكِ بكل عناية.\nلأي استفسار، يسعدنا تواصلكِ معنا على نفس هذا الرقم!`;
+
+    const waRes = await fetch(`https://graph.facebook.com/v19.0/${waPhoneId}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${waToken}` },
+      body: JSON.stringify({
+        messaging_product: 'whatsapp',
+        to: cleanPhone,
+        type: 'text',
+        text: { body: messageBody }
+      })
+    });
+    const waData = await waRes.json();
+    if (waData.messages) {
+      console.log(`[WhatsApp Success] Automated order message sent to ${cleanPhone} for Order #${orderId}`);
+    } else {
+      console.error('[WhatsApp API Error]:', waData.error || waData);
+    }
+  } catch (err) {
+    console.error('[WhatsApp Order Error]:', err.message);
+  }
+}
+
 async function sendCustomerOrderConfirmation({ orderId, customerName, email, phone, deliveryAddress, totalAmount, cartItems }) {
   if (!email || !email.includes("@")) return;
   try {
