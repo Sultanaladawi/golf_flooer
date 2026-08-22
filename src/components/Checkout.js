@@ -8,90 +8,7 @@ import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
 import { sendOrderConfirmationEmail } from '../utils/emailService';
-import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
-import { BILINGUAL_COUNTRIES, getCitiesForCountry, matchCountryFromAddress, matchCityFromAddress, getCountryIso } from '../utils/countryCityData';
-import MapLocationPicker from './MapLocationPicker';
-import Navbar from './Navbar';
-import Footer from './Footer';
-
-// Inner component to handle PayPal loading state via SDK hook
-function PayPalButtonsWrapper({ validate, showAlert, finalPrice, items, setStep, saveOrderToBackend, sendOrderConfirmationEmail, form, orderId, clearCart }) {
-  const [{ isResolved, isRejected, isPending }] = usePayPalScriptReducer();
-
-  if (isRejected) {
-    return (
-      <div style={{ textAlign: 'center', color: '#c0392b', padding: '16px', fontSize: '0.9rem' }}>
-        ⚠️ تعذر تحميل بوابة PayPal. يرجى التحقق من اتصال الإنترنت وإعادة تحميل الصفحة.
-      </div>
-    );
-  }
-
-  if (isPending) {
-    return (
-      <div style={{ textAlign: 'center', color: '#888', padding: '20px', fontSize: '0.9rem' }}>
-        <div style={{ width: 32, height: 32, border: '3px solid #e0e0e0', borderTopColor: '#003087', borderRadius: '50%', animation: 'spin 0.8s linear infinite', margin: '0 auto 10px' }} />
-        جاري تحميل بوابة الدفع...
-      </div>
-    );
-  }
-
-  if (!isResolved) return null;
-
-  return (
-    <PayPalButtons
-      style={{ layout: "vertical", shape: "pill", color: "gold" }}
-      forceReRender={[finalPrice]}
-      onClick={(data, actions) => {
-        if (!validate()) {
-          showAlert({
-            title: 'يرجى استكمال البيانات',
-            message: 'يرجى إدخال الاسم، رقم الهاتف، والمدينة وتفاصيل العنوان قبل إتمام الدفع.',
-            type: 'warning'
-          });
-          return actions.reject();
-        }
-        return actions.resolve();
-      }}
-      createOrder={async () => {
-        const usdAmount = (finalPrice * 1.41).toFixed(2);
-        const res = await fetch('/api/paypal/create-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: usdAmount, description: `طلب من متجر زهرة بيسان (${items.length} قطعة)` })
-        });
-        const data = await res.json();
-        if (!data.id) throw new Error('Failed to create PayPal order');
-        return data.id;
-      }}
-      onApprove={async (data) => {
-        try {
-          setStep('processing');
-          await fetch(`/api/paypal/capture-order/${data.orderID}`, { method: 'POST' });
-          const resultStatus = await saveOrderToBackend();
-          if (resultStatus === 'success') {
-            try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
-            clearCart();
-            setStep('success');
-          } else {
-            setStep('error:حدث خطأ أثناء تسجيل الطلب');
-          }
-        } catch (err) {
-          setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
-        }
-      }}
-      onCancel={() => showAlert({
-        title: 'إلغاء عملية الدفع',
-        message: 'تم إلغاء عملية الدفع الإلكتروني. سلة مشترياتكِ محفوظة ويمكنكِ إعادة المحاولة في أي وقت أو اختيار الدفع عند الاستلام.',
-        type: 'info'
-      })}
-      onError={() => showAlert({
-        title: 'تعذر الاتصال بالدفع',
-        message: 'حدث تعذر أثناء الاتصال ببوابة الدفع. يرجى التحقق من البطاقة والمحاولة مجدداً.',
-        type: 'error'
-      })}
-    />
-  );
-}
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 
 export default function Checkout() {
   const navigate = useNavigate();
@@ -1104,42 +1021,58 @@ export default function Checkout() {
 
                 {/* PayPal & Direct Card Buttons */}
                 {form.paymentMethod === 'paypal' && (
-                  <div style={{ marginTop: '25px', paddingTop: '20px', borderTop: '1px solid #eee' }}>
-                    {/* Guidance Tip Box */}
-                    <div style={{
-                      background: 'linear-gradient(135deg, rgba(0, 48, 135, 0.05) 0%, rgba(0, 156, 222, 0.05) 100%)',
-                      border: '1px solid rgba(0, 156, 222, 0.25)',
-                      borderRadius: '14px',
-                      padding: '14px 18px',
-                      marginBottom: '20px',
-                      fontSize: '0.88rem',
-                      lineHeight: '1.6'
-                    }}>
-                      <div style={{ fontWeight: 'bold', color: '#003087', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>💳</span>
-                        <span>كيف تدفعين عبر PayPal:</span>
-                      </div>
-                      <div>• <strong>لديكِ حساب PayPal؟</strong> اضغطي الزر الأصفر وسجّلي دخولك لإتمام الدفع.</div>
-                      <div>• <strong>تريدين الدفع ببطاقة Visa / MasterCard بدون حساب PayPal؟</strong> اضغطي الزر الأصفر ثم اختاري "Pay with Debit or Credit Card" داخل النافذة.</div>
-                    </div>
-
-                    <PayPalScriptProvider
-                      options={{
-                        "client-id": (storeSettings?.paypal_client_id && storeSettings.paypal_client_id.trim()) || process.env.REACT_APP_PAYPAL_CLIENT_ID || "ARdYvIMc9bA48NZVLTI18B63ctWU9GxHRCmxhW_fXxuaDD4hogMl6xKVDPIgsUs_nRBgE1G7YxQb_2Mk",
-                        currency: "USD"
-                      }}
-                    >
-                      <PayPalButtonsWrapper
-                        validate={validate}
-                        showAlert={showAlert}
-                        finalPrice={finalPrice}
-                        items={items}
-                        setStep={setStep}
-                        saveOrderToBackend={saveOrderToBackend}
-                        sendOrderConfirmationEmail={sendOrderConfirmationEmail}
-                        form={form}
-                        orderId={orderId}
-                        clearCart={clearCart}
+                  <div style={{ marginTop: '20px' }}>
+                    <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
+                      <PayPalButtons 
+                        style={{ layout: "vertical", shape: "pill", color: "gold" }}
+                        onClick={(data, actions) => {
+                          if (!validate()) {
+                            showAlert({
+                              title: 'يرجى استكمال البيانات',
+                              message: 'يرجى إدخال الاسم، رقم الهاتف، والمدينة وتفاصيل العنوان قبل إتمام الدفع.',
+                              type: 'warning'
+                            });
+                            return actions.reject();
+                          }
+                          return actions.resolve();
+                        }}
+                        createOrder={(data, actions) => {
+                          const usdAmount = (finalPrice * 1.41).toFixed(2);
+                          return actions.order.create({
+                            purchase_units: [
+                              {
+                                amount: {
+                                  currency_code: "USD",
+                                  value: usdAmount
+                                },
+                                description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
+                              }
+                            ]
+                          });
+                        }}
+                        onApprove={async (data, actions) => {
+                          try {
+                            setStep('processing');
+                            await actions.order.capture();
+                            const resultStatus = await saveOrderToBackend();
+                            if (resultStatus === 'success') {
+                              try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
+                              clearCart();
+                              setStep('success');
+                            } else {
+                              setStep('error:حدث خطأ أثناء تسجيل الطلب');
+                            }
+                          } catch (err) {
+                            setStep('error:فشلت عملية الدفع عبر PayPal. يرجى المحاولة مجدداً.');
+                          }
+                        }}
+                        onCancel={() => {
+                          alert('تم إلغاء عملية الدفع عبر PayPal. يمكنك إعادة المحاولة في أي وقت.');
+                        }}
+                        onError={(err) => {
+                          console.error('[PayPal Error]:', err);
+                          alert('حدث تضارب أثناء الاتصال ببوابة PayPal. يرجى المحاولة مجدداً.');
+                        }}
                       />
                     </PayPalScriptProvider>
                   </div>
