@@ -56,6 +56,42 @@ function cartReducer(state, action) {
         })
       };
 
+    case 'SYNC_LIVE_PRODUCTS': {
+      if (!Array.isArray(action.products) || action.products.length === 0) return state;
+      const productMap = new Map();
+      action.products.forEach(p => {
+        if (p.id) productMap.set(String(p.id), p);
+        if (p.name) productMap.set(String(p.name).trim(), p);
+      });
+
+      let changed = false;
+      const updatedItems = state.items.map(item => {
+        const prodId = String(item.productId || item.id || '');
+        const cleanName = String(item.name || '').split(' (')[0].trim();
+        const matched = productMap.get(prodId) || productMap.get(cleanName);
+        if (matched) {
+          const livePrice = parseFloat(matched.price_num || matched.price);
+          if (!isNaN(livePrice) && livePrice > 0 && Math.abs(livePrice - parseFloat(item.priceNum)) > 0.001) {
+            changed = true;
+            return {
+              ...item,
+              priceNum: livePrice,
+              price: livePrice
+            };
+          }
+        }
+        return item;
+      });
+
+      if (changed) {
+        return {
+          ...state,
+          items: updatedItems
+        };
+      }
+      return state;
+    }
+
     default:
       return state;
     }
@@ -178,6 +214,28 @@ export function CartProvider({ children }) {
   // One-time fix on mount: correct any zero-price addon items in current state
   useEffect(() => {
     dispatch({ type: 'FIX_ADDON_PRICES' });
+  }, []);
+
+  // Live Price & Catalog Synchronization: Fetch latest product prices from server and update cart items dynamically
+  useEffect(() => {
+    let isMounted = true;
+    const syncCartWithLiveProducts = () => {
+      fetch(`/api/products?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (isMounted && Array.isArray(data)) {
+            dispatch({ type: 'SYNC_LIVE_PRODUCTS', products: data });
+          }
+        })
+        .catch(err => console.warn('Could not sync cart prices with live catalog:', err.message));
+    };
+
+    syncCartWithLiveProducts();
+    window.addEventListener('focus', syncCartWithLiveProducts);
+    return () => { 
+      isMounted = false; 
+      window.removeEventListener('focus', syncCartWithLiveProducts);
+    };
   }, []);
 
   useEffect(() => {
