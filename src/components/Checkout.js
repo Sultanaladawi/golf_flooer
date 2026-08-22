@@ -37,6 +37,20 @@ export default function Checkout() {
         .then(r => r.json())
         .then(data => {
           if (data.success && data.status === 'CAPTURED') {
+            try {
+              const pending = sessionStorage.getItem('zb_pending_tap_order');
+              if (pending) {
+                const payload = JSON.parse(pending);
+                fetch('/api/orders', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload)
+                }).then(r => r.json()).then(res => {
+                  if (res.orderId) setOrderId(res.orderId);
+                });
+                sessionStorage.removeItem('zb_pending_tap_order');
+              }
+            } catch (_) {}
             clearCart();
             setStep('success');
             try { trackPurchase(data.charge?.amount || finalPrice, 'JOD'); } catch (_) {}
@@ -436,59 +450,40 @@ export default function Checkout() {
     } else if (form.paymentMethod === 'tap') {
       setStep('processing');
       try {
-        // 1. Create order
-        const response = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            customer_name: form.name.trim(),
-            email: form.email.trim() || null,
-            total_amount: finalPrice,
-            cartItems: items.map(item => ({
-              id: item.productId || item.id,
-              name: `${item.name} (${item.size || 'حر'})`,
-              qty: item.qty,
-              priceNum: item.priceNum
-            })),
-            order_type: 'delivery',
-            delivery_address: `الدولة: ${form.country} - المدينة: ${form.city} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: بطاقة بنكية / Apple Pay (Tap Payments) | رسوم التوصيل: ${shippingFee} JOD`,
-            phone: form.phone.trim(),
-            coupon_code: couponApplied ? couponApplied.code : null,
-            is_gift: 0
-          }),
-        });
+        // Save pending order details in sessionStorage so it only gets saved to database upon CAPTURED verification
+        const pendingOrderPayload = {
+          customer_name: form.name.trim(),
+          email: form.email.trim() || null,
+          total_amount: finalPrice,
+          cartItems: items.map(item => ({
+            id: item.productId || item.id,
+            name: `${item.name} (${item.size || 'حر'})`,
+            qty: item.qty,
+            priceNum: item.priceNum
+          })),
+          order_type: 'delivery',
+          delivery_address: `الدولة: ${form.country} - المدينة: ${form.city} - المنطقة: ${form.area} - تفاصيل: ${form.address} | طريقة الدفع: بطاقة بنكية / Apple Pay (Tap Payments) | رسوم التوصيل: ${shippingFee} JOD`,
+          phone: form.phone.trim(),
+          coupon_code: couponApplied ? couponApplied.code : null,
+          is_gift: 0
+        };
+        try { sessionStorage.setItem('zb_pending_tap_order', JSON.stringify(pendingOrderPayload)); } catch (_) {}
 
-        let result = {};
-        try {
-          result = await response.json();
-        } catch(e) {
-          result = { error: 'حدث خطأ في الاتصال بالخادم' };
-        }
-
-        if (!response.ok || !result.success) {
-          setStep('form');
-          showAlert({ title: 'تعذر تسجيل الطلب', message: result.error || 'حدث خطأ أثناء تجهيز الطلب.', type: 'error' });
-          return;
-        }
-
-        const newOrderId = result.orderId;
-        setOrderId(newOrderId);
-
-        // 2. Call Tap Charge API
+        // Call Tap Charge API directly
         const chargeRes = await fetch('/api/tap/create-charge', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             amount: finalPrice,
             currency: 'JOD',
-            orderId: newOrderId,
+            orderId: 'TAP-' + Date.now(),
             orderItems: items,
             customer: {
               name: form.name.trim(),
               email: form.email.trim(),
               phone: form.phone.trim()
             },
-            redirectUrl: `${window.location.origin}/checkout?order_id=${newOrderId}`
+            redirectUrl: `${window.location.origin}/checkout?tap_callback=1`
           })
         });
 
@@ -503,19 +498,19 @@ export default function Checkout() {
           window.location.href = chargeData.redirectUrl;
         } else {
           setStep('form');
-          const errorMsg = chargeData.error || chargeData.message || (typeof chargeData === 'string' ? chargeData : 'يرجى التأكد من صحة البيانات أو المحاولة مجدداً.');
+          const errorMsg = chargeData.error || chargeData.message || (typeof chargeData === 'string' ? chargeData : 'يرجى التأكد من صحة البيانات أو اختيار الدفع عبر PayPal.');
           showAlert({
-            title: 'تعذر بدء الدفع الإلكتروني',
-            message: errorMsg,
-            type: 'error'
+            title: 'بوابة الدفع غير متاحة حالياً',
+            message: 'بوابة الدفع عبر البطاقات قيد التفعيل حالياً. يمكنكِ إتمام الطلب باختيار الدفع عبر PayPal أو الدفع عند الاستلام.',
+            type: 'info'
           });
         }
       } catch (err) {
         setStep('form');
         showAlert({
           title: 'تعذر بدء الدفع',
-          message: err.message || 'يرجى المحاولة مجدداً أو اختيار الدفع عند الاستلام.',
-          type: 'error'
+          message: 'يرجى اختيار الدفع عبر PayPal أو الدفع عند الاستلام.',
+          type: 'info'
         });
       }
     }
