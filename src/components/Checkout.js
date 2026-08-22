@@ -1026,7 +1026,11 @@ export default function Checkout() {
                 {/* PayPal & Direct Card Buttons */}
                 {form.paymentMethod === 'paypal' && (
                   <div style={{ marginTop: '20px' }}>
-                    <PayPalScriptProvider options={{ "client-id": storeSettings?.paypal_client_id || process.env.REACT_APP_PAYPAL_CLIENT_ID || "sb", currency: "USD", intent: "capture", "enable-funding": "card" }}>
+                    <PayPalScriptProvider options={{ 
+                      "client-id": (storeSettings?.paypal_client_id && storeSettings.paypal_client_id.trim()) || process.env.REACT_APP_PAYPAL_CLIENT_ID || "ARdYvIMc9bA48NZVLTI18B63ctWU9GxHRCmxhW_fXxuaDD4hogMl6xKVDPIgsUs_nRBgE1G7YxQb_2Mk", 
+                      currency: "USD", 
+                      intent: "capture"
+                    }}>
                       <PayPalButtons 
                         style={{ layout: "vertical", shape: "pill", color: "gold" }}
                         onClick={(data, actions) => {
