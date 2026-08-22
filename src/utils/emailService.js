@@ -1,35 +1,51 @@
-import emailjs from '@emailjs/browser';
-
-const SERVICE_ID = "service_gnjnpzn";
-const TEMPLATE_ID = "template_rsi72vt";
-const PUBLIC_KEY = "GwA2uuN53g6eRGAVA";
-
 /**
- * إرسال إيميل تأكيد الطلب للزبون
- * @param {string} toEmail إيميل الزبون
- * @param {string} orderId رقم الطلب
- * @param {Array} cartItems المنتجات
- * @param {number} total السعر الإجمالي
+ * 👑 ZAHRAT BEESAN LUXURY ORDER CONFIRMATION EMAIL SERVICE
+ * Dispatches instant branded HTML order invoices directly to the customer's personal email.
  */
-export const sendOrderConfirmationEmail = async (toEmail, orderId, cartItems, total) => {
+
+export const sendOrderConfirmationEmail = async (toEmail, orderId, cartItems, total, customerName, deliveryAddress, phone) => {
+  if (!toEmail || !toEmail.includes('@')) {
+    console.warn('[Email Dispatch] Skipped: No valid recipient email provided.');
+    return false;
+  }
+
   try {
-    // تجهيز قائمة المنتجات كنص لتتناسب مع القالب
-    let itemsText = cartItems.map(item => `- ${item.name} (الكمية: ${item.qty}) = ${item.price} JOD`).join('\n');
+    const isDev = typeof window !== 'undefined' && window.location.port === '3000';
+    const endpoint = isDev 
+      ? `http://${window.location.hostname}:5000/api/send-order-confirmation`
+      : '/api/send-order-confirmation';
 
-    const templateParams = {
-      email: toEmail,
-      order_id: orderId,
-      // تمرير الطلبات كمصفوفة إذا كان القالب يدعمها، أو كنص احتياطي
-      orders: cartItems.map(item => ({ name: item.name, units: item.qty, price: item.price })),
-      orderDetails: itemsText, // متغير إضافي في حال تعديل القالب لاحقاً
-      totalPrice: total
-    };
+    const formattedItems = Array.isArray(cartItems) ? cartItems.map(item => ({
+      name: item.name || 'عباية ملكية فاخرة',
+      qty: item.qty || item.quantity || 1,
+      price: item.priceNum || item.price || 0,
+      size: item.size || 'حر'
+    })) : [];
 
-    const response = await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY);
-    console.log('Email sent successfully!', response.status, response.text);
-    return true;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        orderId: orderId || 'جديد',
+        customerName: customerName || 'عميلة زهرة بيسان',
+        email: toEmail.trim(),
+        phone: phone || '',
+        deliveryAddress: deliveryAddress || '',
+        totalAmount: total || 0,
+        items: formattedItems
+      })
+    });
+
+    const data = await response.json();
+    if (response.ok && data.success) {
+      console.log('✅ Customer order confirmation email sent to:', toEmail);
+      return true;
+    } else {
+      console.warn('⚠️ Server notice on customer email dispatch:', data.error || data);
+      return false;
+    }
   } catch (error) {
-    console.error('Failed to send email:', error);
+    console.error('❌ Failed to dispatch customer confirmation email:', error.message);
     return false;
   }
 };

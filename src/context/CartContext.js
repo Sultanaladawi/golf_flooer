@@ -248,6 +248,52 @@ export function CartProvider({ children }) {
     }
   }, [state]);
 
+  // 🛒 Automated Abandoned Cart Sync
+  useEffect(() => {
+    if (state && Array.isArray(state.items) && state.items.length > 0) {
+      try {
+        let userEmail = null;
+        let userPhone = null;
+
+        const savedCustomer = localStorage.getItem('zahrat_customer');
+        if (savedCustomer) {
+          const u = JSON.parse(savedCustomer);
+          if (u.email) userEmail = u.email;
+          if (u.phone) userPhone = u.phone;
+        }
+
+        const savedShipping = localStorage.getItem('zb_customer_shipping_data');
+        if (savedShipping) {
+          const s = JSON.parse(savedShipping);
+          if (!userEmail && s.email) userEmail = s.email;
+          if (!userPhone && s.phone) userPhone = s.phone;
+        }
+
+        if (userEmail || userPhone) {
+          const endpoint = (typeof window !== 'undefined' && window.location.port === '3000')
+            ? `http://${window.location.hostname}:5000/api/cart/abandoned`
+            : '/api/cart/abandoned';
+
+          fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: userEmail,
+              phone: userPhone,
+              cartItems: state.items.map(i => ({
+                id: i.id,
+                name: i.name,
+                price: i.priceNum,
+                quantity: i.qty
+              })),
+              total: subTotal
+            })
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    }
+  }, [state.items, subTotal]);
+
   const totalItems = state.items.length;
   const totalQty = state.items.reduce((s, i) => s + i.qty, 0);
   

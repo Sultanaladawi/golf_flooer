@@ -483,7 +483,22 @@ export default function Checkout() {
       const resultStatus = await saveOrderToBackend();
 
       if (resultStatus === 'success') {
-        try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
+        try { 
+          sendOrderConfirmationEmail(
+            form.email.trim(), 
+            orderId || 'جديد', 
+            items, 
+            finalPrice, 
+            form.name, 
+            `${form.country} - ${form.city} (${form.address})`, 
+            form.phone
+          ); 
+          fetch('/api/cart/recovered', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: form.email.trim(), phone: form.phone.trim() })
+          }).catch(() => {});
+        } catch(e) {}
         clearCart();
         setStep('success');
       } else if (resultStatus === 'outofstock') {
@@ -1408,7 +1423,22 @@ export default function Checkout() {
                             await actions.order.capture();
                             const resultStatus = await saveOrderToBackend();
                             if (resultStatus === 'success') {
-                              try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}
+                              try { 
+                                sendOrderConfirmationEmail(
+                                  form.email.trim(), 
+                                  orderId || 'جديد', 
+                                  items, 
+                                  finalPrice, 
+                                  form.name, 
+                                  `${form.country} - ${form.city} (${form.address})`, 
+                                  form.phone
+                                ); 
+                                fetch('/api/cart/recovered', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ email: form.email.trim(), phone: form.phone.trim() })
+                                }).catch(() => {});
+                              } catch(e) {}
                               clearCart();
                               setStep('success');
                             } else {

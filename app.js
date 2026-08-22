@@ -150917,7 +150917,25 @@ app.post("/api/orders", async (req, res) => {
     }
     await conn.commit();
     try {
-      sendStoreNotificationEmail({
+      
+    // 👑 Send instant confirmation email directly to the customer
+    if (email && email.includes('@')) {
+      try {
+        sendCustomerOrderConfirmation({
+          orderId,
+          customerName: customer_name,
+          email: email.trim(),
+          phone: phone || '',
+          deliveryAddress: delivery_address || '',
+          totalAmount,
+          cartItems
+        });
+      } catch (custEmailErr) {
+        console.error('[Customer Email Dispatch Error]:', custEmailErr.message);
+      }
+    }
+
+    sendStoreNotificationEmail({
         subject: `\u{1F6CD}\uFE0F [\u0637\u0644\u0628 \u0634\u0631\u0627\u0621 \u062C\u062F\u064A\u062F #${orderId}] \u0628\u0642\u064A\u0645\u0629 ${totalAmount} JOD \u0645\u0646 ${customer_name}`,
         title: "\u0648\u0635\u0644 \u0637\u0644\u0628 \u0634\u0631\u0627\u0621 \u062C\u062F\u064A\u062F \u0639\u0644\u0649 \u0645\u062A\u062C\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646!",
         senderName: customer_name,
@@ -153055,7 +153073,7 @@ var sendReportEmail = async (period, days) => {
     if (err || !results) return;
     const { orders_count, revenue } = results[0];
     await transporter.sendMail({
-      from: `"Zahrat Beesan" <${process.env.SMTP_USER}>`,
+      from: `"Zahrat Beesan" <${SMTP_USER}>`,
       to: process.env.ADMIN_EMAIL || process.env.SMTP_USER,
       subject: `\u{1F4CA} \u062A\u0642\u0631\u064A\u0631 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646 ${period === "weekly" ? "\u0627\u0644\u0623\u0633\u0628\u0648\u0639\u064A" : "\u0627\u0644\u0634\u0647\u0631\u064A"}`,
       html: `
@@ -153091,7 +153109,7 @@ app.post("/api/gift-cards/purchase", (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     if (process.env.SMTP_USER && recipientEmail) {
       await transporter.sendMail({
-        from: `"\u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646" <${process.env.SMTP_USER}>`,
+        from: `"\u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646" <${SMTP_USER}>`,
         to: recipientEmail,
         subject: "\u{1F381} \u0644\u0642\u062F \u062A\u0644\u0642\u064A\u062A \u0628\u0637\u0627\u0642\u0629 \u0647\u062F\u064A\u0629 \u0645\u0646 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646!",
         html: `
@@ -153126,6 +153144,46 @@ app.get("/api/admin/gift-cards", (req, res) => {
     res.json(results);
   });
 });
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 📧 DEDICATED CUSTOMER ORDER CONFIRMATION & ABANDONED CART ENGINE
+// ══════════════════════════════════════════════════════════════════════════════
+
+// API to trigger direct customer confirmation email
+app.post('/api/send-order-confirmation', async (req, res) => {
+  const { orderId, customerName, email, phone, deliveryAddress, totalAmount, items } = req.body;
+  if (!email || !email.includes('@')) {
+    return res.status(400).json({ error: 'Valid email is required' });
+  }
+
+  try {
+    await sendCustomerOrderConfirmation({
+      orderId: orderId || 'جديد',
+      customerName: customerName || 'عميلة زهرة بيسان',
+      email: email.trim(),
+      phone: phone || '',
+      deliveryAddress: deliveryAddress || '',
+      totalAmount: totalAmount || 0,
+      cartItems: items || []
+    });
+
+    res.json({ success: true, message: 'Customer confirmation email dispatched successfully' });
+  } catch (err) {
+    console.error('[Send Confirmation Error]:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Mark abandoned cart as recovered upon successful purchase
+app.post('/api/cart/recovered', (req, res) => {
+  const { email, phone } = req.body;
+  if (!email && !phone) return res.json({ success: false });
+  db.query("UPDATE abandoned_carts SET status = 'recovered' WHERE (email = ? OR phone = ?) AND status != 'recovered'", [email || '', phone || ''], (err) => {
+    if (err) console.error('[Abandoned Cart Recovered Error]:', err);
+    res.json({ success: true });
+  });
+});
+
 app.post("/api/cart/abandoned", (req, res) => {
   const { email, phone, cartItems, total } = req.body;
   if (!email && !phone || !cartItems || cartItems.length === 0) return res.json({ success: false });
@@ -153154,12 +153212,12 @@ app.post("/api/admin/abandoned-carts/send-reminder", async (req, res) => {
     if (err || results.length === 0) return res.status(404).json({ error: "Cart not found" });
     const cart = results[0];
     if (!cart.email) return res.status(400).json({ error: "No email address for this cart" });
-    if (!process.env.SMTP_USER) return res.status(500).json({ error: "SMTP credentials not configured on server" });
+    // process.env.SMTP_USER check bypassed.json({ error: "SMTP credentials not configured on server" });
     try {
       const items = typeof cart.cart_items === "string" ? JSON.parse(cart.cart_items) : cart.cart_items;
       let itemsList = items.map((i) => `<li>${i.name} - ${i.quantity} x ${i.price} JOD</li>`).join("");
       await transporter.sendMail({
-        from: `"\u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646" <${process.env.SMTP_USER}>`,
+        from: `"\u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646" <${SMTP_USER}>`,
         to: cart.email,
         subject: "\u{1F6D2} \u0644\u0627 \u062A\u0641\u0648\u062A\u064A \u0639\u0628\u0627\u0621\u062A\u0643 \u0627\u0644\u0645\u0641\u0636\u0644\u0629 \u0645\u0646 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646!",
         html: `
@@ -153187,12 +153245,12 @@ cron.schedule("0 * * * *", () => {
   db.query("SELECT * FROM abandoned_carts WHERE status = 'pending' AND updated_at < NOW() - INTERVAL 2 HOUR AND email IS NOT NULL", async (err, results) => {
     if (err || !results) return;
     for (let cart of results) {
-      if (!process.env.SMTP_USER) break;
+      // process.env.SMTP_USER check replaced
       try {
         const items = typeof cart.cart_items === "string" ? JSON.parse(cart.cart_items) : cart.cart_items;
         let itemsList = items.map((i) => `<li>${i.name} - ${i.quantity} x ${i.price} JOD</li>`).join("");
         await transporter.sendMail({
-          from: `"\u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646" <${process.env.SMTP_USER}>`,
+          from: `"\u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646" <${SMTP_USER}>`,
           to: cart.email,
           subject: "\u{1F6D2} \u0644\u0627 \u062A\u0641\u0648\u062A\u064A \u0639\u0628\u0627\u0621\u062A\u0643 \u0627\u0644\u0645\u0641\u0636\u0644\u0629 \u0645\u0646 \u0632\u0647\u0631\u0629 \u0628\u064A\u0633\u0627\u0646!",
           html: `
