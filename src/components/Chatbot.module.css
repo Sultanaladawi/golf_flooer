@@ -465,20 +465,22 @@
 
 @media (max-width: 768px) {
   .fab {
-    bottom: 76px !important;
-    right: 14px !important;
+    bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 16px !important;
     left: auto !important;
-    width: 46px !important;
-    height: 46px !important;
+    width: 48px !important;
+    height: 48px !important;
     font-size: 1.15rem !important;
+    z-index: 9990 !important;
+    box-shadow: 0 6px 20px rgba(31, 20, 10, 0.45) !important;
   }
   .window {
-    width: calc(100vw - 1rem);
-    left: 0.5rem;
-    right: 0.5rem;
-    bottom: 74px;
-    max-height: 80vh;
-    height: 75vh;
+    width: calc(100vw - 1.2rem);
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+    max-height: calc(85vh - 74px);
+    height: calc(80vh - 74px);
     border-radius: 20px;
     z-index: 10001;
   }

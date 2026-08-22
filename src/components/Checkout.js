@@ -113,7 +113,12 @@ export default function Checkout() {
     }
   }, []);
   
-  const isDevEnvironment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+  const isLocalEnvironment = typeof window !== 'undefined' && (
+    window.location.hostname === 'localhost' || 
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('192.168.') ||
+    window.location.search.includes('enable_paytabs=true')
+  );
 
   // 💾 Auto-restore saved customer shipping details for seamless 1-click checkout
   const [hasRestoredData, setHasRestoredData] = useState(false);
@@ -123,7 +128,7 @@ export default function Checkout() {
       const saved = localStorage.getItem('zb_customer_shipping_data');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && (parsed.name || parsed.phone || parsed.address)) {
+        if (parsed && typeof parsed === 'object') {
           return {
             name: parsed.name || '',
             email: parsed.email || '',
@@ -133,7 +138,7 @@ export default function Checkout() {
             city: parsed.city || '',
             area: parsed.area || '',
             address: parsed.address || '',
-            paymentMethod: 'cod',
+            paymentMethod: isLocalEnvironment ? 'paytabs' : ((parsed.country === 'الأردن' || !parsed.country) ? 'cod' : 'paypal'),
             transferReceipt: '',
             cardNumber: '',
             expiry: '',
@@ -151,7 +156,7 @@ export default function Checkout() {
       city: '',
       area: '',
       address: '',
-      paymentMethod: 'cod',
+      paymentMethod: isLocalEnvironment ? 'paytabs' : 'cod',
       transferReceipt: '',
       cardNumber: '',
       expiry: '',
@@ -1246,30 +1251,32 @@ export default function Checkout() {
                 </h3>
 
                 <div className={styles.paymentGrid}>
-                  {/* Option 1: Direct Cards & Apple Pay (MEPS / PayTabs Jordan) */}
-                  <div
-                    onClick={() => setForm({ ...form, paymentMethod: 'paytabs' })}
-                    className={styles.paymentCard}
-                    style={{
-                      border: form.paymentMethod === 'paytabs' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
-                      backgroundColor: form.paymentMethod === 'paytabs' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
-                      position: 'relative'
-                    }}
-                  >
-                    <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
-                      موصى به (فوري وآمن) ⚡
+                  {/* Option 1: Direct Cards & Apple Pay (MEPS / PayTabs Jordan) - LOCAL ONLY */}
+                  {isLocalEnvironment && (
+                    <div
+                      onClick={() => setForm({ ...form, paymentMethod: 'paytabs' })}
+                      className={styles.paymentCard}
+                      style={{
+                        border: form.paymentMethod === 'paytabs' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
+                        backgroundColor: form.paymentMethod === 'paytabs' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
+                        position: 'relative'
+                      }}
+                    >
+                      <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
+                        موصى به (تجريبي محلي) ⚡
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
+                        <span>💳</span>
+                        <span>🍏</span>
+                      </div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                        بطاقة بنكية أو Apple Pay
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
+                        Visa • MasterCard • مدى • Apple Pay
+                      </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
-                      <span>💳</span>
-                      <span>🍏</span>
-                    </div>
-                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                      بطاقة بنكية أو Apple Pay
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
-                      Visa • MasterCard • مدى • Apple Pay
-                    </div>
-                  </div>
+                  )}
 
                   {/* Option 2: Cash on Delivery (Jordan only) */}
                   {isJordan && (

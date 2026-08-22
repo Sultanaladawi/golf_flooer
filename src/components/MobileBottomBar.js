@@ -17,8 +17,8 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
       bottom: 0,
       left: 0,
       right: 0,
-      height: '66px',
-      backgroundColor: 'rgba(18, 14, 10, 0.92)',
+      height: 'calc(62px + env(safe-area-inset-bottom, 0px))',
+      backgroundColor: 'rgba(18, 14, 10, 0.95)',
       backdropFilter: 'blur(16px)',
       WebkitBackdropFilter: 'blur(16px)',
       borderTop: '1px solid rgba(212, 175, 55, 0.25)',
@@ -27,6 +27,7 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
       justifyContent: 'space-around',
       zIndex: 9999,
       padding: '0 8px',
+      paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       boxShadow: '0 -10px 30px rgba(0, 0, 0, 0.5)'
     }} className="mobile-bottom-bar-wrapper">
       
@@ -54,13 +55,13 @@ export default function MobileBottomBar({ onOpenCart, onOpenWishlist, onOpenTrac
         alignItems: 'center',
         justifyContent: 'center',
         gap: '4px',
-        color: '#d4af37',
+        color: '#c5a880',
         textDecoration: 'none',
         flex: 1,
         fontSize: '0.7rem',
         fontWeight: 600
       }}>
-        <Grid size={20} color="#d4af37" />
+        <Grid size={20} color="#c5a880" />
         <span>{t('collection')}</span>
       </a>
 

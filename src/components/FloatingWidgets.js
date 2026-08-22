@@ -371,10 +371,12 @@ export default function FloatingWidgets({ onOpenLoyalty }) {
             display: none !important;
           }
           .zb-floating-wa {
-            bottom: 76px !important;
-            left: 14px !important;
-            width: 46px !important;
-            height: 46px !important;
+            bottom: calc(76px + env(safe-area-inset-bottom, 0px)) !important;
+            left: 16px !important;
+            width: 48px !important;
+            height: 48px !important;
+            z-index: 9990 !important;
+            box-shadow: 0 4px 18px rgba(37,211,102,0.45) !important;
           }
           .zb-floating-loyalty {
             display: none !important;
