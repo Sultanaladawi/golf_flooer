@@ -1058,24 +1058,24 @@ export default function Checkout() {
                           }
                           return actions.resolve();
                         }}
-                        createOrder={(data, actions) => {
+                        createOrder={async () => {
                           const usdAmount = (finalPrice * 1.41).toFixed(2);
-                          return actions.order.create({
-                            purchase_units: [
-                              {
-                                amount: {
-                                  currency_code: "USD",
-                                  value: usdAmount
-                                },
-                                description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
-                              }
-                            ]
+                          const res = await fetch('/api/paypal/create-order', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              amount: usdAmount,
+                              description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
+                            })
                           });
+                          const data = await res.json();
+                          if (!data.id) throw new Error('Failed to create PayPal order');
+                          return data.id;
                         }}
-                        onApprove={async (data, actions) => {
+                        onApprove={async (data) => {
                           try {
                             setStep('processing');
-                            await actions.order.capture();
+                            await fetch(`/api/paypal/capture-order/${data.orderID}`, { method: 'POST' });
                             const resultStatus = await saveOrderToBackend();
                             if (resultStatus === 'success') {
                               try { sendOrderConfirmationEmail(form.email.trim(), orderId || 'جديد', items, finalPrice); } catch(e) {}

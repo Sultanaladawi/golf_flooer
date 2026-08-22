@@ -25,6 +25,8 @@ jobs:
           node scripts/create-aliases.js
           node scripts/embed-html.js
           node scripts/insert-tap-clean.js
+          node scripts/patch-paypal-route.js
+          node scripts/inject-paypal-routes.js
           
           # Prepare ultra-fast minimal deployment package (<15MB)
           mkdir -p deploy_stage
