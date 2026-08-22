@@ -154141,77 +154141,6 @@ app.get("/api/social-pixels", (req, res) => {
     res.json(results[0]);
   });
 });
-
-// PayPal Server-side Order Creation (SDK v6+ compatible)
-app.post("/api/paypal/create-order", async (req, res) => {
-  try {
-    const { amount, description } = req.body;
-    const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID;
-    const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-    if (!clientId || !clientSecret) return res.status(500).json({ error: "PayPal credentials missing" });
-    const https = require("https");
-    const authStr = Buffer.from(clientId + ":" + clientSecret).toString("base64");
-    const tokenData = await new Promise((resolve, reject) => {
-      const body = "grant_type=client_credentials";
-      const req2 = https.request({
-        hostname: "api-m.paypal.com", port: 443, path: "/v1/oauth2/token", method: "POST",
-        headers: { "Authorization": "Basic " + authStr, "Content-Type": "application/x-www-form-urlencoded", "Content-Length": Buffer.byteLength(body) }
-      }, r => { let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(JSON.parse(d))); });
-      req2.on("error", reject); req2.write(body); req2.end();
-    });
-    const accessToken = tokenData.access_token;
-    if (!accessToken) return res.status(500).json({ error: "Failed to get PayPal access token" });
-    const orderBody = JSON.stringify({
-      intent: "CAPTURE",
-      purchase_units: [{ amount: { currency_code: "USD", value: String(amount) }, description: description || "Zahrat Beesan Order" }]
-    });
-    const order = await new Promise((resolve, reject) => {
-      const req3 = https.request({
-        hostname: "api-m.paypal.com", port: 443, path: "/v2/checkout/orders", method: "POST",
-        headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json", "Content-Length": Buffer.byteLength(orderBody) }
-      }, r => { let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(JSON.parse(d))); });
-      req3.on("error", reject); req3.write(orderBody); req3.end();
-    });
-    res.json({ id: order.id });
-  } catch (err) {
-    console.error("PayPal create-order error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// PayPal Server-side Order Capture (SDK v6+ compatible)
-app.post("/api/paypal/capture-order/:orderID", async (req, res) => {
-  try {
-    const { orderID } = req.params;
-    const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID;
-    const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
-    if (!clientId || !clientSecret) return res.status(500).json({ error: "PayPal credentials missing" });
-    const https = require("https");
-    const authStr = Buffer.from(clientId + ":" + clientSecret).toString("base64");
-    const tokenData = await new Promise((resolve, reject) => {
-      const body = "grant_type=client_credentials";
-      const req2 = https.request({
-        hostname: "api-m.paypal.com", port: 443, path: "/v1/oauth2/token", method: "POST",
-        headers: { "Authorization": "Basic " + authStr, "Content-Type": "application/x-www-form-urlencoded", "Content-Length": Buffer.byteLength(body) }
-      }, r => { let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(JSON.parse(d))); });
-      req2.on("error", reject); req2.write(body); req2.end();
-    });
-    const accessToken = tokenData.access_token;
-    if (!accessToken) return res.status(500).json({ error: "Failed to get PayPal access token" });
-    const capture = await new Promise((resolve, reject) => {
-      const req4 = https.request({
-        hostname: "api-m.paypal.com", port: 443, path: "/v2/checkout/orders/" + orderID + "/capture", method: "POST",
-        headers: { "Authorization": "Bearer " + accessToken, "Content-Type": "application/json", "Content-Length": 0 }
-      }, r => { let d = ""; r.on("data", c => d += c); r.on("end", () => resolve(JSON.parse(d))); });
-      req4.on("error", reject); req4.end();
-    });
-    res.json(capture);
-  } catch (err) {
-    console.error("PayPal capture-order error:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.get("/api/admin/social-pixels", (req, res) => {
   db.query("SELECT * FROM social_pixels WHERE id = 1 LIMIT 1", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -154249,6 +154178,73 @@ app.post("/api/admin/social-pixels", (req, res) => {
     res.json({ success: true, message: "\u062A\u0645 \u062D\u0641\u0638 \u0625\u0639\u062F\u0627\u062F\u0627\u062A \u0627\u0644\u0628\u0643\u0633\u0644 \u0628\u0646\u062C\u0627\u062D" });
   });
 });
+
+// ─── PayPal Server-side Integration (SDK v6+ compatible) ───────────────────
+app.post("/api/paypal/create-order", async (req, res) => {
+  try {
+    const { amount, description } = req.body;
+    const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID;
+    const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+    if (!clientId || !clientSecret) return res.status(500).json({ error: "PayPal credentials missing" });
+    const https = require("https");
+    const authStr = Buffer.from(clientId + ":" + clientSecret).toString("base64");
+    const getToken = () => new Promise((resolve, reject) => {
+      const body = "grant_type=client_credentials";
+      const r = https.request({
+        hostname: "api-m.paypal.com", port: 443, path: "/v1/oauth2/token", method: "POST",
+        headers: { "Authorization": "Basic " + authStr, "Content-Type": "application/x-www-form-urlencoded", "Content-Length": Buffer.byteLength(body) }
+      }, res2 => { let d = ""; res2.on("data", c => d += c); res2.on("end", () => resolve(JSON.parse(d))); });
+      r.on("error", reject); r.write(body); r.end();
+    });
+    const { access_token } = await getToken();
+    if (!access_token) return res.status(500).json({ error: "Failed to get PayPal token" });
+    const orderBody = JSON.stringify({ intent: "CAPTURE", purchase_units: [{ amount: { currency_code: "USD", value: String(amount) }, description: description || "Zahrat Beesan Order" }] });
+    const order = await new Promise((resolve, reject) => {
+      const r = https.request({
+        hostname: "api-m.paypal.com", port: 443, path: "/v2/checkout/orders", method: "POST",
+        headers: { "Authorization": "Bearer " + access_token, "Content-Type": "application/json", "Content-Length": Buffer.byteLength(orderBody) }
+      }, res2 => { let d = ""; res2.on("data", c => d += c); res2.on("end", () => resolve(JSON.parse(d))); });
+      r.on("error", reject); r.write(orderBody); r.end();
+    });
+    res.json({ id: order.id });
+  } catch (err) {
+    console.error("[PayPal create-order]:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post("/api/paypal/capture-order/:orderID", async (req, res) => {
+  try {
+    const { orderID } = req.params;
+    const clientId = process.env.REACT_APP_PAYPAL_CLIENT_ID;
+    const clientSecret = process.env.PAYPAL_CLIENT_SECRET;
+    if (!clientId || !clientSecret) return res.status(500).json({ error: "PayPal credentials missing" });
+    const https = require("https");
+    const authStr = Buffer.from(clientId + ":" + clientSecret).toString("base64");
+    const getToken = () => new Promise((resolve, reject) => {
+      const body = "grant_type=client_credentials";
+      const r = https.request({
+        hostname: "api-m.paypal.com", port: 443, path: "/v1/oauth2/token", method: "POST",
+        headers: { "Authorization": "Basic " + authStr, "Content-Type": "application/x-www-form-urlencoded", "Content-Length": Buffer.byteLength(body) }
+      }, res2 => { let d = ""; res2.on("data", c => d += c); res2.on("end", () => resolve(JSON.parse(d))); });
+      r.on("error", reject); r.write(body); r.end();
+    });
+    const { access_token } = await getToken();
+    if (!access_token) return res.status(500).json({ error: "Failed to get PayPal token" });
+    const capture = await new Promise((resolve, reject) => {
+      const r = https.request({
+        hostname: "api-m.paypal.com", port: 443, path: "/v2/checkout/orders/" + orderID + "/capture", method: "POST",
+        headers: { "Authorization": "Bearer " + access_token, "Content-Type": "application/json", "Content-Length": 0 }
+      }, res2 => { let d = ""; res2.on("data", c => d += c); res2.on("end", () => resolve(JSON.parse(d))); });
+      r.on("error", reject); r.end();
+    });
+    res.json(capture);
+  } catch (err) {
+    console.error("[PayPal capture-order]:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+// ────────────────────────────────────────────────────────────────────────────
+
 app.get("/api/catalog.json", (req, res) => {
   const host = req.get("host");
   const protocol = req.protocol;
