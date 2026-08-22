@@ -1075,11 +1075,15 @@ export default function Checkout() {
                           }
                         }}
                         onCancel={() => {
-                          alert('تم إلغاء عملية الدفع عبر PayPal. يمكنك إعادة المحاولة في أي وقت.');
+                          showToast('تم إلغاء عملية الدفع. سلة مشترياتك محفوظة.', 'info');
                         }}
                         onError={(err) => {
-                          console.error('[PayPal Error]:', err);
-                          alert('حدث تضارب أثناء الاتصال ببوابة PayPal. يرجى المحاولة مجدداً.');
+                          console.warn('[PayPal Notice]:', err);
+                          showAlert({
+                            title: 'تنبيه بوابة الدفع',
+                            message: 'تعذر استكمال عملية الدفع عبر PayPal حالياً. يرجى المحاولة مجدداً أو اختيار الدفع عند الاستلام.',
+                            type: 'warning'
+                          });
                         }}
                       />
                     </PayPalScriptProvider>
