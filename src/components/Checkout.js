@@ -1126,10 +1126,7 @@ export default function Checkout() {
                     <PayPalScriptProvider
                       options={{
                         "client-id": (storeSettings?.paypal_client_id && storeSettings.paypal_client_id.trim()) || process.env.REACT_APP_PAYPAL_CLIENT_ID || "ARdYvIMc9bA48NZVLTI18B63ctWU9GxHRCmxhW_fXxuaDD4hogMl6xKVDPIgsUs_nRBgE1G7YxQb_2Mk",
-                        currency: "USD",
-                        components: "buttons",
-                        "enable-funding": "paypal,card",
-                        "disable-funding": "paylater,venmo,sepa,bancontact,eps,giropay,ideal,mybank,p24,sofort"
+                        currency: "USD"
                       }}
                     >
                       <PayPalButtonsWrapper
