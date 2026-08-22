@@ -1117,10 +1117,10 @@ export default function Checkout() {
                     }}>
                       <div style={{ fontWeight: 'bold', color: '#003087', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span>💳</span>
-                        <span>طرق الدفع عبر PayPal:</span>
+                        <span>كيف تدفعين عبر PayPal:</span>
                       </div>
-                      <div>• <strong>لديكِ حساب PayPal؟</strong> اختاري الزر الأصفر (PayPal).</div>
-                      <div>• <strong>ترغبين بالدفع ببطاقة Visa أو MasterCard مباشرة؟</strong> اختاري الزر الأسود (Debit or Credit Card).</div>
+                      <div>• <strong>لديكِ حساب PayPal؟</strong> اضغطي الزر الأصفر وسجّلي دخولك لإتمام الدفع.</div>
+                      <div>• <strong>تريدين الدفع ببطاقة Visa / MasterCard بدون حساب PayPal؟</strong> اضغطي الزر الأصفر ثم اختاري "Pay with Debit or Credit Card" داخل النافذة.</div>
                     </div>
 
                     <PayPalScriptProvider
