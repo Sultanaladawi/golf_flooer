@@ -151436,6 +151436,8 @@ db.query("SHOW COLUMNS FROM categories", (err, columns) => {
 // ══════════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════════
+
+// ══════════════════════════════════════════════════════════════════════════════
 // 👑 MEPS / PAYTABS JORDAN SECURE PAYMENT GATEWAY INTEGRATION
 // ══════════════════════════════════════════════════════════════════════════════
 const PAYTABS_CONFIG = {
@@ -151490,6 +151492,19 @@ function sendPaytabsRequest(apiPath, payload) {
     req.end();
   });
 }
+
+// Handle PayTabs HTTP POST Return Redirect smoothly (convert to GET for React SPA)
+app.post('/checkout', (req, res) => {
+  const query = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
+  const paytabsOrderId = req.body?.cart_id || req.query?.paytabs_order_id || req.query?.order_id;
+  const target = paytabsOrderId ? `/checkout?paytabs_order_id=${paytabsOrderId}` : `/checkout${query}`;
+  res.redirect(303, target);
+});
+
+app.post('/api/paytabs/return', (req, res) => {
+  const paytabsOrderId = req.body?.cart_id || req.query?.paytabs_order_id || req.query?.order_id;
+  res.redirect(303, `/checkout?paytabs_order_id=${paytabsOrderId}`);
+});
 
 app.post('/api/paytabs/create-payment', async (req, res) => {
   const { customer_name, email, phone, country, city, delivery_address, items, total_amount, shipping_fee } = req.body;

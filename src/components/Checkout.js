@@ -476,7 +476,12 @@ export default function Checkout() {
     } else if (form.paymentMethod === 'paytabs') {
       setStep('processing');
       try {
-        const ptRes = await fetch('/api/paytabs/create-payment', {
+        let endpoint = '/api/paytabs/create-payment';
+        if (typeof window !== 'undefined' && window.location.port === '3000') {
+          endpoint = `http://${window.location.hostname}:5000/api/paytabs/create-payment`;
+        }
+
+        const ptRes = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -505,7 +510,7 @@ export default function Checkout() {
         }
 
         if (ptRes.ok && ptData.success && ptData.redirect_url) {
-          window.location.href = ptData.redirect_url;
+          window.location.assign(ptData.redirect_url);
         } else {
           setStep('form');
           showAlert({
