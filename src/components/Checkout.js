@@ -1041,6 +1041,12 @@ export default function Checkout() {
                         }}
                         createOrder={(data, actions) => {
                           const usdAmount = (finalPrice * 1.41).toFixed(2);
+                          const iso = (getCountryIso(form.country) || 'JO').toUpperCase();
+                          const cleanDigits = (form.phone || '').replace(/\D/g, '');
+                          const nameParts = (form.name || '').trim().split(' ');
+                          const firstName = nameParts[0] || 'Customer';
+                          const lastName = nameParts.slice(1).join(' ') || firstName;
+
                           return actions.order.create({
                             purchase_units: [
                               {
@@ -1048,9 +1054,33 @@ export default function Checkout() {
                                   currency_code: "USD",
                                   value: usdAmount
                                 },
-                                description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`
+                                description: `طلب من متجر زهرة بيسان (${items.length} قطعة)`,
+                                shipping: {
+                                  name: { full_name: form.name.trim() || 'Valued Customer' },
+                                  address: {
+                                    address_line_1: form.address || form.city || 'Amman',
+                                    admin_area_2: form.city || 'Amman',
+                                    country_code: iso
+                                  }
+                                }
                               }
-                            ]
+                            ],
+                            payer: {
+                              name: {
+                                given_name: firstName,
+                                surname: lastName
+                              },
+                              email_address: form.email ? form.email.trim() : undefined,
+                              phone: cleanDigits ? {
+                                phone_type: "MOBILE",
+                                phone_number: {
+                                  national_number: cleanDigits
+                                }
+                              } : undefined,
+                              address: {
+                                country_code: iso
+                              }
+                            }
                           });
                         }}
                         onApprove={async (data, actions) => {
