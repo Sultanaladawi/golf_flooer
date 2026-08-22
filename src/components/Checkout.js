@@ -94,7 +94,7 @@ export default function Checkout() {
             city: parsed.city || '',
             area: parsed.area || '',
             address: parsed.address || '',
-            paymentMethod: isDevEnvironment ? 'tap' : 'cod',
+            paymentMethod: 'cod',
             transferReceipt: '',
             cardNumber: '',
             expiry: '',
@@ -112,7 +112,7 @@ export default function Checkout() {
       city: '',
       area: '',
       address: '',
-      paymentMethod: isDevEnvironment ? 'tap' : 'cod',
+      paymentMethod: 'cod',
       transferReceipt: '',
       cardNumber: '',
       expiry: '',
@@ -935,34 +935,7 @@ export default function Checkout() {
                 </h3>
 
                 <div className={styles.paymentGrid}>
-                  {/* Option 1: Tap Payments (Visa, MasterCard, Mada, Apple Pay) - Active in Local Dev until Live account approved */}
-                  {isDevEnvironment && (
-                    <div
-                      onClick={() => setForm({ ...form, paymentMethod: 'tap' })}
-                      className={styles.paymentCard}
-                      style={{
-                        border: form.paymentMethod === 'tap' ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e0e0e0',
-                        backgroundColor: form.paymentMethod === 'tap' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
-                        position: 'relative'
-                      }}
-                    >
-                      <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
-                        موصى به (تجريبي)
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
-                        <span>💳</span>
-                        <span>🍏</span>
-                      </div>
-                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                        بطاقة بنكية أو Apple Pay
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
-                        Visa / MasterCard / مدى / Apple Pay
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Option 2: Cash on Delivery (Jordan only) */}
+                  {/* Option 1: Cash on Delivery (Jordan only) */}
                   {isJordan && (
                     <div
                       onClick={() => setForm({ ...form, paymentMethod: 'cod' })}
@@ -973,12 +946,12 @@ export default function Checkout() {
                       }}
                     >
                       <div style={{ fontSize: '1.6rem' }}>💵</div>
-                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>عند الاستلام (داخل الأردن)</div>
-                      <div style={{ fontSize: '0.78rem', color: '#777' }}>ادفعي نقداً عند استلام طلبكِ</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>الدفع عند الاستلام</div>
+                      <div style={{ fontSize: '0.78rem', color: '#777' }}>ادفعي نقداً عند استلام طلبكِ (داخل الأردن)</div>
                     </div>
                   )}
 
-                  {/* Option 3: PayPal (Worldwide) */}
+                  {/* Option 2: Cards & PayPal (Global & Jordan) */}
                   <div
                     onClick={() => setForm({ ...form, paymentMethod: 'paypal' })}
                     className={styles.paymentCard}
@@ -987,36 +960,18 @@ export default function Checkout() {
                       backgroundColor: form.paymentMethod === 'paypal' ? 'rgba(197, 168, 128, 0.12)' : '#ffffff'
                     }}
                   >
-                    <div style={{ fontSize: '1.6rem' }}>🅿️</div>
-                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                      حساب PayPal
+                    <div style={{ display: 'flex', gap: '6px', fontSize: '1.5rem', alignItems: 'center' }}>
+                      <span>💳</span>
+                      <span>🅿️</span>
                     </div>
-                    <div style={{ fontSize: '0.78rem', color: '#777' }}>
-                      دفع إلكتروني آمن عالمياً
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                      بطاقة بنكية / PayPal
+                    </div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
+                      Visa • MasterCard • بطاقات الائتمان • PayPal
                     </div>
                   </div>
                 </div>
-
-                {/* Tap Payments Banner */}
-                {form.paymentMethod === 'tap' && (
-                  <div style={{
-                    marginTop: '20px',
-                    background: 'linear-gradient(135deg, rgba(197, 168, 128, 0.12) 0%, rgba(197, 168, 128, 0.04) 100%)',
-                    border: '1px solid rgba(197, 168, 128, 0.35)',
-                    borderRadius: '14px',
-                    padding: '16px 20px',
-                    fontSize: '0.9rem',
-                    lineHeight: '1.6'
-                  }}>
-                    <div style={{ fontWeight: 'bold', color: 'var(--espresso)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span>🔒</span>
-                      <span>دفع آمن ومباشر عبر بوابة Tap Payments</span>
-                    </div>
-                    <div style={{ color: '#666', fontSize: '0.86rem' }}>
-                      يقبل بطاقات <strong>Visa</strong>، <strong>MasterCard</strong>، <strong>مدى (Mada)</strong>، و <strong>Apple Pay</strong> مع دعم التحقق الآمن الثلاثي 3D Secure.
-                    </div>
-                  </div>
-                )}
 
                 {/* PayPal & Direct Card Buttons */}
                 {form.paymentMethod === 'paypal' && (
