@@ -12,6 +12,7 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import { BILINGUAL_COUNTRIES, getCitiesForCountry } from '../utils/countryCityData';
 import MapLocationPicker from './MapLocationPicker';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -163,6 +164,36 @@ export default function Checkout() {
       cvc: ''
     };
   });
+
+  const [selectedDialCode, setSelectedDialCode] = useState(() => {
+    const matched = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
+    return matched ? matched.dialCode : '+962';
+  });
+
+  const [phoneDigits, setPhoneDigits] = useState(() => {
+    if (form.phone) {
+      return form.phone.replace(/^\+\d+\s*/, '').trim();
+    }
+    return '';
+  });
+
+  // Sync dial code when destination country changes
+  useEffect(() => {
+    const matched = BILINGUAL_COUNTRIES.find(c => c.ar === form.country || c.en === form.country);
+    if (matched && matched.dialCode) {
+      setSelectedDialCode(matched.dialCode);
+    }
+  }, [form.country]);
+
+  // Sync formatted full international phone number to form.phone
+  useEffect(() => {
+    const cleanDigits = phoneDigits.replace(/[^0-9]/g, '');
+    if (cleanDigits) {
+      setForm(prev => ({ ...prev, phone: `${selectedDialCode} ${cleanDigits}`.trim() }));
+    } else {
+      setForm(prev => ({ ...prev, phone: '' }));
+    }
+  }, [selectedDialCode, phoneDigits]);
 
   // Track if saved data was active
   useEffect(() => {
@@ -411,7 +442,8 @@ export default function Checkout() {
   function validate() {
     const e = {};
     if (!form.name.trim()) e.name = 'يرجى كتابة الاسم الكامل';
-    if (!form.phone.trim()) e.phone = 'يرجى كتابة رقم الهاتف للتوصيل';
+    const cleanDigits = phoneDigits.replace(/[^0-9]/g, '');
+    if (!cleanDigits || cleanDigits.length < 6) e.phone = 'يرجى كتابة رقم هاتف صحيح للتوصيل والواتساب';
     if (!form.country.trim()) e.country = 'يرجى تحديد الدولة';
     if (!form.city.trim()) e.city = 'يرجى تحديد أو كتابة المدينة';
     if (!form.address.trim()) e.address = 'يرجى إدخال تفاصيل العنوان أو الشارع';
@@ -1032,15 +1064,86 @@ export default function Checkout() {
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>رقم الهاتف / الواتساب *</label>
-                    <input
-                      type="tel"
-                      className={styles.input}
-                      placeholder="مثال: 0791234567 أو +966..."
-                      value={form.phone}
-                      onChange={e => setForm({ ...form, phone: e.target.value })}
-                      dir="ltr"
-                    />
+                    <label className={styles.label}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={15} color="var(--gold-dim)" />
+                        <span>رقم الهاتف / الواتساب *</span>
+                      </span>
+                    </label>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'stretch',
+                      borderRadius: '12px',
+                      border: errors.phone ? '1.5px solid #ef4444' : '1.5px solid rgba(197, 168, 128, 0.45)',
+                      backgroundColor: '#ffffff',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                      direction: 'ltr',
+                      transition: 'border-color 0.2s ease, box-shadow 0.2s ease'
+                    }}>
+                      {/* Country Flag & Dial Code Selector */}
+                      <div style={{
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        backgroundColor: '#faf8f5',
+                        borderRight: '1.5px solid rgba(197, 168, 128, 0.35)',
+                        padding: '0 12px',
+                        cursor: 'pointer',
+                        userSelect: 'none',
+                        flexShrink: 0
+                      }}>
+                        <span style={{ fontSize: '1.35rem', lineHeight: 1 }}>
+                          {(BILINGUAL_COUNTRIES.find(c => c.dialCode === selectedDialCode) || BILINGUAL_COUNTRIES[0]).flag}
+                        </span>
+                        <span style={{ fontWeight: '800', fontSize: '0.92rem', color: 'var(--espresso)' }}>
+                          {selectedDialCode}
+                        </span>
+                        <span style={{ fontSize: '0.65rem', color: '#999', marginLeft: '2px' }}>▼</span>
+                        
+                        <select
+                          value={selectedDialCode}
+                          onChange={(e) => setSelectedDialCode(e.target.value)}
+                          style={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            opacity: 0,
+                            cursor: 'pointer',
+                            fontSize: '16px'
+                          }}
+                        >
+                          {BILINGUAL_COUNTRIES.map((c, idx) => (
+                            <option key={idx} value={c.dialCode}>
+                              {c.flag} {c.ar} ({c.dialCode})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Phone Digits Input */}
+                      <input
+                        type="tel"
+                        className={styles.input}
+                        style={{
+                          border: 'none',
+                          borderRadius: 0,
+                          boxShadow: 'none',
+                          flex: 1,
+                          padding: '12px 14px',
+                          fontSize: '1rem',
+                          fontWeight: '600',
+                          letterSpacing: '0.5px'
+                        }}
+                        placeholder={(BILINGUAL_COUNTRIES.find(c => c.dialCode === selectedDialCode) || BILINGUAL_COUNTRIES[0]).placeholder || '79 123 4567'}
+                        value={phoneDigits}
+                        onChange={e => setPhoneDigits(e.target.value)}
+                        dir="ltr"
+                      />
+                    </div>
                     {errors.phone && <span className={styles.errorText}>{errors.phone}</span>}
                   </div>
 
