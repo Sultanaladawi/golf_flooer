@@ -315,73 +315,92 @@ export default function LiveRadar() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {data.onlineVisitors.map((visitor, idx) => (
-                <div key={idx} style={{
-                  padding: '16px',
-                  borderRadius: '14px',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: '12px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '10px',
-                      background: visitor.device === 'mobile' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
-                      color: visitor.device === 'mobile' ? '#2563eb' : '#059669',
+              {data.onlineVisitors.map((visitor, idx) => {
+                const rawPage = visitor.page || '/';
+                const cleanPage = rawPage.split('?')[0];
+                const isTikTok = rawPage.includes('ttclid') || rawPage.includes('tiktok');
+                const isMeta = rawPage.includes('fbclid');
+
+                return (
+                    <div key={idx} style={{
+                      padding: '14px 16px',
+                      borderRadius: '14px',
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
                       display: 'flex',
+                      justifyContent: 'space-between',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                      maxWidth: '100%',
+                      overflow: 'hidden'
                     }}>
-                      {visitor.device === 'mobile' ? <Smartphone size={20} /> : <Monitor size={20} />}
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <strong style={{ fontSize: '0.95rem', color: '#1e293b' }}>
-                          {visitor.customerName || 'عميلة زائرة'}
-                        </strong>
-                        {visitor.customerPhone && (
-                          <span style={{ fontSize: '0.8rem', color: '#2563eb', direction: 'ltr' }}>
-                            {visitor.customerPhone}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                        <div style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '10px',
+                          background: visitor.device === 'mobile' ? 'rgba(59, 130, 246, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                          color: visitor.device === 'mobile' ? '#2563eb' : '#059669',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {visitor.device === 'mobile' ? <Smartphone size={18} /> : <Monitor size={18} />}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <strong style={{ fontSize: '0.92rem', color: '#1e293b' }}>
+                              {visitor.customerName || 'عميلة زائرة'}
+                            </strong>
+                            {visitor.customerPhone && (
+                              <span style={{ fontSize: '0.8rem', color: '#2563eb', direction: 'ltr' }}>
+                                {visitor.customerPhone}
+                              </span>
+                            )}
+                            {isTikTok && (
+                              <span style={{ background: '#000000', color: '#25f4ee', padding: '2px 8px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 'bold' }}>
+                                🎵 زائرة من إعلان TikTok
+                              </span>
+                            )}
+                            {isMeta && (
+                              <span style={{ background: 'rgba(24, 119, 242, 0.12)', color: '#1877f2', padding: '2px 8px', borderRadius: '8px', fontSize: '0.72rem', fontWeight: 'bold' }}>
+                                📘 زائرة من إعلان Meta
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                            <span>يشاهد:</span>
+                            <code style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', color: '#0f172a', direction: 'ltr' }}>
+                              {cleanPage}
+                            </code>
+                            <span style={{ color: '#94a3b8' }}>• نشط قبل {visitor.idleSeconds}ث</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        {visitor.cartItemsCount > 0 ? (
+                          <span style={{
+                            background: 'rgba(197, 168, 128, 0.15)',
+                            color: '#a67c48',
+                            padding: '4px 10px',
+                            borderRadius: '16px',
+                            fontSize: '0.78rem',
+                            fontWeight: '700',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}>
+                            <ShoppingCart size={13} />
+                            {visitor.cartItemsCount} قطع بالسلة ({visitor.cartTotal} د.أ)
+                          </span>
+                        ) : (
+                          <span style={{ background: '#f1f5f9', color: '#64748b', padding: '4px 8px', borderRadius: '10px', fontSize: '0.75rem' }}>
+                            تصفح فقط
                           </span>
                         )}
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>يشاهد:</span>
-                        <code style={{ background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', color: '#0f172a' }}>
-                          {visitor.page}
-                        </code>
-                        <span style={{ color: '#94a3b8' }}>• نشط قبل {visitor.idleSeconds}ث</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {visitor.cartItemsCount > 0 ? (
-                      <span style={{
-                        background: 'rgba(197, 168, 128, 0.15)',
-                        color: '#a67c48',
-                        padding: '6px 12px',
-                        borderRadius: '20px',
-                        fontSize: '0.82rem',
-                        fontWeight: '700',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}>
-                        <ShoppingCart size={14} />
-                        {visitor.cartItemsCount} قطع بالسلة ({visitor.cartTotal} د.أ)
-                      </span>
-                    ) : (
-                      <span style={{ background: '#f1f5f9', color: '#64748b', padding: '4px 10px', borderRadius: '12px', fontSize: '0.8rem' }}>
-                        تصفح فقط
-                      </span>
-                    )}
 
                     <span style={{
                       padding: '4px 10px',
@@ -395,7 +414,7 @@ export default function LiveRadar() {
                     </span>
                   </div>
                 </div>
-              ))}
+              ); })}
             </div>
           )}
         </div>

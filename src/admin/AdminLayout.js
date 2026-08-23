@@ -163,7 +163,7 @@ const AdminLayout = () => {
     }
   };
   useEffect(() => {
-    document.documentElement.style.zoom = window.innerWidth > 1024 ? "85%" : "100%";
+    document.documentElement.style.zoom = "";
     document.body.style.backgroundColor = "var(--admin-bg)";
     document.documentElement.style.backgroundColor = "var(--admin-bg)";
 
