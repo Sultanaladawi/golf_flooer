@@ -21,6 +21,8 @@ if (fs.existsSync(jsDir) && activeJs) {
   if (fs.existsSync(activePath)) {
     const commonJsAliases = [
       'main.js',
+      'main.2ac17bb4.js',
+      'main.74ecaf7b.js',
       'main.ef562455.js',
       'main.c9aa5b70.js',
       'main.1c4e12f8.js',
