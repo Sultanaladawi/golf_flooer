@@ -211,6 +211,20 @@ function loadCart() {
 export function CartProvider({ children }) {
   const [state, dispatch] = useReducer(cartReducer, null, loadCart);
 
+  const cartItems = (state && Array.isArray(state.items)) ? state.items : [];
+  const totalItems = cartItems.length;
+  const totalQty = cartItems.reduce((s, i) => s + (i.qty || 1), 0);
+  
+  const subTotal = cartItems.reduce((s, i) => {
+    const price = parseFloat(i.priceNum) || 0;
+    return s + (price * (i.qty || 1));
+  }, 0);
+
+  // No automatic bundle discount
+  const isBundleApplied = false;
+  const bundleDiscount = 0;
+  const totalPrice = subTotal;
+
   // One-time fix on mount: correct any zero-price addon items in current state
   useEffect(() => {
     dispatch({ type: 'FIX_ADDON_PRICES' });
@@ -250,7 +264,7 @@ export function CartProvider({ children }) {
 
   // 🛒 Automated Abandoned Cart Sync
   useEffect(() => {
-    if (state && Array.isArray(state.items) && state.items.length > 0) {
+    if (cartItems.length > 0) {
       try {
         let userEmail = null;
         let userPhone = null;
@@ -280,7 +294,7 @@ export function CartProvider({ children }) {
             body: JSON.stringify({
               email: userEmail,
               phone: userPhone,
-              cartItems: state.items.map(i => ({
+              cartItems: cartItems.map(i => ({
                 id: i.id,
                 name: i.name,
                 price: i.priceNum,
@@ -292,20 +306,7 @@ export function CartProvider({ children }) {
         }
       } catch (_) {}
     }
-  }, [state.items, subTotal]);
-
-  const totalItems = state.items.length;
-  const totalQty = state.items.reduce((s, i) => s + i.qty, 0);
-  
-  const subTotal = state.items.reduce((s, i) => {
-    const price = parseFloat(i.priceNum) || 0;
-    return s + (price * i.qty);
-  }, 0);
-
-  // No automatic bundle discount
-  const isBundleApplied = false;
-  const bundleDiscount = 0;
-  const totalPrice = subTotal;
+  }, [cartItems, subTotal]);
 
   const addItem = (item) => {
     dispatch({ type: 'ADD_ITEM', item });
