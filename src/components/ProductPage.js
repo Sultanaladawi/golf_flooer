@@ -14,6 +14,24 @@ import {
 
 const SIZES = ['50', '52', '54', '56', '58', '60'];
 
+const inputStyle = {
+  padding: '14px 18px', borderRadius: '14px',
+  border: '1.5px solid rgba(197,163,106,0.3)',
+  background: 'var(--bg-base, #faf8f5)',
+  color: 'var(--espresso, #2b2015)',
+  fontSize: '0.95rem', fontFamily: 'inherit',
+  width: '100%', boxSizing: 'border-box',
+  transition: 'border-color 0.2s', direction: 'rtl'
+};
+
+const btnStyle = {
+  padding: '14px 32px', borderRadius: '14px',
+  background: 'linear-gradient(135deg, var(--gold, #c5a36a), #8f6e40)',
+  color: '#fff', border: 'none', fontWeight: 900,
+  fontSize: '0.98rem', cursor: 'pointer', fontFamily: 'inherit',
+  transition: 'all 0.2s ease', boxShadow: '0 4px 18px rgba(197,163,106,0.35)'
+};
+
 function StarRating({ rating, size = 16 }) {
   return (
     <span style={{ display: 'inline-flex', gap: '2px', color: 'var(--gold, #c5a36a)' }}>
@@ -1036,21 +1054,3 @@ export default function ProductPage() {
     </div>
   );
 }
-
-const inputStyle = {
-  padding: '14px 18px', borderRadius: '14px',
-  border: '1.5px solid rgba(197,163,106,0.3)',
-  background: 'var(--bg-base, #faf8f5)',
-  color: 'var(--espresso, #2b2015)',
-  fontSize: '0.95rem', fontFamily: 'inherit',
-  width: '100%', boxSizing: 'border-box',
-  transition: 'border-color 0.2s', direction: 'rtl'
-};
-
-const btnStyle = {
-  padding: '14px 32px', borderRadius: '14px',
-  background: 'linear-gradient(135deg, var(--gold, #c5a36a), #8f6e40)',
-  color: '#fff', border: 'none', fontWeight: 900,
-  fontSize: '0.98rem', cursor: 'pointer', fontFamily: 'inherit',
-  transition: 'all 0.2s ease', boxShadow: '0 4px 18px rgba(197,163,106,0.35)'
-};
