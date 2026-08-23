@@ -108,6 +108,24 @@ async function deployViaFTP() {
   await client.ensureDir('/site/wwwroot/build/static/js');
   await client.ensureDir('/site/wwwroot/build/static/css');
 
+  // Clean stale JS files from remote Azure to guarantee fresh bundle is loaded
+  try {
+    const remoteJsList = await client.list('/site/wwwroot/static/js');
+    for (const rf of remoteJsList) {
+      if (rf.name.endsWith('.js')) {
+        await client.remove(`/site/wwwroot/static/js/${rf.name}`);
+      }
+    }
+    const remoteBuildJsList = await client.list('/site/wwwroot/build/static/js');
+    for (const rf of remoteBuildJsList) {
+      if (rf.name.endsWith('.js')) {
+        await client.remove(`/site/wwwroot/build/static/js/${rf.name}`);
+      }
+    }
+  } catch (cleanErr) {
+    console.log('Clean notice:', cleanErr.message);
+  }
+
   // Upload server files
   const serverDir = path.join(localDeployDir, 'server');
   if (fs.existsSync(serverDir)) {
@@ -122,6 +140,7 @@ async function deployViaFTP() {
   const buildIndex = path.join(localDeployDir, 'build', 'index.html');
   if (fs.existsSync(buildIndex)) {
     await client.uploadFrom(buildIndex, '/site/wwwroot/build/index.html');
+    await client.uploadFrom(buildIndex, '/site/wwwroot/index.html');
   }
 
   const jsDir = path.join(localDeployDir, 'static', 'js');
