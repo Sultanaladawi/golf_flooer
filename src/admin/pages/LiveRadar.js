@@ -85,7 +85,7 @@ export default function LiveRadar() {
   });
 
   return (
-    <div style={{ padding: '24px 32px', direction: 'rtl', minHeight: '100vh', background: 'var(--admin-bg, #f8f9fa)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+    <div style={{ padding: '0', direction: 'rtl', minHeight: '100vh', background: 'var(--admin-bg, #f8f9fa)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
       
       {/* ── Top Header with Pulsing Live Status ── */}
       <div style={{
@@ -93,56 +93,56 @@ export default function LiveRadar() {
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: '16px',
-        marginBottom: '28px',
+        gap: '14px',
+        marginBottom: '18px',
         background: 'var(--admin-card-bg, #ffffff)',
-        padding: '20px 24px',
-        borderRadius: '20px',
+        padding: '14px 20px',
+        borderRadius: '16px',
         border: '1px solid rgba(197, 168, 128, 0.25)',
-        boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+        boxShadow: '0 2px 12px rgba(0,0,0,0.02)'
       }}>
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '4px' }}>
             <span style={{
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: '14px',
-              height: '14px',
+              width: '12px',
+              height: '12px',
               borderRadius: '50%',
               backgroundColor: '#10b981',
-              boxShadow: '0 0 12px #10b981',
+              boxShadow: '0 0 10px #10b981',
               animation: 'pulse 1.5s infinite'
             }} />
-            <h1 style={{ fontSize: '1.8rem', fontWeight: '900', color: 'var(--admin-text, #1e293b)', margin: 0, fontFamily: "'DM Serif Display', serif" }}>
+            <h1 style={{ fontSize: '1.4rem', fontWeight: '900', color: 'var(--admin-text, #1e293b)', margin: 0, fontFamily: "'DM Serif Display', serif" }}>
               رادار المتجر وتحركات الزوار المباشرة (Live Store Radar)
             </h1>
           </div>
-          <p style={{ color: '#64748b', margin: 0, fontSize: '0.95rem' }}>
+          <p style={{ color: '#64748b', margin: 0, fontSize: '0.85rem' }}>
             مراقبة حية فورية للعملاء المتواجدين الآن، تفاصيل السلات، ومراحل الدفع والتراجع خطوة بخطوة.
           </p>
         </div>
 
         {/* Live Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <button
             onClick={() => setAutoRefresh(!autoRefresh)}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              padding: '8px 16px',
-              borderRadius: '12px',
+              gap: '6px',
+              padding: '6px 12px',
+              borderRadius: '10px',
               border: '1px solid #e2e8f0',
               background: autoRefresh ? 'rgba(16, 185, 129, 0.1)' : '#f1f5f9',
               color: autoRefresh ? '#047857' : '#64748b',
               fontWeight: '700',
-              fontSize: '0.88rem',
+              fontSize: '0.82rem',
               cursor: 'pointer'
             }}
           >
-            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: autoRefresh ? '#10b981' : '#94a3b8' }} />
-            {autoRefresh ? 'تحديث حي مفعل (كل 4 ثوانٍ)' : 'التحديث التلقائي متوقف'}
+            <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: autoRefresh ? '#10b981' : '#94a3b8' }} />
+            {autoRefresh ? 'تحديث حي ⚡' : 'متوقف'}
           </button>
 
           <button
@@ -152,18 +152,18 @@ export default function LiveRadar() {
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '8px 14px',
-              borderRadius: '12px',
+              padding: '6px 12px',
+              borderRadius: '10px',
               border: 'none',
               background: 'var(--admin-accent, #c5a880)',
               color: '#fff',
               fontWeight: '700',
-              fontSize: '0.88rem',
+              fontSize: '0.82rem',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(197, 168, 128, 0.3)'
+              boxShadow: '0 2px 6px rgba(197, 168, 128, 0.25)'
             }}
           >
-            <RefreshCw size={15} className={loading ? 'spin' : ''} />
+            <RefreshCw size={13} className={loading ? 'spin' : ''} />
             تحديث الآن
           </button>
         </div>
@@ -172,110 +172,110 @@ export default function LiveRadar() {
       {/* ── Real-Time Metrics & Funnel Cards ── */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-        gap: '16px',
-        marginBottom: '28px'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+        gap: '12px',
+        marginBottom: '20px'
       }}>
         
         {/* Card 1: Active Now */}
         <div style={{
           background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)',
-          borderRadius: '18px',
-          padding: '20px',
+          borderRadius: '14px',
+          padding: '14px 16px',
           color: '#ffffff',
-          boxShadow: '0 8px 20px rgba(4, 120, 87, 0.25)',
+          boxShadow: '0 4px 14px rgba(4, 120, 87, 0.2)',
           position: 'relative',
           overflow: 'hidden'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '700', opacity: 0.9 }}>المتواجدون الآن في المتجر</span>
-            <Users size={22} style={{ opacity: 0.8 }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: '700', opacity: 0.9 }}>المتواجدون الآن</span>
+            <Users size={18} style={{ opacity: 0.8 }} />
           </div>
-          <div style={{ fontSize: '2.6rem', fontWeight: '900', lineHeight: 1, marginBottom: '6px' }}>
+          <div style={{ fontSize: '1.9rem', fontWeight: '900', lineHeight: 1, marginBottom: '4px' }}>
             {data.activeNow || 0}
           </div>
-          <span style={{ fontSize: '0.8rem', opacity: 0.85 }}>
-            🟢 يتصفحون المتجر والمنتجات في هذه اللحظة
+          <span style={{ fontSize: '0.72rem', opacity: 0.85 }}>
+            🟢 يتصفحون المتجر الآن
           </span>
         </div>
 
         {/* Card 2: Bounced / Browsing Only */}
         <div style={{
           background: 'var(--admin-card-bg, #ffffff)',
-          borderRadius: '18px',
-          padding: '20px',
+          borderRadius: '14px',
+          padding: '14px 16px',
           border: '1px solid rgba(0,0,0,0.06)',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+          boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#64748b' }}>دخلوا وتصفحوا فقط (بدون سلة)</span>
-            <Eye size={20} color="#94a3b8" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#64748b' }}>تصفحوا فقط</span>
+            <Eye size={18} color="#94a3b8" />
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#334155', lineHeight: 1, marginBottom: '6px' }}>
+          <div style={{ fontSize: '1.9rem', fontWeight: '900', color: '#334155', lineHeight: 1, marginBottom: '4px' }}>
             {data.funnel?.bouncedCount || 0}
           </div>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-            {data.funnel?.bouncedRate || 0}% من إجمالي زوار المتجر اليوم
+          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+            {data.funnel?.bouncedRate || 0}% من زوار اليوم
           </span>
         </div>
 
         {/* Card 3: Cart Filled */}
         <div style={{
           background: 'var(--admin-card-bg, #ffffff)',
-          borderRadius: '18px',
-          padding: '20px',
+          borderRadius: '14px',
+          padding: '14px 16px',
           border: '1px solid rgba(197, 168, 128, 0.3)',
-          boxShadow: '0 4px 15px rgba(197, 168, 128, 0.08)'
+          boxShadow: '0 2px 10px rgba(197, 168, 128, 0.06)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--admin-accent, #c5a880)' }}>عبأوا السلة بالمنتجات</span>
-            <ShoppingCart size={20} color="var(--admin-accent, #c5a880)" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: '700', color: 'var(--admin-accent, #c5a880)' }}>عبأوا السلة</span>
+            <ShoppingCart size={18} color="var(--admin-accent, #c5a880)" />
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: '900', color: 'var(--admin-accent, #c5a880)', lineHeight: 1, marginBottom: '6px' }}>
+          <div style={{ fontSize: '1.9rem', fontWeight: '900', color: 'var(--admin-accent, #c5a880)', lineHeight: 1, marginBottom: '4px' }}>
             {data.funnel?.cartFilledCount || 0}
           </div>
-          <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
-            {data.funnel?.cartConversionRate || 0}% أضافوا قطعاً للسلة
+          <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+            {data.funnel?.cartConversionRate || 0}% أضافوا للسلة
           </span>
         </div>
 
         {/* Card 4: Reached Checkout & Stopped */}
         <div style={{
           background: 'var(--admin-card-bg, #ffffff)',
-          borderRadius: '18px',
-          padding: '20px',
+          borderRadius: '14px',
+          padding: '14px 16px',
           border: '1px solid rgba(245, 158, 11, 0.3)',
-          boxShadow: '0 4px 15px rgba(245, 158, 11, 0.06)'
+          boxShadow: '0 2px 10px rgba(245, 158, 11, 0.05)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#d97706' }}>وصلوا للدفع ولم يكملوا</span>
-            <CreditCard size={20} color="#d97706" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#d97706' }}>وصلوا للدفع وتراجعوا</span>
+            <CreditCard size={18} color="#d97706" />
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#b45309', lineHeight: 1, marginBottom: '6px' }}>
+          <div style={{ fontSize: '1.9rem', fontWeight: '900', color: '#b45309', lineHeight: 1, marginBottom: '4px' }}>
             {data.funnel?.checkoutReachedCount || 0}
           </div>
-          <span style={{ fontSize: '0.8rem', color: '#b45309' }}>
-            ⚠️ دخلوا صفحة الدفع وتراجعوا
+          <span style={{ fontSize: '0.72rem', color: '#b45309' }}>
+            ⚠️ تراجعوا قبل الدفع
           </span>
         </div>
 
         {/* Card 5: Completed Purchases */}
         <div style={{
           background: 'var(--admin-card-bg, #ffffff)',
-          borderRadius: '18px',
-          padding: '20px',
+          borderRadius: '14px',
+          padding: '14px 16px',
           border: '1px solid rgba(16, 185, 129, 0.3)',
-          boxShadow: '0 4px 15px rgba(16, 185, 129, 0.06)'
+          boxShadow: '0 2px 10px rgba(16, 185, 129, 0.05)'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-            <span style={{ fontSize: '0.9rem', fontWeight: '700', color: '#059669' }}>أتموا الشراء بنجاح</span>
-            <CheckCircle2 size={20} color="#059669" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#059669' }}>أتموا الشراء بنجاح</span>
+            <CheckCircle2 size={18} color="#059669" />
           </div>
-          <div style={{ fontSize: '2.2rem', fontWeight: '900', color: '#047857', lineHeight: 1, marginBottom: '6px' }}>
+          <div style={{ fontSize: '1.9rem', fontWeight: '900', color: '#047857', lineHeight: 1, marginBottom: '4px' }}>
             {data.funnel?.purchasedCount || 0}
           </div>
-          <span style={{ fontSize: '0.8rem', color: '#047857' }}>
-            🎉 طلبات مؤكدة ومكتملة
+          <span style={{ fontSize: '0.72rem', color: '#047857' }}>
+            🎉 طلبات مؤكدة
           </span>
         </div>
 

@@ -62,14 +62,14 @@
   border-bottom: 1px solid var(--adm-border);
   display: flex;
   align-items: center;
-  padding: 0 40px;
+  padding: 0 24px;
   justify-content: flex-end;
 }
 
 .content {
   flex: 1;
   overflow-y: auto;
-  padding: 40px;
+  padding: 24px;
   background-color: var(--adm-bg) !important;
   min-height: calc(100vh - var(--adm-topbar-h));
 }
