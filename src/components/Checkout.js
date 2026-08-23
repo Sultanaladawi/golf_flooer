@@ -4,6 +4,7 @@ import { useCart, getSafeImageUrl, extractItemImage, FALLBACK_IMAGE_DATA_URI } f
 import { useLanguage } from '../context/LanguageContext';
 import { useAlert } from '../context/AlertContext';
 import { trackPurchase } from '../utils/socialPixel';
+import { trackStoreEvent } from '../utils/storeTracker';
 import { useCurrency, getFlagUrl } from '../context/CurrencyContext';
 import styles from './Checkout.module.css';
 import { Sparkles, AlertTriangle, CreditCard, Landmark, Check, CheckCircle2, Zap, Truck, ShieldCheck, MapPin, Phone, User, X, Tag } from 'lucide-react';
@@ -208,7 +209,7 @@ export default function Checkout() {
     } catch (e) {}
   }, []);
 
-  // 💾 Auto-save all customer shipping inputs in localStorage in real-time
+  // 💾 Auto-save all customer shipping inputs in localStorage in real-time and notify Live Radar
   useEffect(() => {
     try {
       if (form.name.trim() || form.phone.trim() || form.address.trim() || form.email.trim()) {
@@ -223,9 +224,16 @@ export default function Checkout() {
           address: form.address
         };
         localStorage.setItem('zb_customer_shipping_data', JSON.stringify(toSave));
+
+        trackStoreEvent('checkout_view', {
+          stage: 'checkout_step',
+          customer: toSave,
+          cartItems: items,
+          cartTotal: totalPrice
+        });
       }
     } catch (e) {}
-  }, [form.name, form.email, form.phone, form.country, form.state, form.city, form.area, form.address]);
+  }, [form.name, form.email, form.phone, form.country, form.state, form.city, form.area, form.address, items, totalPrice]);
 
   const [errors, setErrors] = useState({});
   const [storeComment, setStoreComment] = useState('');

@@ -25,6 +25,10 @@ const Dashboard = () => {
     totalProfit: 0, todayProfit: 0,
     recentOrders: []
   });
+  const [liveRadar, setLiveRadar] = useState({
+    activeNow: 0,
+    funnel: { bouncedCount: 0, cartFilledCount: 0, checkoutReachedCount: 0, purchasedCount: 0 }
+  });
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -44,10 +48,15 @@ const Dashboard = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, ordersRes] = await Promise.all([
+      const [statsRes, ordersRes, radarRes] = await Promise.all([
         axios.get('/api/dashboard-stats'),
-        axios.get('/api/orders')
+        axios.get('/api/orders'),
+        axios.get('/api/admin/live-radar').catch(() => ({ data: { activeNow: 0, funnel: {} } }))
       ]);
+
+      if (radarRes?.data?.success) {
+        setLiveRadar(radarRes.data);
+      }
 
       const incomingData = statsRes.data.data || statsRes.data;
       const allOrders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
@@ -242,6 +251,76 @@ const Dashboard = () => {
             {t('Last update')}: {lastRefresh.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
           </div>
         </div>
+      </div>
+
+      {/* ── 🔴 Live Store Radar Banner (المتواجدون الآن وتحركات الزوار) ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(197, 168, 128, 0.12) 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.25)',
+        borderRadius: '20px',
+        padding: '18px 24px',
+        marginBottom: '28px',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '16px',
+        position: 'relative',
+        zIndex: 1,
+        boxShadow: '0 4px 18px rgba(0,0,0,0.02)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: '#10b981',
+              boxShadow: '0 0 10px #10b981',
+              animation: 'pulse-green 1.5s infinite'
+            }} />
+            <span style={{ fontSize: '1.05rem', fontWeight: '900', color: theme.text }}>
+              المتواجدون الآن في المتجر: <strong style={{ color: '#059669', fontSize: '1.3rem' }}>{liveRadar.activeNow || 0} عملاء</strong>
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', fontSize: '0.85rem' }}>
+            <span style={{ background: '#ffffff', padding: '4px 10px', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.06)', color: '#64748b' }}>
+              👁️ تصفحوا فقط: <strong>{liveRadar.funnel?.bouncedCount || 0}</strong>
+            </span>
+            <span style={{ background: '#ffffff', padding: '4px 10px', borderRadius: '10px', border: '1px solid rgba(197, 168, 128, 0.3)', color: '#b45309' }}>
+              🛍️ في السلة: <strong>{liveRadar.funnel?.cartFilledCount || 0}</strong>
+            </span>
+            <span style={{ background: '#ffffff', padding: '4px 10px', borderRadius: '10px', border: '1px solid rgba(245, 158, 11, 0.3)', color: '#d97706' }}>
+              💳 وصلوا للدفع: <strong>{liveRadar.funnel?.checkoutReachedCount || 0}</strong>
+            </span>
+            <span style={{ background: '#ffffff', padding: '4px 10px', borderRadius: '10px', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#059669' }}>
+              🎉 أتموا الشراء: <strong>{liveRadar.funnel?.purchasedCount || 0}</strong>
+            </span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => navigate('/admin/live-radar')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'var(--admin-accent, #c5a880)',
+            color: '#ffffff',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '12px',
+            fontWeight: '800',
+            fontSize: '0.88rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(197, 168, 128, 0.35)',
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <Activity size={16} />
+          فتح رادار المتجر المباشر التفصيلي
+        </button>
       </div>
 
       {/* ── Stat Cards ── */}

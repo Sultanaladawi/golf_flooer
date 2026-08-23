@@ -1,5 +1,6 @@
 import { createContext, useContext, useReducer, useEffect } from 'react';
 import { trackAddToCart } from '../utils/socialPixel';
+import { trackStoreEvent } from '../utils/storeTracker';
 
 const CartContext = createContext(null);
 
@@ -305,6 +306,23 @@ export function CartProvider({ children }) {
           }).catch(() => {});
         }
       } catch (_) {}
+
+      // Real-time tracker
+      trackStoreEvent('cart_update', {
+        stage: 'cart_filled',
+        cartItems: cartItems.map(i => ({
+          id: i.id,
+          name: i.name || i.title,
+          price: i.priceNum || i.price,
+          quantity: i.qty,
+          image: i.image || i.image_url,
+          selectedSize: i.selectedSize || i.size || 'Free Size',
+          selectedColor: i.selectedColor || i.color || 'Default'
+        })),
+        cartTotal: subTotal
+      });
+    } else {
+      trackStoreEvent('cart_cleared', { stage: 'browsing', cartItems: [], cartTotal: 0 });
     }
   }, [cartItems, subTotal]);
 

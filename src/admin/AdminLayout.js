@@ -206,6 +206,7 @@ const AdminLayout = () => {
 
   let menuItems = [
     { path: '/admin/dashboard', name: t('Dashboard'), icon: <LayoutGrid size={18} /> },
+    { path: '/admin/live-radar', name: '🔴 رادار المتجر المباشر', icon: <Activity size={18} /> },
     { path: '/admin/orders', name: t('Orders'), icon: <ShoppingCart size={18} />, badge: newOrderCount },
     { path: '/admin/abandoned-carts', name: 'السلال المتروكة', icon: <ShoppingCart size={18} /> },
     { path: '/admin/products', name: t('Products'), icon: <ShoppingBag size={18} /> },

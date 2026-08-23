@@ -51,6 +51,7 @@ import ProductPage from './components/ProductPage';
 import Blog from './components/Blog';
 import BlogPost from './components/BlogPost';
 import GiftCards from './components/GiftCards';
+import { initStoreTracker, trackStoreEvent } from './utils/storeTracker';
 
 // Safe lazy loader with auto-retry for admin routes
 function lazyRetry(componentImport) {
@@ -95,6 +96,7 @@ const StaffManagement  = lazyRetry(() => import('./admin/pages/StaffManagement')
 const BlogManagement   = lazyRetry(() => import('./admin/pages/BlogManagement'));
 const AbandonedCarts   = lazyRetry(() => import('./admin/pages/AbandonedCarts'));
 const AdminGiftCards   = lazyRetry(() => import('./admin/pages/AdminGiftCards'));
+const LiveRadar        = lazyRetry(() => import('./admin/pages/LiveRadar'));
 
 let LenisClass = null;
 try { LenisClass = require('@studio-freight/lenis').default; } catch (_) {}
@@ -133,6 +135,25 @@ function ThemeLoader() {
       }
     }).catch(err => console.error("Theme load error:", err));
   }, []);
+  return null;
+}
+
+function PageTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    initStoreTracker();
+  }, []);
+
+  useEffect(() => {
+    if (!location.pathname.startsWith('/admin')) {
+      const isCheckout = location.pathname.includes('/checkout');
+      const isCart = location.pathname.includes('/cart');
+      trackStoreEvent('page_view', {
+        stage: isCheckout ? 'checkout_step' : (isCart ? 'cart_view' : 'browsing')
+      });
+    }
+  }, [location.pathname, location.search]);
+
   return null;
 }
 
@@ -252,6 +273,7 @@ export default function App() {
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <BrowserRouter>
             <ScrollToTop />
+            <PageTracker />
             <ThemeLoader />
             <StoreProvider>
               <CurrencyProvider>
@@ -288,6 +310,7 @@ export default function App() {
                                       <Route path="login" element={<AdminLogin />} />
                                       <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
                                         <Route path="dashboard" element={<Dashboard />} />
+                                        <Route path="live-radar" element={<LiveRadar />} />
                                         <Route path="orders" element={<Orders />} />
                                         <Route path="products" element={<Products />} />
                                         <Route path="inventory" element={<Inventory />} />

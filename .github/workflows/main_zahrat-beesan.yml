@@ -28,6 +28,7 @@ jobs:
           node scripts/patch-paypal-route.js
           node scripts/patch-customer-order-email.js
           node scripts/patch-paytabs-backend.js
+          node scripts/patch-server-tracker.js
 
           
           # Prepare ultra-fast minimal deployment package (<15MB)
@@ -35,6 +36,7 @@ jobs:
           cp main_server.js deploy_stage/server_v2.js
           cp main_server.js deploy_stage/main_server.js
           cp main_server.js deploy_stage/server.js
+          cp server_tracker.js deploy_stage/server_tracker.js 2>/dev/null || true
           cat << 'EOF' > deploy_stage/package.json
           {"name":"zahrat-beesan","main":"server_v2.js","scripts":{"start":"node server_v2.js"}}
           EOF
