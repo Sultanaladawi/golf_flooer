@@ -2593,11 +2593,374 @@
   transform: translateX(-4px);
 }
 
+/* ── PRICING SECTION ──────────────────────────────── */
+.pricingSection {
+  padding: 100px 0;
+  background: #f7f5f0;
+  position: relative;
+  border-top: 1px solid #e8e2d5;
+  border-bottom: 1px solid #e8e2d5;
+}
+
+.pricingToggleWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 48px;
+}
+
+.pricingToggle {
+  display: flex;
+  background: #ffffff;
+  padding: 6px;
+  border-radius: 40px;
+  border: 1px solid #e8e2d5;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+}
+
+.pricingToggleBtn {
+  padding: 10px 24px;
+  border-radius: 30px;
+  border: none;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #666666;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.pricingToggleBtnActive {
+  background: #b8943a;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(184, 148, 58, 0.3);
+}
+
+.discountPill {
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  animation: pulse 2s infinite;
+}
+
+.pricingGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  align-items: stretch;
+}
+
+.pricingCard {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px 32px;
+  border: 1px solid #e8e2d5;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.pricingCard:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 16px 40px rgba(184, 148, 58, 0.14);
+  border-color: #b8943a;
+}
+
+.pricingCardFeatured {
+  background: #ffffff;
+  border: 2px solid #b8943a;
+  box-shadow: 0 12px 35px rgba(184, 148, 58, 0.18);
+  transform: scale(1.03);
+}
+
+.pricingCardFeatured:hover {
+  transform: scale(1.03) translateY(-8px);
+}
+
+.pricingBadge {
+  position: absolute;
+  top: -14px;
+  right: 32px;
+  background: linear-gradient(135deg, #b8943a 0%, #9a7a2e 100%);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 6px 16px;
+  border-radius: 20px;
+  box-shadow: 0 4px 12px rgba(184, 148, 58, 0.35);
+}
+
+.pricingTitle {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #111111;
+  margin-bottom: 6px;
+}
+
+.pricingDesc {
+  font-size: 0.9rem;
+  color: #666666;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.pricingPriceWrap {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #f0ece3;
+}
+
+.pricingCurrency {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #b8943a;
+}
+
+.pricingAmount {
+  font-size: 2.8rem;
+  font-weight: 900;
+  color: #111111;
+  line-height: 1;
+}
+
+.pricingPeriod {
+  font-size: 0.88rem;
+  color: #888888;
+  font-weight: 600;
+}
+
+.pricingFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.pricingFeatureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.92rem;
+  color: #333333;
+  line-height: 1.5;
+}
+
+.pricingFeatureItem svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.pricingBtn {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 14px;
+  border: 1px solid #b8943a;
+  background: transparent;
+  color: #b8943a;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.pricingBtn:hover {
+  background: #b8943a;
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(184, 148, 58, 0.3);
+}
+
+.pricingBtnFeatured {
+  background: linear-gradient(135deg, #b8943a 0%, #9a7a2e 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.pricingBtnFeatured:hover {
+  background: linear-gradient(135deg, #9a7a2e 0%, #7d6120 100%);
+  box-shadow: 0 6px 20px rgba(184, 148, 58, 0.4);
+}
+
+/* ── SERVICE DEEP DIVE MODAL ───────────────────────── */
+.serviceModalWindow {
+  background: #ffffff;
+  border-radius: 28px;
+  width: 92%;
+  max-width: 940px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+  border: 1px solid #e8e2d5;
+  position: relative;
+}
+
+.serviceModalHead {
+  background: #f7f5f0;
+  padding: 28px 36px;
+  border-bottom: 1px solid #e8e2d5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.serviceModalBody {
+  padding: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.serviceStackGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.serviceStackCard {
+  background: #fafaf7;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid #e8e2d5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.serviceStackCard strong {
+  display: block;
+  font-size: 0.95rem;
+  color: #111111;
+}
+
+.serviceStackCard span {
+  font-size: 0.8rem;
+  color: #777777;
+}
+
+.servicePipelineGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.servicePipelineCard {
+  background: #fafaf7;
+  border: 1px solid #e8e2d5;
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.servicePipelineNum {
+  width: 32px;
+  height: 32px;
+  background: #b8943a;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.9rem;
+  margin: 0 auto 10px;
+}
+
+/* ── CONSULTATION MODAL ───────────────────────────── */
+.consultModalWindow {
+  background: #ffffff;
+  border-radius: 28px;
+  width: 90%;
+  max-width: 680px;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+  border: 1px solid #e8e2d5;
+  position: relative;
+}
+
+.consultModalHead {
+  background: linear-gradient(135deg, #f7f5f0 0%, #f0ece3 100%);
+  padding: 28px 32px;
+  border-bottom: 1px solid #e8e2d5;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.consultModalBody {
+  padding: 32px;
+}
+
+/* ── AI CHATBOT INPUT ROW ─────────────────────────── */
+.techAiInputArea {
+  padding: 12px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e8e2d5;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.techAiChatInput {
+  flex: 1;
+  border: 1px solid #e8e2d5;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  direction: rtl;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.techAiChatInput:focus {
+  border-color: #b8943a;
+}
+
+.techAiSendBtn {
+  background: #b8943a;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.techAiSendBtn:hover {
+  background: #9a7a2e;
+  transform: scale(1.05);
+}
+
 /* ── RESPONSIVE BREAKPOINTS ───────────────────────── */
 @media (max-width: 1200px) {
   .hostingGrid { grid-template-columns: repeat(2, 1fr); }
   .domainGrid { grid-template-columns: repeat(2, 1fr); }
   .partnersGrid { grid-template-columns: repeat(2, 1fr); }
+  .pricingGrid { grid-template-columns: repeat(2, 1fr); }
+  .servicePipelineGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 1100px) {
@@ -2613,6 +2976,8 @@
   .estimateCard { position: static; }
   .contactLayout { grid-template-columns: 1fr; }
   .testimGrid { grid-template-columns: 1fr; }
+  .pricingGrid { grid-template-columns: 1fr; }
+  .servicePipelineGrid { grid-template-columns: 1fr; }
   .floatCard1, .floatCard2, .floatCard3 { display: none; }
   .modalWindow { max-height: 94vh; }
   .modalContentArea { padding: 18px; }
@@ -2639,5 +3004,9 @@
   .domainsSection { padding: 22px 18px; }
   .demoKpiGrid { grid-template-columns: 1fr; }
   .modalFooterBar { flex-direction: column; gap: 14px; text-align: center; }
+  .serviceModalHead { padding: 20px; }
+  .serviceModalBody { padding: 20px; }
+  .consultModalHead { padding: 20px; }
+  .consultModalBody { padding: 20px; }
 }
 

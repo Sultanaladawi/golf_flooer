@@ -17,61 +17,264 @@ import {
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
-/* ─── SERVICES ──────────────────────────────────────── */
+/* ─── SERVICES WITH DEEP DIVE SPECS ───────────────── */
 const SERVICES = [
   {
+    id: 'ecommerce',
     icon: Globe2,
     num: '01',
     title: 'المتاجر الإلكترونية الفاخرة',
     enTitle: 'Luxury E-Commerce Platforms',
     desc: 'نبني منصات تجارة إلكترونية متطورة وسريعة متكاملة مع بوابات الدفع (كليك، تمارا، تابي، فيزا)، الشحن الآلي، وإدارة المخزون الحية.',
     tags: ['React / Next.js', 'Node.js', 'بوابات دفع محلية ودولية', 'لوحة ERP ذكية'],
-    accent: '#b8943a'
+    accent: '#b8943a',
+    deepOverview: 'نبني متاجر إلكترونية ذات طابع فاخر وسرعة فائقة تتفوق على المنصات الجاهزة بنسبة 400% في سرعة التحميل وتجربة الشراء، مع تخصيص كامل 100% دون أي عمولات مقتطعة من مبيعاتك.',
+    deliverables: [
+      'متجر ويب متجاوب بالكامل مع الهواتف الذكية والأجهزة اللوحية',
+      'تكامل بوابات الدفع: CliQ، تمارا، تابي، فيزا، ماستركارد، Apple Pay',
+      'لوحة تحكم ERP شاملة لإدارة الطلبات والمخازن والعملاء',
+      'نظام كوبونات وعروض ترويجية وخصومات متقدمة',
+      'إشعارات الرسائل والواتساب الآلية عند كل حركة طلب',
+      'تتبع مباشر لتحركات الزوار في الوقت الفعلي (Live Store Radar)'
+    ],
+    techStack: [
+      { name: 'React 18 / Next.js', role: 'واجهة المستخدم فائقة السرعة' },
+      { name: 'Node.js & Express', role: 'خوادم معالجة الطلبات والـ API' },
+      { name: 'MySQL / PostgreSQL', role: 'قواعد البيانات المتوافقة مع ACID' },
+      { name: 'Microsoft Azure', role: 'الاستضافة السحابية وشهادات الأمان' }
+    ],
+    pipeline: [
+      { step: '01', title: 'دراسة المتطلبات', desc: 'تحليل المنتجات والجمهور وتحديد بوابات الدفع والشحن' },
+      { step: '02', title: 'تصميم الواجهات UI/UX', desc: 'ابتكار هوية بصرية فاخرة وتجربة شراء سلسة بلمسة واحدة' },
+      { step: '03', title: 'البرمجة والتكامل', desc: 'بناء النظام وربط بوابات الدفع والفواتير الضريبية' },
+      { step: '04', title: 'الإطلاق والضمان', desc: 'رفع المتجر على السحابة مع دعم فني وضمان سنة كاملة' }
+    ],
+    timelineEstimate: '7 إلى 14 يوم عمل',
+    priceRange: '490 - 950 د.أ'
   },
   {
+    id: 'mobile',
     icon: Smartphone,
     num: '02',
     title: 'تطبيقات الهواتف الذكية (iOS & Android)',
     enTitle: 'Native & Flutter Mobile Apps',
     desc: 'تصميم وبرمجة تطبيقات جوال فائقة السلاسة والسرعة تعمل على App Store وGoogle Play بتجربة مستخدم فاخرة ومريحة للعملاء.',
     tags: ['Flutter', 'React Native', 'Push Notifications', 'Offline Mode'],
-    accent: '#3b82f6'
+    accent: '#3b82f6',
+    deepOverview: 'نطور تطبيقات هواتف هجينة وأصلية تمنح عملاءك تجربة استخدام استثنائية وسلسة على الآيفون والأندرويد مع دعم الإشعارات الفورية والدفع بنقرة واحدة.',
+    deliverables: [
+      'تطبيق مخصص لنظام iOS (App Store) ونظام Android (Google Play)',
+      'نظام إشعارات فورية تسويقية (Push Notifications) لجذب العملاء',
+      'دعم وضع العمل دون إنترنت (Offline Caching)',
+      'تكامل الموقع الإلكتروني مع التطبيق بقاعدة بيانات مركزية موحدة',
+      'تتبع مباشر لموقع المناديب والشحن عبر خرائط GPS',
+      'مساعدة كاملة في نشر التطبيقات على الحسابات الرسمية للمتاجر'
+    ],
+    techStack: [
+      { name: 'Flutter & Dart', role: 'إطار العمل الموحد عالي الأداء' },
+      { name: 'Firebase Cloud Messaging', role: 'نظام الإشعارات اللحظية' },
+      { name: 'REST & GraphQL API', role: 'الربط السحابي فائق السرعة' },
+      { name: 'Apple & Google Pay', role: 'بوابات الدفع بلمسة الإصبع' }
+    ],
+    pipeline: [
+      { step: '01', title: 'تخطيط تجربة المستخدم', desc: 'رسم رحلة العميل وتدفق الشاشات التفاعلية' },
+      { step: '02', title: 'النمذجة والبرمجة', desc: 'برمجة التطبيق وربط قواعد البيانات السحابية' },
+      { step: '03', title: 'فحص الجودة والأداء', desc: 'اختبار التطبيق على عشرات الأجهزة للتأكد من انعدام الأخطاء' },
+      { step: '04', title: 'النشر في المتاجر', desc: 'رفع واعتماد التطبيق رسمياً على App Store وGoogle Play' }
+    ],
+    timelineEstimate: '10 إلى 21 يوم عمل',
+    priceRange: '750 - 1,450 د.أ'
   },
   {
+    id: 'ai',
     icon: Cpu,
     num: '03',
     title: 'حلول الذكاء الاصطناعي والأتمتة',
     enTitle: 'AI Solutions & Smart Automation',
     desc: 'دمج نماذج GPT-4 وGemini، روبوتات المحادثة الذكية للمبيعات، وأتمتة رسائل الواتساب لرفع كفاءة العمليات ومضاعفة المبيعات.',
     tags: ['AI Chatbots', 'LLM Integration', 'أتمتة الواتساب', 'تحليل البيانات'],
-    accent: '#8b5cf6'
+    accent: '#8b5cf6',
+    deepOverview: 'نحول عملك إلى شركة ذكية مؤتمتة تعمل 24 ساعة دون توقف! ندمج أحدث نماذج الذكاء الاصطناعي (GPT-4o, Claude 3.5, Gemini 1.5) لخدمة العملاء، الرد على المحادثات، وتوقع سلوك المشترين.',
+    deliverables: [
+      'شات بوت ذكاء اصطناعي مدرب على كتالوج منتجاتك وسياساتك بالكامل',
+      'أتمتة محادثات الواتساب الرسمية (WhatsApp Business Cloud API)',
+      'نظام ترشيح وتوصية منتجات ذكي مخصص لكل عميل',
+      'تحليلات تنبؤية للمبيعات وتنبيهات بنفاد المخزون تلقائياً',
+      'توليد محتوى ووصف المنتجات والتسويق بضغطة زر واحدة'
+    ],
+    techStack: [
+      { name: 'OpenAI GPT-4o API', role: 'محرك المحادثة والاستيعاب الذكي' },
+      { name: 'Google Gemini Pro', role: 'تحليل الوسائط والبيانات الضخمة' },
+      { name: 'Meta WhatsApp API', role: 'الربط المعتمد مع تطبيق الواتساب' },
+      { name: 'Python & FastApi', role: 'معالجة وتدريب نماذج البيانات' }
+    ],
+    pipeline: [
+      { step: '01', title: 'تغذية البيانات', desc: 'جمع معلومات المنتجات والأسعار والأسئلة الشائعة' },
+      { step: '02', title: 'تدريب الـ AI', desc: 'ضبط النبرة وتدريب النموذج على اللهجات واللغة العربية' },
+      { step: '03', title: 'ربط القنوات', desc: 'دمج المساعد الذكي مع موقعك وحساب الواتساب وإنستغرام' },
+      { step: '04', title: 'المراقبة والتحسين', desc: 'تحسين دقة الإجابات ومتابعة تفاعلات الزبائن' }
+    ],
+    timelineEstimate: '5 إلى 10 أيام عمل',
+    priceRange: '350 - 800 د.أ'
   },
   {
+    id: 'erp',
     icon: Code2,
     num: '04',
     title: 'أنظمة ERP وإدارة الشركات المخصصة',
     enTitle: 'Custom ERP & Business Systems',
     desc: 'منظومة سحابية متكاملة مصممة لعملك: إدارة المبيعات، الفواتير الضريبية، المحاسبة، شؤون الموظفين، وسلاسل التوريد في منصة واحدة.',
     tags: ['SaaS ERP', 'CRM Systems', 'إدارة المخازن', 'تقارير مالية حية'],
-    accent: '#10b981'
+    accent: '#10b981',
+    deepOverview: 'منظومة إدارية سحابية مخصصة تجمع كل عمليات شركتك في لوحة تحكم واحدة، مما يوفر مئات ساعات العمل اليدوية ويقضي على الأخطاء المحاسبية تماماً.',
+    deliverables: [
+      'نظام فواتير ضريبية إلكترونية معتمد برمز الاستجابة السريعة QR',
+      'إدارة المخزون متعدد المستودعات مع تنبيهات النواقص',
+      'نظام إدارة علاقات العملاء (CRM) وسجل المشتريات والولاء',
+      'إدارة الصندوق والحسابات المحاسبية وتقارير الأرباح والخسائر',
+      'إدارة صلاحيات الموظفين والمستخدمين وتتبع سجل النشاط'
+    ],
+    techStack: [
+      { name: 'Enterprise PostgreSQL', role: 'قاعدة البيانات المالية المحصنة' },
+      { name: 'Node.js Microservices', role: 'محرك العمليات المحاسبية' },
+      { name: 'React Data Tables', role: 'واجهات العرض والتقارير الفورية' },
+      { name: 'PDF-Lib & Excel Export', role: 'تصدير التقارير والفواتير الرسمية' }
+    ],
+    pipeline: [
+      { step: '01', title: 'هندسة العمليات', desc: 'رسم الدورة المستندية والمحاسبية الخاصة بشركتك' },
+      { step: '02', title: 'بناء الهيكل وقواعد البيانات', desc: 'تصميم الجداول والتحقق من قواعد الأمان المالي' },
+      { step: '03', title: 'التكامل وتدريب الفريق', desc: 'ربط الفروع وتدريب موظفيك على استخدام النظام' },
+      { step: '04', title: 'الدعم والصيانة', desc: 'نسخ احتياطي يومي تلقائي وضمان دائم' }
+    ],
+    timelineEstimate: '14 إلى 28 يوم عمل',
+    priceRange: '950 - 2,200 د.أ'
   },
   {
+    id: 'uiux',
     icon: Layers,
     num: '05',
     title: 'تصميم واجهات وتجارب المستخدم (UI/UX)',
     enTitle: 'High-End UI/UX Design',
     desc: 'دراسة سلوك العملاء وتصميم واجهات عصرية فاخرة تركز على سهولة الاستخدام، جمالية التفاصيل، ومضاعفة معدلات التحويل والمبيعات.',
     tags: ['Figma UI/UX', 'Design Systems', 'Interactive Prototypes', 'Mobile-First'],
-    accent: '#f43f5e'
+    accent: '#f43f5e',
+    deepOverview: 'نصمم تجارب رقمية تأسر القلوب وتزيد المبيعات، مبنية على سيكولوجية المستخدم وتصميم الواجهات الفاخرة للعلامات التجارية المتميزة.',
+    deliverables: [
+      'ملف تصميم تفاعلي كامل على Figma قابل للنقر والتجربة',
+      'نظام تصميم موحد (Design System) للألوان والأيقونات والخطوط',
+      'تصاميم مخصصة لشاشات الهواتف والكمبيوتر والأجهزة اللوحية',
+      'أصول ورسومات جرافيكية عالية الدقة جاهزة للبرمجة مباشرة'
+    ],
+    techStack: [
+      { name: 'Figma Pro', role: 'أداة التصميم والنمذجة العالمية' },
+      { name: 'Adobe Creative Suite', role: 'صناعة الأصول والهوية البصرية' },
+      { name: 'Tailwind Design System', role: 'معايير الألوان والمسافات' }
+    ],
+    pipeline: [
+      { step: '01', title: 'البحث والتحليل', desc: 'دراسة المنافسين وسلوك المستخدمين المستهدفين' },
+      { step: '02', title: 'رسم الهيكل (Wireframes)', desc: 'تحديد توزيع العناصر وتدفق الشاشات' },
+      { step: '03', title: 'التصميم البصري الفاخر', desc: 'إضافة الألوان والخطوط واللمسات الملكية' },
+      { step: '04', title: 'التسليم للمطورين', desc: 'تسليم ملفات Figma المنظمة مع إرشادات البرمجة' }
+    ],
+    timelineEstimate: '4 إلى 8 أيام عمل',
+    priceRange: '250 - 600 د.أ'
   },
   {
+    id: 'cloud',
     icon: ShieldCheck,
     num: '06',
     title: 'الاستضافة السحابية وحماية البيانات',
     enTitle: 'Cloud Architecture & DevOps',
     desc: 'بنية تحتية سحابية موثوقة على Azure وAWS مع حماية سيبرانية شاملة من الهجمات، نسخ احتياطي لحظي، وضمان عمل 99.9%.',
     tags: ['Microsoft Azure', 'Amazon AWS', 'WAF & DDoS Shield', '24/7 Monitoring'],
-    accent: '#6366f1'
+    accent: '#6366f1',
+    deepOverview: 'نضمن تشغيل موقعك ونظامك دون أي توقف وبأعلى معايير الأمان والحماية السحابية العالمية من خلال شراكاتنا مع Microsoft Azure وAWS.',
+    deliverables: [
+      'خوادم سحابية مخصصة ذات سعة عالية ومطابقة للمواصفات',
+      'جدار حماية ضد هجمات حجب الخدمة (DDoS Shield & Cloudflare WAF)',
+      'نسخ احتياطي يومي وأسبوعي مشفر لقواعد البيانات والملفات',
+      'شهادات أمان SSL/TLS مشفرة بدرجة 256-bit',
+      'لوحة مراقبة للأداء وسرعة الاستجابة على مدار الساعة 24/7'
+    ],
+    techStack: [
+      { name: 'Microsoft Azure App Service', role: 'الاستضافة السحابية العالمية' },
+      { name: 'Cloudflare Enterprise WAF', role: 'حماية السيرفرات وشبكة التوزيع CDN' },
+      { name: 'Redis In-Memory Cache', role: 'تسريع الاستعلامات والصفحات' },
+      { name: 'Docker & Kubernetes', role: 'الحاويات السحابية القابلة للتوسع' }
+    ],
+    pipeline: [
+      { step: '01', title: 'تقييم الحجم والسعة', desc: 'تحديد حجم الزيارات المتوقع والموارد المطلوبة' },
+      { step: '02', title: 'تهيئة الخوادم', desc: 'بناء البنية السحابية وتهيئة قواعد البيانات والـ CDN' },
+      { step: '03', title: 'تطبيق طبقات الحماية', desc: 'تفعيل جدران الحماية والنسخ الاحتياطي التلقائي' },
+      { step: '04', title: 'المراقبة المستمرة', desc: 'متابعة حية للأداء واستجابة فورية لأي طارئ' }
+    ],
+    timelineEstimate: 'يوم إلى 3 أيام عمل',
+    priceRange: '150 - 450 د.أ / سنوياً'
+  }
+];
+
+/* ─── PRICING PLANS ─────────────────────────────────── */
+const PRICING_PLANS = [
+  {
+    id: 'starter',
+    name: 'باقة الانطلاق السريع',
+    enName: 'Starter E-Commerce',
+    badge: 'مثالية للمشاريع الناشئة',
+    desc: 'الحل الأمثل لبدء بيع منتجاتك أونلاين بمتجر فاخر وسريع مع بوابات دفع آمنة.',
+    monthlyPrice: 49,
+    annualPrice: 39,
+    setupFee: '490 د.أ لمرة واحدة',
+    accent: '#3b82f6',
+    features: [
+      'متجر إلكتروني فاخر فائق السرعة (Next.js / React)',
+      'تكامل بوابات الدفع (CliQ، فيزا، ماستركارد)',
+      'لوحة تحكم ERP لإدارة المنتجات والمخزون والطلبات',
+      'تتبع مباشر للطلبات مع إشعارات الرسائل',
+      'دومين مجاني (.com أو .jo) لمدة سنة كاملة',
+      'استضافة سحابية فائقة السرعة مع شهادة SSL مجانية',
+      'دعم فني وضمان سلامة الكود لمدة 3 أشهر'
+    ]
+  },
+  {
+    id: 'growth',
+    name: 'باقة الأعمال والنمو المتقدم',
+    enName: 'Professional Growth & Mobile App',
+    badge: 'الأكثر طلباً واختياراً ⭐',
+    featured: true,
+    desc: 'منظومة متكاملة لرفع المبيعات تشمل متجر ويب وتطبيق هاتف فلاتر مع أتمتة الواتساب.',
+    monthlyPrice: 89,
+    annualPrice: 69,
+    setupFee: '890 د.أ لمرة واحدة',
+    accent: '#b8943a',
+    features: [
+      'متجر ويب متطور + تطبيق هاتف فلاتر (iOS & Android)',
+      'ربط جميع بوابات الدفع والتقسيط (تمارا، تابي، كليك، فيزا)',
+      'أتمتة إشعارات ورسائل الواتساب اللحظية للعملاء',
+      'نظام فواتير ضريبية إلكترونية متوافق مع الضريبة QR',
+      'لوحة رادار المبيعات المباشرة ومراقبة حركة الزوار والسلات',
+      'استضافة سحابية مدعومة على Microsoft Azure مع نسخ يومي',
+      'ضمان شامل ودعم فني متواصل لمدة 12 شهراً'
+    ]
+  },
+  {
+    id: 'enterprise',
+    name: 'باقة المؤسسات والأنظمة المخصصة',
+    enName: 'Enterprise Custom Ecosystem',
+    badge: 'للشركات الكبرى وسلاسل الفروع',
+    desc: 'بنية تحتية برمجية مخصصة بالكامل مع حلول الذكاء الاصطناعي وإدارة الفروع المتعددة.',
+    monthlyPrice: 165,
+    annualPrice: 135,
+    setupFee: '1,650 د.أ لمرة واحدة',
+    accent: '#10b981',
+    features: [
+      'منظومة ERP متكاملة مخصصة لإدارة الفروع والمستودعات والمحاسبة',
+      'تطبيقات هواتف ذكية متقدمة مع وضع العمل دون اتصال (Offline)',
+      'شات بوت ذكاء اصطناعي وأتمتة مبيعات تنبؤية (GPT-4 / Gemini)',
+      'تكامل مع أجهزة الكاشير ونقاط البيع POS وباركود الفروع',
+      'بنية تحتية سحابية موزعة عالية التوفر (Multi-Region Cloud)',
+      'تسليم كامل للكود المصدري وقواعد البيانات 100%',
+      'مدير حساب ومهندس برمجيات خاص متاح 24/7'
+    ]
   }
 ];
 
@@ -1614,8 +1817,25 @@ export default function TechAgency() {
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [selectedProject, setSelectedProject] = useState(null);
 
+  // New Interactive States
+  const [pricingCycle, setPricingCycle] = useState('annual'); // 'annual' | 'monthly'
+  const [selectedService, setSelectedService] = useState(null); // Deep Dive Modal
+  const [consultModalOpen, setConsultModalOpen] = useState(false); // Free Consultation Modal
+  const [consultData, setConsultData] = useState({
+    name: '',
+    phone: '',
+    company: '',
+    industry: '👗 أزياء وتجارة إلكترونية',
+    preferredTime: 'مساءً (04:00 - 08:00)',
+    meetingType: 'zoom', // 'zoom' | 'phone' | 'office'
+    notes: ''
+  });
+  const [isConsultSubmitting, setIsConsultSubmitting] = useState(false);
+  const [consultSubmitted, setConsultSubmitted] = useState(false);
+
   // Tech AI Floating Assistant State
   const [techAiOpen, setTechAiOpen] = useState(false);
+  const [techAiInputText, setTechAiInputText] = useState('');
   const [techAiMsgs, setTechAiMsgs] = useState([
     {
       id: 1,
@@ -1682,6 +1902,17 @@ export default function TechAgency() {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  const handleSelectPricingPlan = (plan) => {
+    setFormData(prev => ({
+      ...prev,
+      service: `طلب اشتراك: ${plan.name} (${pricingCycle === 'annual' ? 'اشتراك سنوي مع خصم' : 'اشتراك شهري'})`,
+      budget: `${plan.setupFee} + ${pricingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice} د.أ/شهر`,
+      details: `أود التعاقد والبدء فوراً على ${plan.name}. المواصفات: ${plan.features.slice(0, 3).join('، ')}.`
+    }));
+    const el = document.getElementById('contact');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const handleSubmit = async e => {
     e.preventDefault();
     if (!formData.name || !formData.phone) return;
@@ -1695,6 +1926,24 @@ export default function TechAgency() {
     } catch (_) {}
     setSubmitted(true);
     setSubmitting(false);
+  };
+
+  const handleConsultSubmit = async e => {
+    e.preventDefault();
+    if (!consultData.name || !consultData.phone) return;
+    setIsConsultSubmitting(true);
+    try {
+      await axios.post('/api/tech/lead', {
+        name: consultData.name,
+        phone: consultData.phone,
+        company: consultData.company || 'غير محدد',
+        service: 'حجز استشارة هندسية مجانية 📅',
+        budget: 'استشارة مجانية 30 دقيقة',
+        details: `المجال: ${consultData.industry} | الموعد المفضل: ${consultData.preferredTime} | وسيلة الاجتماع: ${consultData.meetingType} | ملاحظات: ${consultData.notes || 'لا يوجد'}`
+      });
+    } catch (_) {}
+    setConsultSubmitted(true);
+    setIsConsultSubmitting(false);
   };
 
   const openWhatsApp = (customMsg = null) => {
@@ -1713,6 +1962,44 @@ export default function TechAgency() {
     ]);
   };
 
+  const handleAiCustomSubmit = (e) => {
+    e.preventDefault();
+    const query = techAiInputText.trim();
+    if (!query) return;
+
+    const userMsg = { id: Date.now(), role: 'user', text: query };
+    setTechAiMsgs(prev => [...prev, userMsg]);
+    setTechAiInputText('');
+
+    const lower = query.toLowerCase();
+    let reply = 'يسعدنا خدمتك! فريقنا الهندسي في زهرة بيسان للحلول الرقمية جاهز لتنفيذ كل متطلبات مشروعك بأعلى معايير السرعة والأمان. يمكنك حجز استشارة مجانية أو التحدث مباشرة مع مهندس عبر الواتساب.';
+
+    if (lower.includes('سعر') || lower.includes('تكلفة') || lower.includes('بكم') || lower.includes('كم')) {
+      reply = 'تبدأ باقاتنا من 490 دينار للمتاجر السريعة، وتصل إلى 890 دينار للمنظومات المتكاملة مع تطبيقات الموبايل، و1,650 دينار للأنظمة المخصصة ERP مع تسليم الكود كاملاً 100%! تشمل كل باقة الاستضافة والدومين والضمان لسنة.';
+    } else if (lower.includes('تطبيق') || lower.includes('موبايل') || lower.includes('ios') || lower.includes('android') || lower.includes('فلاتر')) {
+      reply = 'نبرمج تطبيقات الهواتف بأحدث إصدارات Flutter & Dart لتعمل بسلاسة فائقة على iOS (App Store) و Android مع إشعارات Push وتكامل الدفع الإلكتروني بلمسة الإصبع!';
+    } else if (lower.includes('erp') || lower.includes('مخزن') || lower.includes('مخازن') || lower.includes('محاسبة') || lower.includes('فاتورة') || lower.includes('ضريبة')) {
+      reply = 'أنظمة الـ ERP الخاصة بنا تشمل الفواتير الإلكترونية المعتمدة برمز QR، إدارة المستودعات المتعددة، تقارير الأرباح والخسائر، وتتبع المناديب وساعات عمل الموظفين بدقة متناهية.';
+    } else if (lower.includes('استضافة') || lower.includes('سيرفر') || lower.includes('azure') || lower.includes('سحابة')) {
+      reply = 'نستضيف منظوماتنا على سحابة Microsoft Azure و Amazon AWS مع حماية سيبرانية WAF ضد الهجمات، ونسخ احتياطي يومي مشفر وضمان عمل 99.99%!';
+    } else if (lower.includes('وقت') || lower.includes('مدة') || lower.includes('ايام') || lower.includes('تسليم')) {
+      reply = 'مدة التسليم القياسية تتراوح بين 7 إلى 14 يوم عمل، مع إمكانية التسليم المستعجل خلال 5 إلى 7 أيام فقط.';
+    } else if (/\d{8,}/.test(query)) {
+      // User sent phone number
+      axios.post('/api/tech/lead', {
+        name: 'عميل من محادثة الـ AI',
+        phone: query,
+        service: 'استفسار من الشات بوت الذكي',
+        details: `محادثة الـ AI: ${query}`
+      }).catch(() => {});
+      reply = 'شكراً لك! تم استلام رقم هاتفك بنجاح 🚀 سيتواصل معك أحد مهندسينا خلال أقل من 15 دقيقة لتزويدك بالتفاصيل وعرض السعر المخصص.';
+    }
+
+    setTimeout(() => {
+      setTechAiMsgs(prev => [...prev, { id: Date.now() + 1, role: 'ai', text: reply }]);
+    }, 400);
+  };
+
   return (
     <div className={styles.page} dir="rtl">
 
@@ -1729,11 +2016,18 @@ export default function TechAgency() {
 
           <nav className={styles.navLinks}>
             <a href="#services">الخدمات</a>
-            <a href="#portfolio">المشاريع والتخصصات (22+)</a>
-            <a href="#admin-erp">لوحة تحكم ERP</a>
-            <a href="#hosting">السيرفرات والدومينات</a>
+            <a href="#portfolio">المشاريع (22+)</a>
+            <a href="#pricing">الباقات والأسعار</a>
+            <a href="#admin-erp">لوحة ERP</a>
+            <a href="#hosting">السيرفرات والدومين</a>
             <a href="#calculator">حاسبة الأسعار</a>
-            <a href="#contact" className={styles.navCta}>ابدأ مشروعك ←</a>
+            <button
+              onClick={() => setConsultModalOpen(true)}
+              className={styles.navCta}
+              style={{ border: 'none', cursor: 'pointer' }}
+            >
+              احجز استشارة مجانية 📅
+            </button>
             <Link to="/" className={styles.navStore}>👑 المتجر الملكي</Link>
           </nav>
         </div>
@@ -1768,6 +2062,13 @@ export default function TechAgency() {
               <a href="#portfolio" className={styles.btnGold}>
                 <Eye size={20} /> استعرض النماذج الحية (22+ تخصص)
               </a>
+              <button
+                onClick={() => setConsultModalOpen(true)}
+                className={styles.btnGold}
+                style={{ background: '#111111', color: '#ffffff', border: '1px solid #b8943a' }}
+              >
+                <Calendar size={18} /> احجز استشارة مجانية (30 دقيقة)
+              </button>
               <button onClick={() => openWhatsApp()} className={styles.btnWa}>
                 <MessageCircle size={20} /> استشارة فورية عبر الواتساب
               </button>
@@ -1808,7 +2109,7 @@ export default function TechAgency() {
             <span className={styles.sectionTag}>مجالات خبرتنا البرمجية</span>
             <h2 className={styles.sectionTitle}>خدمات هندسية متكاملة بمعايير عالمية</h2>
             <p className={styles.sectionDesc}>
-              حلول برمجية مصممة لدعم نمو الشركات الناشئة، المتاجر الرائدة، والشركات الكبرى في الأردن والخليج.
+              اضغط على أي خدمة لاستعراض المواصفات التقنية الكاملة، مراحل العمل، والمخرجات الهندسية.
             </p>
           </div>
 
@@ -1816,7 +2117,12 @@ export default function TechAgency() {
             {SERVICES.map((s, i) => {
               const Icon = s.icon;
               return (
-                <div key={i} className={styles.serviceCard}>
+                <div
+                  key={i}
+                  className={styles.serviceCard}
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => setSelectedService(s)}
+                >
                   <div className={styles.serviceNum}>{s.num}</div>
                   <div className={styles.serviceIconBox}>
                     <Icon size={28} color="#b8943a" />
@@ -1829,10 +2135,135 @@ export default function TechAgency() {
                       <span key={j} className={styles.tag}>{t}</span>
                     ))}
                   </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedService(s);
+                    }}
+                    className={styles.pricingBtn}
+                    style={{ marginTop: '16px', padding: '8px 12px', fontSize: '0.82rem' }}
+                  >
+                    استكشف المواصفات والمخرجات ←
+                  </button>
                 </div>
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* ── PRICING PLANS SECTION ───────────────── */}
+      <section className={styles.pricingSection} id="pricing">
+        <div className={styles.container}>
+          <div className={styles.sectionHead}>
+            <span className={styles.sectionTag}>باقات استثمارية واضحة وشاملة</span>
+            <h2 className={styles.sectionTitle}>اختر الباقة الأنسب لانطلاق وتوسع مشروعك</h2>
+            <p className={styles.sectionDesc}>
+              خطط تسعير شفافة تشمل التصميم، البرمجة الكاملة، ربط بوابات الدفع، الاستضافة السحابية مع تسليم الكود 100%.
+            </p>
+          </div>
+
+          {/* Pricing Toggle */}
+          <div className={styles.pricingToggleWrap}>
+            <div className={styles.pricingToggle}>
+              <button
+                type="button"
+                onClick={() => setPricingCycle('annual')}
+                className={`${styles.pricingToggleBtn} ${pricingCycle === 'annual' ? styles.pricingToggleBtnActive : ''}`}
+              >
+                اشتراك سنوي (وفر 20%) 🌟
+              </button>
+              <button
+                type="button"
+                onClick={() => setPricingCycle('monthly')}
+                className={`${styles.pricingToggleBtn} ${pricingCycle === 'monthly' ? styles.pricingToggleBtnActive : ''}`}
+              >
+                اشتراك شهري
+              </button>
+            </div>
+            {pricingCycle === 'annual' && (
+              <span className={styles.discountPill}>🔥 خصم 20% مفعّل</span>
+            )}
+          </div>
+
+          {/* Pricing Cards Grid */}
+          <div className={styles.pricingGrid}>
+            {PRICING_PLANS.map((plan) => {
+              const price = pricingCycle === 'annual' ? plan.annualPrice : plan.monthlyPrice;
+              return (
+                <div
+                  key={plan.id}
+                  className={`${styles.pricingCard} ${plan.featured ? styles.pricingCardFeatured : ''}`}
+                >
+                  {plan.featured && (
+                    <div className={styles.pricingBadge}>
+                      <Star size={14} fill="#fff" /> {plan.badge}
+                    </div>
+                  )}
+                  <h3 className={styles.pricingTitle}>{plan.name}</h3>
+                  <p className={styles.pricingDesc}>{plan.desc}</p>
+
+                  <div className={styles.pricingPriceWrap}>
+                    <span className={styles.pricingCurrency}>د.أ</span>
+                    <span className={styles.pricingAmount}>{price}</span>
+                    <span className={styles.pricingPeriod}>/ شهرياً</span>
+                  </div>
+                  <div style={{ fontSize: '0.82rem', color: '#666', marginBottom: '20px', fontWeight: 600 }}>
+                    ⚡ رسوم التجهيز والبرمجة والتسليم: <strong>{plan.setupFee}</strong>
+                  </div>
+
+                  <ul className={styles.pricingFeatures}>
+                    {plan.features.map((f, fIdx) => (
+                      <li key={fIdx} className={styles.pricingFeatureItem}>
+                        <CheckCircle2 size={18} color="#10b981" />
+                        <span>{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <button
+                    onClick={() => handleSelectPricingPlan(plan)}
+                    className={`${styles.pricingBtn} ${plan.featured ? styles.pricingBtnFeatured : ''}`}
+                  >
+                    طلب هذه الباقة والبدء فوراً ←
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* SLA Hosting Care Banner */}
+          <div style={{
+            marginTop: '40px',
+            background: '#ffffff',
+            borderRadius: '20px',
+            padding: '24px 32px',
+            border: '1px solid #e8e2d5',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '16px'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(184, 148, 58, 0.12)', color: '#b8943a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ShieldCheck size={26} />
+              </div>
+              <div>
+                <strong style={{ fontSize: '1.05rem', color: '#111111' }}>هل لديك مشروع قائم وتريد صيانة سحابية ودعماً برمجياً شهرياً؟</strong>
+                <p style={{ fontSize: '0.88rem', color: '#666666', margin: 0 }}>نوفر باقات دعم فني، حماية سيبرانية، وترقيات مستمرة تبدأ من 65 د.أ / شهرياً.</p>
+              </div>
+            </div>
+            <button
+              onClick={() => openWhatsApp('مرحباً، أود الاستفسار عن باقة الدعم الفني والصيانة السحابية الشهرية...')}
+              className={styles.btnGold}
+              style={{ padding: '10px 20px', fontSize: '0.9rem' }}
+            >
+              استفسر عن باقات الصيانة
+            </button>
+          </div>
+
         </div>
       </section>
 
@@ -2424,6 +2855,331 @@ export default function TechAgency() {
         onOrderSimilar={handleOrderSimilar}
       />
 
+      {/* ── SERVICE DEEP DIVE MODAL ───────────── */}
+      {selectedService && (
+        <div className={styles.modalOverlay} onClick={() => setSelectedService(null)}>
+          <div className={styles.serviceModalWindow} onClick={e => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className={styles.serviceModalHead}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                <div style={{
+                  width: '52px',
+                  height: '52px',
+                  borderRadius: '16px',
+                  background: 'rgba(184, 148, 58, 0.12)',
+                  color: selectedService.accent || '#b8943a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {React.createElement(selectedService.icon, { size: 28 })}
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#111111', margin: 0 }}>
+                    {selectedService.title}
+                  </h3>
+                  <span style={{ fontSize: '0.85rem', color: '#777777', fontWeight: 600 }}>
+                    {selectedService.enTitle}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSelectedService(null)}
+                className={styles.modalCloseBtn}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className={styles.serviceModalBody}>
+              {/* Overview */}
+              <div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111111', marginBottom: '8px' }}>
+                  ✦ نظرة هندسية شاملة على الخدمة:
+                </h4>
+                <p style={{ fontSize: '0.95rem', color: '#444444', lineHeight: 1.8, margin: 0 }}>
+                  {selectedService.deepOverview || selectedService.desc}
+                </p>
+              </div>
+
+              {/* Deliverables Checklist */}
+              {selectedService.deliverables && (
+                <div>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111111', marginBottom: '14px' }}>
+                    📦 المخرجات والأنظمة التي تستلمها:
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+                    {selectedService.deliverables.map((item, dIdx) => (
+                      <div key={dIdx} style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '10px 14px',
+                        borderRadius: '12px',
+                        background: '#fafaf7',
+                        border: '1px solid #e8e2d5',
+                        fontSize: '0.88rem',
+                        color: '#222222',
+                        fontWeight: 600
+                      }}>
+                        <CheckCircle2 size={16} color="#10b981" />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tech Stack */}
+              {selectedService.techStack && (
+                <div>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111111', marginBottom: '14px' }}>
+                    ⚡ التقنيات والبنية البرمجية (Tech Stack):
+                  </h4>
+                  <div className={styles.serviceStackGrid}>
+                    {selectedService.techStack.map((tech, tIdx) => (
+                      <div key={tIdx} className={styles.serviceStackCard}>
+                        <Code2 size={20} color="#b8943a" />
+                        <div>
+                          <strong>{tech.name}</strong>
+                          <span>{tech.role}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 4-Stage Pipeline */}
+              {selectedService.pipeline && (
+                <div>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111111', marginBottom: '14px' }}>
+                    🛠️ مراحل التنفيذ الهندسية خطوة بخطوة:
+                  </h4>
+                  <div className={styles.servicePipelineGrid}>
+                    {selectedService.pipeline.map((p, pIdx) => (
+                      <div key={pIdx} className={styles.servicePipelineCard}>
+                        <div className={styles.servicePipelineNum}>{p.step}</div>
+                        <strong style={{ display: 'block', fontSize: '0.92rem', marginBottom: '6px', color: '#111' }}>{p.title}</strong>
+                        <p style={{ fontSize: '0.8rem', color: '#666', margin: 0, lineHeight: 1.5 }}>{p.desc}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Timeline & Pricing footer */}
+              <div style={{
+                background: '#fafaf7',
+                borderRadius: '18px',
+                padding: '20px 24px',
+                border: '1px solid #e8e2d5',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '16px'
+              }}>
+                <div>
+                  <span style={{ display: 'block', fontSize: '0.82rem', color: '#777' }}>
+                    ⏱️ مدة التسليم التقديرية: <strong>{selectedService.timelineEstimate}</strong>
+                  </span>
+                  <span style={{ display: 'block', fontSize: '0.82rem', color: '#777', marginTop: '4px' }}>
+                    💰 التكلفة التقديرية: <strong>{selectedService.priceRange}</strong> (شامل الضمان 12 شهراً)
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={() => {
+                      const s = selectedService;
+                      setSelectedService(null);
+                      setFormData(prev => ({
+                        ...prev,
+                        service: s.title,
+                        details: `طلب تنفيذ وتطوير: ${s.title} (${s.enTitle}) مع تسليم كامل للمنظومة.`
+                      }));
+                      const el = document.getElementById('contact');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={styles.btnGold}
+                    style={{ padding: '12px 20px', fontSize: '0.88rem' }}
+                  >
+                    طلب هذه الخدمة الآن ←
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      const s = selectedService;
+                      setSelectedService(null);
+                      openWhatsApp(`مرحباً زهرة بيسان للتكنولوجيا 💻✨\nأود الاستفسار عن خدمة: ${s.title} (${s.enTitle})`);
+                    }}
+                    className={styles.btnWa}
+                    style={{ padding: '12px 20px', fontSize: '0.88rem' }}
+                  >
+                    <MessageCircle size={16} /> واتساب
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FREE CONSULTATION MODAL ─────────────── */}
+      {consultModalOpen && (
+        <div className={styles.modalOverlay} onClick={() => setConsultModalOpen(false)}>
+          <div className={styles.consultModalWindow} onClick={e => e.stopPropagation()}>
+            <div className={styles.consultModalHead}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <Calendar size={26} color="#b8943a" />
+                <div>
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#111111', margin: 0 }}>
+                    حجز استشارة هندسية مجانية (30 دقيقة)
+                  </h3>
+                  <span style={{ fontSize: '0.82rem', color: '#666666' }}>
+                    جلسة تخطيط تقني مع أحد كبار مهندسي البرمجيات لدراسة مشروعك وتحديد التكلفة
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setConsultModalOpen(false)}
+                className={styles.modalCloseBtn}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className={styles.consultModalBody}>
+              {consultSubmitted ? (
+                <div style={{ textAlign: 'center', padding: '30px 20px' }}>
+                  <CheckCircle2 size={56} color="#10b981" style={{ margin: '0 auto 16px' }} />
+                  <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#111111', marginBottom: '8px' }}>
+                    تم تثبيت موعد استشارتك بنجاح! 🎉
+                  </h3>
+                  <p style={{ color: '#555555', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '24px' }}>
+                    سيقوم المهندس المختص بمراسلتك عبر الواتساب والاتصال بك لتأكيد رابط الاجتماع وتجهيز ملف التحليل التقني لمشروعك.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setConsultModalOpen(false);
+                      openWhatsApp(`مرحباً، قمت بحجز موعد استشارة تقنية باسم: ${consultData.name}`);
+                    }}
+                    className={styles.btnWa}
+                    style={{ margin: '0 auto' }}
+                  >
+                    <MessageCircle size={18} /> فتح محادثة الواتساب للتأكيد الفوري
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleConsultSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                    <div className={styles.formField}>
+                      <label>الاسم الكامل *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="اسمك الكريم"
+                        value={consultData.name}
+                        onChange={e => setConsultData({ ...consultData, name: e.target.value })}
+                      />
+                    </div>
+
+                    <div className={styles.formField}>
+                      <label>رقم الهاتف / الواتساب *</label>
+                      <input
+                        type="tel"
+                        required
+                        placeholder="079XXXXXXXX"
+                        value={consultData.phone}
+                        onChange={e => setConsultData({ ...consultData, phone: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                    <div className={styles.formField}>
+                      <label>اسم الشركة أو المشروع</label>
+                      <input
+                        type="text"
+                        placeholder="اختياري"
+                        value={consultData.company}
+                        onChange={e => setConsultData({ ...consultData, company: e.target.value })}
+                      />
+                    </div>
+
+                    <div className={styles.formField}>
+                      <label>قطاع ونوع المشروع</label>
+                      <select
+                        value={consultData.industry}
+                        onChange={e => setConsultData({ ...consultData, industry: e.target.value })}
+                      >
+                        <option value="👗 أزياء وتجارة إلكترونية">👗 أزياء وتجارة إلكترونية</option>
+                        <option value="📱 تطبيق هواتف ذكية (iOS/Android)">📱 تطبيق هواتف ذكية (iOS/Android)</option>
+                        <option value="🏢 نظام ERP وإدارة شركات">🏢 نظام ERP وإدارة شركات</option>
+                        <option value="🤖 حلول ذكاء اصطناعي وأتمتة">🤖 حلول ذكاء اصطناعي وأتمتة</option>
+                        <option value="🏥 عيادات ومراكز طبية">🏥 عيادات ومراكز طبية</option>
+                        <option value="🍽️ مطاعم وكافيهات وتوصيل">🍽️ مطاعم وكافيهات وتوصيل</option>
+                        <option value="🏗️ عقارات ومقاولات">🏗️ عقارات ومقاولات</option>
+                        <option value="✨ قطاع آخر">✨ قطاع آخر</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                    <div className={styles.formField}>
+                      <label>الموعد المفضل للتواصل</label>
+                      <select
+                        value={consultData.preferredTime}
+                        onChange={e => setConsultData({ ...consultData, preferredTime: e.target.value })}
+                      >
+                        <option value="صباحاً (10:00 - 01:00)">صباحاً (10:00 - 01:00)</option>
+                        <option value="ظهراً (01:00 - 04:00)">ظهراً (01:00 - 04:00)</option>
+                        <option value="مساءً (04:00 - 08:00)">مساءً (04:00 - 08:00)</option>
+                        <option value="أقرب وقت ممكن فوراً">⚡ أقرب وقت ممكن فوراً</option>
+                      </select>
+                    </div>
+
+                    <div className={styles.formField}>
+                      <label>طريقة الاجتماع المفضلة</label>
+                      <select
+                        value={consultData.meetingType}
+                        onChange={e => setConsultData({ ...consultData, meetingType: e.target.value })}
+                      >
+                        <option value="zoom">🎥 اجتماع فيديو أونلاين (Zoom / Google Meet)</option>
+                        <option value="phone">📞 مكالمة هاتفية مباشرة</option>
+                        <option value="office">🏢 اجتماع وجاهي في مكتبنا (عمان - الأردن)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formField}>
+                    <label>ملاحظات أو نبذة عن فكرة المشروع</label>
+                    <textarea
+                      rows={2}
+                      placeholder="أخبرنا باختصار عن أهدافك والمتطلبات الرئيسية..."
+                      value={consultData.notes}
+                      onChange={e => setConsultData({ ...consultData, notes: e.target.value })}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isConsultSubmitting}
+                    className={styles.btnGoldFull}
+                    style={{ marginTop: '6px' }}
+                  >
+                    {isConsultSubmitting ? 'جاري تثبيت الموعد...' : 'تأكيد حجز الاستشارة المجانية 📅'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── FLOATING WIDGETS (WHATSAPP & TECH AI) ── */}
       <div className={styles.floatingWidgetsWrap}>
         {/* Floating WhatsApp Button */}
@@ -2485,7 +3241,7 @@ export default function TechAgency() {
                 className={styles.techAiChipBtn}
                 onClick={() => handleAiQuickAsk(
                   '💰 كم تكلفة إنشاء متجر إلكتروني متكامل؟',
-                  'تبدأ تكلفة المتجر الإلكتروني المتكامل لدينا من 650 دينار أردني. تشمل التصميم المتجاوب، بوابات الدفع (كليك، فيزا، تمارا)، لوحة تحكم ERP، واستضافة سريعة مع دومين وضمان مجاني لمدة سنة كاملة!'
+                  'تبدأ تكلفة المتجر الإلكتروني لدينا من 490 دينار أردني. تشمل التصميم المتجاوب، بوابات الدفع (كليك، فيزا، تمارا)، لوحة تحكم ERP، واستضافة سريعة مع دومين وضمان مجاني لمدة سنة كاملة!'
                 )}
               >
                 💰 كم تكلفة إنشاء متجر إلكتروني متكامل؟
@@ -2523,16 +3279,30 @@ export default function TechAgency() {
             </div>
           </div>
 
-          <div style={{ padding: '12px 16px', background: '#ffffff', borderTop: '1px solid #e8e2d5' }}>
+          {/* AI Custom Question Input */}
+          <form onSubmit={handleAiCustomSubmit} className={styles.techAiInputArea}>
+            <input
+              type="text"
+              className={styles.techAiChatInput}
+              placeholder="اكتب سؤالك التقني أو رقمك هنا..."
+              value={techAiInputText}
+              onChange={e => setTechAiInputText(e.target.value)}
+            />
+            <button type="submit" className={styles.techAiSendBtn} title="إرسال">
+              <Send size={16} />
+            </button>
+          </form>
+
+          <div style={{ padding: '10px 14px', background: '#ffffff', borderTop: '1px solid #e8e2d5' }}>
             <button
               onClick={() => {
                 setTechAiOpen(false);
                 openWhatsApp('مرحباً، أود استشارة مهندس برمجيات بخصوص مشروعي التقني...');
               }}
               className={styles.btnWa}
-              style={{ padding: '10px 14px', fontSize: '0.85rem' }}
+              style={{ padding: '8px 12px', fontSize: '0.82rem', width: '100%', justifyContent: 'center' }}
             >
-              <MessageCircle size={16} /> التحدث مع مهندس برمجيات بشري
+              <MessageCircle size={15} /> التحدث مع مهندس برمجيات بشري
             </button>
           </div>
         </div>
