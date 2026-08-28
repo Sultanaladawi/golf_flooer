@@ -279,6 +279,28 @@ export default function SocialMedia() {
           </button>
 
           <button
+            onClick={() => setActiveMainTab('meta_shop')}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontWeight: '700',
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.2s ease',
+              background: activeMainTab === 'meta_shop' ? 'var(--admin-accent, #c5a880)' : 'transparent',
+              color: activeMainTab === 'meta_shop' ? '#fff' : '#64748b',
+              boxShadow: activeMainTab === 'meta_shop' ? '0 4px 12px rgba(197, 168, 128, 0.3)' : 'none'
+            }}
+          >
+            <ShoppingBag size={18} />
+            🛍️ متجر إنستغرام وفيسبوك (Meta Shop)
+          </button>
+
+          <button
             onClick={() => setActiveMainTab('ads')}
             style={{
               padding: '10px 20px',
@@ -894,6 +916,219 @@ export default function SocialMedia() {
                 <ExternalLink size={16} />
               </a>
 
+            </div>
+
+          </div>
+
+        </div>
+      )}
+
+      {/* TAB 3: META COMMERCE SHOP (INSTAGRAM & FACEBOOK SHOPPING) */}
+      {activeMainTab === 'meta_shop' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+          {/* Hero Banner */}
+          <div style={{
+            background: 'linear-gradient(135deg, #1877f2 0%, #E1306C 100%)',
+            borderRadius: '20px',
+            padding: '30px',
+            color: '#ffffff',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '20px',
+            boxShadow: '0 10px 30px rgba(225, 48, 108, 0.25)'
+          }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <FaInstagram size={28} />
+                <FaFacebook size={26} />
+                <span style={{ fontSize: '1.4rem', fontWeight: 900 }}>Meta Commerce Manager</span>
+              </div>
+              <h2 style={{ margin: '0 0 8px', fontSize: '1.6rem', fontWeight: 900 }}>
+                🛍️ متجر إنستغرام وفيسبوك وعرض العبايات (Instagram & Facebook Shop)
+              </h2>
+              <p style={{ margin: 0, opacity: 0.95, fontSize: '0.95rem', maxWidth: '680px', lineHeight: 1.6 }}>
+                اربط كتالوج عبايات متجرك تلقائياً مع حساب إنستغرام وصفحة فيسبوك لتمكين خاصية الإشارة إلى المنتجات (Tag Products) في الريلز والبوستات والستوريز وتوجيه الزبائن للشراء الفوري.
+              </p>
+            </div>
+
+            <a
+              href="https://business.facebook.com/commerce"
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                background: '#ffffff',
+                color: '#111111',
+                padding: '14px 24px',
+                borderRadius: '14px',
+                fontWeight: 900,
+                fontSize: '0.95rem',
+                textDecoration: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 15px rgba(0,0,0,0.15)'
+              }}
+            >
+              <span>فتح Meta Commerce Manager</span>
+              <ExternalLink size={18} />
+            </a>
+          </div>
+
+          {/* Live Data Feed URLs Box */}
+          <div style={{
+            background: 'var(--admin-card-bg, #ffffff)',
+            borderRadius: '20px',
+            padding: '24px',
+            border: '1px solid rgba(0,0,0,0.06)',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.02)'
+          }}>
+            <h3 style={{ margin: '0 0 12px', fontSize: '1.2rem', fontWeight: 900, color: 'var(--admin-text, #111)' }}>
+              🔗 روابط التغذية الحية لكتالوج المنتجات (Live Data Feeds)
+            </h3>
+            <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0 0 16px' }}>
+              ضع أحد هذه الروابط في Meta Commerce Manager وسيقوم فيسبوك وإنستغرام بتحديث أسعار وصور ومخزون العبايات تلقائياً كل ساعة أو يومياً دون أي تدخل منك:
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '16px' }}>
+              
+              {/* XML Feed */}
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '0.9rem', color: '#1e293b' }}>XML / RSS Feed (الموصى به لـ Meta) ⭐</strong>
+                  <span style={{ fontSize: '0.75rem', background: '#dbeafe', color: '#1d4ed8', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>XML Format</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/api/feed/meta-catalog.xml`}
+                    style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', fontFamily: 'monospace', direction: 'ltr', background: '#fff' }}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/api/feed/meta-catalog.xml`);
+                      alert('تم نسخ رابط الـ XML Feed إلى الحافظة! 📋');
+                    }}
+                    style={{ background: '#1877f2', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}
+                  >
+                    نسخ 📋
+                  </button>
+                </div>
+              </div>
+
+              {/* CSV Feed */}
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <strong style={{ fontSize: '0.9rem', color: '#1e293b' }}>CSV Product Feed</strong>
+                  <span style={{ fontSize: '0.75rem', background: '#fef3c7', color: '#b45309', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>CSV Format</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${window.location.origin}/api/feed/meta.csv`}
+                    style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.82rem', fontFamily: 'monospace', direction: 'ltr', background: '#fff' }}
+                  />
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/api/feed/meta.csv`);
+                      alert('تم نسخ رابط الـ CSV Feed إلى الحافظة! 📋');
+                    }}
+                    style={{ background: '#111827', color: '#fff', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}
+                  >
+                    نسخ 📋
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          {/* 3 Step Practical Interactive Guide */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
+            
+            {/* Step 1 */}
+            <div style={{
+              background: 'var(--admin-card-bg, #ffffff)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(0,0,0,0.06)',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute', top: '16px', left: '16px',
+                background: '#e0f2fe', color: '#0369a1',
+                width: '32px', height: '32px', borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 900, fontSize: '1rem'
+              }}>1</div>
+              
+              <h4 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 900, color: '#0369a1' }}>
+                الخطوة 1: إنشاء الكتالوج (Catalog)
+              </h4>
+              <ul style={{ margin: 0, paddingRight: '20px', color: '#475569', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                <li>ادخل إلى <strong>Meta Commerce Manager</strong>.</li>
+                <li>اضغط على <strong>Add Catalog</strong> ثم اختر نوعه <strong>E-commerce</strong>.</li>
+                <li>اختر طريقة الرفع: <strong>Data Feed (Scheduled Feed)</strong>.</li>
+                <li>الصق رابط الـ XML الموضح بالأعلى وحدد التحديث <strong>Daily (يومياً)</strong>.</li>
+                <li>سيقوم فيسبوك بسحب كافة العبايات وصورها وأسعارها بالدينار الأردني تلقائياً.</li>
+              </ul>
+            </div>
+
+            {/* Step 2 */}
+            <div style={{
+              background: 'var(--admin-card-bg, #ffffff)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(0,0,0,0.06)',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute', top: '16px', left: '16px',
+                background: '#fdf4ff', color: '#a21caf',
+                width: '32px', height: '32px', borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 900, fontSize: '1rem'
+              }}>2</div>
+
+              <h4 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 900, color: '#a21caf' }}>
+                الخطوة 2: إعداد المتجر (Set Up Shop)
+              </h4>
+              <ul style={{ margin: 0, paddingRight: '20px', color: '#475569', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                <li>من القائمة الجانبية انتقل إلى <strong>Shops</strong> ثم <strong>Create Shop</strong>.</li>
+                <li>حدد طريقة الشراء: <strong>Checkout on Another Website</strong> (للتحويل الفوري لصفحة المنتج على موقعك للدفع).</li>
+                <li>حدد صفحة الفيسبوك وحساب الإنستغرام (<code>@zahratbeesanshop</code>).</li>
+                <li>اربط الكتالوج بالمتجر واضغط <strong>Submit for Review</strong> (المراجعة من 24-48 ساعة).</li>
+              </ul>
+            </div>
+
+            {/* Step 3 */}
+            <div style={{
+              background: 'var(--admin-card-bg, #ffffff)',
+              borderRadius: '20px',
+              padding: '24px',
+              border: '1px solid rgba(0,0,0,0.06)',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'absolute', top: '16px', left: '16px',
+                background: '#f0fdf4', color: '#15803d',
+                width: '32px', height: '32px', borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 900, fontSize: '1rem'
+              }}>3</div>
+
+              <h4 style={{ margin: '0 0 10px', fontSize: '1.1rem', fontWeight: 900, color: '#15803d' }}>
+                الخطوة 3: الإشارة للمنتجات (Tagging)
+              </h4>
+              <ul style={{ margin: 0, paddingRight: '20px', color: '#475569', fontSize: '0.88rem', lineHeight: 1.7 }}>
+                <li>فور اعتماد المتجر، عند نشر أي بوست أو ريلز أو ستوري سيظهر خيار <strong>Tag Products</strong>.</li>
+                <li>اضغط على العباية في الصورة واخترها من الكتالوج.</li>
+                <li>ستظهر للمتابع أيقونة شنطة التسوق وعلامة السعر، وبنقرة واحدة يُفتح له كارت المنتج مع زر الشراء المباشر!</li>
+              </ul>
             </div>
 
           </div>

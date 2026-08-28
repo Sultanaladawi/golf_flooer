@@ -12,7 +12,8 @@ import {
   Calendar, Plane, FileText, Activity, Award, Search, Eye,
   Play, X, Maximize2, SlidersHorizontal, Layers3, Box, Settings,
   HelpCircle, CheckSquare, Compass, MapPin, Tag, Clock, Headphones,
-  MessageSquare, Coffee, Pill, Sparkle, DollarSign, LayoutDashboard
+  MessageSquare, Coffee, Pill, Sparkle, DollarSign, LayoutDashboard,
+  TrendingUp, ShoppingCart
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -684,7 +685,7 @@ const PORTFOLIO = [
     title: 'معارض وتأجير السيارات الفاخرة وخدمات الليموزين',
     industry: '🚗 تأجير ومعارض سيارات',
     desc: 'منصة حجز سيارات ذكية مع تتبع الأسطول GPS، نظام توثيق رخص القيادة، عقود الإيجار الرقمية، وإدارة الصيانة الدورية.',
-    image: '/portfolio/vipapp.jpg',
+    image: '/portfolio/carrental.jpg',
     tags: ['React Native', 'Flutter', 'Node.js', 'GPS Live Tracking', 'Contract Sign'],
     badge: 'Car Rental & Fleet ERP',
     storefront: {
@@ -727,7 +728,7 @@ const PORTFOLIO = [
     title: 'مراكز صيانة السيارات، كراجات الـ Auto Service، وقطع الغيار',
     industry: '🔧 صيانة سيارات وكراجات',
     desc: 'نظام إدارة كروت العمل (Job Cards)، حجز مواعيد الصيانة، إدارة فواتير قطع الغيار، ومتابعة فنيي الميكانيك والكهرباء.',
-    image: '/portfolio/vipapp.jpg',
+    image: '/portfolio/autorepair.jpg',
     tags: ['React', 'Node.js', 'VIN Decoder', 'MySQL', 'Job Cards POS'],
     badge: 'Auto Repair & Workshop ERP',
     storefront: {
@@ -813,7 +814,7 @@ const PORTFOLIO = [
     title: 'شركات السياحة، الرحلات، وحجوزات الطيران والفنادق',
     industry: '✈️ سياحة وسفر وطيران',
     desc: 'منصة تسويق برامج سياحية متكاملة، محرك حجز تذاكر وفنادق، باقات العمرة والرحلات الدولية، وإدارة مجموعات السفر.',
-    image: '/portfolio/hotel.jpg',
+    image: '/portfolio/travel.jpg',
     tags: ['React', 'GDS API', 'Node.js', 'Amadeus / Sabre', 'Multi-currency'],
     badge: 'Travel & Tourism Portal',
     storefront: {
@@ -856,7 +857,7 @@ const PORTFOLIO = [
     title: 'المصانع، الشركات الصناعية، وخطوط الإنتاج والتوريد B2B',
     industry: '🏭 مصانع وسلاسل توريد',
     desc: 'منظومة سحابية مركزية لإدارة خطوط الإنتاج، المستودعات، المحاسبة العامة، الفواتير الضريبية، وإدارة شؤون الموظفين.',
-    image: '/portfolio/erp.jpg',
+    image: '/portfolio/manufacturing.jpg',
     tags: ['SaaS Cloud ERP', 'Docker', 'Microservices', 'PostgreSQL', 'BI Analytics'],
     badge: 'Enterprise Manufacturing ERP',
     storefront: {
@@ -899,7 +900,7 @@ const PORTFOLIO = [
     title: 'شركات الشحن، التخليص الجمركي، والتخزين اللوجستي',
     industry: '📦 شحن ولوجستيات وتخليص',
     desc: 'منصة تتبع بوالص الشحن الدولية والمحلية، حساب الرسوم الجمركية والضرائب، إدارة مستودعات التخزين، وحركة الحاويات.',
-    image: '/portfolio/grocery.jpg',
+    image: '/portfolio/logistics.jpg',
     tags: ['React', 'Node.js', 'Waybill Tracking', 'PostgreSQL', 'Customs API'],
     badge: 'Freight & Logistics Platform',
     storefront: {
@@ -1028,7 +1029,7 @@ const PORTFOLIO = [
     title: 'شركات التنظيف، الصيانة، والخدمات المنزلية الذكية',
     industry: '🧹 تنظيف وصيانة منزلية',
     desc: 'تطبيق طلب عاملات تنظيف بالساعة أو الشهر، خدمات صيانة التكييف والسباكة، وتتبع فنيي الصيانة على الخريطة.',
-    image: '/portfolio/grocery.jpg',
+    image: '/portfolio/homeservices.jpg',
     tags: ['Flutter', 'React', 'Node.js', 'PostgreSQL', 'Live Dispatcher'],
     badge: 'On-Demand Home Services',
     storefront: {
@@ -1464,9 +1465,15 @@ function FaqItem({ q, a }) {
 }
 
 /* ─── INTERACTIVE SYSTEM DEMO MODAL ─────────────────── */
-function InteractiveSystemModal({ project, onClose, onOrderSimilar }) {
-  const [activeTab, setActiveTab] = useState('storefront');
+function InteractiveSystemModal({ project, onClose, onOrderSimilar, initialTab = 'storefront' }) {
+  const [activeTab, setActiveTab] = useState(initialTab || 'storefront');
   const [demoActionToast, setDemoActionToast] = useState('');
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab, project]);
 
   if (!project) return null;
 
@@ -1764,7 +1771,7 @@ function InteractiveSystemModal({ project, onClose, onOrderSimilar }) {
 }
 
 /* ─── PORTFOLIO CARD COMPONENT ──────────────────────── */
-function PortfolioCard({ p, onSelect }) {
+function PortfolioCard({ p, onSelect, onOpenWithTab }) {
   const [imgError, setImgError] = useState(false);
 
   return (
@@ -1796,12 +1803,49 @@ function PortfolioCard({ p, onSelect }) {
             <span key={idx} className={styles.portTag}>{t}</span>
           ))}
         </div>
+
+        {/* Direct Action Buttons on Card */}
+        <div className={styles.portCardActionRow}>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenWithTab(p, 'storefront');
+            }}
+            className={styles.portCardActionBtn}
+            title="معاينة واجهة المتجر التفاعلية"
+          >
+            <Globe2 size={13} color="#b8943a" /> المتجر 👁️
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenWithTab(p, 'dashboard');
+            }}
+            className={styles.portCardActionBtn}
+            title="معاينة لوحة تحكم ERP المباشرة"
+          >
+            <LayoutDashboard size={13} color="#10b981" /> الـ ERP 📊
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenWithTab(p, 'database');
+            }}
+            className={styles.portCardActionBtn}
+            title="معاينة مخطط قواعد البيانات والسيرفرات"
+          >
+            <Database size={13} color="#3b82f6" /> الكود 🗄️
+          </button>
+        </div>
       </div>
 
       {/* Interactive Hover Pill */}
       <div className={styles.portCardHoverHint}>
         <Sparkles size={15} color="#b8943a" />
-        <span>اضغط لمعاينة المتجر، الداش بورد والـ Database</span>
+        <span>اضغط لتكبير ومعاينة تفاصيل النظام</span>
       </div>
     </div>
   );
@@ -1816,6 +1860,14 @@ export default function TechAgency() {
   const [timeline, setTimeline] = useState('standard');
   const [activeTestimonial, setActiveTestimonial] = useState(0);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [modalInitialTab, setModalInitialTab] = useState('storefront');
+
+  // Interactive ERP Simulator State
+  const [erpActiveTab, setErpActiveTab] = useState('overview');
+
+  // Interactive Domain Search State
+  const [domainSearchTerm, setDomainSearchTerm] = useState('');
+  const [domainSearchResult, setDomainSearchResult] = useState(null);
 
   // New Interactive States
   const [pricingCycle, setPricingCycle] = useState('annual'); // 'annual' | 'monthly'
@@ -1890,6 +1942,27 @@ export default function TechAgency() {
 
   const toggleFeature = f => {
     setFeatures(features.includes(f) ? features.filter(x => x !== f) : [...features, f]);
+  };
+
+  const handleOpenProjectWithTab = (proj, tab = 'storefront') => {
+    setModalInitialTab(tab);
+    setSelectedProject(proj);
+  };
+
+  const handleDomainSearch = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    const clean = domainSearchTerm.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (!clean) return;
+    setDomainSearchResult({
+      query: clean,
+      results: [
+        { ext: `${clean}.com`, price: '12 د.أ', available: true, badge: 'الأكثر شعبية عالمياً' },
+        { ext: `${clean}.jo`, price: '25 د.أ', available: true, badge: 'النطاق الوطني الأردني 🇯🇴' },
+        { ext: `${clean}.store`, price: '8 د.أ', available: true, badge: 'مثالي للمتاجر الإلكترونية' },
+        { ext: `${clean}.tech`, price: '15 د.أ', available: true, badge: 'للشركات التقنية والـ SaaS' },
+        { ext: `${clean}.app`, price: '18 د.أ', available: true, badge: 'مشفر ومحمي تلقائياً SSL' }
+      ]
+    });
   };
 
   const handleOrderSimilar = (proj) => {
@@ -2042,61 +2115,131 @@ export default function TechAgency() {
         </div>
 
         <div className={styles.container}>
-          <div className={styles.heroContent}>
-            <div className={styles.badge}>
-              <Sparkles size={16} />
-              <span>وكالة هندسية برمجية وسحابية معتمدة</span>
-            </div>
+          <div className={styles.heroLayout}>
+            {/* Right Column: Hero Content & CTAs */}
+            <div className={styles.heroContent} style={{ margin: 0, textAlign: 'right' }}>
+              <div className={styles.badge}>
+                <Sparkles size={16} />
+                <span>وكالة هندسية برمجية وسحابية معتمدة 2026</span>
+              </div>
 
-            <h1 className={styles.heroTitle}>
-              نبني منظومات ومتاجر رقمية فاخرة
-              <br />
-              <span className={styles.heroGold}>لكافة القطاعات والتخصصات التجارية</span>
-            </h1>
+              <h1 className={styles.heroTitle} style={{ textAlign: 'right' }}>
+                نبني منظومات ومتاجر رقمية فاخرة
+                <br />
+                <span className={styles.heroGold}>لكافة القطاعات والتخصصات التجارية</span>
+              </h1>
 
-            <p className={styles.heroDesc}>
-              حلول برمجية متكاملة ترفع مبيعاتك وتؤتمت عملياتك: متاجر إلكترونية، تطبيقات جوال (iOS & Android)، أنظمة ERP سحابية، وبنية تحتية موثوقة على Microsoft Azure و AWS.
-            </p>
+              <p className={styles.heroDesc} style={{ textAlign: 'right', margin: '0 0 24px' }}>
+                حلول برمجية متكاملة ترفع مبيعاتك وتؤتمت عملياتك: متاجر إلكترونية، تطبيقات جوال (iOS & Android)، أنظمة ERP سحابية، وبنية تحتية موثوقة على Microsoft Azure و AWS.
+              </p>
 
-            <div className={styles.heroButtons}>
-              <a href="#portfolio" className={styles.btnGold}>
-                <Eye size={20} /> استعرض النماذج الحية (22+ تخصص)
-              </a>
-              <button
-                onClick={() => setConsultModalOpen(true)}
-                className={styles.btnGold}
-                style={{ background: '#111111', color: '#ffffff', border: '1px solid #b8943a' }}
-              >
-                <Calendar size={18} /> احجز استشارة مجانية (30 دقيقة)
-              </button>
-              <button onClick={() => openWhatsApp()} className={styles.btnWa}>
-                <MessageCircle size={20} /> استشارة فورية عبر الواتساب
-              </button>
-            </div>
+              <div className={styles.heroButtons} style={{ justifyContent: 'flex-start' }}>
+                <a href="#portfolio" className={styles.btnGold}>
+                  <Eye size={20} /> استعرض النماذج الحية (22+ تخصص)
+                </a>
+                <button
+                  onClick={() => setConsultModalOpen(true)}
+                  className={styles.btnGold}
+                  style={{ background: '#111111', color: '#ffffff', border: '1px solid #b8943a' }}
+                >
+                  <Calendar size={18} /> احجز استشارة مجانية (30 دقيقة)
+                </button>
+                <button onClick={() => openWhatsApp()} className={styles.btnWa}>
+                  <MessageCircle size={20} /> استشارة فورية عبر الواتساب
+                </button>
+              </div>
 
-            {/* Floating Live Showcase Cards */}
-            <div className={styles.heroStatsWrap}>
-              <div className={styles.statsStrip}>
-                <div className={styles.statItem}>
-                  <div className={styles.statVal}>+120</div>
-                  <div className={styles.statLabel}>مشروع ومنظومة منجزة</div>
-                </div>
-                <div className={styles.statDivider} />
-                <div className={styles.statItem}>
-                  <div className={styles.statVal}>22+</div>
-                  <div className={styles.statLabel}>قطاع وتخصص تجاري</div>
-                </div>
-                <div className={styles.statDivider} />
-                <div className={styles.statItem}>
-                  <div className={styles.statVal}>99.9%</div>
-                  <div className={styles.statLabel}>ضمان تشغيل سحابي (SLA)</div>
-                </div>
-                <div className={styles.statDivider} />
-                <div className={styles.statItem}>
-                  <div className={styles.statVal}>100%</div>
-                  <div className={styles.statLabel}>تسليم الكود وقواعد البيانات</div>
+              {/* Stats Strip */}
+              <div className={styles.heroStatsWrap} style={{ marginTop: '30px' }}>
+                <div className={styles.statsStrip}>
+                  <div className={styles.statItem}>
+                    <div className={styles.statVal}>+120</div>
+                    <div className={styles.statLabel}>مشروع ومنظومة منجزة</div>
+                  </div>
+                  <div className={styles.statDivider} />
+                  <div className={styles.statItem}>
+                    <div className={styles.statVal}>22+</div>
+                    <div className={styles.statLabel}>قطاع وتخصص تجاري</div>
+                  </div>
+                  <div className={styles.statDivider} />
+                  <div className={styles.statItem}>
+                    <div className={styles.statVal}>99.9%</div>
+                    <div className={styles.statLabel}>ضمان تشغيل سحابي (SLA)</div>
+                  </div>
+                  <div className={styles.statDivider} />
+                  <div className={styles.statItem}>
+                    <div className={styles.statVal}>100%</div>
+                    <div className={styles.statLabel}>تسليم الكود وقواعد البيانات</div>
+                  </div>
                 </div>
               </div>
+            </div>
+
+            {/* Left Column: Live Glassmorphism Mockup Canvas */}
+            <div className={styles.heroDeviceMockup}>
+              <div className={styles.mockupTopBar}>
+                <div className={styles.mockupDots}>
+                  <div className={styles.mockupDotRed} />
+                  <div className={styles.mockupDotYellow} />
+                  <div className={styles.mockupDotGreen} />
+                </div>
+                <div className={styles.mockupUrl}>
+                  🔒 https://enterprise.zahratbeesan.com/erp
+                </div>
+                <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 800 }}>
+                  🟢 Live Cloud Sync
+                </span>
+              </div>
+
+              <div className={styles.mockupLiveOrderPill}>
+                <span style={{ animation: 'pulseLive 2s infinite' }}>⚡</span>
+                <span>رادار المتجر: 18 زائر يتسوقون ويدفعون الآن عبر الموقع</span>
+              </div>
+
+              <div className={styles.mockupStatGrid}>
+                <div className={styles.mockupMiniCard}>
+                  <span>مبيعات اليوم التراكمية</span>
+                  <strong style={{ color: '#b8943a' }}>1,840.00 د.أ</strong>
+                  <small style={{ color: '#10b981', fontSize: '0.7rem', fontWeight: 700 }}>+24.8% نمو اليوم ↗</small>
+                </div>
+                <div className={styles.mockupMiniCard}>
+                  <span>الطلبات والمعاملات</span>
+                  <strong>42 معاملة</strong>
+                  <small style={{ color: '#3b82f6', fontSize: '0.7rem', fontWeight: 700 }}>معالجة آلية فورية ⚡</small>
+                </div>
+                <div className={styles.mockupMiniCard}>
+                  <span>سرعة استجابة السيرفر</span>
+                  <strong style={{ color: '#10b981' }}>0.38 ثانية</strong>
+                  <small style={{ color: '#777', fontSize: '0.7rem', fontWeight: 600 }}>Core Web Vitals 99%</small>
+                </div>
+                <div className={styles.mockupMiniCard}>
+                  <span>الفواتير الضريبية</span>
+                  <strong style={{ color: '#6366f1' }}>QR معتمد</strong>
+                  <small style={{ color: '#10b981', fontSize: '0.7rem', fontWeight: 700 }}>مطابق لدائرة الضريبة ✓</small>
+                </div>
+              </div>
+
+              <div style={{ background: '#fdfaf4', border: '1px solid #f2e3c6', borderRadius: '14px', padding: '12px 14px', marginBottom: '14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.82rem', color: '#5c4327', fontWeight: 700 }}>
+                  <Sparkles size={16} color="#b8943a" />
+                  <span>طلب معتمد حديثاً: #ZB-9021 بقيمة 120 د.أ</span>
+                </div>
+                <span style={{ fontSize: '0.72rem', background: '#e2fbe8', color: '#059669', padding: '3px 8px', borderRadius: '8px', fontWeight: 800 }}>
+                  تم الدفع CliQ
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const firstProj = PORTFOLIO[0];
+                  if (firstProj) handleOpenProjectWithTab(firstProj, 'dashboard');
+                }}
+                className={styles.pricingBtn}
+                style={{ width: '100%', padding: '10px', fontSize: '0.88rem' }}
+              >
+                📊 تجربة لوحة تحكم ERP الحية التفاعلية الآن ←
+              </button>
             </div>
           </div>
         </div>
@@ -2264,6 +2407,86 @@ export default function TechAgency() {
             </button>
           </div>
 
+          {/* ── COMPREHENSIVE FEATURE COMPARISON MATRIX ── */}
+          <div className={styles.matrixSection}>
+            <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+              <span className={styles.sectionTag}>مقارنة تفصيلية دقيقة</span>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 900, color: '#111', margin: '6px 0' }}>
+                جدول مقارنة مزايا الباقات الهندسية
+              </h3>
+              <p style={{ color: '#666', fontSize: '0.9rem', margin: 0 }}>
+                شفافية مطلقة في كل ميزة ومخرج هندسي تستلمه مع كل باقة
+              </p>
+            </div>
+
+            <table className={styles.matrixTable}>
+              <thead>
+                <tr>
+                  <th style={{ width: '38%' }}>المواصفة / الميزة التقنية</th>
+                  <th style={{ width: '20%' }}>باقة الانطلاق السريع</th>
+                  <th className={styles.featuredCol} style={{ width: '22%' }}>باقة النمو والأعمال ⭐</th>
+                  <th style={{ width: '20%' }}>المؤسسات المخصصة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>المنصات المدعومة (Platforms)</strong></td>
+                  <td>موقع ويب وتطبيق ويب PWA</td>
+                  <td className={styles.featuredCol}>ويب + iOS + Android (Native)</td>
+                  <td>ويب + تطبيقات جوال + شاشات POS</td>
+                </tr>
+                <tr>
+                  <td><strong>بوابات الدفع الإلكتروني (Payments)</strong></td>
+                  <td>CliQ الأردني + فيزا/ماستركارد</td>
+                  <td className={styles.featuredCol}>CliQ + Apple Pay + تمارا وتابي</td>
+                  <td>جميع البوابات المحلية والعالمية + كاش</td>
+                </tr>
+                <tr>
+                  <td><strong>الفواتير الضريبية الإلكترونية QR</strong></td>
+                  <td><span className={styles.matrixCheck}><Check size={16} /> معتمد ومطابق</span></td>
+                  <td className={styles.featuredCol}><span className={styles.matrixCheck}><Check size={16} /> ربط آلي مع دائرة الضريبة</span></td>
+                  <td><span className={styles.matrixCheck}><Check size={16} /> نظام فوترة مؤسسي كامل</span></td>
+                </tr>
+                <tr>
+                  <td><strong>لوحة تحكم ERP وإدارة المخزون</strong></td>
+                  <td>لوحة تحكم فرع واحد</td>
+                  <td className={styles.featuredCol}>متعدد الفروع والمستودعات</td>
+                  <td>ERP مخصص غير محدود الفروع</td>
+                </tr>
+                <tr>
+                  <td><strong>رادار الزوار والمبيعات الحي</strong></td>
+                  <td>تقارير يومية</td>
+                  <td className={styles.featuredCol}><span className={styles.matrixCheck}><Check size={16} /> رادار حي بالوقت الفعلي</span></td>
+                  <td><span className={styles.matrixCheck}><Check size={16} /> رادار متقدم + BI Analytics</span></td>
+                </tr>
+                <tr>
+                  <td><strong>أتمتة إشعارات الواتساب الرسمية</strong></td>
+                  <td>—</td>
+                  <td className={styles.featuredCol}><span className={styles.matrixCheck}><Check size={16} /> رسائل تلقائية لكل الحالات</span></td>
+                  <td><span className={styles.matrixCheck}><Check size={16} /> شات بوت ذكاء اصطناعي + واتساب</span></td>
+                </tr>
+                <tr>
+                  <td><strong>ملكية الكود المصدري (Source Code)</strong></td>
+                  <td><span className={styles.matrixCheck}><Check size={16} /> ملكك 100% بدون إيجار</span></td>
+                  <td className={styles.featuredCol}><span className={styles.matrixCheck}><Check size={16} /> ملكك 100% مع مستودع Git</span></td>
+                  <td><span className={styles.matrixCheck}><Check size={16} /> ملكك 100% مع كامل الـ IP</span></td>
+                </tr>
+                <tr>
+                  <td><strong>السيرفرات والنسخ الاحتياطي</strong></td>
+                  <td>سيرفر سحابي + Backup أسبوعي</td>
+                  <td className={styles.featuredCol}>سيرفر فائق السرعة NVMe + Backup يومي</td>
+                  <td>سيرفرات مخصصة مع Multi-Region HA</td>
+                </tr>
+                <tr>
+                  <td><strong>مدة الضمان والدعم الفني المجاني</strong></td>
+                  <td>3 أشهر ضمان شامل</td>
+                  <td className={styles.featuredCol}>12 شهراً ضمان + دعم فني VIP</td>
+                  <td>دعم فني مخصص 24/7 SLA</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
         </div>
       </section>
 
@@ -2298,7 +2521,12 @@ export default function TechAgency() {
           {/* Projects Grid */}
           <div className={styles.portGrid}>
             {filteredPorts.map(p => (
-              <PortfolioCard key={p.id} p={p} onSelect={setSelectedProject} />
+              <PortfolioCard
+                key={p.id}
+                p={p}
+                onSelect={setSelectedProject}
+                onOpenWithTab={handleOpenProjectWithTab}
+              />
             ))}
           </div>
 
@@ -2343,6 +2571,90 @@ export default function TechAgency() {
               );
             })}
           </div>
+
+          {/* Interactive Live ERP Simulator Stage */}
+          <div className={styles.erpSimulatorWrap}>
+            <div className={styles.erpTabHeader}>
+              {[
+                { id: 'overview', label: '📊 نظرة عامة ورادار المبيعات' },
+                { id: 'inventory', label: '📦 إدارة المستودعات والفروع' },
+                { id: 'invoices', label: '🧾 الفواتير الضريبية QR' },
+                { id: 'dispatch', label: '🚚 تتبع المناديب والـ GPS' }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setErpActiveTab(tab.id)}
+                  className={`${styles.erpTabBtn} ${erpActiveTab === tab.id ? styles.erpTabBtnActive : ''}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className={styles.erpLiveGrid}>
+              <div className={styles.erpChartBox}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <strong style={{ fontSize: '1rem', color: '#111' }}>
+                    {erpActiveTab === 'overview' && '📈 مخطط تدفق المبيعات اليومية والأسبوعية'}
+                    {erpActiveTab === 'inventory' && '📦 حركة الأصناف بالمستودع الرئيسي وفرع دابوق'}
+                    {erpActiveTab === 'invoices' && '🧾 سجل الفواتير الضريبية المعتمدة لدى دائرة الضريبة'}
+                    {erpActiveTab === 'dispatch' && '📍 حركة المناديب على الخريطة وسرعة التسليم'}
+                  </strong>
+                  <span style={{ fontSize: '0.75rem', background: '#e2fbe8', color: '#059669', padding: '4px 10px', borderRadius: '12px', fontWeight: 800 }}>
+                    محدث حياً الآن
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '14px', height: '140px', padding: '10px 0', borderBottom: '1px solid #e8e2d5' }}>
+                  {[
+                    { day: 'السبت', h: '65%', val: '1,240 د.أ' },
+                    { day: 'الأحد', h: '85%', val: '1,680 د.أ' },
+                    { day: 'الإثنين', h: '70%', val: '1,350 د.أ' },
+                    { day: 'الثلاثاء', h: '95%', val: '1,920 د.أ' },
+                    { day: 'الأربعاء', h: '80%', val: '1,590 د.أ' },
+                    { day: 'الخميس', h: '100%', val: '2,350 د.أ' },
+                    { day: 'الجمعة', h: '90%', val: '1,840 د.أ' }
+                  ].map((bar, bIdx) => (
+                    <div key={bIdx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
+                      <span style={{ fontSize: '0.65rem', color: '#777', marginBottom: '4px', fontWeight: 700 }}>{bar.val}</span>
+                      <div style={{ width: '100%', height: bar.h, background: bIdx === 5 ? '#b8943a' : '#111111', borderRadius: '6px 6px 0 0', transition: 'all 0.4s' }} />
+                      <span style={{ fontSize: '0.72rem', color: '#555', marginTop: '6px', fontWeight: 600 }}>{bar.day}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className={styles.erpOrdersFeed}>
+                <strong style={{ fontSize: '0.92rem', color: '#111', marginBottom: '6px' }}>⚡ آخر العمليات المسجلة بالـ ERP:</strong>
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e8e2d5', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800 }}>
+                    <span>فاتورة #ZB-9021</span>
+                    <span style={{ color: '#10b981' }}>120.00 د.أ</span>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#777', marginTop: '2px' }}>عميل CliQ - فرع عبدون</div>
+                </div>
+                <div style={{ background: '#ffffff', padding: '10px 12px', borderRadius: '10px', border: '1px solid #e8e2d5', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800 }}>
+                    <span>تنبيه نواقص مخزون</span>
+                    <span style={{ color: '#ef4444' }}>باقي 3 قطع</span>
+                  </div>
+                  <div style={{ fontSize: '0.72rem', color: '#777', marginTop: '2px' }}>الصنف: عطر لافندر الملكي 100ml</div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const firstProj = PORTFOLIO[0];
+                    if (firstProj) handleOpenProjectWithTab(firstProj, 'dashboard');
+                  }}
+                  className={styles.pricingBtn}
+                  style={{ marginTop: 'auto', padding: '8px', fontSize: '0.82rem' }}
+                >
+                  معاينة المنظومة كاملة 📊
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -2356,6 +2668,49 @@ export default function TechAgency() {
               بنية تحتية سحابية في مراكز بيانات متطورة مع أقراص NVMe فائقة السرعة، حماية SSL مجانية، ودعم 24/7.
             </p>
           </div>
+
+          {/* Real-time Domain Search Bar */}
+          <form className={styles.domainSearchForm} onSubmit={handleDomainSearch}>
+            <button type="submit" className={styles.domainSearchBtn}>
+              <Search size={18} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '6px' }} />
+              فحص التوفر فوري
+            </button>
+            <input
+              type="text"
+              placeholder="اكتب اسم علامتك التجارية (مثلاً: mybrand أو store)"
+              value={domainSearchTerm}
+              onChange={(e) => setDomainSearchTerm(e.target.value)}
+              className={styles.domainSearchInput}
+            />
+          </form>
+
+          {domainSearchResult && (
+            <div style={{ background: '#ffffff', border: '1px solid #e8e2d5', borderRadius: '20px', padding: '20px 24px', marginBottom: '36px', maxWidth: '640px', margin: '0 auto 36px' }}>
+              <div style={{ fontWeight: 800, color: '#111', marginBottom: '12px', fontSize: '0.95rem' }}>
+                🎉 نتائج فحص التوفر للنطاق: <span style={{ color: '#b8943a', direction: 'ltr', display: 'inline-block' }}>{domainSearchResult.query}</span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {domainSearchResult.results.map((res, rIdx) => (
+                  <div key={rIdx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', background: '#fafaf7', borderRadius: '12px', border: '1px solid #f0ece3' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontWeight: 900, direction: 'ltr', color: '#111', fontSize: '0.92rem' }}>{res.ext}</span>
+                      <span style={{ fontSize: '0.72rem', background: '#e2fbe8', color: '#059669', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>{res.badge}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <strong style={{ color: '#b8943a', fontSize: '0.9rem' }}>{res.price}</strong>
+                      <button
+                        type="button"
+                        onClick={() => openWhatsApp(`مرحباً، أود حجز النطاق الرسمي ${res.ext} فوراً...`)}
+                        style={{ background: '#111', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        حجز فوري ←
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Hosting Plans Grid */}
           <div className={styles.hostingGrid}>
@@ -2594,6 +2949,18 @@ export default function TechAgency() {
                 <span>{est.min} - {est.max}</span>
                 <small>دينار أردني (JOD)</small>
               </div>
+
+              {/* Annual Savings & ROI Badge */}
+              <div style={{ background: '#fdfaf4', border: '1px solid #f2e3c6', borderRadius: '14px', padding: '14px', margin: '14px 0', textAlign: 'right' }}>
+                <div style={{ fontWeight: 800, color: '#5c4327', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <TrendingUp size={16} color="#b8943a" />
+                  <span>عائد الاستثمار والتوفير السنوي:</span>
+                </div>
+                <p style={{ margin: '4px 0 0', fontSize: '0.78rem', color: '#7a5a3a', lineHeight: '1.6' }}>
+                  توفر أكثر من <strong>3,200 د.أ سنوياً</strong> مقارنة بالمنصات المستأجرة (بدون عمولات مقتطعة على المبيعات 0%)، والكود ملكك بالكامل 100%.
+                </p>
+              </div>
+
               <p className={styles.estimateNote}>
                 * التقدير يشمل التصميم، البرمجة، ربط بوابات الدفع، الاستضافة السحابية للسنة الأولى، والضمان المجاني لمدة سنة كاملة.
               </p>
@@ -2853,6 +3220,7 @@ export default function TechAgency() {
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
         onOrderSimilar={handleOrderSimilar}
+        initialTab={modalInitialTab}
       />
 
       {/* ── SERVICE DEEP DIVE MODAL ───────────── */}

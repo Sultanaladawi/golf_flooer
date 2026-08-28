@@ -151118,22 +151118,6 @@ app.get("/api/fedex/label/:orderId", (req, res) => {
   } else {
     res.status(404).json({ error: "FedEx Shipping Label not found for this order" });
   }
-});
-
-// 4. Live FedEx Tracking Info
-app.get("/api/fedex/track/:trackingNumber", async (req, res) => {
-  try {
-    const { trackingNumber } = req.params;
-    const trackingInfo = await fedexService.trackFedExShipment(trackingNumber);
-    res.json({ success: true, trackingInfo });
-  } catch (err) {
-    console.error("[FedEx Tracking Error]:", err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.post("/api/store-status", (req, res) => {
-  const { status } = req.body;
   db.query("DELETE FROM site_settings WHERE `key` = ?", ["store_status"], (err) => {
     if (err) console.error("Delete old status error:", err);
     db.query("INSERT INTO site_settings (`key`, `value`) VALUES (?, ?)", ["store_status", status], (err2) => {
@@ -154947,6 +154931,12 @@ app.post("/api/orders/renumber", async (req, res) => {
   await renumberOrdersSequentially();
   res.json({ success: true, message: "Orders sequentially renumbered from 1" });
 });
+
+try { require("./tech_routes.js")(app, db); } catch(e) { console.error("[Tech Routes mount error]:", e); }
+
+try { require("./ebay_routes.js")(app, db); } catch(e) { console.error("[eBay Routes mount error]:", e); }
+
+try { require("./feed_routes.js")(app, db); } catch(e) { console.error("[Feed Routes mount error]:", e); }
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`\u{1F680} [Zahrat Beesan] Server is LIVE and listening on port: ${PORT}`);

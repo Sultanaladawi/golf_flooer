@@ -154927,6 +154927,12 @@ app.post("/api/orders/renumber", async (req, res) => {
   res.json({ success: true, message: "Orders sequentially renumbered from 1" });
 });
 
+try { require("./tech_routes.js")(app, db); } catch(e) { console.error("[Tech Routes mount error]:", e); }
+
+try { require("./ebay_routes.js")(app, db); } catch(e) { console.error("[eBay Routes mount error]:", e); }
+
+try { require("./feed_routes.js")(app, db); } catch(e) { console.error("[Feed Routes mount error]:", e); }
+
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`\u{1F680} [Zahrat Beesan] Server is LIVE and listening on port: ${PORT}`);
 });

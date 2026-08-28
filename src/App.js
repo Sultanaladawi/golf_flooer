@@ -74,6 +74,7 @@ const AdminLogin       = lazyRetry(() => import('./admin/AdminLogin'));
 const AdminLayout      = lazyRetry(() => import('./admin/AdminLayout'));
 const Dashboard        = lazyRetry(() => import('./admin/pages/Dashboard'));
 const TechLeads        = lazyRetry(() => import('./admin/pages/TechLeads'));
+const EbayIntegration  = lazyRetry(() => import('./admin/pages/EbayIntegration'));
 const Orders           = lazyRetry(() => import('./admin/pages/Orders'));
 const Products         = lazyRetry(() => import('./admin/pages/Products'));
 const Analytics        = lazyRetry(() => import('./admin/pages/Analytics'));
@@ -334,6 +335,7 @@ export default function App() {
                                         <Route path="abandoned-carts" element={<AbandonedCarts />} />
                                         <Route path="gift-cards" element={<AdminGiftCards />} />
                                         <Route path="tech-leads" element={<TechLeads />} />
+                                        <Route path="ebay" element={<EbayIntegration />} />
                                         <Route index element={<Navigate to="dashboard" replace />} />
                                       </Route>
                                     </Routes>

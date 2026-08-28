@@ -227,7 +227,8 @@ const AdminLayout = () => {
     { path: '/admin/leader', name: t('Team Activity'), icon: <Activity size={18} /> },
     { path: '/admin/settings', name: t('Store Settings'), icon: <Settings size={18} /> },
     { path: '/admin/theme', name: t('Theme Settings') || 'إعدادات المظهر', icon: <Settings size={18} /> },
-    { path: '/admin/tech-leads', name: 'طلبات البرمجة (Tech)', icon: <Code2 size={18} /> },
+    { path: '/admin/tech-leads', name: '💻 إدارة التكنو والمشاريع (Tech ERP)', icon: <Code2 size={18} /> },
+    { path: '/admin/ebay', name: '🛍️ متجر eBay العالمي', icon: <Globe size={18} /> },
     { path: '/admin/social', name: 'القسم الإعلامي', icon: <Share2 size={18} /> },
   ];
 
