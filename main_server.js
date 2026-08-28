@@ -150675,18 +150675,18 @@ app.get("/api/fix-db-times", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-var dbHost = process.env.DB_HOST || "zahrat-beesan-db.mysql.database.azure.com";
+var dbHost = process.env.DB_HOST || "gateway01.eu-central-1.prod.aws.tidbcloud.com";
 var pool = mysql.createPool({
   host: dbHost,
-  user: process.env.DB_USER || "zahratbeesan",
-  password: process.env.DB_PASSWORD || process.env.DB_PASS || "S2u0l0t0a8n0$",
-  database: process.env.DB_NAME || "golf_flooer",
-  port: process.env.DB_PORT || 3306,
+  user: process.env.DB_USER || "3Tzv3f22f9k6ymW.root",
+  password: process.env.DB_PASSWORD || process.env.DB_PASS || "tO1bLyzwJ2h3lHqS",
+  database: process.env.DB_NAME || "test",
+  port: parseInt(process.env.DB_PORT || "4000", 10),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
   dateStrings: true,
-  ssl: dbHost !== "localhost" && dbHost !== "127.0.0.1" ? { rejectUnauthorized: false } : false
+  ssl: dbHost !== "localhost" && dbHost !== "127.0.0.1" ? { minVersion: "TLSv1.2", rejectUnauthorized: true } : false
 });
 pool.on("connection", (connection) => {
   connection.query("SET time_zone = 'Asia/Amman'", (err) => {
