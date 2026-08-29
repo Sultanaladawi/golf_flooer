@@ -150688,13 +150688,7 @@ var pool = mysql.createPool({
   dateStrings: true,
   ssl: dbHost !== "localhost" && dbHost !== "127.0.0.1" ? { minVersion: "TLSv1.2", rejectUnauthorized: true } : false
 });
-pool.on("connection", (connection) => {
-  connection.query("SET time_zone = 'Asia/Amman'", (err) => {
-    if (err) {
-      connection.query("SET time_zone = '+03:00'");
-    }
-  });
-});
+
 var db = pool;
 var convertNumerals = (str) => {
   if (typeof str === "undefined" || str === null) return "";
@@ -152206,7 +152200,7 @@ app.get("/api/search", async (req, res) => {
 });
 app.get("/api/categories", (req, res) => {
   db.query("SELECT * FROM categories", (err, results) => {
-    if (err) return res.status(500).json({ error: "Internal Server Error" });
+    if (err) { console.error("CATEGORIES DB QUERY ERROR:", err); return res.status(500).json({ error: err.message, code: err.code }); }
     res.json(results);
   });
 });

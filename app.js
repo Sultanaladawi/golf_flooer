@@ -150688,13 +150688,7 @@ var pool = mysql.createPool({
   dateStrings: true,
   ssl: dbHost !== "localhost" && dbHost !== "127.0.0.1" ? { minVersion: "TLSv1.2", rejectUnauthorized: true } : false
 });
-pool.on("connection", (connection) => {
-  connection.query("SET time_zone = 'Asia/Amman'", (err) => {
-    if (err) {
-      connection.query("SET time_zone = '+03:00'");
-    }
-  });
-});
+
 var db = pool;
 var convertNumerals = (str) => {
   if (typeof str === "undefined" || str === null) return "";
