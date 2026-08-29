@@ -83,7 +83,7 @@ export default function Menu() {
         if (Array.isArray(data) && data.length > 0) {
           const sorted = [...data].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
           setCategories(sorted);
-          setActiveTab(String(sorted[0].id));
+          setActiveTab('all');
         }
       } catch (err) {
         console.error('Categories fetch error:', err);
@@ -212,7 +212,7 @@ export default function Menu() {
       });
       
       if (searchTerm && !matchesSearch) return false;
-      if (!searchTerm && String(item.category_id) !== String(activeTab)) return false;
+      if (!searchTerm && activeTab !== 'all' && String(item.category_id) !== String(activeTab)) return false;
 
       // Price Filter
       const itemPrice = parsePrice(item.price_num || item.price);
@@ -450,6 +450,32 @@ export default function Menu() {
           scrollbarWidth: 'none', msOverflowStyle: 'none', borderBottom: 'none',
           backgroundColor: 'transparent'
         }}>
+          <button
+            type="button"
+            className={`${styles.tab} ${activeTab === 'all' ? styles.tabActive : ''}`}
+            onClick={() => { setActiveTab('all'); setSearchTerm(''); }}
+            style={{
+              padding: '12px 24px',
+              borderRadius: '50px',
+              border: '1px solid',
+              borderColor: activeTab === 'all' ? 'var(--gold)' : 'var(--border)',
+              background: activeTab === 'all' ? 'linear-gradient(135deg, var(--gold), var(--gold-dim))' : 'var(--white)',
+              color: activeTab === 'all' ? 'var(--espresso)' : 'var(--espresso-dim)',
+              fontSize: '0.85rem',
+              fontWeight: '700',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+              boxShadow: activeTab === 'all' ? 'var(--shadow-gold)' : 'none',
+              whiteSpace: 'nowrap',
+              cursor: 'pointer',
+              transform: activeTab === 'all' ? 'scale(1.05)' : 'scale(1)'
+            }}
+          >
+            <Crown size={18} />
+            <span>✦ جميع العبايات الملكية</span>
+          </button>
           {categories.map(cat => {
             const isActive = activeTab === String(cat.id);
             const catColor = '#c5a880';
