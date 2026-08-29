@@ -217,6 +217,7 @@ function PublicSite({ defaultPolicy }) {
       
       <main>
         <Hero />
+        <Menu />
         <CategorySlider />
         <Gallery />
         <About />
