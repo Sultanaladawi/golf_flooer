@@ -1,0 +1,699 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "category_id": "3",
+      "name": "قفطان تاج بيسان العرائسي",
+      "price_num": "60.00",
+      "price_display": "JOD 60.00",
+      "description": "قفطان كريمي انسيابي مزيّن بتطريز أنيق باللون الذهبي والكحلي على المقدمة والأكمام، يمنح إطلالة ملكية تليق بأبهج المناسبات؛ من حفلات الزفاف والخطوبة، إلى ليالي الحنّة والمناسبات العائلية الكبرى.",
+      "tags": null,
+      "available": 1,
+      "sort_order": 1,
+      "addons": null,
+      "image_url": "1787734579190-WhatsApp-Image-2026-08-25-at-11.05.44-PM.jpeg",
+      "created_at": "2026-07-28 21:21:09",
+      "subtitle": "قفطان شيفون مطرز بالقصب",
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1787734579190-WhatsApp-Image-2026-08-25-at-11.05.44-PM.jpeg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"شيفون\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"1\",\"2\",\"3\",\"4\",\"5\"]",
+      "care": "[\"غسيل دراي كلين \", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "30.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1787735554602-VID-20260825-WA0018.mp4",
+      "size_chart": "[{\"size\":\"1\",\"chest\":\"96 سم\",\"hip\":\"110 سم\",\"length\":\"\",\"weight\":\"1.35 كغم\"},{\"size\":\"2\",\"chest\":\"100 سم \",\"hip\":\"116 سم\",\"length\":\"\",\"weight\":\"1.38 كغم\"},{\"size\":\"3\",\"chest\":\"108 سم \",\"hip\":\"124 سم\",\"length\":\"\",\"weight\":\"1.4 كغم\"},{\"size\":\"4\",\"chest\":\"112 سم\",\"hip\":\"132 سم\",\"length\":\"\",\"weight\":\"1.43 كغم\"},{\"size\":\"5\",\"chest\":\"120 سم\",\"hip\":\"144 سم\",\"length\":\"\",\"weight\":\"1.46 كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "283|عرائسي,284|قفطان,286|مناسبات,287|فاخر,289|جديد,291|تشكيلة العروس",
+      "avg_rating": 5,
+      "total_reviews": 19,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "283",
+          "name": "عرائسي"
+        },
+        {
+          "id": "284",
+          "name": "قفطان"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        },
+        {
+          "id": "291",
+          "name": "تشكيلة العروس"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 2,
+      "category_id": "1",
+      "name": "عباية اللؤلؤة العصرية 🦪 ",
+      "price_num": "25.00",
+      "price_display": "JOD 25.00",
+      "description": "تصميم مريح وأنيق يعكس بساطة الفخامة الحديثة. تأتي عباية اللؤلؤة كعباية مفتوحة منفردة بقصّة راقية وياقة مميزة بتطريز فاخر على الياقة والأكمام، مصممة لتنسيقها بحرية فوق ملابسك وتمنحك حرية الحركة وإشراقة استثنائية. متوفرة بعدة ألوان ساحرة.\n\n",
+      "tags": null,
+      "available": 1,
+      "sort_order": 2,
+      "addons": null,
+      "image_url": "1786519868822-566777010_1782578073971672.jpg",
+      "created_at": "2026-07-29 10:57:30",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786519868822-566777010_1782578073971672.jpg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"Free Size (فري سايز)\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "10.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1786523641731-611452679_1782578169551163.mp4",
+      "size_chart": "[{\"size\":\"Free Size (فري سايز)\",\"chest\":\"Free / يناسب الجميع (100 - 130 سم)\",\"hip\":\"Free / يناسب الجميع\",\"weight\":\"0.7 كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "286|مناسبات,287|فاخر,289|جديد",
+      "avg_rating": 4.9,
+      "total_reviews": 26,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        }
+      ],
+      "discounted_price": null,
+      "variants": [
+        {
+          "id": 1,
+          "product_id": 2,
+          "color_name": "اسود مطرز خمري وبيج",
+          "colors": [
+            "#000000",
+            "#9a0e0e",
+            "#dfb772"
+          ],
+          "images": [
+            "1787465434122-562683082_1782498372825513.jpg"
+          ],
+          "video_url": null,
+          "sizes": [
+            {
+              "size": "50",
+              "quantity": 10
+            },
+            {
+              "size": "52",
+              "quantity": 10
+            },
+            {
+              "size": "54",
+              "quantity": 10
+            },
+            {
+              "size": "58",
+              "quantity": 10
+            },
+            {
+              "size": "60",
+              "quantity": 10
+            },
+            {
+              "size": "56",
+              "quantity": 10
+            }
+          ],
+          "sort_order": 0,
+          "created_at": "2026-07-29 20:56:37"
+        },
+        {
+          "id": 2,
+          "product_id": 2,
+          "color_name": "بيج بتطريز خمري",
+          "colors": [
+            "#ffdd94",
+            "#ab1717"
+          ],
+          "images": [
+            "1787465464722-Generated-Image-June-26,-2026---8_24PM.jpg"
+          ],
+          "video_url": null,
+          "sizes": [],
+          "sort_order": 0,
+          "created_at": "2026-07-31 09:58:33"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "category_id": "2",
+      "name": "ثوب السلطانة الملكي👑",
+      "price_num": "60.00",
+      "price_display": "JOD 60.00",
+      "description": "عراقة التراث الشرقي مجسدة في قفطان السلطانة الملكي. مصنوع من قماش فاخر محبوك بالكامل بنقوش وزخارف تراثية دقيقة، مع حزام خصر عريض يحدد القوام بجمال، وياقة مرتفعة تزيد من هيبة وفخامة الإطلالة.\n\n",
+      "tags": null,
+      "available": 1,
+      "sort_order": 3,
+      "addons": null,
+      "image_url": "1786519923811-220582796_1782498825982749.jpg",
+      "created_at": "2026-07-29 10:58:21",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786519923811-220582796_1782498825982749.jpg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"1\",\"2\",\"3\",\"4\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "35.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1787735680195-VID-20260825-WA0015.mp4",
+      "size_chart": "[{\"size\":\"1\",\"chest\":\"104سم\",\"hip\":\"114سم\",\"length\":\"128 سم\",\"weight\":\"1.18كغم\"},{\"size\":\"2\",\"chest\":\"110سم\",\"hip\":\"122سم\",\"length\":\"133 سم\",\"weight\":\"1.18كغم\"},{\"size\":\"3\",\"chest\":\"116سم\",\"hip\":\"126سم\",\"length\":\"138 سم\",\"weight\":\"1.24كغم\"},{\"size\":\"4\",\"chest\":\"122سم\",\"hip\":\"132سم\",\"length\":\"143 سم\",\"weight\":\"1.24كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "284|قفطان,285|عبايات ملكية,286|مناسبات,287|فاخر,289|جديد",
+      "avg_rating": 4.8,
+      "total_reviews": 13,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "284",
+          "name": "قفطان"
+        },
+        {
+          "id": "285",
+          "name": "عبايات ملكية"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 4,
+      "category_id": "2",
+      "name": "قفطان الأميرة 👑",
+      "price_num": "60.00",
+      "price_display": "JOD 60.00",
+      "description": null,
+      "tags": null,
+      "available": 1,
+      "sort_order": 4,
+      "addons": null,
+      "image_url": "1786520138944-678591191_1782578415985393.jpg",
+      "created_at": "2026-07-29 10:58:51",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786520138944-678591191_1782578415985393.jpg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"3\",\"4\",\"5\",\"6\",\"7\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "30.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1786523670007-downloadfile.mp4",
+      "size_chart": "[{\"size\":\"3\",\"chest\":\"112 سم\",\"hip\":\"120 سم\",\"length\":\"128 سم\"},{\"size\":\"4\",\"chest\":\"120 سم\",\"hip\":\"128 سم\",\"length\":\"133 سم\"},{\"size\":\"5\",\"chest\":\"128 سم\",\"hip\":\"134 سم\",\"length\":\"138 سم\"},{\"size\":\"6\",\"chest\":\"132 سم\",\"hip\":\"140 سم\",\"length\":\"143 سم\"},{\"size\":\"7\",\"chest\":\"136 سم\",\"hip\":\"144 سم\",\"length\":\"148 سم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "284|قفطان,286|مناسبات,287|فاخر,289|جديد",
+      "avg_rating": 4.7,
+      "total_reviews": 20,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "284",
+          "name": "قفطان"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 5,
+      "category_id": "1",
+      "name": "قفطان الياقوتة💎",
+      "price_num": "60.00",
+      "price_display": "JOD 60.00",
+      "description": "قطعة استثنائية ثمينة كحجر الياقوت النادر. يمزج قفطان الياقوتة بين النقوش الأندلسية الفاخرة والخيوط الملونة الدافئة، وتكتمل أناقته بأكمام الجرس الواسعة (Bell Sleeves) وحزام خصر متناسق يُبرز أنوثتك الشرقية.\n\n",
+      "tags": null,
+      "available": 1,
+      "sort_order": 5,
+      "addons": null,
+      "image_url": "1787736785547-WhatsApp-Image-2026-08-26-at-11.34.22-AM.jpeg",
+      "created_at": "2026-08-04 11:11:27",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1787736785547-WhatsApp-Image-2026-08-26-at-11.34.22-AM.jpeg",
+        "1787736784677-WhatsApp-Image-2026-08-26-at-11.39.05-AM.jpeg",
+        "1787736783751-WhatsApp-Image-2026-08-26-at-11.39.05-AM-(1).jpeg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "33.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1786523688157-654584038_1782479307288404.mp4",
+      "size_chart": "[{\"size\":\"1\",\"chest\":\"104سم\",\"hip\":\"120سم\",\"weight\":\"1.28كغم\"},{\"size\":\"2\",\"chest\":\"108سم\",\"hip\":\"130سم\",\"weight\":\"1.28كغم\"},{\"size\":\"3\",\"chest\":\"112سم\",\"hip\":\"134سم\",\"weight\":\"1.30كغم\"},{\"size\":\"4\",\"chest\":\"120سم\",\"hip\":\"140سم\",\"weight\":\"1.30كغم\"},{\"size\":\"5\",\"chest\":\"124سم\",\"hip\":\"146سم\",\"weight\":\"1.34كغم\"},{\"size\":\"6\",\"chest\":\"132سم\",\"hip\":\"152سم\",\"weight\":\"1.34كغم\"},{\"size\":\"7\",\"chest\":\"136سم\",\"hip\":\"152سم\",\"weight\":\"1.40كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "283|عرائسي,284|قفطان,285|عبايات ملكية,286|مناسبات,287|فاخر,289|جديد,291|تشكيلة العروس",
+      "avg_rating": 5,
+      "total_reviews": 27,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "283",
+          "name": "عرائسي"
+        },
+        {
+          "id": "284",
+          "name": "قفطان"
+        },
+        {
+          "id": "285",
+          "name": "عبايات ملكية"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        },
+        {
+          "id": "291",
+          "name": "تشكيلة العروس"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 6,
+      "category_id": "1",
+      "name": "ثوب اليشمك",
+      "price_num": "30.00",
+      "price_display": "JOD 30.00",
+      "description": null,
+      "tags": null,
+      "available": 1,
+      "sort_order": 6,
+      "addons": null,
+      "image_url": "1786520124449-599738462_1782322285332873.jpg",
+      "created_at": "2026-08-04 11:45:19",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786520124449-599738462_1782322285332873.jpg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"M\",\"L\",\"XL\",\"XXL\",\"XXXL\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "18.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1787735651289-VID-20260825-WA0014.mp4",
+      "size_chart": "[{\"size\":\"M\",\"chest\":\"116 سم\",\"hip\":\"124 سم\",\"weight\":\"0.66 كغم\"},{\"size\":\"L\",\"chest\":\"124 سم\",\"hip\":\"132 سم\",\"weight\":\"0.68 كغم\"},{\"size\":\"XL\",\"chest\":\"132 سم\",\"hip\":\"140 سم\",\"weight\":\"0.7 كغم\"},{\"size\":\"XXL\",\"chest\":\"140 سم\",\"hip\":\"148 سم\",\"weight\":\"0.73 كغم\"},{\"size\":\"XXXL\",\"chest\":\"146 سم\",\"hip\":\"154 سم\",\"weight\":\"0.76 كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "283|عرائسي,285|عبايات ملكية,286|مناسبات,287|فاخر,289|جديد,291|تشكيلة العروس",
+      "avg_rating": 4.9,
+      "total_reviews": 14,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "283",
+          "name": "عرائسي"
+        },
+        {
+          "id": "285",
+          "name": "عبايات ملكية"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        },
+        {
+          "id": "291",
+          "name": "تشكيلة العروس"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 7,
+      "category_id": "1",
+      "name": "ثوب بيسان 🌿",
+      "price_num": "50.00",
+      "price_display": "JOD 50.00",
+      "description": null,
+      "tags": null,
+      "available": 1,
+      "sort_order": 7,
+      "addons": null,
+      "image_url": "1786520099931-964389640_1786371335661564.jpg",
+      "created_at": "2026-08-04 19:02:39",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786520099931-964389640_1786371335661564.jpg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد الم��شأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"1\",\"2\",\"3\",\"4\",\"5\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "28.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1787735630506-VID-20260825-WA0017.mp4",
+      "size_chart": "[{\"size\":\"1\",\"chest\":\"104 سم\",\"hip\":\"114 سم\",\"weight\":\"0.6 كغم\"},{\"size\":\"2\",\"chest\":\"108 سم\",\"hip\":\"124 سم\",\"weight\":\"0.65 كغم\"},{\"size\":\"3\",\"chest\":\"116 سم\",\"hip\":\"130 سم\",\"weight\":\"0.7 كغم\"},{\"size\":\"4\",\"chest\":\"120 سم\",\"hip\":\"140 سم\",\"weight\":\"0.75 كغم\"},{\"size\":\"5\",\"chest\":\"124 سم\",\"hip\":\"148 سم\",\"weight\":\"0.8 كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "283|عرائسي,284|قفطان,285|عبايات ملكية,286|مناسبات,287|فاخر,289|جديد,291|تشكيلة العروس",
+      "avg_rating": 4.8,
+      "total_reviews": 21,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "283",
+          "name": "عرائسي"
+        },
+        {
+          "id": "284",
+          "name": "قفطان"
+        },
+        {
+          "id": "285",
+          "name": "عبايات ملكية"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        },
+        {
+          "id": "291",
+          "name": "تشكيلة العروس"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 8,
+      "category_id": "1",
+      "name": "ثوب الأناقة السوداء 💎",
+      "price_num": "30.00",
+      "price_display": "JOD 30.00",
+      "description": null,
+      "tags": null,
+      "available": 1,
+      "sort_order": 8,
+      "addons": null,
+      "image_url": "1786520013728-54_20260308_113803_0011.png",
+      "created_at": "2026-08-07 15:33:36",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786520013728-54_20260308_113803_0011.png",
+        "1786520017431-56_20260308_113803_0013.png",
+        "1786520021581-55_20260308_113803_0012.png"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"M\",\"L\",\"XL\",\"XXL\",\"XXXL\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "17.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1786523733427-712486662_1786298365098014.mp4",
+      "size_chart": "[{\"size\":\"M\",\"chest\":\"116 سم\",\"hip\":\"124 سم\",\"weight\":\"0.7 كغم\"},{\"size\":\"L\",\"chest\":\"124 سم\",\"hip\":\"132 سم\",\"weight\":\"0.74 كغم\"},{\"size\":\"XL\",\"chest\":\"132 سم\",\"hip\":\"140 سم\",\"weight\":\"0.76 كغم\"},{\"size\":\"XXL\",\"chest\":\"140 سم\",\"hip\":\"148 سم\",\"weight\":\"0.78 كغم\"},{\"size\":\"XXXL\",\"chest\":\"146 سم\",\"hip\":\"154 سم\",\"weight\":\"0.8 كغم \"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "284|قفطان,285|عبايات ملكية,286|مناسبات,287|فاخر,289|جديد,291|تشكيلة العروس",
+      "avg_rating": 4.7,
+      "total_reviews": 28,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "284",
+          "name": "قفطان"
+        },
+        {
+          "id": "285",
+          "name": "عبايات ملكية"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        },
+        {
+          "id": "291",
+          "name": "تشكيلة العروس"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    },
+    {
+      "id": 16,
+      "category_id": "1",
+      "name": "عباية الأندلس 🌿",
+      "price_num": "35.00",
+      "price_display": "JOD 35.00",
+      "description": null,
+      "tags": null,
+      "available": 1,
+      "sort_order": 9,
+      "addons": null,
+      "image_url": "1786520070249-773310884_1786299536249054.jpg",
+      "created_at": "2026-08-10 17:04:21",
+      "subtitle": null,
+      "badge": null,
+      "sku": null,
+      "images": [
+        "1786520070249-773310884_1786299536249054.jpg"
+      ],
+      "videos": null,
+      "fabric": "[{\"label\": \"نوع القماش\", \"value\": \"كريب فاخر\"}, {\"label\": \"بلد المنشأ\", \"value\": \"الأردن\"}]",
+      "sizes": "[\"M\",\"L\",\"XL\",\"XXL\",\"XXXL\"]",
+      "care": "[\"غسيل يدوي بماء بارد\", \"كي على حرارة منخفضة\"]",
+      "colors": null,
+      "cost_price": "21.00",
+      "tax_amount": "0.00",
+      "pre_order": 0,
+      "stock_quantity": -1,
+      "display_order": 0,
+      "video_url": "/images/1786523743327-224635456_1786300319192251.mp4",
+      "size_chart": "[{\"size\":\"M\",\"chest\":\"116 سم\",\"hip\":\"124 سم\",\"weight\":\"0.6 كغم\"},{\"size\":\"L\",\"chest\":\"124 سم\",\"hip\":\"132 سم\",\"weight\":\"0.65 كغم\"},{\"size\":\"XL\",\"chest\":\"132 سم\",\"hip\":\"140 سم\",\"weight\":\"0.7 كغم\"},{\"size\":\"XXL\",\"chest\":\"140 سم\",\"hip\":\"148 سم\",\"weight\":\"0.75 كغم\"},{\"size\":\"XXXL\",\"chest\":\"146 سم\",\"hip\":\"154 سم\",\"weight\":\"0.8 كغم\"}]",
+      "weight": null,
+      "isOutOfStock": false,
+      "linked_addons": null,
+      "linked_tags": "283|عرائسي,285|عبايات ملكية,286|مناسبات,287|فاخر,289|جديد,291|تشكيلة العروس",
+      "avg_rating": 4.7,
+      "total_reviews": 24,
+      "linkedAddons": [],
+      "linkedTags": [
+        {
+          "id": "283",
+          "name": "عرائسي"
+        },
+        {
+          "id": "285",
+          "name": "عبايات ملكية"
+        },
+        {
+          "id": "286",
+          "name": "مناسبات"
+        },
+        {
+          "id": "287",
+          "name": "فاخر"
+        },
+        {
+          "id": "289",
+          "name": "جديد"
+        },
+        {
+          "id": "291",
+          "name": "تشكيلة العروس"
+        }
+      ],
+      "discounted_price": null,
+      "variants": []
+    }
+  ],
+  "categories": [
+    {
+      "id": "1",
+      "label": "عبايات يومية",
+      "icon": null,
+      "sort_order": 1
+    },
+    {
+      "id": "2",
+      "label": "عبايات مطرزة",
+      "icon": null,
+      "sort_order": 2
+    },
+    {
+      "id": "3",
+      "label": "عبايات سهرة",
+      "icon": null,
+      "sort_order": 3
+    }
+  ],
+  "settings/theme": {
+    "hero_banners": "[]",
+    "hero_media_type": "video",
+    "hero_video_url": "/images/1786742150761-411348681_1782578082455351.mp4",
+    "theme_bg": "#0d0b0a",
+    "theme_hover": "#a6865d",
+    "theme_primary": "#c5a880",
+    "theme_text": "#f8f4e6"
+  },
+  "store-status": {
+    "mode": "auto",
+    "status": "closed",
+    "display": "Automatic (CLOSED)"
+  },
+  "offers": [],
+  "posts": [],
+  "social-pixels": {
+    "meta_pixel_id": "909817262167847",
+    "snap_pixel_id": "c2e6e00e-dc2a-4eec-804b-1dea233a49cf",
+    "tiktok_pixel_id": "D9M82P3C77U1C011KGHG"
+  },
+  "today-feature": {
+    "name": "قفطان تاج بيسان العرائسي",
+    "sub": "عبايات سهرة · Specialty"
+  }
+}
