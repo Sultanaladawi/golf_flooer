@@ -115,7 +115,14 @@ export default function ImageZoomViewer({
               controls
               preload="auto"
               crossOrigin="anonymous"
-              style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                imageRendering: '-webkit-optimize-contrast',
+                transform: 'translate3d(0, 0, 0)',
+                filter: 'contrast(107%) brightness(102%) saturate(105%)'
+              }} 
             />
             <button 
               onClick={() => setIsPlayingVideo(false)}

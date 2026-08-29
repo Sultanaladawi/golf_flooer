@@ -23,7 +23,7 @@
   display: none;
 }
 
-/* Main crystal-clear full-bleed hero video without any side blur */
+/* Main crystal-clear full-bleed hero video with 8K clarity */
 .heroVideoMain {
   position: absolute;
   inset: 0;
@@ -32,13 +32,19 @@
   object-fit: cover;
   object-position: center center;
   z-index: 1;
-  filter: contrast(105%) brightness(100%);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  filter: contrast(108%) brightness(104%) saturate(106%);
 }
 
 .heroVideo {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  image-rendering: -webkit-optimize-contrast;
 }
 
 @media (max-width: 768px) {
@@ -53,9 +59,9 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(13, 11, 10, 0.20) 0%,
-    rgba(13, 11, 10, 0.30) 45%,
-    rgba(13, 11, 10, 0.70) 100%
+    rgba(13, 11, 10, 0.08) 0%,
+    rgba(13, 11, 10, 0.18) 45%,
+    rgba(13, 11, 10, 0.65) 100%
   );
   z-index: 2;
   pointer-events: none;

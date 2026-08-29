@@ -157,3 +157,12 @@ html {
   }
 }
 
+/* 🎬 8K / Ultra-HD Video Sharpness & Hardware-Accelerated Rendering */
+video {
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  -webkit-backface-visibility: hidden !important;
+  will-change: transform;
+}
