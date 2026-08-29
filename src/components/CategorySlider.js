@@ -502,16 +502,21 @@ export default function CategorySlider() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/categories').then(r => r.json()),
-      fetch('/api/products').then(r => r.json()),
+      fetch('/api/categories').then(r => r.json()).catch(() => []),
+      fetch('/api/products').then(r => r.json()).catch(() => []),
     ]).then(([cats, items]) => {
-      if (Array.isArray(cats)) {
+      if (Array.isArray(cats) && cats.length > 0) {
         const sorted = [...cats].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
         setCategories(sorted);
       }
-      if (Array.isArray(items)) setAllItems(items);
-    }).catch(console.error)
-      .finally(() => setLoading(false));
+      if (Array.isArray(items) && items.length > 0) {
+        setAllItems(items);
+      } else {
+        setAllItems(featuredItems);
+      }
+    }).catch(() => {
+      setAllItems(featuredItems);
+    }).finally(() => setLoading(false));
   }, []);
 
   const getItemsForCategory = useCallback((catId) => {

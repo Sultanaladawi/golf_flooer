@@ -38,27 +38,13 @@ export default function Gallery() {
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
-          setProducts(data.slice(0, 8));
+          setProducts(data);
         } else {
-          setProducts([
-            { id: 1, name: 'عباية حرير فاخرة', category: 'عبايات المناسبات', price_num: 155, images: ['/15.jpg'] },
-            { id: 2, name: 'عباية بشت شتوية', category: 'التشكيلة الشتوية', price_num: 175, images: ['/13.png'] },
-            { id: 3, name: 'عباية التطريز اليدوي', category: 'عبايات كلاسيك', price_num: 160, images: ['/8.png'] },
-            { id: 4, name: 'عباية الستائر العاجية', category: 'عبايات الاستقبال', price_num: 145, images: ['/13 (1).png'] },
-            { id: 5, name: 'عباية كلاسيكية سوداء', category: 'عبايات كلاسيك', price_num: 150, images: ['/12.png'] },
-            { id: 6, name: 'عباية الأناقة الصيفية', category: 'تشكيلة الصيف', price_num: 135, images: ['/9 (1).png'] },
-          ]);
+          setProducts(featuredItems);
         }
       })
       .catch(() => {
-        setProducts([
-          { id: 1, name: 'عباية حرير فاخرة', category: 'عبايات المناسبات', price_num: 155, images: ['/15.jpg'] },
-          { id: 2, name: 'عباية بشت شتوية', category: 'التشكيلة الشتوية', price_num: 175, images: ['/13.png'] },
-          { id: 3, name: 'عباية التطريز اليدوي', category: 'عبايات كلاسيك', price_num: 160, images: ['/8.png'] },
-          { id: 4, name: 'عباية الستائر العاجية', category: 'عبايات الاستقبال', price_num: 145, images: ['/13 (1).png'] },
-          { id: 5, name: 'عباية كلاسيكية سوداء', category: 'عبايات كلاسيك', price_num: 150, images: ['/12.png'] },
-          { id: 6, name: 'عباية الأناقة الصيفية', category: 'تشكيلة الصيف', price_num: 135, images: ['/9 (1).png'] },
-        ]);
+        setProducts(featuredItems);
       });
   }, []);
 
