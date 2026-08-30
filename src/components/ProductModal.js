@@ -480,7 +480,7 @@ export default function ProductModal({ model, onClose }) {
                   loop
                   playsInline
                   controls
-                  preload="auto"
+                  preload="metadata"
                   crossOrigin="anonymous"
                   className={styles.mainVideo}
                 />

@@ -103,15 +103,17 @@ export const featuredItems = [
   {
     id: 5,
     name: "قفطان الياقوتة💎",
-    category_id: "1",
-    category: "عبايات يومية",
+    category_id: "2",
+    category: "عبايات مطرزة",
     desc: "قطعة استثنائية ثمينة كحجر الياقوت النادر. يمزج قفطان الياقوتة بين النقوش الأندلسية الفاخرة والخيوط الملونة الدافئة، وتكتمل أناقته بأكمام الجرس الواسعة (Bell Sleeves) وحزام خصر متناسق يُبرز أنوثتك الشرقية.",
     price: "60.00 JOD",
     price_num: 60.00,
     price_display: "JOD 60.00",
-    image: "/images/1787736785547-WhatsApp-Image-2026-08-26-at-11.34.22-AM.jpeg",
-    image_url: "/images/1787736785547-WhatsApp-Image-2026-08-26-at-11.34.22-AM.jpeg",
+    image: "/images/1786519963536-904099534_1782471925397618.jpg",
+    image_url: "/images/1786519963536-904099534_1782471925397618.jpg",
     images: [
+      "/images/1786519963536-904099534_1782471925397618.jpg",
+      "/images/1786519964528-524830994_1782478406118284.jpg",
       "/images/1787736785547-WhatsApp-Image-2026-08-26-at-11.34.22-AM.jpeg",
       "/images/1787736784677-WhatsApp-Image-2026-08-26-at-11.39.05-AM.jpeg",
       "/images/1787736783751-WhatsApp-Image-2026-08-26-at-11.39.05-AM-(1).jpeg"
