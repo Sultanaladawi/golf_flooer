@@ -275,9 +275,50 @@ async function createFedExShipment({
   throw new Error('FedEx returned an unexpected shipment structure');
 }
 
+/**
+ * 💰 Get Real-time FedEx Shipping Rates
+ */
+async function getFedExRates({ recipientCountry, recipientZip, recipientCity, weight = 1 }) {
+  try {
+    const payload = {
+      accountNumber: { value: FEDEX_CONFIG.accountNumber },
+      rateRequestControlParameters: { returnTransitTimes: true },
+      requestedShipment: {
+        shipper: { address: { postalCode: FEDEX_CONFIG.shipper.postalCode, countryCode: FEDEX_CONFIG.shipper.countryCode } },
+        recipient: { address: { postalCode: recipientZip || '00000', city: recipientCity || '', countryCode: recipientCountry || 'AE' } },
+        preferredCurrency: 'JOD',
+        rateRequestType: ['LIST', 'ACCOUNT'],
+        requestedPackageLineItems: [{ weight: { units: 'KG', value: weight } }]
+      }
+    };
+    const response = await makeFedExRequest('/rate/v1/rates/quotes', payload);
+    return { success: true, rates: response.output?.rateReplyDetails || [] };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * 🔍 Track FedEx Shipment in Real-time
+ */
+async function trackFedExShipment(trackingNumber) {
+  try {
+    const payload = {
+      includeDetailedScans: true,
+      trackingInfo: [{ trackingNumberInfo: { trackingNumber } }]
+    };
+    const response = await makeFedExRequest('/track/v1/trackingnumbers', payload);
+    return { success: true, tracking: response.output?.completeTrackResults || [] };
+  } catch (err) {
+    return { success: false, error: err.message };
+  }
+}
+
 module.exports = {
   FEDEX_CONFIG,
   getFedExToken,
   makeFedExRequest,
-  createFedExShipment
+  createFedExShipment,
+  getFedExRates,
+  trackFedExShipment
 };
