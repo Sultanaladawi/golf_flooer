@@ -361,41 +361,85 @@ export default function Checkout() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`);
-          const data = await res.json();
-          if (data && data.address) {
-            const detectedCountry = matchCountryFromAddress(data.address.country || data.display_name || form.country);
-            const iso = getCountryIso(detectedCountry);
-            const detectedCity = matchCityFromAddress(data, iso);
-            const detectedArea = data.address.suburb || data.address.neighbourhood || data.address.quarter || data.address.residential || '';
-            
-            const road = data.address.road || '';
-            const houseNumber = data.address.house_number || '';
-            const building = data.address.building || '';
-            let cleanAddress = [road, houseNumber, building].filter(Boolean).join(' ');
-            if (!cleanAddress || cleanAddress.length < 5) {
-              cleanAddress = data.display_name;
-            }
+          let detectedCountry = form.country || 'الأردن';
+          let detectedCity = form.city || '';
+          let detectedArea = '';
+          let detectedState = form.state || '';
+          let cleanAddress = '';
 
-            setForm(f => ({
-              ...f,
-              country: detectedCountry || f.country,
-              state: data.address.state || f.state,
-              city: detectedCity || f.city,
-              area: detectedArea || f.area,
-              address: cleanAddress || f.address,
-              lat: latitude,
-              lng: longitude,
-              googleMapsLink: `https://maps.google.com/?q=${latitude},${longitude}`
-            }));
+          // Primary: Fast CORS-friendly reverse geocoding in Arabic
+          try {
+            const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ar`);
+            if (bdcRes.ok) {
+              const bdcData = await bdcRes.json();
+              if (bdcData && bdcData.countryName) {
+                detectedCountry = matchCountryFromAddress(bdcData.countryName);
+                const iso = getCountryIso(detectedCountry);
+                const mockData = {
+                  address: {
+                    country: bdcData.countryName,
+                    state: bdcData.principalSubdivision,
+                    city: bdcData.city,
+                    town: bdcData.locality,
+                    suburb: bdcData.localityInfo?.administrative?.[3]?.name || bdcData.localityInfo?.administrative?.[2]?.name
+                  },
+                  display_name: [bdcData.locality, bdcData.principalSubdivision, bdcData.countryName].filter(Boolean).join(', ')
+                };
+                detectedCity = matchCityFromAddress(mockData, iso);
+                detectedArea = (bdcData.locality || bdcData.principalSubdivision || '').replace(/[\u064B-\u065F\u0670]/g, '');
+                detectedState = bdcData.principalSubdivision || '';
+                cleanAddress = (mockData.display_name || '').replace(/[\u064B-\u065F\u0670]/g, '');
+              }
+            }
+          } catch (e) {
+            console.warn('Primary geocoding error:', e);
           }
+
+          // Fallback if primary didn't give city or address
+          if (!detectedCity || !cleanAddress) {
+            try {
+              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`);
+              if (res.ok) {
+                const data = await res.json();
+                if (data && data.address) {
+                  detectedCountry = matchCountryFromAddress(data.address.country || data.display_name || detectedCountry);
+                  const iso = getCountryIso(detectedCountry);
+                  detectedCity = detectedCity || matchCityFromAddress(data, iso);
+                  detectedArea = detectedArea || data.address.suburb || data.address.neighbourhood || data.address.quarter || '';
+                  detectedState = detectedState || data.address.state || '';
+                  const road = data.address.road || '';
+                  const houseNumber = data.address.house_number || '';
+                  const building = data.address.building || '';
+                  const nominatimAddress = [road, houseNumber, building].filter(Boolean).join(' ') || data.display_name;
+                  cleanAddress = cleanAddress || nominatimAddress;
+                }
+              }
+            } catch (err) {
+              console.warn('Fallback geocoding error:', err);
+            }
+          }
+
+          setForm(f => ({
+            ...f,
+            country: detectedCountry || f.country,
+            state: detectedState || f.state,
+            city: detectedCity || f.city,
+            area: detectedArea || f.area,
+            address: cleanAddress || f.address || `موقع محدد (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
+            lat: latitude,
+            lng: longitude,
+            googleMapsLink: `https://maps.google.com/?q=${latitude},${longitude}`
+          }));
+          setLocationError('');
         } catch (err) {
+          console.error('Location error:', err);
           setLocationError('فشل في جلب المنطقة تلقائياً');
         } finally {
           setIsLocating(false);
         }
       },
-      () => {
+      (err) => {
+        console.warn('Geolocation permission error:', err);
         setLocationError('يرجى السماح للمتصفح بالوصول لموقعك');
         setIsLocating(false);
       },
