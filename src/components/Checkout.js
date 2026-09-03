@@ -245,6 +245,7 @@ export default function Checkout() {
 
   const [isLocating, setIsLocating] = useState(false);
   const [locationError, setLocationError] = useState('');
+  const [locationSuccess, setLocationSuccess] = useState('');
   const [isMapPickerOpen, setIsMapPickerOpen] = useState(false);
 
   const [showCountrySelect, setShowCountrySelect] = useState(false);
@@ -352,6 +353,7 @@ export default function Checkout() {
   const handleGetLocation = () => {
     setIsLocating(true);
     setLocationError('');
+    setLocationSuccess('');
 
     const resolveLocation = async (lat, lon) => {
       try {
@@ -397,6 +399,14 @@ export default function Checkout() {
           console.warn('BigDataCloud geocoding error:', e);
         }
 
+        // Instantly sync country cities
+        if (detectedCountry) {
+          const cities = getCitiesForCountry(detectedCountry, currentLang);
+          if (cities && cities.length > 0) {
+            setCountryCities(cities);
+          }
+        }
+
         setForm(f => ({
           ...f,
           country: detectedCountry || f.country,
@@ -408,7 +418,9 @@ export default function Checkout() {
           lng: finalLng || f.lng,
           googleMapsLink: (finalLat && finalLng) ? `https://maps.google.com/?q=${finalLat},${finalLng}` : f.googleMapsLink
         }));
+
         setLocationError('');
+        setLocationSuccess(`تم تحديد الموقع: ${detectedCity ? detectedCity + '، ' : ''}${detectedCountry}`);
       } catch (err) {
         console.error('Location resolve error:', err);
         setLocationError('فشل في جلب المنطقة تلقائياً');
@@ -1255,6 +1267,7 @@ export default function Checkout() {
                   </div>
                 </div>
                 {locationError && <p style={{ color: '#dc2626', fontSize: '0.82rem', marginTop: '-10px', marginBottom: '15px' }}>{locationError}</p>}
+                {locationSuccess && <p style={{ color: '#16a34a', fontSize: '0.82rem', marginTop: '-10px', marginBottom: '15px', fontWeight: '600' }}>✓ {locationSuccess}</p>}
 
                 <div className={styles.formGrid}>
                   {/* Country Selector */}
