@@ -348,103 +348,91 @@ export default function Checkout() {
       });
   }, [form.country, form.city, totalPrice, items]);
 
-  // Location handler
+  // Location handler with GPS and seamless IP Geolocation fallback
   const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('متصفحك لا يدعم تحديد الموقع');
-      return;
-    }
     setIsLocating(true);
     setLocationError('');
-    
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
+
+    const resolveLocation = async (lat, lon) => {
+      try {
+        let detectedCountry = form.country || 'الأردن';
+        let detectedCity = form.city || '';
+        let detectedArea = '';
+        let detectedState = form.state || '';
+        let cleanAddress = '';
+        let finalLat = lat;
+        let finalLng = lon;
+
+        // BigDataCloud reverse geocode (with coordinates or via client IP automatically)
         try {
-          let detectedCountry = form.country || 'الأردن';
-          let detectedCity = form.city || '';
-          let detectedArea = '';
-          let detectedState = form.state || '';
-          let cleanAddress = '';
+          const url = (lat && lon)
+            ? `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`
+            : `https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=ar`;
 
-          // Primary: Fast CORS-friendly reverse geocoding in Arabic
-          try {
-            const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=ar`);
-            if (bdcRes.ok) {
-              const bdcData = await bdcRes.json();
-              if (bdcData && bdcData.countryName) {
-                detectedCountry = matchCountryFromAddress(bdcData.countryName);
-                const iso = getCountryIso(detectedCountry);
-                const mockData = {
-                  address: {
-                    country: bdcData.countryName,
-                    state: bdcData.principalSubdivision,
-                    city: bdcData.city,
-                    town: bdcData.locality,
-                    suburb: bdcData.localityInfo?.administrative?.[3]?.name || bdcData.localityInfo?.administrative?.[2]?.name
-                  },
-                  display_name: [bdcData.locality, bdcData.principalSubdivision, bdcData.countryName].filter(Boolean).join(', ')
-                };
-                detectedCity = matchCityFromAddress(mockData, iso);
-                detectedArea = (bdcData.locality || bdcData.principalSubdivision || '').replace(/[\u064B-\u065F\u0670]/g, '');
-                detectedState = bdcData.principalSubdivision || '';
-                cleanAddress = (mockData.display_name || '').replace(/[\u064B-\u065F\u0670]/g, '');
-              }
-            }
-          } catch (e) {
-            console.warn('Primary geocoding error:', e);
-          }
-
-          // Fallback if primary didn't give city or address
-          if (!detectedCity || !cleanAddress) {
-            try {
-              const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ar`);
-              if (res.ok) {
-                const data = await res.json();
-                if (data && data.address) {
-                  detectedCountry = matchCountryFromAddress(data.address.country || data.display_name || detectedCountry);
-                  const iso = getCountryIso(detectedCountry);
-                  detectedCity = detectedCity || matchCityFromAddress(data, iso);
-                  detectedArea = detectedArea || data.address.suburb || data.address.neighbourhood || data.address.quarter || '';
-                  detectedState = detectedState || data.address.state || '';
-                  const road = data.address.road || '';
-                  const houseNumber = data.address.house_number || '';
-                  const building = data.address.building || '';
-                  const nominatimAddress = [road, houseNumber, building].filter(Boolean).join(' ') || data.display_name;
-                  cleanAddress = cleanAddress || nominatimAddress;
-                }
-              }
-            } catch (err) {
-              console.warn('Fallback geocoding error:', err);
+          const bdcRes = await fetch(url);
+          if (bdcRes.ok) {
+            const bdcData = await bdcRes.json();
+            if (bdcData && bdcData.countryName) {
+              detectedCountry = matchCountryFromAddress(bdcData.countryName);
+              const iso = getCountryIso(detectedCountry);
+              const mockData = {
+                address: {
+                  country: bdcData.countryName,
+                  state: bdcData.principalSubdivision,
+                  city: bdcData.city,
+                  town: bdcData.locality,
+                  suburb: bdcData.localityInfo?.administrative?.[3]?.name || bdcData.localityInfo?.administrative?.[2]?.name
+                },
+                display_name: [bdcData.locality, bdcData.principalSubdivision, bdcData.countryName].filter(Boolean).join(', ')
+              };
+              detectedCity = matchCityFromAddress(mockData, iso);
+              detectedArea = (bdcData.locality || bdcData.principalSubdivision || '').replace(/[\u064B-\u065F\u0670]/g, '');
+              detectedState = bdcData.principalSubdivision || '';
+              cleanAddress = (mockData.display_name || '').replace(/[\u064B-\u065F\u0670]/g, '');
+              if (!finalLat && bdcData.latitude) finalLat = bdcData.latitude;
+              if (!finalLng && bdcData.longitude) finalLng = bdcData.longitude;
             }
           }
-
-          setForm(f => ({
-            ...f,
-            country: detectedCountry || f.country,
-            state: detectedState || f.state,
-            city: detectedCity || f.city,
-            area: detectedArea || f.area,
-            address: cleanAddress || f.address || `موقع محدد (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`,
-            lat: latitude,
-            lng: longitude,
-            googleMapsLink: `https://maps.google.com/?q=${latitude},${longitude}`
-          }));
-          setLocationError('');
-        } catch (err) {
-          console.error('Location error:', err);
-          setLocationError('فشل في جلب المنطقة تلقائياً');
-        } finally {
-          setIsLocating(false);
+        } catch (e) {
+          console.warn('BigDataCloud geocoding error:', e);
         }
-      },
-      (err) => {
-        console.warn('Geolocation permission error:', err);
-        setLocationError('يرجى السماح للمتصفح بالوصول لموقعك');
+
+        setForm(f => ({
+          ...f,
+          country: detectedCountry || f.country,
+          state: detectedState || f.state,
+          city: detectedCity || f.city,
+          area: detectedArea || f.area,
+          address: cleanAddress || f.address || (finalLat && finalLng ? `موقع محدد (${finalLat.toFixed(4)}, ${finalLng.toFixed(4)})` : f.address),
+          lat: finalLat || f.lat,
+          lng: finalLng || f.lng,
+          googleMapsLink: (finalLat && finalLng) ? `https://maps.google.com/?q=${finalLat},${finalLng}` : f.googleMapsLink
+        }));
+        setLocationError('');
+      } catch (err) {
+        console.error('Location resolve error:', err);
+        setLocationError('فشل في جلب المنطقة تلقائياً');
+      } finally {
         setIsLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
+      }
+    };
+
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          resolveLocation(latitude, longitude);
+        },
+        (err) => {
+          console.warn('Geolocation fallback to IP:', err);
+          // Seamless fallback to IP Geolocation without showing error
+          resolveLocation(null, null);
+        },
+        { enableHighAccuracy: false, timeout: 6000 }
+      );
+    } else {
+      resolveLocation(null, null);
+    }
   };
 
   const handleSelectLocationFromMap = (loc) => {
@@ -1342,7 +1330,7 @@ export default function Checkout() {
                           className={styles.input}
                           style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                         >
-                          <span>{form.city || 'اختاري المدينة...'}</span>
+                          <span>{(typeof form.city === 'object' ? (form.city.ar || form.city.name) : form.city) || 'اختاري المدينة...'}</span>
                           <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>▼</span>
                         </div>
 
@@ -1359,20 +1347,24 @@ export default function Checkout() {
                             maxHeight: '220px',
                             overflowY: 'auto'
                           }}>
-                            {countryCities.map(city => (
-                              <div
-                                key={city}
-                                onClick={() => {
-                                  setForm({ ...form, city: city });
-                                  setShowCitySelect(false);
-                                }}
-                                style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', fontSize: '0.9rem' }}
-                                onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(197, 168, 128, 0.1)'}
-                                onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
-                              >
-                                {city}
-                              </div>
-                            ))}
+                            {countryCities.map((cityItem, idx) => {
+                              const cityName = typeof cityItem === 'object' ? (currentLang === 'en' ? cityItem.en : cityItem.ar) : cityItem;
+                              const cityValue = typeof cityItem === 'object' ? (cityItem.ar || cityItem.name) : cityItem;
+                              return (
+                                <div
+                                  key={cityName || idx}
+                                  onClick={() => {
+                                    setForm({ ...form, city: cityValue });
+                                    setShowCitySelect(false);
+                                  }}
+                                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #f5f5f5', fontSize: '0.9rem' }}
+                                  onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(197, 168, 128, 0.1)'}
+                                  onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                >
+                                  {cityName}
+                                </div>
+                              );
+                            })}
                           </div>
                         )}
                       </>
@@ -1381,7 +1373,7 @@ export default function Checkout() {
                         type="text"
                         className={styles.input}
                         placeholder="مثال: الرياض، دبي، المنامة..."
-                        value={form.city}
+                        value={typeof form.city === 'object' ? (form.city.ar || form.city.name) : form.city}
                         onChange={e => setForm({ ...form, city: e.target.value })}
                       />
                     )}
