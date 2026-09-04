@@ -514,22 +514,33 @@ export default function Checkout() {
           if (bdcRes.ok) {
             const bdcData = await bdcRes.json();
             if (bdcData && bdcData.countryName) {
-              detectedCountry = matchCountryFromAddress(bdcData.countryName);
+              const cleanAr = (t) => (t || '').replace(/[\u064B-\u065F\u0670]/g, '').trim();
+              detectedCountry = matchCountryFromAddress(cleanAr(bdcData.countryName)) || 'الأردن';
               const iso = getCountryIso(detectedCountry);
+              const adminList = bdcData.localityInfo?.administrative || [];
+              let district = '';
+              for (let i = adminList.length - 1; i >= 0; i--) {
+                const item = adminList[i];
+                if (item.adminLevel >= 5 && item.name && !item.name.includes('الأردن')) {
+                  district = cleanAr(item.name).replace(/^(لواء|قضاء|محافظة|ناحية)\s+/, '');
+                  break;
+                }
+              }
+
               const mockData = {
                 address: {
-                  country: bdcData.countryName,
-                  state: bdcData.principalSubdivision,
-                  city: bdcData.city,
-                  town: bdcData.locality,
-                  suburb: bdcData.localityInfo?.administrative?.[3]?.name || bdcData.localityInfo?.administrative?.[2]?.name
+                  country: cleanAr(bdcData.countryName),
+                  state: cleanAr(bdcData.principalSubdivision),
+                  city: cleanAr(bdcData.city),
+                  town: cleanAr(bdcData.locality),
+                  suburb: district || bdcData.localityInfo?.administrative?.[3]?.name
                 },
-                display_name: [bdcData.locality, bdcData.principalSubdivision, bdcData.countryName].filter(Boolean).join(', ')
+                display_name: [district, cleanAr(bdcData.locality), cleanAr(bdcData.principalSubdivision), cleanAr(bdcData.countryName)].filter(Boolean).join(', ')
               };
-              detectedCity = matchCityFromAddress(mockData, iso);
-              detectedArea = (bdcData.locality || bdcData.principalSubdivision || '').replace(/[\u064B-\u065F\u0670]/g, '');
-              detectedState = bdcData.principalSubdivision || '';
-              cleanAddress = (mockData.display_name || '').replace(/[\u064B-\u065F\u0670]/g, '');
+              detectedCity = matchCityFromAddress(mockData, iso) || cleanAr(bdcData.city || bdcData.locality) || 'عمان';
+              detectedArea = district || (cleanAr(bdcData.locality) !== detectedCity ? cleanAr(bdcData.locality) : '') || '';
+              detectedState = cleanAr(bdcData.principalSubdivision) || '';
+              cleanAddress = [detectedArea && detectedArea !== detectedCity ? detectedArea : null, detectedCity, detectedState].filter(Boolean).join('، ');
               if (!finalLat && bdcData.latitude) finalLat = bdcData.latitude;
               if (!finalLng && bdcData.longitude) finalLng = bdcData.longitude;
             }
@@ -1393,6 +1404,8 @@ export default function Checkout() {
                     }}>
                       {savedAddresses.map((addr) => {
                         const isSelected = selectedAddressId === addr.id;
+                        const labelText = addr.label || 'المنزل 🏠';
+                        const areaText = (addr.area && addr.area !== addr.city) ? `${addr.city} - ${addr.area}` : addr.city;
                         return (
                           <div
                             key={addr.id}
@@ -1408,12 +1421,13 @@ export default function Checkout() {
                               transition: 'all 0.25s ease',
                               display: 'flex',
                               flexDirection: 'column',
-                              gap: '4px'
+                              gap: '4px',
+                              direction: 'rtl'
                             }}
                           >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                               <span style={{ fontWeight: '800', fontSize: '0.88rem', color: isSelected ? 'var(--gold-dim, #9b723e)' : '#222', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <span>{addr.label || 'عنوان محفوظ'}</span>
+                                <span>{labelText}</span>
                                 {isSelected && <span style={{ color: '#16a34a', fontWeight: 'bold' }}>✓</span>}
                               </span>
                               <button
@@ -1435,9 +1449,11 @@ export default function Checkout() {
                                 🗑️
                               </button>
                             </div>
-                            <div style={{ fontSize: '0.82rem', color: '#444', fontWeight: '600' }}>
-                              {addr.city}{addr.area ? ` - ${addr.area}` : ''}
-                            </div>
+                            {labelText !== areaText && (
+                              <div style={{ fontSize: '0.82rem', color: '#444', fontWeight: '600' }}>
+                                {areaText}
+                              </div>
+                            )}
                             <div style={{ fontSize: '0.76rem', color: '#777', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {addr.address || `${addr.country}`}
                             </div>
