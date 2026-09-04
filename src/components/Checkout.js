@@ -122,43 +122,108 @@ export default function Checkout() {
     window.location.search.includes('enable_paytabs=true')
   );
 
-  // 💾 Auto-restore saved customer shipping details for seamless 1-click checkout
-  const [hasRestoredData, setHasRestoredData] = useState(false);
-
-  const [form, setForm] = useState(() => {
+  // 📍 MULTIPLE SAVED ADDRESSES BOOK
+  const [savedAddresses, setSavedAddresses] = useState(() => {
     try {
-      const saved = localStorage.getItem('zb_customer_shipping_data');
+      const saved = localStorage.getItem('zb_saved_addresses');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') {
-          return {
-            name: parsed.name || '',
-            email: parsed.email || '',
-            phone: parsed.phone || '',
-            country: parsed.country || 'الأردن',
-            state: parsed.state || '',
-            city: parsed.city || '',
-            area: parsed.area || '',
-            address: parsed.address || '',
-            paymentMethod: isLocalEnvironment ? 'paytabs' : ((parsed.country === 'الأردن' || !parsed.country) ? 'cod' : 'paypal'),
-            transferReceipt: '',
-            cardNumber: '',
-            expiry: '',
-            cvc: ''
-          };
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      // Migrate legacy single saved address
+      const legacy = localStorage.getItem('zb_customer_shipping_data');
+      if (legacy) {
+        const p = JSON.parse(legacy);
+        if (p && (p.address || p.city)) {
+          const initial = [{
+            id: 'addr_' + Date.now(),
+            label: p.area ? `${p.city || ''} - ${p.area}` : (p.city || 'العنوان الرئيسي'),
+            country: p.country || 'الأردن',
+            state: p.state || '',
+            city: p.city || 'عمان',
+            area: p.area || '',
+            address: p.address || '',
+            lat: p.lat || null,
+            lng: p.lng || null
+          }];
+          localStorage.setItem('zb_saved_addresses', JSON.stringify(initial));
+          return initial;
         }
       }
     } catch (e) {}
+    return [];
+  });
+
+  const [selectedAddressId, setSelectedAddressId] = useState(() => {
+    try {
+      const saved = localStorage.getItem('zb_saved_addresses');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed[0].id;
+      }
+      const legacy = localStorage.getItem('zb_customer_shipping_data');
+      if (legacy) {
+        const p = JSON.parse(legacy);
+        if (p && (p.address || p.city)) return 'addr_default';
+      }
+    } catch (e) {}
+    return 'new';
+  });
+
+  const [saveNewAddressOption, setSaveNewAddressOption] = useState(true);
+  const [newAddressLabel, setNewAddressLabel] = useState('المنزل 🏠');
+
+  const [form, setForm] = useState(() => {
+    let customerName = '';
+    let customerEmail = '';
+    let customerPhone = '';
+    let country = 'الأردن';
+    let state = '';
+    let city = '';
+    let area = '';
+    let address = '';
+    let lat = null;
+    let lng = null;
+
+    try {
+      const legacy = localStorage.getItem('zb_customer_shipping_data');
+      if (legacy) {
+        const p = JSON.parse(legacy);
+        if (p) {
+          customerName = p.name || '';
+          customerEmail = p.email || '';
+          customerPhone = p.phone || '';
+        }
+      }
+      const saved = localStorage.getItem('zb_saved_addresses');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const first = parsed[0];
+          country = first.country || 'الأردن';
+          state = first.state || '';
+          city = first.city || '';
+          area = first.area || '';
+          address = first.address || '';
+          lat = first.lat || null;
+          lng = first.lng || null;
+        }
+      }
+    } catch (e) {}
+
     return {
-      name: '',
-      email: '',
-      phone: '',
-      country: 'الأردن',
-      state: '',
-      city: '',
-      area: '',
-      address: '',
-      paymentMethod: isLocalEnvironment ? 'paytabs' : 'cod',
+      name: customerName,
+      email: customerEmail,
+      phone: customerPhone,
+      country: country,
+      state: state,
+      city: city,
+      area: area,
+      address: address,
+      lat: lat,
+      lng: lng,
+      googleMapsLink: (lat && lng) ? `https://maps.google.com/?q=${lat},${lng}` : '',
+      paymentMethod: isLocalEnvironment ? 'paytabs' : (country === 'الأردن' ? 'cod' : 'paypal'),
       transferReceipt: '',
       cardNumber: '',
       expiry: '',
@@ -196,44 +261,118 @@ export default function Checkout() {
     }
   }, [selectedDialCode, phoneDigits]);
 
-  // Track if saved data was active
+  // 💾 Real-time tracker for customer info
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('zb_customer_shipping_data');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && (parsed.name || parsed.phone || parsed.address)) {
-          setHasRestoredData(true);
-        }
-      }
-    } catch (e) {}
-  }, []);
-
-  // 💾 Auto-save all customer shipping inputs in localStorage in real-time and notify Live Radar
-  useEffect(() => {
-    try {
-      if (form.name.trim() || form.phone.trim() || form.address.trim() || form.email.trim()) {
+      if (form.name.trim() || form.phone.trim() || form.email.trim()) {
         const toSave = {
           name: form.name,
           email: form.email,
-          phone: form.phone,
-          country: form.country,
-          state: form.state,
-          city: form.city,
-          area: form.area,
-          address: form.address
+          phone: form.phone
         };
         localStorage.setItem('zb_customer_shipping_data', JSON.stringify(toSave));
 
         trackStoreEvent('checkout_view', {
           stage: 'checkout_step',
-          customer: toSave,
+          customer: { ...toSave, address: form.address, city: form.city, country: form.country },
           cartItems: items,
           cartTotal: totalPrice
         });
       }
     } catch (e) {}
-  }, [form.name, form.email, form.phone, form.country, form.state, form.city, form.area, form.address, items, totalPrice]);
+  }, [form.name, form.email, form.phone, form.country, form.city, form.address, items, totalPrice]);
+
+  // Handle selecting a saved address card
+  const handleSelectSavedAddress = (addr) => {
+    setSelectedAddressId(addr.id);
+    setForm(f => ({
+      ...f,
+      country: addr.country || 'الأردن',
+      state: addr.state || '',
+      city: addr.city || '',
+      area: addr.area || '',
+      address: addr.address || '',
+      lat: addr.lat || null,
+      lng: addr.lng || null,
+      googleMapsLink: addr.googleMapsLink || (addr.lat && addr.lng ? `https://maps.google.com/?q=${addr.lat},${addr.lng}` : '')
+    }));
+    if (addr.country) {
+      const cities = getCitiesForCountry(addr.country, currentLang);
+      setCountryCities(cities);
+    }
+    setLocationError('');
+    setLocationSuccess(`تم اختيار: ${addr.label || addr.city}`);
+  };
+
+  // Handle adding a fresh new address
+  const handleAddNewAddressClick = () => {
+    setSelectedAddressId('new');
+    setForm(f => ({
+      ...f,
+      city: '',
+      area: '',
+      address: '',
+      lat: null,
+      lng: null,
+      googleMapsLink: ''
+    }));
+    setLocationError('');
+    setLocationSuccess('');
+  };
+
+  // Handle deleting a saved address
+  const handleDeleteSavedAddress = (e, id) => {
+    e.stopPropagation();
+    try {
+      const updated = savedAddresses.filter(a => a.id !== id);
+      setSavedAddresses(updated);
+      localStorage.setItem('zb_saved_addresses', JSON.stringify(updated));
+      if (selectedAddressId === id) {
+        if (updated.length > 0) {
+          handleSelectSavedAddress(updated[0]);
+        } else {
+          handleAddNewAddressClick();
+        }
+      }
+    } catch (err) {}
+  };
+
+  // Save current address to saved addresses book
+  const saveCurrentAddressToBook = (customLabel) => {
+    if (!form.city || !form.address) return;
+    try {
+      const existing = JSON.parse(localStorage.getItem('zb_saved_addresses') || '[]');
+      const duplicateIndex = existing.findIndex(a => 
+        (a.id === selectedAddressId && selectedAddressId !== 'new') ||
+        (a.city === form.city && a.address === form.address && a.area === form.area)
+      );
+
+      const entry = {
+        id: (selectedAddressId && selectedAddressId !== 'new') ? selectedAddressId : 'addr_' + Date.now(),
+        label: customLabel || newAddressLabel || (form.area ? `${form.city} - ${form.area}` : `${form.city}`),
+        country: form.country || 'الأردن',
+        state: form.state || '',
+        city: form.city,
+        area: form.area || '',
+        address: form.address,
+        lat: form.lat || null,
+        lng: form.lng || null,
+        googleMapsLink: form.googleMapsLink || ''
+      };
+
+      let updated;
+      if (duplicateIndex >= 0) {
+        updated = [...existing];
+        updated[duplicateIndex] = entry;
+      } else {
+        updated = [entry, ...existing];
+      }
+      localStorage.setItem('zb_saved_addresses', JSON.stringify(updated));
+      setSavedAddresses(updated);
+      setSelectedAddressId(entry.id);
+      setLocationSuccess(`تم حفظ العنوان بنجاح: ${entry.label}`);
+    } catch (e) {}
+  };
 
   const [errors, setErrors] = useState({});
   const [storeComment, setStoreComment] = useState('');
@@ -541,6 +680,9 @@ export default function Checkout() {
       if (result.success) {
         setOrderId(result.orderId);
         try { trackPurchase(result.orderId, finalPrice, items); } catch (_) {}
+        if (saveNewAddressOption) {
+          try { saveCurrentAddressToBook(newAddressLabel); } catch(e){}
+        }
         return 'success';
       }
       return 'error: فشل حفظ الطلب';
@@ -1064,44 +1206,6 @@ export default function Checkout() {
                   <span>1. بيانات المستلمة والتواصل</span>
                 </h3>
 
-                {hasRestoredData && (
-                  <div style={{
-                    marginBottom: '16px',
-                    backgroundColor: 'rgba(197, 168, 128, 0.1)',
-                    border: '1px solid rgba(197, 168, 128, 0.3)',
-                    borderRadius: '10px',
-                    padding: '8px 14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    fontSize: '0.82rem',
-                    color: 'var(--gold-dim, #9b723e)'
-                  }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <span>✨</span>
-                      <span>تم استرجاع بياناتكِ السابقة تلقائياً لتسهيل وسرعة طلبكِ</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        try { localStorage.removeItem('zb_customer_shipping_data'); } catch(e){}
-                        setForm(f => ({ ...f, name: '', email: '', phone: '', address: '', area: '', city: '' }));
-                        setHasRestoredData(false);
-                      }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#888',
-                        fontSize: '0.76rem',
-                        cursor: 'pointer',
-                        textDecoration: 'underline'
-                      }}
-                    >
-                      تعبئة كعنوان جديد
-                    </button>
-                  </div>
-                )}
-
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>الاسم الكامل *</label>
@@ -1269,6 +1373,105 @@ export default function Checkout() {
                 {locationError && <p style={{ color: '#dc2626', fontSize: '0.82rem', marginTop: '-10px', marginBottom: '15px' }}>{locationError}</p>}
                 {locationSuccess && <p style={{ color: '#16a34a', fontSize: '0.82rem', marginTop: '-10px', marginBottom: '15px', fontWeight: '600' }}>✓ {locationSuccess}</p>}
 
+                {/* ── SAVED ADDRESSES SELECTOR CARDS ── */}
+                {savedAddresses.length > 0 && (
+                  <div style={{ marginBottom: '22px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                      <label style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--espresso)', display: 'flex', alignItems: 'center', gap: '6px', margin: 0 }}>
+                        <span>📍</span>
+                        <span>عناويني المحفوظة ({savedAddresses.length}):</span>
+                      </label>
+                      <span style={{ fontSize: '0.78rem', color: '#777' }}>
+                        اضغطي على العنوان لاختياره فوراً
+                      </span>
+                    </div>
+
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+                      gap: '12px'
+                    }}>
+                      {savedAddresses.map((addr) => {
+                        const isSelected = selectedAddressId === addr.id;
+                        return (
+                          <div
+                            key={addr.id}
+                            onClick={() => handleSelectSavedAddress(addr)}
+                            style={{
+                              padding: '12px 14px',
+                              borderRadius: '14px',
+                              border: isSelected ? '2px solid var(--gold, #c5a880)' : '1.5px solid #e5e5e5',
+                              backgroundColor: isSelected ? 'rgba(197, 168, 128, 0.12)' : '#ffffff',
+                              boxShadow: isSelected ? '0 4px 14px rgba(197, 168, 128, 0.25)' : '0 2px 6px rgba(0,0,0,0.02)',
+                              cursor: 'pointer',
+                              position: 'relative',
+                              transition: 'all 0.25s ease',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '4px'
+                            }}
+                          >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontWeight: '800', fontSize: '0.88rem', color: isSelected ? 'var(--gold-dim, #9b723e)' : '#222', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span>{addr.label || 'عنوان محفوظ'}</span>
+                                {isSelected && <span style={{ color: '#16a34a', fontWeight: 'bold' }}>✓</span>}
+                              </span>
+                              <button
+                                type="button"
+                                title="حذف هذا العنوان"
+                                onClick={(e) => handleDeleteSavedAddress(e, addr.id)}
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '0.85rem',
+                                  padding: '2px 4px',
+                                  opacity: 0.6,
+                                  transition: 'opacity 0.2s'
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                                onMouseLeave={e => e.currentTarget.style.opacity = '0.6'}
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                            <div style={{ fontSize: '0.82rem', color: '#444', fontWeight: '600' }}>
+                              {addr.city}{addr.area ? ` - ${addr.area}` : ''}
+                            </div>
+                            <div style={{ fontSize: '0.76rem', color: '#777', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {addr.address || `${addr.country}`}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Add New Address Card */}
+                      <div
+                        onClick={handleAddNewAddressClick}
+                        style={{
+                          padding: '12px 14px',
+                          borderRadius: '14px',
+                          border: selectedAddressId === 'new' ? '2px dashed var(--gold, #c5a880)' : '1.5px dashed #ccc',
+                          backgroundColor: selectedAddressId === 'new' ? 'rgba(197, 168, 128, 0.08)' : '#fafafa',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          minHeight: '88px',
+                          transition: 'all 0.25s ease'
+                        }}
+                      >
+                        <span style={{ fontSize: '1.2rem', color: 'var(--gold-dim, #9b723e)' }}>➕</span>
+                        <span style={{ fontWeight: '800', fontSize: '0.85rem', color: selectedAddressId === 'new' ? 'var(--gold-dim, #9b723e)' : '#555' }}>
+                          إضافة عنوان جديد
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className={styles.formGrid}>
                   {/* Country Selector */}
                   <div className={styles.formGroup} ref={countrySelectRef} style={{ position: 'relative' }}>
@@ -1415,6 +1618,81 @@ export default function Checkout() {
                     />
                     {errors.address && <span className={styles.errorText}>{errors.address}</span>}
                   </div>
+                </div>
+
+                {/* 💾 Save Address to Book Controls */}
+                <div style={{
+                  marginTop: '16px',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  backgroundColor: 'rgba(197, 168, 128, 0.08)',
+                  border: '1px solid rgba(197, 168, 128, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.86rem', fontWeight: '700', color: 'var(--espresso)' }}>
+                      <input
+                        type="checkbox"
+                        checked={saveNewAddressOption}
+                        onChange={e => setSaveNewAddressOption(e.target.checked)}
+                        style={{ width: '16px', height: '16px', accentColor: 'var(--gold, #c5a880)', cursor: 'pointer' }}
+                      />
+                      <span>حفظ هذا العنوان في قائمة عناويني</span>
+                    </label>
+
+                    {saveNewAddressOption && (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        {['المنزل 🏠', 'العمل 🏢', 'أخرى 📍'].map(lbl => (
+                          <button
+                            key={lbl}
+                            type="button"
+                            onClick={() => setNewAddressLabel(lbl)}
+                            style={{
+                              padding: '3px 9px',
+                              borderRadius: '8px',
+                              fontSize: '0.78rem',
+                              fontWeight: '700',
+                              border: newAddressLabel === lbl ? '1.5px solid var(--gold, #c5a880)' : '1px solid #ddd',
+                              backgroundColor: newAddressLabel === lbl ? 'var(--gold, #c5a880)' : '#ffffff',
+                              color: newAddressLabel === lbl ? '#ffffff' : '#555',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s ease'
+                            }}
+                          >
+                            {lbl}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {(form.city && form.address) && (
+                    <button
+                      type="button"
+                      onClick={() => saveCurrentAddressToBook(newAddressLabel)}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '10px',
+                        fontSize: '0.8rem',
+                        fontWeight: '700',
+                        backgroundColor: 'var(--gold, #c5a880)',
+                        color: '#ffffff',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 8px rgba(197, 168, 128, 0.3)'
+                      }}
+                    >
+                      <span>💾</span>
+                      <span>حفظ العنوان الآن</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
