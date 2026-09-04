@@ -89,12 +89,30 @@ export default function MapLocationPicker({
       let cleanAddress = '';
       let displayName = '';
 
-      // Primary: Fast CORS-friendly reverse geocoding in Arabic
+      // 1. High-accuracy street & building geocoding via backend proxy
       try {
-        const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`);
-        if (bdcRes.ok) {
-          const bdcData = await bdcRes.json();
-          if (bdcData && bdcData.countryName) {
+        const revRes = await fetch(`/api/location/reverse?lat=${lat}&lon=${lon}`);
+        if (revRes.ok) {
+          const revData = await revRes.json();
+          if (revData && revData.success) {
+            country = revData.country || country;
+            city = revData.city || city;
+            area = revData.area || area;
+            cleanAddress = revData.streetAddress || revData.fullAddress || cleanAddress;
+            displayName = revData.fullAddress || cleanAddress;
+          }
+        }
+      } catch (e) {
+        console.warn('Backend proxy geocoding fallback in map:', e);
+      }
+
+      // 2. Secondary: BigDataCloud fallback if street not yet found
+      if (!cleanAddress || !city) {
+        try {
+          const bdcRes = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`);
+          if (bdcRes.ok) {
+            const bdcData = await bdcRes.json();
+            if (bdcData && bdcData.countryName) {
             const cleanAr = (t) => (t || '').replace(/[\u064B-\u065F\u0670]/g, '').trim();
             country = matchCountryFromAddress(cleanAr(bdcData.countryName)) || country || 'الأردن';
             const iso = getCountryIso(country);
@@ -128,6 +146,7 @@ export default function MapLocationPicker({
       } catch (e) {
         console.warn('Primary geocoding error:', e);
       }
+    }
 
       // Fallback
       if (!city || !cleanAddress) {

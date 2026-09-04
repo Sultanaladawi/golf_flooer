@@ -150761,18 +150761,6 @@ db.getConnection((err, connection) => {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
-      // Ensure FedEx columns exist on orders table
-      const fedexCols = [
-        "ALTER TABLE orders ADD COLUMN fedex_tracking_number VARCHAR(100) DEFAULT NULL",
-        "ALTER TABLE orders ADD COLUMN fedex_label_url VARCHAR(500) DEFAULT NULL",
-        "ALTER TABLE orders ADD COLUMN fedex_status VARCHAR(100) DEFAULT NULL",
-        "ALTER TABLE orders ADD COLUMN fedex_service_type VARCHAR(100) DEFAULT NULL",
-        "ALTER TABLE orders ADD COLUMN fedex_created_at TIMESTAMP NULL"
-      ];
-      for (const colQuery of fedexCols) {
-        try { await promiseDb.query(colQuery); } catch (e) {}
-      }
-      console.log("[Migration] Schema verification complete.");
     } catch (dbErr) {
       console.error("[Migration] Schema check failed:", dbErr.message);
     }
@@ -150780,6 +150768,50 @@ db.getConnection((err, connection) => {
   checkColumns();
   if (connection) connection.release();
 });
+// 📍 HIGH-ACCURACY STREET & BUILDING REVERSE GEOCODER
+app.get("/api/location/reverse", async (req, res) => {
+  try {
+    const lat = req.query.lat;
+    const lon = req.query.lon;
+    if (!lat || !lon) return res.status(400).json({ success: false, error: "Missing lat/lon" });
+
+    const osmRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=ar`, {
+      headers: { 'User-Agent': 'ZahratBeesan-Store/1.0 (sultanadawi2004@gmail.com)' }
+    });
+
+    if (osmRes.ok) {
+      const data = await osmRes.json();
+      if (data && data.address) {
+        const addr = data.address;
+        const street = addr.road || addr.street || addr.footway || '';
+        const houseNumber = addr.house_number || addr.building || '';
+        const suburb = addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || '';
+        const district = addr.state_district || addr.county || '';
+        const city = addr.city || addr.town || addr.municipality || addr.state || 'عمان';
+        const country = addr.country || 'الأردن';
+
+        const areaParts = [suburb, district].filter(Boolean);
+        const area = areaParts.length > 0 ? areaParts.join(' - ') : (city || '');
+        const streetParts = [street, houseNumber ? ('عمارة ' + houseNumber) : ''].filter(Boolean);
+        const streetAddress = streetParts.length > 0 ? streetParts.join('، ') : (street || '');
+
+        return res.json({
+          success: true,
+          country,
+          city,
+          area: area || city,
+          streetAddress: streetAddress || [street, area].filter(Boolean).join('، '),
+          fullAddress: [streetAddress, area, city, country].filter(Boolean).join('، '),
+          displayName: data.display_name
+        });
+      }
+    }
+    return res.json({ success: false });
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e.message });
+  }
+});
+
 app.post("/api/orders", async (req, res) => {
   console.log("[Server] Body:", JSON.stringify(req.body, null, 2));
   const { customer_name, email, total_amount, cartItems, order_type, delivery_address, phone, coupon_code, redeem_points, points_discount, is_gift, gift_message, gift_packaging, gift_fee, gift_card_code, gift_card_discount } = req.body;

@@ -504,11 +504,30 @@ export default function Checkout() {
         let finalLat = lat;
         let finalLng = lon;
 
-        // BigDataCloud reverse geocode (with coordinates or via client IP automatically)
-        try {
-          const url = (lat && lon)
-            ? `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`
-            : `https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=ar`;
+        // 1. High-accuracy street & building number geocoding via backend proxy
+        if (lat && lon) {
+          try {
+            const revRes = await fetch(`/api/location/reverse?lat=${lat}&lon=${lon}`);
+            if (revRes.ok) {
+              const revData = await revRes.json();
+              if (revData && revData.success) {
+                detectedCountry = revData.country || detectedCountry;
+                detectedCity = revData.city || detectedCity;
+                detectedArea = revData.area || detectedArea;
+                cleanAddress = revData.streetAddress || revData.fullAddress || cleanAddress;
+              }
+            }
+          } catch (e) {
+            console.warn('Backend reverse geocoding fallback:', e);
+          }
+        }
+
+        // 2. Secondary geocoding (BigDataCloud) if street not fully resolved
+        if (!cleanAddress || !detectedCity) {
+          try {
+            const url = (lat && lon)
+              ? `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=ar`
+              : `https://api.bigdatacloud.net/data/reverse-geocode-client?localityLanguage=ar`;
 
           const bdcRes = await fetch(url);
           if (bdcRes.ok) {
@@ -548,6 +567,7 @@ export default function Checkout() {
         } catch (e) {
           console.warn('BigDataCloud geocoding error:', e);
         }
+      }
 
         const finalCountry = detectedCountry || form.country || 'الأردن';
         const finalCity = detectedCity || form.city || 'عمان';
