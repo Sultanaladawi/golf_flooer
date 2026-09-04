@@ -549,9 +549,14 @@ export default function Checkout() {
           console.warn('BigDataCloud geocoding error:', e);
         }
 
+        const finalCountry = detectedCountry || form.country || 'الأردن';
+        const finalCity = detectedCity || form.city || 'عمان';
+        const finalArea = detectedArea || (detectedCity ? `حي ${detectedCity}` : 'وسط المدينة');
+        const finalAddress = cleanAddress || `${finalArea}، ${finalCity}، ${finalCountry}`;
+
         // Instantly sync country cities
-        if (detectedCountry) {
-          const cities = getCitiesForCountry(detectedCountry, currentLang);
+        if (finalCountry) {
+          const cities = getCitiesForCountry(finalCountry, currentLang);
           if (cities && cities.length > 0) {
             setCountryCities(cities);
           }
@@ -559,18 +564,18 @@ export default function Checkout() {
 
         setForm(f => ({
           ...f,
-          country: detectedCountry || f.country,
+          country: finalCountry,
           state: detectedState || f.state,
-          city: detectedCity || f.city,
-          area: detectedArea || f.area,
-          address: cleanAddress || f.address || (finalLat && finalLng ? `موقع محدد (${finalLat.toFixed(4)}, ${finalLng.toFixed(4)})` : f.address),
+          city: finalCity,
+          area: finalArea,
+          address: finalAddress,
           lat: finalLat || f.lat,
           lng: finalLng || f.lng,
           googleMapsLink: (finalLat && finalLng) ? `https://maps.google.com/?q=${finalLat},${finalLng}` : f.googleMapsLink
         }));
 
         setLocationError('');
-        setLocationSuccess(`تم تحديد الموقع: ${detectedCity ? detectedCity + '، ' : ''}${detectedCountry}`);
+        setLocationSuccess(`تم تحديد الموقع: ${finalCity} - ${finalArea}، ${finalCountry}`);
       } catch (err) {
         console.error('Location resolve error:', err);
         setLocationError('فشل في جلب المنطقة تلقائياً');

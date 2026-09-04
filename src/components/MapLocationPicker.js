@@ -95,21 +95,33 @@ export default function MapLocationPicker({
         if (bdcRes.ok) {
           const bdcData = await bdcRes.json();
           if (bdcData && bdcData.countryName) {
-            country = matchCountryFromAddress(bdcData.countryName);
+            const cleanAr = (t) => (t || '').replace(/[\u064B-\u065F\u0670]/g, '').trim();
+            country = matchCountryFromAddress(cleanAr(bdcData.countryName)) || country || 'الأردن';
             const iso = getCountryIso(country);
+            const adminList = bdcData.localityInfo?.administrative || [];
+            let district = '';
+            for (let i = adminList.length - 1; i >= 0; i--) {
+              const item = adminList[i];
+              if (item.adminLevel >= 5 && item.name && !item.name.includes('الأردن')) {
+                district = cleanAr(item.name).replace(/^(لواء|قضاء|محافظة|ناحية)\s+/, '');
+                break;
+              }
+            }
+
             const mockData = {
               address: {
-                country: bdcData.countryName,
-                state: bdcData.principalSubdivision,
-                city: bdcData.city,
-                town: bdcData.locality,
-                suburb: bdcData.localityInfo?.administrative?.[3]?.name || bdcData.localityInfo?.administrative?.[2]?.name
+                country: cleanAr(bdcData.countryName),
+                state: cleanAr(bdcData.principalSubdivision),
+                city: cleanAr(bdcData.city),
+                town: cleanAr(bdcData.locality),
+                suburb: district || bdcData.localityInfo?.administrative?.[3]?.name
               },
-              display_name: [bdcData.locality, bdcData.principalSubdivision, bdcData.countryName].filter(Boolean).join(', ')
+              display_name: [district, cleanAr(bdcData.locality), cleanAr(bdcData.principalSubdivision), cleanAr(bdcData.countryName)].filter(Boolean).join(', ')
             };
-            city = matchCityFromAddress(mockData, iso);
-            area = (bdcData.locality || bdcData.principalSubdivision || '').replace(/[\u064B-\u065F\u0670]/g, '');
-            cleanAddress = (mockData.display_name || '').replace(/[\u064B-\u065F\u0670]/g, '');
+            city = matchCityFromAddress(mockData, iso) || cleanAr(bdcData.city || bdcData.locality) || 'عمان';
+            area = district || (cleanAr(bdcData.locality) !== city ? cleanAr(bdcData.locality) : '') || '';
+            const state = cleanAr(bdcData.principalSubdivision) || '';
+            cleanAddress = [area && area !== city ? area : null, city, state].filter(Boolean).join('، ');
             displayName = cleanAddress;
           }
         }
@@ -141,12 +153,17 @@ export default function MapLocationPicker({
         }
       }
 
+      const finalCountry = country || 'الأردن';
+      const finalCity = city || initialCity || 'عمان';
+      const finalArea = area || (finalCity ? `حي ${finalCity}` : 'وسط المدينة');
+      const finalAddress = cleanAddress || displayName || `${finalArea}، ${finalCity}، ${finalCountry}`;
+
       setLocationDetails({
-        country: country || 'الأردن',
-        city: city || initialCity || '',
-        area,
-        address: cleanAddress || displayName || `موقع محدد (${lat.toFixed(4)}, ${lon.toFixed(4)})`,
-        displayName: displayName || cleanAddress || ''
+        country: finalCountry,
+        city: finalCity,
+        area: finalArea,
+        address: finalAddress,
+        displayName: finalAddress
       });
     } catch (e) {
       console.warn('Geocoding error:', e);
