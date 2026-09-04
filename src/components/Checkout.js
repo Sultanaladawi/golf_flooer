@@ -13,7 +13,7 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import { useCustomerAuth } from '../context/CustomerAuthContext';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
-import { BILINGUAL_COUNTRIES, getCitiesForCountry } from '../utils/countryCityData';
+import { BILINGUAL_COUNTRIES, getCitiesForCountry, matchCountryFromAddress, getCountryIso, matchCityFromAddress } from '../utils/countryCityData';
 import MapLocationPicker from './MapLocationPicker';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -1508,9 +1508,9 @@ export default function Checkout() {
                             onClick={e => e.stopPropagation()}
                           />
                         </div>
-                        {BILINGUAL_COUNTRIES.filter(c => c.ar.includes(countrySearch) || c.en.toLowerCase().includes(countrySearch.toLowerCase())).map(c => (
+                        {BILINGUAL_COUNTRIES.filter(c => c.ar.includes(countrySearch) || (c.en && c.en.toLowerCase().includes(countrySearch.toLowerCase()))).map((c, idx) => (
                           <div
-                            key={c.code}
+                            key={c.iso || idx}
                             onClick={() => {
                               setForm({ ...form, country: c.ar, city: '' });
                               setShowCountrySelect(false);
@@ -1527,7 +1527,7 @@ export default function Checkout() {
                             onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(197, 168, 128, 0.1)'}
                             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                           >
-                            <img src={getFlagUrl(c.code.toLowerCase())} alt={c.ar} style={{ width: '18px', height: '12px', objectFit: 'cover' }} />
+                            <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{c.flag || '🌐'}</span>
                             <span>{c.ar} ({c.en})</span>
                           </div>
                         ))}
