@@ -292,8 +292,13 @@ export default function Footer({ onOpenPolicy }) {
                 </span>
               </div>
             </div>
-            <a href="/tech" className={styles.technoBtn}>
-              <span>{t('visitTechno') || 'زيارة البوابة التقنية ←'}</span>
+            <a 
+              href="https://zahrat-beesan-tech.onrender.com" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={styles.technoBtn}
+            >
+              <span>{t('visitTechno') || 'زيارة زهرة بيسان تك ←'}</span>
             </a>
           </div>
         </div>
