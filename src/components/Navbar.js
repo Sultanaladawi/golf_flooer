@@ -170,14 +170,14 @@ export default function Navbar({ onOpenPolicy }) {
                 }}
                 className={styles.topBarLink}
                 style={{ color: topTextColor }}
-                title="تغيير الدولة والعملة"
+                title={langCode === 'en' ? "Change Country & Currency" : "تغيير الدولة والعملة"}
               >
                 <img 
                   src={getFlagUrl(currency?.iso || 'jo')} 
                   alt={currency?.name} 
                   style={{ width: '16px', height: '11px', borderRadius: '2px', objectFit: 'cover' }} 
                 />
-                <span>متجر {currency?.name || 'الأردن'} ({currency?.code || 'JOD'})</span>
+                <span>{langCode === 'en' ? 'Store ' : 'متجر '}{currency?.name || (langCode === 'en' ? 'Jordan' : 'الأردن')} ({currency?.code || 'JOD'})</span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>▼</span>
               </button>
 
@@ -195,11 +195,11 @@ export default function Navbar({ onOpenPolicy }) {
                   maxHeight: '380px',
                   overflowY: 'auto',
                   zIndex: 9999,
-                  direction: 'rtl',
+                  direction: currentLang.dir || 'rtl',
                   color: '#1a1a1a'
                 }}>
                   <div style={{ padding: '6px 16px 10px', fontSize: '0.75rem', fontWeight: '800', color: 'var(--gold-dim)', borderBottom: '1px solid #eee' }}>
-                    اختاري الدولة والعملة
+                    {langCode === 'en' ? 'Choose Country & Currency' : 'اختاري الدولة والعملة'}
                   </div>
                   {currencies.map(c => (
                     <button
@@ -351,44 +351,44 @@ export default function Navbar({ onOpenPolicy }) {
 
               <li className={styles.navItem}>
                 <a href="/#collection" className={styles.navLink} style={{ color: navTextColor }}>
-                  <span>العبايات الملكية</span>
+                  <span>{t('royalAbayas') || 'العبايات الملكية'}</span>
                   <span className={styles.chevron}>⌵</span>
                 </a>
                 <div className={styles.dropdownMenu}>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ جميع العبايات الفاخرة</a>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ عبايات كلاسيكية سوداء</a>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ عبايات ملونة وشتوية</a>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ عبايات بشت وبليزر فاخر</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('allLuxuryAbayas') || '✦ جميع العبايات الفاخرة'}</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('classicBlackAbayas') || '✦ عبايات كلاسيكية سوداء'}</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('coloredWinterAbayas') || '✦ عبايات ملونة وشتوية'}</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('bishtBlazerAbayas') || '✦ عبايات بشت وبليزر فاخر'}</a>
                 </div>
               </li>
 
               <li className={styles.navItem}>
                 <a href="/#collection" className={styles.navLink} style={{ color: navTextColor }}>
-                  <span>كولكشن المناسبات</span>
+                  <span>{t('occasionCollection') || 'كولكشن المناسبات'}</span>
                   <span className={styles.chevron}>⌵</span>
                 </a>
                 <div className={styles.dropdownMenu}>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ كولكشن السهرة والأعراس</a>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ عبايات حرير وتطريز يدوي</a>
-                  <a href="/#collection" className={styles.dropdownItem}>✦ تشكيلة الاستقبال الملكية</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('eveningWeddingCollection') || '✦ كولكشن السهرة والأعراس'}</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('silkHandmadeAbayas') || '✦ عبايات حرير وتطريز يدوي'}</a>
+                  <a href="/#collection" className={styles.dropdownItem}>{t('royalReceptionCollection') || '✦ تشكيلة الاستقبال الملكية'}</a>
                 </div>
               </li>
 
               <li className={styles.navItem}>
                 <a href="/blog" className={styles.navLink} style={{ color: navTextColor }}>
-                  مجلة زهرة بيسان
+                  {t('magazine') || 'مجلة زهرة بيسان'}
                 </a>
               </li>
 
               <li className={styles.navItem}>
                 <a href="/gift-cards" className={styles.navLink} style={{ color: navTextColor }}>
-                  بطاقات الهدايا
+                  {t('giftCards') || 'بطاقات الهدايا'}
                 </a>
               </li>
 
               <li className={styles.navItem}>
                 <a href="/#contact" className={styles.navLink} style={{ color: navTextColor }}>
-                  اتصلي بنا
+                  {t('contact') || 'اتصلي بنا'}
                 </a>
               </li>
 
@@ -401,7 +401,7 @@ export default function Navbar({ onOpenPolicy }) {
                   style={{ color: '#b8943a', fontWeight: 800 }}
                   title="وكالة زهرة بيسان للحلول البرمجية والأنظمة الرقمية"
                 >
-                  <span>زهرة بيسان تك 💻</span>
+                  <span>{t('beesanTech') || 'زهرة بيسان تك 💻'}</span>
                 </a>
               </li>
             </ul>
@@ -414,8 +414,8 @@ export default function Navbar({ onOpenPolicy }) {
               onClick={() => setSearchOpen(true)} 
               className={styles.iconBtn}
               style={{ color: navTextColor }}
-              title="البحث الذكي"
-              aria-label="بحث"
+              title={langCode === 'en' ? 'Smart Search' : 'البحث الذكي'}
+              aria-label={langCode === 'en' ? 'Search' : 'بحث'}
             >
               <SearchIcon size={21} />
             </button>
@@ -431,8 +431,8 @@ export default function Navbar({ onOpenPolicy }) {
               }} 
               className={styles.iconBtn}
               style={{ color: navTextColor }}
-              title={customer ? `حسابي (${customer.name})` : "تسجيل الدخول / حسابي"}
-              aria-label="الحساب الشخصي"
+              title={customer ? `${t('myAccount')} (${customer.name})` : `${t('login')} / ${t('myAccount')}`}
+              aria-label={t('myAccount')}
             >
               <div className={styles.avatarIcon} style={{ borderColor: isDarkText ? 'rgba(0,0,0,0.2)' : 'rgba(255,255,255,0.4)' }}>
                 {customer?.avatar ? (
@@ -448,8 +448,8 @@ export default function Navbar({ onOpenPolicy }) {
               onClick={() => navigate('/cart')} 
               className={styles.iconBtn}
               style={{ color: navTextColor }}
-              title="سلة المشتريات"
-              aria-label="سلة المشتريات"
+              title={t('shoppingBag') || 'سلة المشتريات'}
+              aria-label={t('shoppingBag') || 'سلة المشتريات'}
             >
               <BagIcon size={22} />
               {totalItems > 0 && (
@@ -464,7 +464,7 @@ export default function Navbar({ onOpenPolicy }) {
               onClick={() => setMobileOpen(v => !v)}
               className={styles.burger}
               style={{ color: navTextColor }}
-              aria-label="القائمة"
+              aria-label={langCode === 'en' ? 'Menu' : 'القائمة'}
             >
               <span />
               <span />
@@ -480,7 +480,7 @@ export default function Navbar({ onOpenPolicy }) {
           <div className={styles.searchBoxContainer} onClick={e => e.stopPropagation()}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
               <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#1a1a1a', fontWeight: '800' }}>
-                🔍 البحث في تشكيلة زهرة بيسان
+                🔍 {langCode === 'en' ? 'Search in Zahrat Beesan Collection' : 'البحث في تشكيلة زهرة بيسان'}
               </h3>
               <button 
                 onClick={() => setSearchOpen(false)}
@@ -505,7 +505,7 @@ export default function Navbar({ onOpenPolicy }) {
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
-                placeholder="اكتبي اسم العباية، القماش، أو الموديل..."
+                placeholder={t('searchAbayasPlaceholder') || 'ابحثي عن اسم العباية، التطريز، أو اللون...'}
                 style={{
                   width: '100%',
                   background: 'none',
@@ -513,10 +513,11 @@ export default function Navbar({ onOpenPolicy }) {
                   outline: 'none',
                   fontSize: '1.05rem',
                   fontFamily: 'inherit',
-                  color: '#1a1a1a'
+                  color: '#1a1a1a',
+                  direction: currentLang.dir || 'rtl'
                 }}
               />
-              {searchLoading && <span style={{ fontSize: '0.8rem', color: '#888' }}>جاري البحث...</span>}
+              {searchLoading && <span style={{ fontSize: '0.8rem', color: '#888' }}>{langCode === 'en' ? 'Searching...' : 'جاري البحث...'}</span>}
             </div>
 
             {/* Search Results */}
@@ -524,7 +525,7 @@ export default function Navbar({ onOpenPolicy }) {
               <div style={{ marginTop: '20px', maxHeight: '350px', overflowY: 'auto' }}>
                 {searchResults.length === 0 && !searchLoading ? (
                   <div style={{ textAlign: 'center', padding: '30px', color: '#888', fontSize: '0.95rem' }}>
-                    لم نعثر على نتائج مطابقة لـ "{searchQuery}"
+                    {langCode === 'en' ? `No matching results for "${searchQuery}"` : `لم نعثر على نتائج مطابقة لـ "${searchQuery}"`}
                   </div>
                 ) : (
                   searchResults.map(p => (
@@ -568,7 +569,7 @@ export default function Navbar({ onOpenPolicy }) {
       {mobileOpen && (
         <>
           <div className={styles.mobileBackdrop} onClick={() => setMobileOpen(false)} />
-          <div className={`${styles.mobileDrawer} ${mobileOpen ? styles.mobileDrawerOpen : ''}`}>
+          <div className={`${styles.mobileDrawer} ${mobileOpen ? styles.mobileDrawerOpen : ''}`} style={{ direction: currentLang.dir || 'rtl' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <img src="/logo.png" alt="زهرة بيسان" style={{ height: '40px' }} />
               <button 
@@ -579,18 +580,54 @@ export default function Navbar({ onOpenPolicy }) {
               </button>
             </div>
 
-            <a href="/#home" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>الرئيسية <span>←</span></a>
-            <a href="/#collection" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>العبايات الملكية <span>←</span></a>
-            <a href="/#collection" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>كولكشن المناسبات <span>←</span></a>
-            <a href="/blog" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>مجلة زهرة بيسان <span>←</span></a>
-            <a href="/gift-cards" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>بطاقات الهدايا <span>←</span></a>
+            {/* Mobile Language Switcher */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', background: 'rgba(255,255,255,0.08)', padding: '6px', borderRadius: '12px' }}>
+              <button
+                onClick={() => changeLanguage('ar')}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: langCode === 'ar' ? 'var(--gold-dim, #b8943a)' : 'transparent',
+                  color: '#ffffff',
+                  fontWeight: langCode === 'ar' ? 'bold' : 'normal',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                🇸🇦 العربية
+              </button>
+              <button
+                onClick={() => changeLanguage('en')}
+                style={{
+                  flex: 1,
+                  padding: '8px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: langCode === 'en' ? 'var(--gold-dim, #b8943a)' : 'transparent',
+                  color: '#ffffff',
+                  fontWeight: langCode === 'en' ? 'bold' : 'normal',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem'
+                }}
+              >
+                🇬🇧 English
+              </button>
+            </div>
+
+            <a href="/#home" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>{t('home') || 'الرئيسية'} <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span></a>
+            <a href="/#collection" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>{t('royalAbayas') || 'العبايات الملكية'} <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span></a>
+            <a href="/#collection" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>{t('occasionCollection') || 'كولكشن المناسبات'} <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span></a>
+            <a href="/blog" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>{t('magazine') || 'مجلة زهرة بيسان'} <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span></a>
+            <a href="/gift-cards" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>{t('giftCards') || 'بطاقات الهدايا'} <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span></a>
             <a href="/cart" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>
-              سلة المشتريات ({totalItems}) <span>🛍️</span>
+              {t('shoppingBag') || 'سلة المشتريات'} ({totalItems}) <span>🛍️</span>
             </a>
             <a href="/account" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>
-              {customer ? `حسابي (${customer.name})` : 'تسجيل الدخول'} <span>👤</span>
+              {customer ? `${t('myAccount')} (${customer.name})` : (t('login') || 'تسجيل الدخول')} <span>👤</span>
             </a>
-            <a href="/#contact" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>اتصلي بنا <span>←</span></a>
+            <a href="/#contact" onClick={() => setMobileOpen(false)} className={styles.mobileNavLink}>{t('contact') || 'اتصلي بنا'} <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span></a>
 
             <div style={{ marginTop: 'auto', paddingTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', color: '#aaa', fontSize: '0.85rem' }}>
               <div>{shopInfo.phone}</div>

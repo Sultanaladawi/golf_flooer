@@ -30,7 +30,7 @@ const FacebookIcon = () => (
 );
 
 export default function Contact() {
-  const { t, currentLang } = useLanguage();
+  const { t, currentLang, langCode } = useLanguage();
   const [infoRef, infoVis] = useReveal();
   const [channelsRef, channelsVis] = useReveal();
 
@@ -40,52 +40,48 @@ export default function Contact() {
   const socialLinks = [
     {
       id: 'instagram',
-      name: 'إنستغرام',
-      nameEn: 'Instagram',
+      name: langCode === 'en' ? 'Instagram' : 'إنستغرام',
       handle: shopInfo.instagramHandle || '@zahratbeesanshop',
       url: shopInfo.instagram || 'https://www.instagram.com/zahratbeesanshop/',
-      desc: 'جلسات التصوير الحصرية، كولكشن المناسبات، وأحدث الإطلالات الملكية.',
+      desc: langCode === 'en' ? 'Exclusive photoshoots, occasion collections & royal looks.' : 'جلسات التصوير الحصرية، كولكشن المناسبات، وأحدث الإطلالات الملكية.',
       icon: <InstagramIcon />,
       color: '#E1306C',
       bgColor: 'rgba(225, 48, 108, 0.1)',
-      btnText: 'متابعة على إنستغرام'
+      btnText: langCode === 'en' ? 'Follow on Instagram' : 'متابعة على إنستغرام'
     },
     {
       id: 'tiktok',
-      name: 'تيك توك',
-      nameEn: 'TikTok',
+      name: langCode === 'en' ? 'TikTok' : 'تيك توك',
       handle: '@zahratbeesanshop',
       url: shopInfo.tiktok || 'https://www.tiktok.com/@zahratbeesanshop',
-      desc: 'فيديوهات بدقة عالية لاستعراض انسيابية الأقمشة ودقة التطريز اليدوي.',
+      desc: langCode === 'en' ? 'High-definition videos showcasing fabric drape & hand embroidery.' : 'فيديوهات بدقة عالية لاستعراض انسيابية الأقمشة ودقة التطريز اليدوي.',
       icon: <TikTokIcon />,
       color: '#000000',
       bgColor: 'rgba(0, 0, 0, 0.08)',
-      btnText: 'مشاهدة على تيك توك'
+      btnText: langCode === 'en' ? 'Watch on TikTok' : 'مشاهدة على تيك توك'
     },
     {
       id: 'snapchat',
-      name: 'سناب شات',
-      nameEn: 'Snapchat',
+      name: langCode === 'en' ? 'Snapchat' : 'سناب شات',
       handle: '@zahratbeesan',
       url: shopInfo.snapchat || 'https://www.snapchat.com/add/zahratbeesan',
-      desc: 'كواليس يومية حصرية وتغطيات فورية للقطع والتصاميم الجديدة.',
+      desc: langCode === 'en' ? 'Exclusive daily behind-the-scenes & live design coverage.' : 'كواليس يومية حصرية وتغطيات فورية للقطع والتصاميم الجديدة.',
       icon: <SnapchatIcon />,
       color: '#FFFC00',
       iconColor: '#000000',
       bgColor: 'rgba(255, 252, 0, 0.25)',
-      btnText: 'إضافة على سناب شات'
+      btnText: langCode === 'en' ? 'Add on Snapchat' : 'إضافة على سناب شات'
     },
     {
       id: 'facebook',
-      name: 'فيسبوك',
-      nameEn: 'Facebook',
+      name: langCode === 'en' ? 'Facebook' : 'فيسبوك',
       handle: 'Zahrat Beesan',
       url: shopInfo.facebook || 'https://web.facebook.com/profile.php?id=61592655440235',
-      desc: 'مجتمع عميلاتنا الفاخر، آراء السيدات، وآخر الأخبار والمناسبات.',
+      desc: langCode === 'en' ? 'Our luxury community, client reviews, news & events.' : 'مجتمع عميلاتنا الفاخر، آراء السيدات، وآخر الأخبار والمناسبات.',
       icon: <FacebookIcon />,
       color: '#1877F2',
       bgColor: 'rgba(24, 119, 242, 0.1)',
-      btnText: 'زيارة الصفحة'
+      btnText: langCode === 'en' ? 'Visit Page' : 'زيارة الصفحة'
     }
   ];
 
@@ -110,7 +106,7 @@ export default function Contact() {
             marginBottom: '12px'
           }}>
             <Sparkles size={16} />
-            <span>تواصل VIP وخدمة العميلات</span>
+            <span>{langCode === 'en' ? 'VIP Contact & Customer Support' : 'تواصل VIP وخدمة العميلات'}</span>
           </div>
           <h2 style={{
             fontFamily: 'var(--font-primary, serif)',
@@ -119,7 +115,7 @@ export default function Contact() {
             color: 'var(--espresso, #1a1a1a)',
             margin: '0 0 12px 0'
           }}>
-            يسعدنا تواصلكِ معنا
+            {t('contactTitle') || (langCode === 'en' ? 'We Would Love to Hear From You' : 'يسعدنا تواصلكِ معنا')}
           </h2>
           <p style={{
             maxWidth: '650px',
@@ -128,7 +124,9 @@ export default function Contact() {
             fontSize: '1.02rem',
             lineHeight: '1.7'
           }}>
-            فريق مستشارات الأناقة في <strong>زهرة بيسان</strong> متواجد دائماً للإجابة على استفساراتكِ، المساعدة في اختيار المقاس المناسب، وتنسيق إطلالتكِ الملكية مباشرة عبر الواتساب ومواقع التواصل.
+            {langCode === 'en' 
+              ? 'Our styling consultants at Zahrat Beesan are always available to answer your questions, assist with size selection, and coordinate your royal look directly via WhatsApp and social channels.' 
+              : 'فريق مستشارات الأناقة في زهرة بيسان متواجد دائماً للإجابة على استفساراتكِ، المساعدة في اختيار المقاس المناسب، وتنسيق إطلالتكِ الملكية مباشرة عبر الواتساب ومواقع التواصل.'}
           </p>
         </div>
 
@@ -196,7 +194,7 @@ export default function Contact() {
                   color: '#e8decb'
                 }}>
                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#25D366', display: 'inline-block', boxShadow: '0 0 8px #25D366' }} />
-                  <span>متواجدون للرد الفوري 24/7</span>
+                  <span>{langCode === 'en' ? 'Available 24/7 for instant replies' : 'متواجدون للرد الفوري 24/7'}</span>
                 </div>
               </div>
 
@@ -207,7 +205,7 @@ export default function Contact() {
                 color: 'var(--gold-light, #f0dfc8)',
                 margin: '0 0 10px 0'
               }}>
-                المستشارة الشخصية عبر واتساب
+                {langCode === 'en' ? 'Personal Stylist via WhatsApp' : 'المستشارة الشخصية عبر واتساب'}
               </h3>
               
               <div style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff', marginBottom: '16px', direction: 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
@@ -215,22 +213,24 @@ export default function Contact() {
               </div>
 
               <p style={{ color: '#d1c7bc', fontSize: '0.94rem', lineHeight: '1.7', margin: '0 0 24px 0' }}>
-                تواصلي معنا مباشرة عبر الواتساب للحصول على استشارة فورية وتنسيق إطلالتكِ، الإجابة عن أدق تفاصيل الأقمشة والمقاسات، ومتابعة طلباتكِ الخاصة خطوة بخطوة.
+                {langCode === 'en'
+                  ? 'Connect directly on WhatsApp for personal styling advice, precise fabric and sizing details, and real-time custom order tracking.'
+                  : 'تواصلي معنا مباشرة عبر الواتساب للحصول على استشارة فورية وتنسيق إطلالتكِ، الإجابة عن أدق تفاصيل الأقمشة والمقاسات، ومتابعة طلباتكِ الخاصة خطوة بخطوة.'}
               </p>
 
               {/* Feature Highlights */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#eae4dc' }}>
                   <span style={{ color: 'var(--gold, #c5a880)', fontWeight: 'bold' }}>✓</span>
-                  <span>مساعدة مخصصة في اختيار المقاس المناسب</span>
+                  <span>{langCode === 'en' ? 'Personalized guidance for the perfect size' : 'مساعدة مخصصة في اختيار المقاس المناسب'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#eae4dc' }}>
                   <span style={{ color: 'var(--gold, #c5a880)', fontWeight: 'bold' }}>✓</span>
-                  <span>تأكيد الطلبات وتتبع الشحن الدولي والمحلي</span>
+                  <span>{langCode === 'en' ? 'Order confirmation & worldwide/local tracking' : 'تأكيد الطلبات وتتبع الشحن الدولي والمحلي'}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.9rem', color: '#eae4dc' }}>
                   <span style={{ color: 'var(--gold, #c5a880)', fontWeight: 'bold' }}>✓</span>
-                  <span>استقبال الطلبات الخاصة والمقاسات المحددة</span>
+                  <span>{langCode === 'en' ? 'Custom orders and tailored sizing' : 'استقبال الطلبات الخاصة والمقاسات المحددة'}</span>
                 </div>
               </div>
             </div>
@@ -264,7 +264,7 @@ export default function Contact() {
               }}
             >
               <MessageCircle size={22} />
-              <span>محادثة فورية عبر واتساب</span>
+              <span>{langCode === 'en' ? 'Instant WhatsApp Chat' : 'محادثة فورية عبر واتساب'}</span>
               <ArrowIcon size={18} />
             </a>
           </div>
@@ -352,7 +352,7 @@ export default function Contact() {
                   alignItems: 'center',
                   gap: '6px'
                 }}>
-                  <span>زيارة</span>
+                  <span>{langCode === 'en' ? 'Visit' : 'زيارة'}</span>
                   <ArrowIcon size={14} />
                 </div>
               </a>
@@ -377,11 +377,11 @@ export default function Contact() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--espresso, #2c1d11)', fontWeight: '700', fontSize: '0.92rem' }}>
             <Globe size={20} color="var(--gold-dim, #a67c48)" />
-            <span>متجر إلكتروني عالمي — شحن سريع لكافة دول العالم</span>
+            <span>{langCode === 'en' ? 'Global Online Boutique — Express Worldwide Delivery' : 'متجر إلكتروني عالمي — شحن سريع لكافة دول العالم'}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--espresso, #2c1d11)', fontWeight: '700', fontSize: '0.92rem' }}>
             <Clock size={20} color="var(--gold-dim, #a67c48)" />
-            <span>رد فوري خلال دقائق عبر الواتساب</span>
+            <span>{langCode === 'en' ? 'Instant response within minutes via WhatsApp' : 'رد فوري خلال دقائق عبر الواتساب'}</span>
           </div>
         </div>
 

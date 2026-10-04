@@ -19,6 +19,7 @@ import { useReveal } from '../hooks/useReveal';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useLanguage } from '../context/LanguageContext';
 import styles from './Menu.module.css';
 import ProductModal from './ProductModal';
 
@@ -47,6 +48,7 @@ export default function Menu() {
   const { items } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { format } = useCurrency();
+  const { langCode, currentLang, t, tProduct } = useLanguage();
 
   const [dbItems, setDbItems] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -334,9 +336,9 @@ export default function Menu() {
       )}
 
       <div ref={headerRef} className={`section-wrap ${styles.header} reveal ${headerVis ? 'vis' : ''}`}>
-        <div className="label" style={{ color: 'var(--gold-dim)' }}>إبداعاتنا الحصرية</div>
+        <div className="label" style={{ color: 'var(--gold-dim)' }}>{t('exclusiveCreations') || 'إبداعاتنا الحصرية'}</div>
         <div className="divider" style={{ background: 'var(--gold)' }} />
-        <h2 className="h2" style={{ color: 'var(--espresso)', fontSize: '2.5rem' }}>التشكيلة المختارة</h2>
+        <h2 className="h2" style={{ color: 'var(--espresso)', fontSize: '2.5rem' }}>{t('featuredCollection') || 'التشكيلة المختارة'}</h2>
       </div>
 
       {/* Featured abayas cards */}
@@ -374,7 +376,7 @@ export default function Menu() {
             type="text" 
             placeholder={listening 
               ? (voiceLang === 'ar-SA' ? '🎙️ جاري الاستماع...' : '🎙️ Listening...') 
-              : (voiceLang === 'ar-SA' ? 'ابحثي عن عباية، قماش، ألوان...' : 'Search for abayas, fabric, colors...')}
+              : (langCode === 'en' ? 'Search for abayas, fabric, colors...' : 'ابحثي عن عباية، قماش، ألوان...')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
@@ -474,7 +476,7 @@ export default function Menu() {
             }}
           >
             <Crown size={18} />
-            <span>✦ جميع العبايات الملكية</span>
+            <span>{t('allRoyalAbayasTab') || '✦ جميع العبايات الملكية'}</span>
           </button>
           {categories.map(cat => {
             const isActive = activeTab === String(cat.id);
@@ -521,21 +523,21 @@ export default function Menu() {
                 }}
               >
                 {renderCategoryIcon(cat.name || cat.label || cat.icon)}
-                <span style={{ letterSpacing: '0.5px' }}>{cat.label}</span>
+                <span style={{ letterSpacing: '0.5px' }}>{tProduct(cat.label || cat.name)}</span>
               </button>
             );
           })}
         </div>
 
         {/* Filter Toggle Button */}
-        <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px', direction: 'rtl' }}>
+        <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px', direction: currentLang.dir || 'rtl' }}>
           <button 
             onClick={() => setIsFilterOpen(!isFilterOpen)}
             className={`${styles.filterToggleBtn} ${isFilterOpen ? styles.filterToggleActive : ''}`}
             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <SlidersHorizontal size={18} />
-            <span>تصفية متقدمة</span>
+            <span>{t('advancedFilters') || 'تصفية متقدمة'}</span>
             {activeFiltersCount > 0 && (
               <span style={{
                 backgroundColor: 'var(--gold)',
@@ -551,32 +553,32 @@ export default function Menu() {
           </button>
           
           <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', fontWeight: 600 }}>
-            تم العثور على <strong style={{ color: 'var(--gold)' }}>{itemsToShow.length}</strong> قطعة
+            {langCode === 'en' ? 'Found ' : 'تم العثور على '}<strong style={{ color: 'var(--gold)' }}>{itemsToShow.length}</strong> {langCode === 'en' ? 'items' : 'قطعة'}
           </span>
         </div>
 
         {/* Filter Panel */}
         {isFilterOpen && (
-          <div className={styles.filterPanel}>
+          <div className={styles.filterPanel} style={{ direction: currentLang.dir || 'rtl' }}>
             <div className={styles.filterHeader}>
-              <h4 style={{ margin: 0, color: 'var(--espresso)', fontSize: '1.2rem', fontFamily: "'DM Serif Display', serif" }}>فلاتر البحث</h4>
-              <button onClick={clearFilters} className={styles.clearBtn}>مسح الفلاتر</button>
+              <h4 style={{ margin: 0, color: 'var(--espresso)', fontSize: '1.2rem', fontFamily: "'DM Serif Display', serif" }}>{t('searchFilters') || 'فلاتر البحث'}</h4>
+              <button onClick={clearFilters} className={styles.clearBtn}>{t('clearFilters') || 'مسح الفلاتر'}</button>
             </div>
             
             <div className={styles.filterGrid}>
               <div className={styles.filterGroup}>
-                <label>نطاق السعر</label>
+                <label>{t('priceRangeLabel') || 'نطاق السعر'}</label>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input 
                     type="number" 
-                    placeholder="من" 
+                    placeholder={langCode === 'en' ? 'From' : 'من'} 
                     value={priceRange.min}
                     onChange={e => setPriceRange({...priceRange, min: e.target.value})}
                     className={styles.filterInput}
                   />
                   <input 
                     type="number" 
-                    placeholder="إلى" 
+                    placeholder={langCode === 'en' ? 'To' : 'إلى'} 
                     value={priceRange.max}
                     onChange={e => setPriceRange({...priceRange, max: e.target.value})}
                     className={styles.filterInput}
@@ -585,7 +587,7 @@ export default function Menu() {
               </div>
 
               <div className={styles.filterGroup}>
-                <label>نوع القماش</label>
+                <label>{t('fabricTypeLabel') || 'نوع القماش'}</label>
                 <div className={styles.tagsContainer}>
                   {['حرير', 'كريب', 'بشت', 'مخمل', 'شيفون', 'صوف', 'كشمير'].map(fabric => {
                     const isSelected = selectedFabrics.includes(fabric);
@@ -596,7 +598,7 @@ export default function Menu() {
                         className={`${styles.filterTag} ${isSelected ? styles.tagSelected : ''}`}
                       >
                         {isSelected && <Check size={14} style={{ marginLeft: '4px' }}/>}
-                        {fabric}
+                        {tProduct(fabric)}
                       </button>
                     );
                   })}
@@ -604,7 +606,7 @@ export default function Menu() {
               </div>
 
               <div className={styles.filterGroup}>
-                <label>الألوان</label>
+                <label>{t('color') || 'الألوان'}</label>
                 <div className={styles.tagsContainer}>
                   {['أسود', 'أبيض', 'بيج', 'ذهبي', 'بني', 'كحلي', 'عنابي', 'رمادي'].map(color => {
                     const isSelected = selectedColors.includes(color);
@@ -615,7 +617,7 @@ export default function Menu() {
                         className={`${styles.filterTag} ${isSelected ? styles.tagSelected : ''}`}
                       >
                         {isSelected && <Check size={14} style={{ marginLeft: '4px' }}/>}
-                        {color}
+                        {tProduct(color)}
                       </button>
                     );
                   })}
@@ -623,7 +625,7 @@ export default function Menu() {
               </div>
 
               <div className={styles.filterGroup}>
-                <label>المقاسات</label>
+                <label>{t('size') || 'المقاسات'}</label>
                 <div className={styles.tagsContainer}>
                   {['S', 'M', 'L', 'XL', 'XXL', '50', '52', '54', '56', '58', '60'].map(size => {
                     const isSelected = selectedSizes.includes(size);
@@ -671,11 +673,11 @@ export default function Menu() {
                   className={styles.item} 
                   style={{ 
                     opacity: isOutOfStock ? 0.75 : 1,
-                    direction: 'rtl'
+                    direction: currentLang.dir || 'rtl'
                   }}
                 >
                   <div className={styles.itemImageContainer} style={{ position: 'relative' }} onClick={() => window.location.href = `/product/${item.id}`}>
-                    <img src={getImageUrl(item)} alt={item.name} onError={handleImageError} />
+                    <img src={getImageUrl(item)} alt={tProduct(item.name)} onError={handleImageError} />
                     {/* Wishlist Heart Button */}
                     <button
                       onClick={(e) => { e.stopPropagation(); toggleWishlist({ id: item.id, name: item.name, image_url: getImageUrl(item), priceNum: item.priceNum || item.price, category: item.category }); }}
@@ -689,7 +691,7 @@ export default function Menu() {
                         cursor: 'pointer', transition: 'all 0.25s ease',
                         zIndex: 2,
                       }}
-                      aria-label={isWishlisted(item.id) ? 'إزالة من الأمنيات' : 'إضافة للأمنيات'}
+                      aria-label={isWishlisted(item.id) ? (langCode === 'en' ? 'Remove from wishlist' : 'إزالة من الأمنيات') : (langCode === 'en' ? 'Add to wishlist' : 'إضافة للأمنيات')}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                         fill={isWishlisted(item.id) ? '#ef4444' : 'none'}
@@ -700,13 +702,13 @@ export default function Menu() {
                     </button>
                     {isOutOfStock && (
                       <div className={styles.outOfStockOverlay}>
-                        <span>نفذت الكمية</span>
+                        <span>{t('outOfStock') || 'نفذت الكمية'}</span>
                       </div>
                     )}
                   </div>
                   <div className={styles.itemDetails}>
-                    <div className={styles.itemName} onClick={() => window.location.href = `/product/${item.id}`} style={{ cursor: 'pointer' }}>{item.name}</div>
-                    <div className={styles.itemDesc}>{item.subtitle || item.description}</div>
+                    <div className={styles.itemName} onClick={() => window.location.href = `/product/${item.id}`} style={{ cursor: 'pointer' }}>{tProduct(item.name)}</div>
+                    <div className={styles.itemDesc}>{tProduct(item.subtitle || item.description)}</div>
                     {item.variants && item.variants.length > 0 && (
                       <div className={styles.itemSwatches} onClick={(e) => e.stopPropagation()}>
                         {item.variants.map(v => {
@@ -735,7 +737,7 @@ export default function Menu() {
                       onClick={(e) => { e.stopPropagation(); setSelectedProduct(item); }}
                     >
                       <Plus size={16} />
-                      <span>تفاصيل</span>
+                      <span>{t('details') || 'تفاصيل'}</span>
                     </button>
                   </div>
                 </div>
@@ -747,8 +749,8 @@ export default function Menu() {
               backgroundColor: 'var(--bg-surface)', borderRadius: '30px', border: '1px dashed var(--border-hover)'
             }}>
               <Shirt size={60} style={{ margin: '0 auto 20px', display: 'block', opacity: 0.3, color: 'var(--gold-dim)' }} />
-              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--espresso)' }}>لم نجد نتائج مطابقة</h3>
-              <p style={{ fontSize: '0.9rem', marginTop: '5px', color: 'var(--espresso-dim)' }}>يرجى المحاولة بكلمات بحث أخرى أو تصفح الأقسام.</p>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: '800', color: 'var(--espresso)' }}>{t('noProductsFound') || 'لم نجد نتائج مطابقة'}</h3>
+              <p style={{ fontSize: '0.9rem', marginTop: '5px', color: 'var(--espresso-dim)' }}>{langCode === 'en' ? 'Please try other search terms or browse categories.' : 'يرجى المحاولة بكلمات بحث أخرى أو تصفح الأقسام.'}</p>
               {searchTerm && (
                 <button 
                   onClick={() => setSearchTerm('')}
@@ -758,7 +760,7 @@ export default function Menu() {
                     fontWeight: '700', cursor: 'pointer', boxShadow: '0 5px 15px rgba(0,0,0,0.3)'
                   }}
                 >
-                  مسح البحث
+                  {t('clearSearch') || 'مسح البحث'}
                 </button>
               )}
             </div>
@@ -770,6 +772,7 @@ export default function Menu() {
 }
 
 function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
+  const { langCode, currentLang, t, tProduct } = useLanguage();
   const imgUrl = getImageUrl(item);
   const isOutOfStock = !!item.isOutOfStock;
   return (
@@ -777,8 +780,8 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
       className={styles.featCard} 
     >
       <div className={styles.featImg} style={{ position: 'relative', height: '240px', cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>
-        <img src={imgUrl} alt={item.name} onError={handleImageError} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
-        {item.tag && !isOutOfStock && <span className={styles.featBadge}>{item.tag}</span>}
+        <img src={imgUrl} alt={tProduct(item.name)} onError={handleImageError} style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top center' }} />
+        {item.tag && !isOutOfStock && <span className={styles.featBadge}>{tProduct(item.tag)}</span>}
         {isOutOfStock && (
           <span className={styles.featBadge} style={{ 
             background: 'rgba(20, 20, 20, 0.85)', 
@@ -789,13 +792,13 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
             textTransform: 'uppercase',
             fontWeight: '900',
             letterSpacing: '1px'
-          }}>نفذت الكمية</span>
+          }}>{t('outOfStock') || 'نفذت الكمية'}</span>
         )}
       </div>
-      <div className={styles.featBody} style={{ textAlign: 'right' }}>
-        <h3 className={styles.featName} style={{ cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>{item.name}</h3>
+      <div className={styles.featBody} style={{ textAlign: currentLang.dir === 'ltr' ? 'left' : 'right' }}>
+        <h3 className={styles.featName} style={{ cursor: 'pointer' }} onClick={() => window.location.href = `/product/${item.id}`}>{tProduct(item.name)}</h3>
         {/* Luxury Star Rating */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: '6px 0 10px 0', fontSize: '0.82rem', direction: 'rtl', justifyContent: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', margin: '6px 0 10px 0', fontSize: '0.82rem', direction: currentLang.dir || 'rtl', justifyContent: 'flex-start' }}>
           <div style={{ display: 'flex', gap: '2px' }}>
             {Array.from({ length: 5 }).map((_, i) => {
               const ratingVal = item.avg_rating || 5;
@@ -810,7 +813,7 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
             {parseFloat(item.avg_rating || 5).toFixed(1)}
           </span>
           <span style={{ color: 'var(--espresso-dim)', fontSize: '0.75rem' }}>
-            ({item.total_reviews || 0} {item.total_reviews === 1 ? 'تقييم' : 'تقييمات'})
+            ({item.total_reviews || 0} {langCode === 'en' ? 'reviews' : (item.total_reviews === 1 ? 'تقييم' : 'تقييمات')})
           </span>
         </div>
         {item.variants && item.variants.length > 0 && (
@@ -844,7 +847,7 @@ function FeaturedCard({ item, onAdd, getImageUrl, handleImageError }) {
               fontWeight: 'bold'
             }}
           >
-            عرض التفاصيل
+            {t('viewDetails') || 'عرض التفاصيل'}
           </button>
         </div>
       </div>

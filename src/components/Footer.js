@@ -39,7 +39,7 @@ const WhatsAppIcon = () => (
 
 export default function Footer({ onOpenPolicy }) {
   const isDevEnvironment = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  const { currentLang, t } = useLanguage();
+  const { currentLang, langCode, t } = useLanguage();
   const [email, setEmail] = useState('');
   const [subMsg, setSubMsg] = useState('');
   const [subscribing, setSubscribing] = useState(false);
@@ -172,24 +172,24 @@ export default function Footer({ onOpenPolicy }) {
                 <ShieldCheck size={20} color="var(--gold-dim, #b8966c)" />
               </div>
               <div className={styles.trustHeaderText}>
-                <span className={styles.trustTag}>ترخيص وتوثيق رسمي معتمد</span>
-                <span className={styles.trustMinistry}>وزارة الصناعة والتجارة & ضريبة الدخل</span>
+                <span className={styles.trustTag}>{langCode === 'en' ? 'Official Certified & Registered' : 'ترخيص وتوثيق رسمي معتمد'}</span>
+                <span className={styles.trustMinistry}>{langCode === 'en' ? 'Ministry of Industry & Trade & Income Tax' : 'وزارة الصناعة والتجارة & ضريبة الدخل'}</span>
               </div>
             </div>
 
             <div className={styles.trustSealBody}>
               <div className={styles.trustRow}>
-                <span className={styles.trustLabel}>الاسم التجاري الرسمي:</span>
-                <strong className={styles.trustName}>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong>
+                <span className={styles.trustLabel}>{langCode === 'en' ? 'Official Trade Name:' : 'الاسم التجاري الرسمي:'}</span>
+                <strong className={styles.trustName}>{langCode === 'en' ? 'Zahrat Beesan for E-Commerce & Trading' : 'زهرة بيسان للتسوق والمتاجرة الإلكترونية'}</strong>
               </div>
 
               <div className={styles.trustNumbersGrid}>
                 <div className={styles.trustNumBox}>
-                  <span className={styles.trustNumLabel}>السجل التجاري</span>
+                  <span className={styles.trustNumLabel}>{langCode === 'en' ? 'Commercial Registry' : 'السجل التجاري'}</span>
                   <strong className={styles.trustNumValue}>617219</strong>
                 </div>
                 <div className={styles.trustNumBox}>
-                  <span className={styles.trustNumLabel}>الرقم الضريبي</span>
+                  <span className={styles.trustNumLabel}>{langCode === 'en' ? 'Tax ID' : 'الرقم الضريبي'}</span>
                   <strong className={styles.trustNumValue}>81492545</strong>
                 </div>
               </div>
@@ -268,7 +268,7 @@ export default function Footer({ onOpenPolicy }) {
               <span className={styles.payChip} style={{ background: '#3EFEB3', color: '#000', fontWeight: 'bold' }}>tabby</span>
               <span className={styles.payChip} style={{ background: '#FFAA00', color: '#000', fontWeight: 'bold' }}>tamara</span>
               <span className={styles.payChip}>CliQ</span>
-              <span className={styles.payChip}>💵 عند الاستلام</span>
+              <span className={styles.payChip}>{langCode === 'en' ? '💵 Cash on Delivery' : '💵 عند الاستلام'}</span>
             </div>
           </div>
         </div>
@@ -308,10 +308,14 @@ export default function Footer({ onOpenPolicy }) {
       <div className={styles.bottomBar}>
         <div className={styles.bottomInner}>
           <p className={styles.copyright}>
-            جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong> — مؤسسة فردية مسجلة ومرخصة رسمياً في الأردن | سجل تجاري: <strong>617219</strong> | رقم ضريبي: <strong>81492545</strong>.
+            {langCode === 'en' ? (
+              <>All rights reserved © 2026 <strong>Zahrat Beesan for E-Commerce & Trading</strong> — Officially registered individual enterprise in Jordan | CR: <strong>617219</strong> | Tax ID: <strong>81492545</strong>.</>
+            ) : (
+              <>جميع الحقوق محفوظة © 2026 <strong>زهرة بيسان للتسوق والمتاجرة الإلكترونية</strong> — مؤسسة فردية مسجلة ومرخصة رسمياً في الأردن | سجل تجاري: <strong>617219</strong> | رقم ضريبي: <strong>81492545</strong>.</>
+            )}
           </p>
-          <button onClick={scrollToTop} className={styles.scrollTopBtn} aria-label="العودة للأعلى">
-            <span>العودة للأعلى</span>
+          <button onClick={scrollToTop} className={styles.scrollTopBtn} aria-label={langCode === 'en' ? 'Back to top' : 'العودة للأعلى'}>
+            <span>{langCode === 'en' ? 'Back to top' : 'العودة للأعلى'}</span>
             <ArrowUp size={14} />
           </button>
         </div>

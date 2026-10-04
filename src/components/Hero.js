@@ -5,7 +5,7 @@ import styles from './Hero.module.css';
 import { Sparkles, ArrowLeft, Layers } from 'lucide-react';
 
 export default function Hero() {
-  const { t } = useLanguage();
+  const { t, currentLang } = useLanguage();
   const heroVideoRef = useRef(null);
   const [heroVideoUrl, setHeroVideoUrl] = useState('/images/1786522915955-411348681_1782578082455351.mp4');
   const [heroMediaType, setHeroMediaType] = useState('video');
@@ -53,8 +53,10 @@ export default function Hero() {
     }
   }, [banners, heroMediaType]);
 
+  const arrow = currentLang?.dir === 'ltr' ? '→' : '←';
+
   return (
-    <section className={styles.hero} id="home">
+    <section className={styles.hero} id="home" style={{ direction: currentLang?.dir || 'rtl' }}>
       <div className={styles.heroVideoWrap}>
         {heroMediaType === 'slider' && banners.length > 0 ? (
           banners.map((url, idx) => (
@@ -94,26 +96,26 @@ export default function Hero() {
 
       <div className={styles.heroContent}>
         <div className={styles.heroBadge}>
-          <Sparkles size={16} /> التشكيلة الملكية الحصرية 2026
+          <Sparkles size={16} /> {t('heroBadgeText') || 'التشكيلة الملكية الحصرية 2026'}
         </div>
         
         <h1 className={styles.heroTitle}>
-          زهرة بيسان
-          <span className={styles.heroSubtitle}>للعبايات والأزياء الفاخرة</span>
+          {t('heroTitleText') || 'زهرة بيسان'}
+          <span className={styles.heroSubtitle}>{t('heroSubtitleText') || 'للعبايات والأزياء الفاخرة'}</span>
         </h1>
         
         <p className={styles.heroDesc}>
-          حيثُ تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا المصممة خصيصاً لتتوج إطلالتكِ بأبهى صور الأناقة الملكية.
+          {t('heroDescText') || 'حيثُ تلتقي الأصالة بالفخامة — اكتشفي أحدث تشكيلاتنا المصممة خصيصاً لتتوج إطلالتكِ بأبهى صور الأناقة الملكية.'}
         </p>
 
         <div className={styles.heroActions}>
           <a href="#collection" className={styles.heroBtnPrimary}>
-            <span>تسوقي التشكيلة الجديدة</span>
-            <span className={styles.btnArrow}>←</span>
+            <span>{t('shopNewCollectionBtn') || 'تسوقي التشكيلة الجديدة'}</span>
+            <span className={styles.btnArrow}>{arrow}</span>
           </a>
           <a href="#gallery" className={styles.heroBtnSecondary}>
-            <span>معرض الأناقة الملكية</span>
-            <span className={styles.btnArrow}>←</span>
+            <span>{t('royalGalleryBtn') || 'معرض الأناقة الملكية'}</span>
+            <span className={styles.btnArrow}>{arrow}</span>
           </a>
         </div>
       </div>
