@@ -275,35 +275,6 @@ export default function Footer({ onOpenPolicy }) {
 
       </div>
 
-      {/* 🌟 Standalone Zahrat Beesan Techno Card (Local Dev only until 100% completed) */}
-      {isDevEnvironment && (
-        <div style={{ maxWidth: '1340px', margin: '0 auto 35px', padding: '0 20px' }}>
-          <div className={styles.technoCard}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <div className={styles.technoIcon}>
-                💻
-              </div>
-              <div>
-                <strong className={styles.technoTitle}>
-                  {t('technoSolutionsTitle') || 'زهرة بيسان للحلول التقنية والبرمجيات'}
-                </strong>
-                <span className={styles.technoSubtitle}>
-                  {t('technoSolutionsSubtitle') || 'تطوير المتاجر الإلكترونية، الأنظمة السحابية والذكاء الاصطناعي للأعمال'}
-                </span>
-              </div>
-            </div>
-            <a 
-              href="https://zahrat-beesan-tech.onrender.com" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className={styles.technoBtn}
-            >
-              <span>{t('visitTechno') || 'زيارة زهرة بيسان تك ←'}</span>
-            </a>
-          </div>
-        </div>
-      )}
-
       {/* Bottom Footer Bar */}
       <div className={styles.bottomBar}>
         <div className={styles.bottomInner}>

@@ -409,19 +409,6 @@ export default function Navbar({ onOpenPolicy }) {
                   {t('contact') || 'اتصلي بنا'}
                 </a>
               </li>
-
-              <li className={styles.navItem}>
-                <a 
-                  href="https://zahrat-beesan-tech.onrender.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className={styles.navLink} 
-                  style={{ color: '#b8943a', fontWeight: 800 }}
-                  title="وكالة زهرة بيسان للحلول البرمجية والأنظمة الرقمية"
-                >
-                  <span>{t('beesanTech') || 'زهرة بيسان تك 💻'}</span>
-                </a>
-              </li>
             </ul>
           </nav>
 
