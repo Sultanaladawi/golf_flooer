@@ -248,10 +248,14 @@ export default function Navbar({ onOpenPolicy }) {
                   setShowCountryModal(false);
                 }}
                 className={styles.topBarLink}
-                style={{ color: topTextColor }}
-                title="تغيير لغة المتجر"
+                style={{ color: topTextColor, display: 'flex', alignItems: 'center', gap: '6px' }}
+                title={langCode === 'en' ? "Change Store Language" : "تغيير لغة المتجر"}
               >
-                <GlobeIcon />
+                <img 
+                  src={getFlagUrl(langCode === 'en' ? 'gb' : 'sa')} 
+                  alt={langCode === 'en' ? 'English' : 'العربية'} 
+                  style={{ width: '16px', height: '11px', borderRadius: '2px', objectFit: 'cover' }} 
+                />
                 <span>{langCode === 'ar' ? 'العربية' : 'English'}</span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>▼</span>
               </button>
@@ -268,7 +272,7 @@ export default function Navbar({ onOpenPolicy }) {
                   padding: '8px 0',
                   minWidth: '160px',
                   zIndex: 9999,
-                  direction: 'rtl',
+                  direction: currentLang.dir || 'rtl',
                   color: '#1a1a1a'
                 }}>
                   <button
@@ -284,13 +288,17 @@ export default function Navbar({ onOpenPolicy }) {
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '10px',
                       fontSize: '0.86rem',
                       fontWeight: langCode === 'ar' ? '700' : '500',
                       color: '#1a1a1a'
                     }}
                   >
-                    <span>🇸🇦</span>
+                    <img 
+                      src={getFlagUrl('sa')} 
+                      alt="العربية" 
+                      style={{ width: '20px', height: '14px', borderRadius: '2px', objectFit: 'cover' }} 
+                    />
                     <span>العربية (AR)</span>
                   </button>
                   <button
@@ -306,13 +314,17 @@ export default function Navbar({ onOpenPolicy }) {
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '10px',
                       fontSize: '0.86rem',
                       fontWeight: langCode === 'en' ? '700' : '500',
                       color: '#1a1a1a'
                     }}
                   >
-                    <span>🇬🇧</span>
+                    <img 
+                      src={getFlagUrl('gb')} 
+                      alt="English" 
+                      style={{ width: '20px', height: '14px', borderRadius: '2px', objectFit: 'cover' }} 
+                    />
                     <span>English (EN)</span>
                   </button>
                 </div>
@@ -599,10 +611,19 @@ export default function Navbar({ onOpenPolicy }) {
                   color: '#ffffff',
                   fontWeight: langCode === 'ar' ? 'bold' : 'normal',
                   cursor: 'pointer',
-                  fontSize: '0.85rem'
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                🇸🇦 العربية
+                <img 
+                  src={getFlagUrl('sa')} 
+                  alt="العربية" 
+                  style={{ width: '18px', height: '13px', borderRadius: '2px', objectFit: 'cover' }} 
+                />
+                <span>العربية</span>
               </button>
               <button
                 onClick={() => changeLanguage('en')}
@@ -615,10 +636,19 @@ export default function Navbar({ onOpenPolicy }) {
                   color: '#ffffff',
                   fontWeight: langCode === 'en' ? 'bold' : 'normal',
                   cursor: 'pointer',
-                  fontSize: '0.85rem'
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px'
                 }}
               >
-                🇬🇧 English
+                <img 
+                  src={getFlagUrl('gb')} 
+                  alt="English" 
+                  style={{ width: '18px', height: '13px', borderRadius: '2px', objectFit: 'cover' }} 
+                />
+                <span>English</span>
               </button>
             </div>
 
