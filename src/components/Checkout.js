@@ -1181,18 +1181,20 @@ export default function Checkout() {
       <main className={styles.mainContainer}>
         {/* Breadcrumb */}
         <div className={styles.breadcrumb}>
-          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>الرئيسية</Link>
+          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>{currentLang?.code === 'en' ? 'Home' : 'الرئيسية'}</Link>
           <span>/</span>
-          <Link to="/cart" style={{ color: '#888', textDecoration: 'none' }}>سلة المشتريات</Link>
+          <Link to="/cart" style={{ color: '#888', textDecoration: 'none' }}>{currentLang?.code === 'en' ? 'Shopping Bag' : 'سلة المشتريات'}</Link>
           <span>/</span>
-          <span style={{ color: 'var(--gold-dim)', fontWeight: 'bold' }}>إتمام الطلب والدفع</span>
+          <span style={{ color: 'var(--gold-dim)', fontWeight: 'bold' }}>{currentLang?.code === 'en' ? 'Secure Checkout' : 'إتمام الطلب والدفع'}</span>
         </div>
 
         {/* Page Header */}
         <div className={styles.pageHeader}>
-          <h1 className={styles.pageTitle}>إتمام الطلب والدفع الآمن</h1>
+          <h1 className={styles.pageTitle}>{currentLang?.code === 'en' ? 'Secure Checkout & Payment' : 'إتمام الطلب والدفع الآمن'}</h1>
           <p style={{ margin: 0, color: '#666', fontSize: '0.95rem' }}>
-            يرجى إدخال بيانات التوصيل واختيار طريقة الدفع المناسبة لكِ
+            {currentLang?.code === 'en' 
+              ? 'Please enter your shipping address and select your preferred payment method'
+              : 'يرجى إدخال بيانات التوصيل واختيار طريقة الدفع المناسبة لكِ'}
           </p>
         </div>
 
@@ -1223,15 +1225,15 @@ export default function Checkout() {
                   )}
                   <div>
                     <div style={{ fontWeight: 'bold', color: 'var(--espresso)', fontSize: '0.95rem' }}>
-                      {customer.name || 'عميلة زهرة بيسان'}
+                      {customer.name || (currentLang?.code === 'en' ? 'Valued Client' : 'عميلة زهرة بيسان')}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#666' }}>
-                      {customer.email} (سيتم إرسال الفاتورة والتأكيد فوراً لهذا البريد 📧)
+                      {customer.email} {currentLang?.code === 'en' ? '(Invoice & tracking will be sent here 📧)' : '(سيتم إرسال الفاتورة والتأكيد فوراً لهذا البريد 📧)'}
                     </div>
                   </div>
                 </div>
                 <span style={{ fontSize: '0.78rem', background: '#ffffff', color: 'var(--gold-dim)', padding: '4px 10px', borderRadius: '10px', fontWeight: 'bold', border: '1px solid rgba(197, 168, 128, 0.3)', whiteSpace: 'nowrap' }}>
-                  حساب مؤكد ✅
+                  {currentLang?.code === 'en' ? 'Verified Account ✅' : 'حساب مؤكد ✅'}
                 </span>
               </div>
 
@@ -1239,16 +1241,16 @@ export default function Checkout() {
               <div className={styles.sectionCard}>
                 <h3 className={styles.sectionTitle}>
                   <User size={22} color="var(--gold-dim)" />
-                  <span>1. بيانات المستلمة والتواصل</span>
+                  <span>{currentLang?.code === 'en' ? '1. Recipient & Contact Details' : '1. بيانات المستلمة والتواصل'}</span>
                 </h3>
 
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>الاسم الكامل *</label>
+                    <label className={styles.label}>{currentLang?.code === 'en' ? 'Full Name *' : 'الاسم الكامل *'}</label>
                     <input
                       type="text"
                       className={styles.input}
-                      placeholder="مثال: سارة العبدالله"
+                      placeholder={currentLang?.code === 'en' ? 'e.g. Sarah Ahmed' : 'مثال: سارة العبدالله'}
                       value={form.name}
                       onChange={e => setForm({ ...form, name: e.target.value })}
                     />
@@ -1259,7 +1261,7 @@ export default function Checkout() {
                     <label className={styles.label}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Phone size={15} color="var(--gold-dim)" />
-                        <span>رقم الهاتف / الواتساب *</span>
+                        <span>{currentLang?.code === 'en' ? 'Phone / WhatsApp *' : 'رقم الهاتف / الواتساب *'}</span>
                       </span>
                     </label>
                     <div style={{
@@ -1340,7 +1342,11 @@ export default function Checkout() {
                   </div>
 
                   <div className={`${styles.formGroup} ${styles.formGroupFull}`}>
-                    <label className={styles.label}>البريد الإلكتروني (لاستلام الفاتورة وتتبع الشحنة)</label>
+                    <label className={styles.label}>
+                      {currentLang?.code === 'en' 
+                        ? 'Email Address (for order receipt & shipment tracking)' 
+                        : 'البريد الإلكتروني (لاستلام الفاتورة وتتبع الشحنة)'}
+                    </label>
                     <input
                       type="email"
                       className={styles.input}
@@ -1358,7 +1364,7 @@ export default function Checkout() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #f0f0f0', paddingBottom: '14px' }}>
                   <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: '800', color: 'var(--espresso)', display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <MapPin size={22} color="var(--gold-dim)" />
-                    <span>2. عنوان التوصيل والشحن</span>
+                    <span>{currentLang?.code === 'en' ? '2. Delivery & Shipping Address' : '2. عنوان التوصيل والشحن'}</span>
                   </h3>
                   
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -1381,7 +1387,11 @@ export default function Checkout() {
                       }}
                     >
                       <span>📍</span>
-                      <span>{isLocating ? 'جاري التحديد...' : 'تحديد موقعي تلقائياً'}</span>
+                      <span>
+                        {isLocating 
+                          ? (currentLang?.code === 'en' ? 'Locating...' : 'جاري التحديد...') 
+                          : (currentLang?.code === 'en' ? 'Auto-Detect Location' : 'تحديد موقعي تلقائياً')}
+                      </span>
                     </button>
 
                     <button
@@ -1402,7 +1412,7 @@ export default function Checkout() {
                       }}
                     >
                       <span>🗺️</span>
-                      <span>تحديد من الخريطة</span>
+                      <span>{currentLang?.code === 'en' ? 'Select on Map' : 'تحديد من الخريطة'}</span>
                     </button>
                   </div>
                 </div>
@@ -1516,13 +1526,13 @@ export default function Checkout() {
                 <div className={styles.formGrid}>
                   {/* Country Selector */}
                   <div className={styles.formGroup} ref={countrySelectRef} style={{ position: 'relative' }}>
-                    <label className={styles.label}>الدولة *</label>
+                    <label className={styles.label}>{currentLang?.code === 'en' ? 'Country *' : 'الدولة *'}</label>
                     <div 
                       onClick={() => setShowCountrySelect(v => !v)}
                       className={styles.input}
                       style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                     >
-                      <span>{form.country}</span>
+                      <span>{currentLang?.code === 'en' ? (BILINGUAL_COUNTRIES.find(c => c.ar === form.country)?.en || form.country) : form.country}</span>
                       <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>▼</span>
                     </div>
 
@@ -1542,7 +1552,7 @@ export default function Checkout() {
                         <div style={{ padding: '8px' }}>
                           <input
                             type="text"
-                            placeholder="ابحثي عن الدولة..."
+                            placeholder={currentLang?.code === 'en' ? 'Search country...' : 'ابحثي عن الدولة...'}
                             value={countrySearch}
                             onChange={e => setCountrySearch(e.target.value)}
                             style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #eee', fontSize: '0.85rem' }}
@@ -1569,7 +1579,7 @@ export default function Checkout() {
                             onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                           >
                             <span style={{ fontSize: '1.25rem', lineHeight: 1 }}>{c.flag || '🌐'}</span>
-                            <span>{c.ar} ({c.en})</span>
+                            <span>{currentLang?.code === 'en' ? `${c.en} (${c.ar})` : `${c.ar} (${c.en})`}</span>
                           </div>
                         ))}
                       </div>
@@ -1579,7 +1589,7 @@ export default function Checkout() {
 
                   {/* City Selector / Input */}
                   <div className={styles.formGroup} ref={citySelectRef} style={{ position: 'relative' }}>
-                    <label className={styles.label}>المدينة / المحافظة *</label>
+                    <label className={styles.label}>{currentLang?.code === 'en' ? 'City / State *' : 'المدينة / المحافظة *'}</label>
                     {countryCities.length > 0 ? (
                       <>
                         <div 
@@ -1587,7 +1597,7 @@ export default function Checkout() {
                           className={styles.input}
                           style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                         >
-                          <span>{(typeof form.city === 'object' ? (form.city.ar || form.city.name) : form.city) || 'اختاري المدينة...'}</span>
+                          <span>{(typeof form.city === 'object' ? (form.city.ar || form.city.name) : form.city) || (currentLang?.code === 'en' ? 'Choose city...' : 'اختاري المدينة...')}</span>
                           <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>▼</span>
                         </div>
 
@@ -1605,7 +1615,7 @@ export default function Checkout() {
                             overflowY: 'auto'
                           }}>
                             {countryCities.map((cityItem, idx) => {
-                              const cityName = typeof cityItem === 'object' ? (currentLang === 'en' ? cityItem.en : cityItem.ar) : cityItem;
+                              const cityName = typeof cityItem === 'object' ? (currentLang?.code === 'en' ? cityItem.en : cityItem.ar) : cityItem;
                               const cityValue = typeof cityItem === 'object' ? (cityItem.ar || cityItem.name) : cityItem;
                               return (
                                 <div
@@ -1629,7 +1639,7 @@ export default function Checkout() {
                       <input
                         type="text"
                         className={styles.input}
-                        placeholder="مثال: الرياض، دبي، المنامة..."
+                        placeholder={currentLang?.code === 'en' ? 'e.g. Riyadh, Dubai, Manama...' : 'مثال: الرياض، دبي، المنامة...'}
                         value={typeof form.city === 'object' ? (form.city.ar || form.city.name) : form.city}
                         onChange={e => setForm({ ...form, city: e.target.value })}
                       />
@@ -1638,22 +1648,22 @@ export default function Checkout() {
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>المنطقة / الحي</label>
+                    <label className={styles.label}>{currentLang?.code === 'en' ? 'Area / District' : 'المنطقة / الحي'}</label>
                     <input
                       type="text"
                       className={styles.input}
-                      placeholder="مثال: حي الروضة، دابوق، الصويفية..."
+                      placeholder={currentLang?.code === 'en' ? 'e.g. Al-Rawdah, Dabouq, Sweifieh...' : 'مثال: حي الروضة، دابوق، الصويفية...'}
                       value={form.area}
                       onChange={e => setForm({ ...form, area: e.target.value })}
                     />
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>الشارع / رقم البناية / تفاصيل إضافية *</label>
+                    <label className={styles.label}>{currentLang?.code === 'en' ? 'Street / Building / Apt Details *' : 'الشارع / رقم البناية / تفاصيل إضافية *'}</label>
                     <input
                       type="text"
                       className={styles.input}
-                      placeholder="مثال: شارع المدينة المنورة، مجمع رقم 14"
+                      placeholder={currentLang?.code === 'en' ? 'e.g. Al Madinah St, Building 14, Apt 3' : 'مثال: شارع المدينة المنورة، مجمع رقم 14'}
                       value={form.address}
                       onChange={e => setForm({ ...form, address: e.target.value })}
                     />
@@ -1682,29 +1692,33 @@ export default function Checkout() {
                         onChange={e => setSaveNewAddressOption(e.target.checked)}
                         style={{ width: '16px', height: '16px', accentColor: 'var(--gold, #c5a880)', cursor: 'pointer' }}
                       />
-                      <span>حفظ هذا العنوان في قائمة عناويني</span>
+                      <span>{currentLang?.code === 'en' ? 'Save this address to my addresses' : 'حفظ هذا العنوان في قائمة عناويني'}</span>
                     </label>
 
                     {saveNewAddressOption && (
                       <div style={{ display: 'flex', gap: '6px' }}>
-                        {['المنزل 🏠', 'العمل 🏢', 'أخرى 📍'].map(lbl => (
+                        {[
+                          { key: 'المنزل 🏠', label: currentLang?.code === 'en' ? 'Home 🏠' : 'المنزل 🏠' },
+                          { key: 'العمل 🏢', label: currentLang?.code === 'en' ? 'Work 🏢' : 'العمل 🏢' },
+                          { key: 'أخرى 📍', label: currentLang?.code === 'en' ? 'Other 📍' : 'أخرى 📍' }
+                        ].map(item => (
                           <button
-                            key={lbl}
+                            key={item.key}
                             type="button"
-                            onClick={() => setNewAddressLabel(lbl)}
+                            onClick={() => setNewAddressLabel(item.key)}
                             style={{
                               padding: '3px 9px',
                               borderRadius: '8px',
                               fontSize: '0.78rem',
                               fontWeight: '700',
-                              border: newAddressLabel === lbl ? '1.5px solid var(--gold, #c5a880)' : '1px solid #ddd',
-                              backgroundColor: newAddressLabel === lbl ? 'var(--gold, #c5a880)' : '#ffffff',
-                              color: newAddressLabel === lbl ? '#ffffff' : '#555',
+                              border: newAddressLabel === item.key ? '1.5px solid var(--gold, #c5a880)' : '1px solid #ddd',
+                              backgroundColor: newAddressLabel === item.key ? 'var(--gold, #c5a880)' : '#ffffff',
+                              color: newAddressLabel === item.key ? '#ffffff' : '#555',
                               cursor: 'pointer',
                               transition: 'all 0.2s ease'
                             }}
                           >
-                            {lbl}
+                            {item.label}
                           </button>
                         ))}
                       </div>
@@ -1731,7 +1745,7 @@ export default function Checkout() {
                       }}
                     >
                       <span>💾</span>
-                      <span>حفظ العنوان الآن</span>
+                      <span>{currentLang?.code === 'en' ? 'Save Address Now' : 'حفظ العنوان الآن'}</span>
                     </button>
                   )}
                 </div>
@@ -1741,7 +1755,7 @@ export default function Checkout() {
               <div className={styles.sectionCard}>
                 <h3 className={styles.sectionTitle}>
                   <CreditCard size={22} color="var(--gold-dim)" />
-                  <span>3. طريقة الدفع</span>
+                  <span>{currentLang?.code === 'en' ? '3. Payment Method' : '3. طريقة الدفع'}</span>
                 </h3>
 
                 <div className={styles.paymentGrid}>
@@ -1757,14 +1771,14 @@ export default function Checkout() {
                       }}
                     >
                       <div style={{ position: 'absolute', top: '-10px', left: '15px', backgroundColor: 'var(--gold, #c5a880)', color: '#1a1008', fontSize: '0.72rem', fontWeight: 'bold', padding: '2px 8px', borderRadius: '10px' }}>
-                        موصى به (تجريبي محلي) ⚡
+                        {currentLang?.code === 'en' ? 'Recommended ⚡' : 'موصى به (تجريبي محلي) ⚡'}
                       </div>
                       <div style={{ display: 'flex', gap: '8px', fontSize: '1.4rem' }}>
                         <span>💳</span>
                         <span>🍏</span>
                       </div>
                       <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                        بطاقة بنكية أو Apple Pay
+                        {currentLang?.code === 'en' ? 'Bank Card or Apple Pay' : 'بطاقة بنكية أو Apple Pay'}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: 'var(--gold-dim)', fontWeight: 'bold' }}>
                         Visa • MasterCard • مدى • Apple Pay
@@ -1783,8 +1797,12 @@ export default function Checkout() {
                       }}
                     >
                       <div style={{ fontSize: '1.6rem' }}>💵</div>
-                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>الدفع عند الاستلام</div>
-                      <div style={{ fontSize: '0.78rem', color: '#777' }}>ادفعي نقداً عند استلام طلبكِ (داخل الأردن)</div>
+                      <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
+                        {currentLang?.code === 'en' ? 'Cash on Delivery' : 'الدفع عند الاستلام'}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#777' }}>
+                        {currentLang?.code === 'en' ? 'Pay upon receipt (Jordan only)' : 'ادفعي نقداً عند استلام طلبكِ (داخل الأردن)'}
+                      </div>
                     </div>
                   )}
 
@@ -1799,10 +1817,10 @@ export default function Checkout() {
                   >
                     <div style={{ fontSize: '1.6rem' }}>🅿️</div>
                     <div style={{ fontWeight: 'bold', fontSize: '1rem', color: 'var(--espresso)' }}>
-                      حساب PayPal
+                      {currentLang?.code === 'en' ? 'PayPal Account' : 'حساب PayPal'}
                     </div>
                     <div style={{ fontSize: '0.78rem', color: '#777' }}>
-                      دفع إلكتروني آمن عالمياً
+                      {currentLang?.code === 'en' ? 'Secure worldwide instant checkout' : 'دفع إلكتروني آمن عالمياً'}
                     </div>
                   </div>
                 </div>

@@ -174,10 +174,14 @@ export default function Navbar({ onOpenPolicy }) {
               >
                 <img 
                   src={getFlagUrl(currency?.iso || 'jo')} 
-                  alt={currency?.name} 
+                  alt={langCode === 'en' ? (currency?.nameEn || 'Country') : currency?.name} 
                   style={{ width: '16px', height: '11px', borderRadius: '2px', objectFit: 'cover' }} 
                 />
-                <span>{langCode === 'en' ? 'Store ' : 'متجر '}{currency?.name || (langCode === 'en' ? 'Jordan' : 'الأردن')} ({currency?.code || 'JOD'})</span>
+                <span>
+                  {langCode === 'en' 
+                    ? `Store: ${currency?.nameEn || 'Jordan (JOD)'}` 
+                    : `متجر ${currency?.name || 'الأردن (دينار أردني)'}`}
+                </span>
                 <span style={{ fontSize: '0.6rem', opacity: 0.6 }}>▼</span>
               </button>
 
@@ -220,11 +224,13 @@ export default function Navbar({ onOpenPolicy }) {
                         fontSize: '0.86rem',
                         fontWeight: currency?.code === c.code ? '700' : '500',
                         color: '#1a1a1a',
-                        textAlign: 'right'
+                        textAlign: currentLang.dir === 'rtl' ? 'right' : 'left'
                       }}
                     >
                       <img src={getFlagUrl(c.iso || 'jo')} alt={c.name} style={{ width: '20px', height: '14px', borderRadius: '2px', objectFit: 'cover' }} />
-                      <span style={{ flex: 1 }}>{c.name}</span>
+                      <span style={{ flex: 1, textAlign: currentLang.dir === 'rtl' ? 'right' : 'left' }}>
+                        {langCode === 'en' ? (c.nameEn || c.name) : c.name}
+                      </span>
                       <span style={{ color: 'var(--gold-dim)', fontSize: '0.8rem', fontWeight: 'bold' }}>{c.symbol || c.code}</span>
                     </button>
                   ))}
