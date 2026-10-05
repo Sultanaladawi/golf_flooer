@@ -708,7 +708,7 @@ export default function Menu() {
                   </div>
                   <div className={styles.itemDetails}>
                     <div className={styles.itemName} onClick={() => window.location.href = `/product/${item.id}`} style={{ cursor: 'pointer' }}>{tProduct(item.name)}</div>
-                    <div className={styles.itemDesc}>{tProduct(item.subtitle || item.description)}</div>
+                    <div className={styles.itemDesc}>{tProduct(item.subtitle || item.description || featuredItems.find(f => Number(f.id) === Number(item.id) || f.name === item.name)?.desc)}</div>
                     {item.variants && item.variants.length > 0 && (
                       <div className={styles.itemSwatches} onClick={(e) => e.stopPropagation()}>
                         {item.variants.map(v => {
@@ -721,7 +721,7 @@ export default function Menu() {
                           return (
                             <div 
                               key={v.id} 
-                              title={v.color_name} 
+                              title={tProduct ? tProduct(v.color_name) : v.color_name} 
                               className={styles.swatchBall} 
                               style={{ background: bg || '#333' }} 
                             />

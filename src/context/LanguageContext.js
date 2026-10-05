@@ -208,6 +208,23 @@ const translations = {
     confirmOrder: 'تأكيد الطلب',
     clearCart: 'إفراغ السلة',
     deliveryNoteCart: 'يتم حساب رسوم التوصيل بدقة في صفحة الدفع.',
+    orderSummary: 'ملخص مشترياتكِ',
+    shippingCost: 'تكلفة الشحن:',
+    discount: 'الخصم',
+    savings: 'التوفير',
+    calculating: 'جاري الحساب...',
+    checkout: 'إتمام الطلب',
+    calcAtCheckoutText: 'يُحسب عند الدفع',
+    quantity: 'الكمية',
+    advancedFilters: 'تصفية متقدمة',
+    searchFilters: 'فلاتر البحث',
+    clearFilters: 'مسح الفلاتر',
+    priceRangeLabel: 'نطاق السعر',
+    fabricTypeLabel: 'نوع القماش',
+    total: 'الإجمالي',
+    orderNotes: 'ملاحظات الطلب',
+    free: 'مجاناً',
+    allCollections: 'كافة التشكيلات',
     // Wishlist
     wishlistTitle: 'قائمة الأمنيات',
     productSingular: 'منتج',
@@ -236,7 +253,60 @@ const translations = {
     cancel: 'إلغاء',
     loading: 'جاري التحميل...',
     error: 'حدث خطأ',
-    success: 'تم بنجاح'
+    success: 'تم بنجاح',
+    // Product Page & Assistant Keys
+    back: 'رجوع',
+    expressDelivery: 'توصيل سريع',
+    royalQuality: 'جودة ملكية',
+    easyExchange: 'تبديل ميسر',
+    inStock: 'متوفر في المخزون',
+    inclusiveTaxes: 'شامل كافة الضرائب المستحقة',
+    selectedColor: 'اللون المختار:',
+    requestedSize: 'المقاس المطلوب:',
+    sizeGuideModalBtn: '📏 جدول القياسات ومساعد المقاس الذكي',
+    whatsappInquiry: 'استفسار وتواصل عبر الواتساب',
+    approxWeight: '⚖️ الوزن التقريبي:',
+    tabDetails: '✨ التفاصيل والخامة',
+    tabSizeChart: '📏 جدول القياسات (الصدر والحوض)',
+    tabShipping: '🚚 الشحن والتوصيل',
+    detailsTabDesc: 'تم تصميم وتطريز هذه القطعة بعناية فائقة بأيدي أمهر المصممين، باستخدام أجود أنواع الأقمشة الفاخرة التي تمنحك إطلالة ملكية راقية تليق بالمناسبات الخاصة.',
+    detailsTabBullet1: 'تطريز خاص عالي الدقة والمتقن.',
+    detailsTabBullet2: 'قماش ناعم مريح ومناسب لكافة الفصول.',
+    detailsTabBullet3: 'تعليمات العناية: غسيل يدوي بماء بارد أو تنظيف جاف (Dry Clean) للحفاظ على بريق التطريز.',
+    sizeChartOfficial: 'جدول المقاسات الرسمي المعتمد (القياسات بالسنتيمتر):',
+    chestBust: 'محيط الصدر',
+    hipCircumference: 'محيط الحوض',
+    shippingTabLocalGlobal: '🟢 التوصيل المحلي والخليجي والعالمي: يتم شحن وتوصيل الطلب لجميع دول العالم مع رقم تتبع فوري وآمن.',
+    shippingTabPackaging: '🟢 التغليف الفاخر: توضع كل قطعة داخل صندوق وقائي فاخر ومعطر بعطر بيسان الملكي الخاص.',
+    recommendedStyling: '✨ التنسيق الملكي الموصى به من المعرض',
+    complementaryPieces: 'قطع زهرة بيسان المكملة للإطلالة',
+    stylistAdvice: 'نصيحة خبيرة الأناقة يافا لتنسيق هذه العباية / القفطان',
+    shopPiece: 'تسوقي القطعة ✦',
+    relatedProductsTitle: 'منتجات ذات صلة قد تعجبكِ',
+    beFirstToReview: 'كوني أول من يضع لمسته ويقيّم هذا المنتج!',
+    distinguishedClient: 'عميلة متميزة',
+    nameOptional: 'اسمك الكريم (اختياري)',
+    reviewPlaceholder: 'شاركينا تجريبتك وانطباعك عن خام وتطريز ومقاس هذا المنتج...',
+    submitRoyalReview: 'إرسال التقييم الملكي',
+    smartSizeGuideTitle: '📏 دليل ومساعد المقاسات الذكي',
+    interactiveHeightCalc: 'حاسبة الطول والمقاس التفاعلية',
+    yourHeight: 'طولكِ الكريم:',
+    recommendedSize: 'المقاس الموصى به:',
+    sizePrefix: 'مقاس ',
+    confirmSize: 'اعتماد المقاس',
+    sizeTableTitle: '📏 جدول القياسات (الصدر والحوض فقط)',
+    totalPrice: 'السعر الكلي:',
+    cartTitle: 'حقيبة التسوق',
+    itemsCount: 'مجموع المنتجات:',
+    discountLabel: 'الخصم:',
+    shippingFeeLabel: 'تكلفة الشحن:',
+    calcAtCheckoutText: '0 JOD (يُحسب عند الدفع)',
+    savings: 'التوفير',
+    checkout: 'إتمام الطلب',
+    searching: 'جاري البحث...',
+    noResultsFoundFor: 'لم نعثر على نتائج مطابقة لـ',
+    reviewSingular: 'تقييم',
+    reviewsPlural: 'تقييمات متميزة'
   },
   en: {
     home: 'Home',
@@ -495,6 +565,23 @@ const translations = {
     confirmOrder: 'Confirm Order',
     clearCart: 'Clear Bag',
     deliveryNoteCart: 'Delivery fees are calculated precisely at checkout.',
+    orderSummary: 'Order Summary',
+    shippingCost: 'Shipping Fee:',
+    discount: 'Discount',
+    savings: 'Savings',
+    calculating: 'Calculating...',
+    checkout: 'Checkout',
+    calcAtCheckoutText: 'Calculated at checkout',
+    quantity: 'Quantity',
+    advancedFilters: 'Advanced Filters',
+    searchFilters: 'Search Filters',
+    clearFilters: 'Clear Filters',
+    priceRangeLabel: 'Price Range',
+    fabricTypeLabel: 'Fabric Type',
+    total: 'Total',
+    orderNotes: 'Order Notes',
+    free: 'Free',
+    allCollections: 'All Collections',
     // Wishlist
     wishlistTitle: 'Wishlist',
     productSingular: 'item',
@@ -523,7 +610,60 @@ const translations = {
     cancel: 'Cancel',
     loading: 'Loading...',
     error: 'An error occurred',
-    success: 'Success'
+    success: 'Success',
+    // Product Page & Assistant Keys
+    back: 'Back',
+    expressDelivery: 'Express Delivery',
+    royalQuality: 'Royal Quality',
+    easyExchange: 'Easy Exchange',
+    inStock: 'In Stock',
+    inclusiveTaxes: 'Inclusive of all taxes',
+    selectedColor: 'Selected Color:',
+    requestedSize: 'Selected Size:',
+    sizeGuideModalBtn: '📏 Size Guide & Smart Assistant',
+    whatsappInquiry: 'Inquire via WhatsApp',
+    approxWeight: '⚖️ Approx. Weight:',
+    tabDetails: '✨ Details & Fabric',
+    tabSizeChart: '📏 Size Chart (Bust & Hip)',
+    tabShipping: '🚚 Shipping & Delivery',
+    detailsTabDesc: 'This creation was meticulously designed and hand-embroidered by master artisans, using the finest haute couture fabrics to grant an exquisite royal silhouette suited for grand occasions.',
+    detailsTabBullet1: 'High-density precision artisanal embroidery.',
+    detailsTabBullet2: 'Luxuriously soft, breathable fabric suited for all seasons.',
+    detailsTabBullet3: 'Care Instructions: Hand wash with cold water or Dry Clean to preserve embroidery brilliance.',
+    sizeChartOfficial: 'Official Certified Size Chart (Measurements in cm):',
+    chestBust: 'Bust Circumference',
+    hipCircumference: 'Hip Circumference',
+    shippingTabLocalGlobal: '🟢 Worldwide Express Shipping: Delivered to Jordan, the Gulf, and worldwide with full online tracking.',
+    shippingTabPackaging: '🟢 Luxury Gift Packaging: Every piece arrives nested inside a protective royal box scented with signature Beesan perfume.',
+    recommendedStyling: '✨ Recommended Royal Styling',
+    complementaryPieces: 'Complementary Creations by Zahrat Beesan',
+    stylistAdvice: 'Styling advice by our fashion curator Yafa',
+    shopPiece: 'Shop Creation ✦',
+    relatedProductsTitle: 'You May Also Like',
+    beFirstToReview: 'Be the first to share your impressions of this creation!',
+    distinguishedClient: 'Distinguished Client',
+    nameOptional: 'Your Name (Optional)',
+    reviewPlaceholder: 'Share your impressions on the fabric, embroidery, and fit...',
+    submitRoyalReview: 'Submit Royal Review',
+    smartSizeGuideTitle: '📏 Smart Size Guide & Helper',
+    interactiveHeightCalc: 'Interactive Height & Size Calculator',
+    yourHeight: 'Your Height:',
+    recommendedSize: 'Recommended Size:',
+    sizePrefix: 'Size ',
+    confirmSize: 'Select Size',
+    sizeTableTitle: '📏 Size Table (Bust & Hip Only)',
+    totalPrice: 'Total Price:',
+    cartTitle: 'Shopping Bag',
+    itemsCount: 'Items Subtotal:',
+    discountLabel: 'Discount:',
+    shippingFeeLabel: 'Shipping Fee:',
+    calcAtCheckoutText: 'Calculated at checkout',
+    savings: 'You Save',
+    checkout: 'Proceed to Checkout',
+    searching: 'Searching...',
+    noResultsFoundFor: 'No matching results for',
+    reviewSingular: 'review',
+    reviewsPlural: 'verified reviews'
   },
   tr: {
     home: 'Anasayfa',
@@ -1111,49 +1251,286 @@ export function LanguageProvider({ children }) {
 
   const productDictionary = {
     en: {
-      'عبايات سهرة': 'Evening Abayas',
-      'عبايات مطرزة': 'Embroidered Abayas',
+      // ══════ Products (Exact Titles with & without Emojis) ══════
+      'قفطان تاج بيسان العرائسي': '"Crown of Beesan" Bridal Kaftan',
+      'قفطان تاج بيسان العرائسي 👑': '"Crown of Beesan" Bridal Kaftan 👑',
+      'عباية اللؤلؤة العصرية 🦪': 'Modern Pearl Abaya 🦪',
+      'عباية اللؤلؤة العصرية 🦪 ': 'Modern Pearl Abaya 🦪',
+      'عباية اللؤلؤة العصرية': 'Modern Pearl Abaya',
+      'ثوب السلطانة الملكي👑': 'Royal Sultana Thobe 👑',
+      'ثوب السلطانة الملكي 👑': 'Royal Sultana Thobe 👑',
+      'ثوب السلطانة الملكي': 'Royal Sultana Thobe',
+      'قفطان الأميرة 👑': 'Princess Royal Kaftan 👑',
+      'قفطان الأميرة': 'Princess Royal Kaftan',
+      'قفطان الياقوتة💎': 'Royal Sapphire Kaftan 💎',
+      'قفطان الياقوتة 💎': 'Royal Sapphire Kaftan 💎',
+      'قفطان الياقوتة': 'Royal Sapphire Kaftan',
+      'ثوب اليشمك': 'Yashmak Heritage Thobe',
+      'ثوب اليشمك 🌿': 'Yashmak Heritage Thobe 🌿',
+      'ثوب بيسان 🌿': 'Beesan Heritage Thobe 🌿',
+      'ثوب بيسان': 'Beesan Heritage Thobe',
+      'ثوب الأناقة السوداء 💎': 'Black Elegance Royal Thobe 💎',
+      'ثوب الأناقة السوداء': 'Black Elegance Royal Thobe',
+      'عباية الأندلس 🌿': 'Andalusian Silk Abaya 🌿',
+      'عباية الأندلس': 'Andalusian Silk Abaya',
+      'عباية كلاسيك سوداء': 'Classic Black Abaya',
+      'عباية ملكية مطرزة': 'Embroidered Royal Abaya',
+      'عباية زهرة الياسمين': 'Jasmine Blossom Abaya',
+      'عباية الحرير الفاخر': 'Luxury Silk Abaya',
+      'بشت زهرة بيسان': 'Zahrat Beesan Luxury Bisht',
+      'عباية كلاسيك يومية': 'Daily Classic Abaya',
+      'عباية بشت فاخرة': 'Luxury Bisht Abaya',
+      'عباية حرير طبيعي': 'Natural Silk Abaya',
+      'قفطان مناسبات': 'Occasion Kaftan',
+      'عباية كلاسيك': 'Classic Abaya',
+      'عباية شتوية': 'Winter Abaya',
+      'عباية ملكية': 'Royal Abaya',
+
+      // ══════ Product Subtitles ══════
+      'قفطان شيفون مطرز بالقصب': 'Chiffon Kaftan with Artisanal Gold Zari Embroidery',
+      'تصميم مريح وأنيق يعكس بساطة الفخامة الحديثة': 'Comfortable and elegant design reflecting modern understated luxury',
+      'عراقة التراث الشرقي مجسدة في قفطان السلطانة الملكي': 'Authentic Oriental heritage embodied in the Royal Sultana Thobe',
+      'قفطان راقي بلون جذاب وتطريز فاخر': 'Refined kaftan featuring captivating hues and luxury embroidery',
+      'قطعة استثنائية ثمينة كحجر الياقوت النادر': 'An exceptional creation as rare and precious as a royal sapphire',
+      'ثوب فاخر أنيق ومطرز بغرز دقيقة': 'Elegant luxury thobe crafted with fine artisanal needlework',
+      'ثوب بيسان التراثي الفاخر بتطريز الحرير الأخضر الملكي': 'Heritage Beesan Thobe with royal emerald silk embroidery',
+      'ثوب ملكي أسود فاحم بقصة عصرية أنيقة': 'Deep royal black thobe with an elegant modern silhouette',
+      'عباية أندلسية ساحرة بتصميم محتشم': 'Charming Andalusian abaya with modest luxury aesthetics',
+
+      // ══════ Product Full Descriptions ══════
+      'قفطان كريمي انسيابي مزيّن بتطريز أنيق باللون الذهبي والكحلي على المقدمة والأكمام، يمنح إطلالة ملكية تليق بأبهج المناسبات؛ من حفلات الزفاف والخطوبة، إلى ليالي الحنّة والمناسبات العائلية الكبرى.':
+        'A flowing ivory chiffon kaftan adorned with exquisite gold and navy embroidery along the front and sleeves. Designed to grant a majestic royal presence for grand weddings, engagements, henna nights, and gala celebrations.',
+      
+      'تصميم مريح وأنيق يعكس بساطة الفخامة الحديثة. تأتي عباية اللؤلؤة كعباية مفتوحة منفردة بقصّة راقية وياقة مميزة بتطريز فاخر على الياقة والأكمام، مصممة لتنسيقها بحرية فوق ملابسك وتمنحك حرية الحركة وإشراقة استثنائية. متوفرة بعدة ألوان ساحرة.':
+        'An effortless yet sophisticated open abaya crafted from premium crepe with delicate embroidery along the collar and cuffs. Tailored to layer gracefully over your attire, offering seamless movement and radiant charm.',
+
+      'عراقة التراث الشرقي مجسدة في قفطان السلطانة الملكي. مصنوع من قماش فاخر محبوك بالكامل بنقوش وزخارف تراثية دقيقة، مع حزام خصر عريض يحدد القوام بجمال، وياقة مرتفعة تزيد من هيبة وفخامة الإطلالة.':
+        'Embodying centuries of Eastern heritage, the Royal Sultana Thobe is woven from luxurious textured fabric with intricate heirloom motifs, featuring an accentuating waist belt and high collar for an authoritative royal posture.',
+
+      'قفطان راقي بلون جذاب وتطريز فاخر يناسب المناسبات الكبرى والاحتفالات الملكية.':
+        'A regal haute couture kaftan featuring captivating shades and master-embroidered detailing, tailored for prestigious gala nights and grand royal occasions.',
+
+      'قطعة استثنائية ثمينة كحجر الياقوت النادر. يمزج قفطان الياقوتة بين النقوش الأندلسية الفاخرة والخيوط الملونة الدافئة، وتكتمل أناقته بأكمام الجرس الواسعة (Bell Sleeves) وحزام خصر متناسق يُبرز أنوثتك الشرقية.':
+        'A breathtaking masterpiece as precious as a rare sapphire. Blending Andalusian embroidery with warm artisan threads, finished with flared bell sleeves and an ornate silhouette-defining belt.',
+
+      'ثوب فاخر أنيق ومطرز بغرز دقيقة وتصميم مريح وعصري يجمع الأصالة والتجدد.':
+        'An everyday luxury thobe adorned with delicate needlework, combining effortless modern ease with the timeless warmth of traditional tailoring.',
+
+      'ثوب بيسان التراثي الفاخر بتطريز الحرير الأخضر الملكي وخامة أصلية 100%.':
+        'The signature heritage creation of the Maison, adorned with vibrant royal green silk embroidery on 100% premium woven fabric.',
+
+      'ثوب ملكي أسود فاحم بقصة عصرية أنيقة وتطريز راقي للمناسبات اليومية والرسمية.':
+        'A striking midnight black thobe crafted with a contemporary sleek silhouette and refined tonal embroidery, suited for both daily elegance and official gatherings.',
+
+      'عباية أندلسية ساحرة بتصميم محتشم وتطريز دمشقي أندلسي فاخر وخامة باردة.':
+        'An enchanting Andalusian-inspired abaya combining modest elegance with intricate Levantine damask embroidery on cool, breathable summer crepe.',
+
+      // ══════ Categories ══════
       'عبايات يومية': 'Daily Abayas',
+      'عبايات مطرزة': 'Embroidered Abayas',
+      'عبايات سهرة': 'Evening Abayas',
       'عبايات كلاسيك': 'Classic Abayas',
       'عبايات المناسبات': 'Occasion Abayas',
       'عبايات الاستقبال': 'Reception Abayas',
+      'كولكشن المناسبات': 'Occasion Collection',
       'التشكيلة الشتوية': 'Winter Collection',
       'التشكيلة الصيفية': 'Summer Collection',
       'قفاطين ملكية': 'Royal Kaftans',
       'أثواب مطرزة': 'Embroidered Thobes',
-      'سهرة': 'Evening',
-      'مطرزة': 'Embroidered',
-      'حرير': 'Silk', 'كريب': 'Crepe', 'كريب فاخر': 'Luxury Crepe', 'مخمل': 'Velvet', 'شيفون': 'Chiffon', 'صوف': 'Wool', 'كشمير': 'Cashmere',
-      'أسود': 'Black', 'سوداء': 'Black', 'أبيض': 'White', 'بيج': 'Beige', 'ذهبي': 'Gold', 'بني': 'Brown', 'كحلي': 'Navy', 'عنابي': 'Burgundy', 'رمادي': 'Gray',
-      'الأكثر مبيعاً': 'Best Seller', 'جديد': 'New Arrival', 'تشكيلة الشتاء': 'Winter Collection', 'تشكيلة فاخرة': 'Luxury Collection',
-      'ملكي': 'Royal', 'الملكي': 'Royal', 'الملكية': 'Royal', 'عرائسي': 'Bridal', 'العرائس': 'Bridal',
-      'فاخر': 'Luxury', 'فاخرة': 'Luxury', 'مطرز': 'Embroidered',
-      'كلاسيك': 'Classic', 'كلاسيكية': 'Classic', 'عصرية': 'Modern', 'مناسبات': 'Occasions',
-      'استقبال': 'Reception', 'يومية': 'Daily', 'شتوية': 'Winter', 'صيفية': 'Summer',
-      'بشت': 'Bisht', 'عاجية': 'Ivory', 'الأناقة': 'Elegance',
-      'السلطانة': 'Sultana', 'الأميرة': 'Princess', 'تاج': 'Crown', 'الياقوتة': 'Sapphire',
-      'اللؤلؤة': 'Pearl', 'بيسان': 'Beesan', 'اليشمك': 'Yashmak', 'الأندلس': 'Andalus',
-      'نوع القماش': 'Fabric Type', 'بلد المنشأ': 'Country of Origin',
-      'الأردن': 'Jordan', 'غسيل يدوي بماء بارد': 'Hand wash with cold water', 'كي على حرارة منخفضة': 'Low heat ironing'
+      'جميع العبايا': 'All Abayas',
+      'جميع العبايات': 'All Abayas',
+      'جميع العبايات الفاخرة': 'All Luxury Abayas',
+      'العبايات الملكية': 'Royal Abayas',
+      'تصميم خاص': 'Custom Haute Couture',
+
+      // ══════ Tags & Badges ══════
+      'الأكثر طلباً 👑': 'Most Popular 👑',
+      'الأكثر طلباً': 'Most Popular',
+      'الأكثر مبيعاً 🖤': 'Best Seller 🖤',
+      'الأكثر مبيعاً': 'Best Seller',
+      'جديد ✨': 'New Arrival ✨',
+      'جديد': 'New Arrival',
+      'قطعة حصرية 💎': 'Exclusive Piece 💎',
+      'قطعة حصرية': 'Exclusive Piece',
+      'VIP 🌟': 'VIP Haute Couture 🌟',
+      'إصدار محدود 🔥': 'Limited Edition 🔥',
+      'إصدار محدود': 'Limited Edition',
+      'تراث أصيل 🌿': 'Timeless Heritage 🌿',
+      'تراث أصيل': 'Timeless Heritage',
+      'أيقونة الدار 🌸': 'Maison Icon 🌸',
+      'أيقونة الدار': 'Maison Icon',
+      'جديد الموسم 🍃': 'Season\'s New 🍃',
+      'جديد الموسم': 'Season\'s New',
+      'تشكيلة فاخرة': 'Luxury Collection',
+      'عرائسي': 'Bridal',
+      'قفطان': 'Kaftan',
+      'مناسبات': 'Occasions',
+      'فاخر': 'Haute Couture',
+      'فاخرة': 'Luxury',
+      'تشكيلة العروس': 'Bridal Collection',
+
+      // ══════ Variant Color Names ══════
+      'اسود مطرز خمري وبيج': 'Black with Burgundy & Beige Embroidery',
+      'بيج بتطريز خمري': 'Beige with Burgundy Embroidery',
+      'اللون الأصلي': 'Original Color',
+
+      // ══════ Fabrics & Materials ══════
+      'حرير': 'Silk',
+      'حرير طبيعي': 'Pure Natural Silk',
+      'كريب': 'Crepe',
+      'كريب فاخر': 'Luxury Crepe',
+      'مخمل': 'Royal Velvet',
+      'شيفون': 'Chiffon',
+      'صوف': 'Wool',
+      'كشمير': 'Cashmere',
+      'بشت': 'Bisht Fabric',
+      'نوع القماش': 'Fabric Type',
+      'بلد المنشأ': 'Country of Origin',
+      'الأردن': 'Jordan',
+      'غسيل دراي كلين': 'Dry Clean Only',
+      'غسيل دراي كلين ': 'Dry Clean Only',
+      'غسيل يدوي بماء بارد': 'Hand wash with cold water',
+      'كي على حرارة منخفضة': 'Low heat ironing',
+
+      // ══════ Colors ══════
+      'أسود': 'Black',
+      'سوداء': 'Black',
+      'أبيض': 'White',
+      'بيج': 'Beige',
+      'ذهبي': 'Gold',
+      'بني': 'Brown',
+      'كحلي': 'Navy Blue',
+      'عنابي': 'Burgundy',
+      'خمري': 'Burgundy',
+      'رمادي': 'Gray',
+      'أخضر': 'Green',
+      'أزرق': 'Blue',
+
+      // ══════ Sizes & Measurements ══════
+      'Free Size (فري سايز)': 'Free Size',
+      'Free / يناسب الجميع (100 - 130 سم)': 'Free / Universal Fit (100 - 130 cm)',
+      'Free / يناسب الجميع': 'Free / Universal Fit',
+      'يناسب الجميع': 'Universal Fit',
+      'فري سايز': 'Free Size',
+      'سم': ' cm',
+      ' سم': ' cm',
+      'كغم': ' kg',
+      ' كغم': ' kg',
+      'الصدر': 'Bust',
+      'الحوض': 'Hips',
+      'الخصر': 'Waist',
+      'الطول': 'Length',
+      'الوزن': 'Weight',
+      'تطريز': 'Embroidery',
+      'تطريز يدوي': 'Handmade Embroidery',
+      'قماش': 'Fabric',
+      'عالية الجودة': 'High Quality',
+      'جودة عالية': 'High Quality',
+      'تصميم أنيق': 'Elegant Design',
+      'أصلي 100%': '100% Authentic',
+      'أصلي': 'Authentic',
+      'خامة باردة': 'Cool Breathable Fabric',
+      'شحن سريع': 'Fast Express Shipping',
+      'تغليف فخم': 'Luxury Packaging',
+      'صندوق فاخر': 'Luxury Box',
+      'كارت إهداء': 'Gift Card',
+      'بطاقة إهداء': 'Gift Card',
+      'المنزل': 'Home',
+      'العمل': 'Work',
+      'أخرى': 'Other',
+      'عميلة مميزة': 'Valued Client',
+      'عميلة متميزة': 'Distinguished Client',
+      'بشت زهرة بيسان': 'Zahrat Beesan Bisht',
+      'عباية كلاسيك': 'Classic Abaya',
+      'عباية ملكية': 'Royal Abaya',
+      'عباية سهرة': 'Evening Abaya',
+      'عبايات كلاسيكية': 'Classic Abayas',
+      'عبايات المناسبات والأعراس': 'Occasion & Bridal Abayas',
+      'التشكيلة الشتوية الفاخرة': 'Luxury Winter Collection',
+      'عبايات اليومية والاستقبال': 'Daily & Reception Abayas',
+      'بطاقات الهدايا الملكية': 'Royal Gift Cards',
+      'نادي العضوية الملكي': 'Royal VIP Lounge',
+      'مجلة زهرة بيسان والأناقة': 'Zahrat Beesan Elegance Magazine',
+      'عن دار زهرة بيسان': 'About House of Zahrat Beesan',
+      'حاسبة ومساعد المقاسات الذكي': 'Smart Size Calculator',
+      'سياسة الاستخدام والخصوصية': 'Privacy Policy',
+      'سياسة الاستبدال والإرجاع': 'Exchange & Return Policy',
+      'زهرة بيسان للتسوق والمتاجرة الإلكترونية': 'Zahrat Beesan for E-Commerce & Trading',
+      'مؤسسة فردية مسجلة ومرخصة رسمياً في الأردن': 'Officially registered individual enterprise in Jordan',
+      'سجل تجاري:': 'CR:',
+      'رقم ضريبي:': 'Tax ID:',
+      'جميع الحقوق محفوظة': 'All rights reserved',
+      'العودة للأعلى': 'Back to top',
+      'تصفحي التشكيلة الآن': 'Browse Collection Now',
+      'سلة المشتريات الملكية': 'Royal Shopping Bag',
+      'المنتجات المختارة': 'Selected Items',
+      'ملخص الطلب': 'Order Summary',
+      'سعر القطعة:': 'Unit Price:',
+      'حذف من السلة': 'Remove from Bag',
+      'تطبيق': 'Apply',
+      'تم تطبيق كود الخصم بنجاح!': 'Promo code applied successfully!',
+      'هل هذا الطلب هدية لشخص عزيز؟': 'Is this order a gift for someone special?',
+      'نوع التغليف الملكي:': 'Royal Packaging Type:',
+      'نص بطاقة الإهداء المرفقة:': 'Attached Gift Card Message:',
+      'صندوق زهرة بيسان الفاخر مع شريط حريري ملكي (مجاناً)': 'Luxury Zahrat Beesan Box with Royal Silk Ribbon (Free)',
+      'كيس إهداء كلاسيكي فخم مع بطاقة تهنئة (مجاناً)': 'Classic Luxury Gift Bag with Greeting Card (Free)',
+
+      // ══════ Wall of Love Testimonials ══════
+      'منى الهاشمي': 'Mona Al-Hashemi',
+      'سارة العتيبي': 'Sarah Al-Otaibi',
+      'رانية الكردي': 'Rania Al-Kurdi',
+      'أميرة جوهر': 'Amira Jawhar',
+      'هيفاء العنزي': 'Haifa Al-Anazi',
+      'مريم الدوسري': 'Maryam Al-Dawsari',
+      'العباية بتجنن والتطريز دقيق جداً والخامة ثقيلة وراقية. شحن سريع وتغليف فخم.':
+        'The abaya is breathtaking, embroidery is utterly meticulous and the fabric feels substantial and luxurious. Fast shipping and royal packaging.',
+      'توصيل سريع والعباية طلعت أحلى من الصور بكثير. الخدمة ممتازة وسأكرر الطلب بالتأكيد.':
+        'Prompt delivery and the abaya is far more stunning in person than in the photos. Exceptional customer care, I will certainly order again.',
+      'شغل متقن وراقي وتفاصيل التطريز ناعمة جداً. خيار رائع للمناسبات اليومية والرسمية.':
+        'Master craftsmanship and refined detailing with exceptionally delicate needlework. A splendid choice for both daily and formal occasions.',
+      'فخامة لا توصف! ألوان التطريز والحرير متناسقة جداً ومريحة في اللبس للمناسبات الكبيرة.':
+        'Indescribable luxury! Harmonious embroidery hues, flowing silk, and remarkably comfortable for gala celebrations.',
+      'تطريز تراثي يدمج الأصالة باللمسة العصرية. التغليف يبيض الوجه كهدية لأهلي في الخليج.':
+        'Heritage embroidery marrying tradition with contemporary silhouettes. The packaging is prestigious for gifting across the Gulf.',
+      'خدمة العملاء سريعة جداً وساعدوني في اختيار المقاس المناسب بدقة. شكراً جزيلاً لكم.':
+        'Customer service was remarkably responsive and helped me choose the exact fit with precision. Thank you so much.'
     }
   };
 
   const tProduct = (str) => {
     if (!str || typeof str !== 'string' || langCode === 'ar') return str;
     const dict = productDictionary[langCode] || productDictionary['en'];
-    let translated = str;
-    
-    // Check exact match first
-    if (dict[str.trim()]) return dict[str.trim()];
+    if (!dict) return str;
 
-    Object.keys(dict).forEach(arKey => {
-      const regex = new RegExp(arKey, 'g');
-      translated = translated.replace(regex, dict[arKey]);
-    });
+    const trimmed = str.trim();
+    if (dict[trimmed]) return dict[trimmed];
 
-    // Remove any trailing or orphan Arabic characters if in English mode
-    translated = translated.replace(/[\u0600-\u06FF]/g, '').replace(/\s+/g, ' ').trim();
-    return translated || str;
+    const normalized = trimmed.replace(/\s+/g, ' ');
+    if (dict[normalized]) return dict[normalized];
+
+    const emojiRegex = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu;
+    const noEmoji = normalized.replace(emojiRegex, '').trim();
+    if (dict[noEmoji]) {
+      const emojis = normalized.match(emojiRegex);
+      return emojis ? `${dict[noEmoji]} ${emojis.join(' ')}` : dict[noEmoji];
+    }
+
+    let result = normalized;
+    let anyMatch = false;
+    const sortedKeys = Object.keys(dict).sort((a, b) => b.length - a.length);
+
+    for (const key of sortedKeys) {
+      if (result.includes(key)) {
+        result = result.split(key).join(dict[key]);
+        anyMatch = true;
+      }
+    }
+
+    if (anyMatch) {
+      return result.replace(/\s+/g, ' ').trim();
+    }
+
+    return trimmed;
   };
 
   const t = (key) => {

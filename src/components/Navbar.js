@@ -75,7 +75,7 @@ export default function Navbar({ onOpenPolicy }) {
 
   const { totalItems } = useCart();
   const { currency, setCurrency, currencies } = useCurrency();
-  const { langCode, currentLang, changeLanguage, languages, t } = useLanguage();
+  const { langCode, currentLang, changeLanguage, languages, t, tProduct } = useLanguage();
   const { customer, openLoginModal } = useCustomerAuth();
 
   // Close dropdowns on outside click
@@ -547,11 +547,11 @@ export default function Navbar({ onOpenPolicy }) {
                     >
                       <img 
                         src={p.images && p.images[0] ? p.images[0] : '/12.png'} 
-                        alt={p.name} 
+                        alt={tProduct ? tProduct(p.name) : p.name} 
                         style={{ width: '48px', height: '62px', objectFit: 'cover', borderRadius: '8px' }}
                       />
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1a1a1a' }}>{p.name}</div>
+                        <div style={{ fontWeight: '700', fontSize: '0.95rem', color: '#1a1a1a' }}>{tProduct ? tProduct(p.name) : p.name}</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--gold-dim)', fontWeight: 'bold', marginTop: '3px' }}>
                           {currency ? `${(parseFloat(p.price) * (currency.rate || 1)).toFixed(2)} ${currency.code}` : `${p.price} JOD`}
                         </div>

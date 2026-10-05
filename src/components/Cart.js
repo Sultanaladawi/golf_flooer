@@ -11,7 +11,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
   const [giftMessage, setGiftMessage] = useState('');
   const [hidePrice, setHidePrice] = useState(true);
 
-  const { t } = useLanguage();
+  const { t, tProduct, currentLang } = useLanguage();
 
   const { 
     items, 
@@ -95,7 +95,7 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
                 <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div className={styles.itemInfo}>
-                      <div className={styles.itemName} style={{ fontFamily: 'var(--font-primary)' }}>{item.name}</div>
+                      <div className={styles.itemName} style={{ fontFamily: 'var(--font-primary)' }}>{tProduct ? tProduct(item.name) : item.name}</div>
                       {item.size && (
                         <div className={styles.itemSize} style={{ color: 'var(--gold-dim)', fontSize: '0.85rem', fontWeight: 'bold', margin: '4px 0' }}>
                           {t('sizeLabel')}: {item.size}
@@ -185,21 +185,21 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
 
         <div className={styles.summary}>
           <div className={styles.summaryRow}>
-            <span>مجموع المنتجات:</span>
+            <span>{t('subtotal') || 'مجموع المنتجات:'}</span>
             <strong>{formatPrice(subTotal)}</strong>
           </div>
           {bundleDiscount > 0 && (
             <div className={styles.summaryRow} style={{ color: '#dc2626', fontWeight: 'bold' }}>
-              <span>الخصم:</span>
+              <span>{t('discount') || 'الخصم:'}</span>
               <span>- {formatPrice(bundleDiscount)}</span>
             </div>
           )}
           <div className={styles.summaryRow}>
-            <span>تكلفة الشحن:</span>
-            <span style={{ color: '#15803d', fontWeight: 'bold' }}>0 JOD (يُحسب عند الدفع)</span>
+            <span>{t('shippingCost') || 'تكلفة الشحن:'}</span>
+            <span style={{ color: '#15803d', fontWeight: 'bold' }}>0 JOD ({t('calcAtCheckoutText') || 'يُحسب عند الدفع'})</span>
           </div>
           <div className={`${styles.summaryRow} ${styles.totalRow}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>الإجمالي ({items.reduce((s, i) => s + i.qty, 0)} {items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات'}):</span>
+            <span>{t('total') || 'الإجمالي'} ({items.reduce((s, i) => s + i.qty, 0)} {currentLang?.code === 'en' ? (items.reduce((s, i) => s + i.qty, 0) === 1 ? 'item' : 'items') : (items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات')}):</span>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
               {bundleDiscount > 0 && (
                 <span style={{ fontSize: '0.95rem', color: '#999', textDecoration: 'line-through' }}>
@@ -225,14 +225,14 @@ export default function Cart({ isOpen, onClose, onCheckout }) {
               margin: '6px 0 14px'
             }}>
               <span>🎉</span>
-              <span>التوفير {formatPrice(bundleDiscount)}</span>
+              <span>{t('savings') || 'التوفير'} {formatPrice(bundleDiscount)}</span>
             </div>
           )}
 
           <button className={styles.checkoutBtn} onClick={() => customer ? onCheckout() : openLoginModal(onCheckout)} style={{ background: '#302820', border: 'none', color: '#ffffff', boxShadow: '0 6px 20px rgba(48, 40, 32, 0.35)', borderRadius: '14px', padding: '14px 20px', width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 'bold', fontSize: '1.05rem', cursor: 'pointer' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>إتمام الطلب</span>
-              <span>←</span>
+              <span>{t('checkout') || 'إتمام الطلب'}</span>
+              <span>{currentLang?.dir === 'ltr' ? '→' : '←'}</span>
             </div>
             <span style={{ background: 'rgba(255,255,255,0.15)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.95rem' }}>{formatPrice(totalPrice)}</span>
           </button>

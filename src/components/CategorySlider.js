@@ -164,12 +164,12 @@ function ProductCard({ item, onOpen }) {
             }}
           >
             <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-            🎥 انسيابية العباية
+            {currentLang?.code === 'en' ? '🎥 Flow & Drape' : '🎥 انسيابية العباية'}
           </span>
         )}
         {isOutOfStock && (
           <div className={styles.outOfStockOverlay}>
-            <span>نفذت الكمية</span>
+            <span>{t('outOfStock') || 'نفذت الكمية'}</span>
           </div>
         )}
         {/* Wishlist Button */}
@@ -227,7 +227,7 @@ function ProductCard({ item, onOpen }) {
               const list = v.colors || [];
               let bg = list[0] || '#ccc';
               if (list.length === 2) bg = `conic-gradient(${list[0]} 50%, ${list[1]} 50%)`;
-              return <div key={v.id} className={styles.swatch} title={v.color_name} style={{ background: bg }} />;
+              return <div key={v.id} className={styles.swatch} title={tProduct ? tProduct(v.color_name) : v.color_name} style={{ background: bg }} />;
             })}
             {item.variants.length > 6 && (
               <span className={styles.moreColors}>+{item.variants.length - 6}</span>

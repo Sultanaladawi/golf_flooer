@@ -22,7 +22,7 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { customer, openLoginModal, login } = useCustomerAuth();
   const { items, totalPrice, clearCart } = useCart();
-  const { t, currentLang } = useLanguage();
+  const { t, currentLang, tProduct } = useLanguage();
   const { format: formatPrice } = useCurrency();
   const { showAlert, showToast } = useAlert();
   
@@ -1961,7 +1961,7 @@ export default function Checkout() {
             {/* ── LEFT COLUMN: Order Summary (Sticky) ── */}
             <div className={styles.orderSummarySticky}>
               <h3 style={{ margin: '0 0 18px 0', fontSize: '1.3rem', color: 'var(--espresso)', borderBottom: '1px solid #f0f0f0', paddingBottom: '12px', fontFamily: 'var(--font-primary, serif)' }}>
-                ملخص مشترياتكِ ({items.length})
+                {t('orderSummary') || 'ملخص مشترياتكِ'} ({items.length})
               </h3>
 
               {/* Items List Preview */}
@@ -1970,13 +1970,13 @@ export default function Checkout() {
                   <div key={item.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '12px' }}>
                     <img 
                       src={getItemImage(item)} 
-                      alt={item.name} 
+                      alt={tProduct ? tProduct(item.name) : item.name} 
                       style={{ width: '45px', height: '60px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #eee' }} 
                       onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE_DATA_URI; }}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: '0.88rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</div>
-                      <div style={{ fontSize: '0.78rem', color: '#777' }}>الكمية: {item.qty} {item.size && `| المقاس: ${item.size}`}</div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 'bold', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{tProduct ? tProduct(item.name) : item.name}</div>
+                      <div style={{ fontSize: '0.78rem', color: '#777' }}>{t('quantity') || 'الكمية'}: {item.qty} {item.size && `| ${t('sizeLabel') || 'المقاس'}: ${item.size}`}</div>
                     </div>
                     <div style={{ fontWeight: 'bold', fontSize: '0.9rem', color: 'var(--gold-dim)' }}>
                       {formatPrice(item.priceNum * item.qty)}
@@ -1988,24 +1988,24 @@ export default function Checkout() {
               {/* Price Details */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '0.95rem', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>مجموع المنتجات:</span>
+                  <span>{t('subtotal') || 'مجموع المنتجات:'}</span>
                   <strong style={{ color: '#1a1a1a', fontWeight: '700' }}>{formatPrice(totalPrice)}</strong>
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                  <span>تكلفة الشحن:</span>
+                  <span>{t('shippingCost') || 'تكلفة الشحن:'}</span>
                   {isCalculatingShipping ? (
-                    <span style={{ color: 'var(--gold-dim)' }}>جاري الحساب...</span>
+                    <span style={{ color: 'var(--gold-dim)' }}>{t('calculating') || 'جاري الحساب...'}</span>
                   ) : (
                     <strong style={{ color: shippingFee === 0 ? '#15803d' : '#1a1a1a', fontWeight: '700' }}>
-                      {shippingFee === 0 ? '0 JOD (مجاناً)' : `+${formatPrice(shippingFee)}`}
+                      {shippingFee === 0 ? (currentLang?.code === 'en' ? '0 JOD (Free)' : '0 JOD (مجاناً)') : `+${formatPrice(shippingFee)}`}
                     </strong>
                   )}
                 </div>
 
                 {couponDiscount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 'bold' }}>
-                    <span>الخصم {couponApplied?.code ? `(${couponApplied.code})` : ''}:</span>
+                    <span>{t('discount') || 'الخصم'} {couponApplied?.code ? `(${couponApplied.code})` : ''}:</span>
                     <span>-{formatPrice(couponDiscount)}</span>
                   </div>
                 )}
@@ -2021,7 +2021,7 @@ export default function Checkout() {
                 alignItems: 'center'
               }}>
                 <span style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--espresso)' }}>
-                  الإجمالي ({items.reduce((s, i) => s + i.qty, 0)} {items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات'}):
+                  {t('total') || 'الإجمالي'} ({items.reduce((s, i) => s + i.qty, 0)} {currentLang?.code === 'en' ? (items.reduce((s, i) => s + i.qty, 0) === 1 ? 'item' : 'items') : (items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات')}):
                 </span>
                 <div style={{ textAlign: 'left', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                   {couponDiscount > 0 && (
@@ -2051,7 +2051,7 @@ export default function Checkout() {
                   marginBottom: '10px'
                 }}>
                   <span>🎉</span>
-                  <span>التوفير {formatPrice(couponDiscount)}</span>
+                  <span>{t('savings') || 'التوفير'} {formatPrice(couponDiscount)}</span>
                 </div>
               )}
 
@@ -2081,7 +2081,7 @@ export default function Checkout() {
                   }}
                 >
                   <CreditCard size={22} color="#d4af37" />
-                  <span>{step === 'processing' ? 'جاري فتح بوابة الدفع الآمنة...' : `المتابعة للدفع بالبطاقة أو Apple Pay (${formatPrice(finalPrice)}) 🔒`}</span>
+                  <span>{step === 'processing' ? (currentLang?.code === 'en' ? 'Opening secure payment gateway...' : 'جاري فتح بوابة الدفع الآمنة...') : (currentLang?.code === 'en' ? `Proceed with Card or Apple Pay (${formatPrice(finalPrice)}) 🔒` : `المتابعة للدفع بالبطاقة أو Apple Pay (${formatPrice(finalPrice)}) 🔒`)}</span>
                 </button>
               )}
 
@@ -2106,14 +2106,14 @@ export default function Checkout() {
                     opacity: step === 'processing' ? 0.7 : 1
                   }}
                 >
-                  {step === 'processing' ? 'جاري تأكيد الطلب...' : `تأكيد الطلب الآن (${formatPrice(finalPrice)}) ←`}
+                  {step === 'processing' ? (currentLang?.code === 'en' ? 'Confirming order...' : 'جاري تأكيد الطلب...') : (currentLang?.code === 'en' ? `Confirm Order Now (${formatPrice(finalPrice)}) →` : `تأكيد الطلب الآن (${formatPrice(finalPrice)}) ←`)}
                 </button>
               )}
 
               {/* Security badges */}
               <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f0f0f0', fontSize: '0.78rem', color: '#777', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <div>🔒 تسوق آمن ومحمي 100%</div>
-                <div>🚚 توصيل سريع مع خدمة التتبع المباشر</div>
+                <div>🔒 {currentLang?.code === 'en' ? '100% Safe & Secure Shopping' : 'تسوق آمن ومحمي 100%'}</div>
+                <div>🚚 {currentLang?.code === 'en' ? 'Express Delivery with Live Tracking' : 'توصيل سريع مع خدمة التتبع المباشر'}</div>
               </div>
             </div>
 

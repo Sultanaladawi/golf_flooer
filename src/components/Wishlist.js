@@ -9,7 +9,7 @@ export default function Wishlist({ isOpen, onClose }) {
   const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
   const { addItem } = useCart();
   const { format } = useCurrency();
-  const { t } = useLanguage();
+  const { t, tProduct } = useLanguage();
 
   // Close on Escape key
   useEffect(() => {
@@ -150,11 +150,11 @@ export default function Wishlist({ isOpen, onClose }) {
                     fontSize: '0.95rem', lineHeight: 1.4,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
-                    {item.name}
+                    {tProduct ? tProduct(item.name) : item.name}
                   </p>
                   {item.category && (
                     <p style={{ margin: '0 0 8px', color: '#c4a484', fontSize: '0.75rem' }}>
-                      {item.category}
+                      {tProduct ? tProduct(item.category) : item.category}
                     </p>
                   )}
                   <p style={{ margin: '0 0 14px', color: '#c4a484', fontSize: '1rem', fontWeight: 700 }}>

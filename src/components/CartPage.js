@@ -26,7 +26,7 @@ export default function CartPage() {
   } = useCart();
   
   const { format: formatPrice, currency } = useCurrency();
-  const { t } = useLanguage();
+  const { t, currentLang, tProduct } = useLanguage();
 
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState(null);
@@ -70,37 +70,39 @@ export default function CartPage() {
   };
 
   return (
-    <div style={{ backgroundColor: '#FAF8F5', minHeight: '100vh', direction: 'rtl', color: '#1a1a1a', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ backgroundColor: '#FAF8F5', minHeight: '100vh', direction: currentLang?.dir || 'rtl', color: '#1a1a1a', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
 
       <main style={{ flex: 1, maxWidth: '1300px', margin: '0 auto', padding: '130px 20px 60px', width: '100%', boxSizing: 'border-box' }}>
         {/* Breadcrumb */}
         <div style={{ fontSize: '0.85rem', color: '#888', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>الرئيسية</Link>
+          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>{t('home') || 'الرئيسية'}</Link>
           <span>/</span>
-          <span style={{ color: 'var(--gold-dim)', fontWeight: 'bold' }}>سلة المشتريات</span>
+          <span style={{ color: 'var(--gold-dim)', fontWeight: 'bold' }}>{t('cart') || 'سلة المشتريات'}</span>
         </div>
 
         {/* Page Title */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '35px', borderBottom: '1px solid rgba(197, 168, 128, 0.25)', paddingBottom: '20px' }}>
           <div>
             <h1 style={{ fontFamily: 'var(--font-primary, serif)', fontSize: '2.4rem', margin: '0 0 6px 0', color: 'var(--espresso)' }}>
-              سلة المشتريات الملكية
+              {currentLang?.code === 'en' ? 'Royal Shopping Bag' : 'سلة المشتريات الملكية'}
             </h1>
             <p style={{ margin: 0, color: '#666', fontSize: '0.95rem' }}>
-              لديكِ ({totalItems}) {totalItems === 1 ? 'قطعة فاخرة' : 'قطع فاخرة'} في السلة
+              {currentLang?.code === 'en' 
+                ? `You have (${totalItems}) ${totalItems === 1 ? 'luxury creation' : 'luxury creations'} in your bag` 
+                : `لديكِ (${totalItems}) ${totalItems === 1 ? 'قطعة فاخرة' : 'قطع فاخرة'} في السلة`}
             </p>
           </div>
           {items.length > 0 && (
             <button 
               onClick={() => {
-                if (window.confirm('هل تودين إفراغ سلة المشتريات بالكامل؟')) {
+                if (window.confirm(currentLang?.code === 'en' ? 'Would you like to clear your shopping bag completely?' : 'هل تودين إفراغ سلة المشتريات بالكامل؟')) {
                   clearCart();
                 }
               }}
               style={{ background: 'none', border: 'none', color: '#b91c1c', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <span>🗑️</span> إفراغ السلة
+              <span>🗑️</span> {t('clearCart') || 'إفراغ السلة'}
             </button>
           )}
         </div>
@@ -119,10 +121,12 @@ export default function CartPage() {
           }}>
             <div style={{ fontSize: '4.5rem', marginBottom: '15px' }}>🛍️</div>
             <h2 style={{ fontSize: '1.8rem', color: 'var(--espresso)', margin: '0 0 10px 0', fontFamily: 'var(--font-primary, serif)' }}>
-              سلة مشترياتكِ فارغة حالياً
+              {currentLang?.code === 'en' ? 'Your Shopping Bag is Currently Empty' : 'سلة مشترياتكِ فارغة حالياً'}
             </h2>
             <p style={{ color: '#777', fontSize: '1.05rem', lineHeight: '1.6', marginBottom: '30px' }}>
-              استكشفي أحدث إبداعات وتصاميم زهرة بيسان من العبايات الملكية وكولكشن المناسبات الفاخر.
+              {currentLang?.code === 'en' 
+                ? 'Explore the latest creations of Zahrat Beesan, royal abayas and luxury occasion collections.' 
+                : 'استكشفي أحدث إبداعات وتصاميم زهرة بيسان من العبايات الملكية وكولكشن المناسبات الفاخر.'}
             </p>
             <button
               onClick={() => navigate('/#collection')}
@@ -141,7 +145,7 @@ export default function CartPage() {
               onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-2px)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'none'}
             >
-              تصفحي التشكيلة الآن ←
+              {currentLang?.code === 'en' ? 'Browse Collection Now →' : 'تصفحي التشكيلة الآن ←'}
             </button>
           </div>
         ) : (
@@ -165,7 +169,7 @@ export default function CartPage() {
                 overflow: 'hidden'
               }}>
                 <div style={{ padding: '18px 24px', borderBottom: '1px solid #f0f0f0', backgroundColor: '#fcfaf8', fontWeight: 'bold', fontSize: '0.95rem', color: 'var(--espresso)' }}>
-                  المنتجات المختارة ({items.length})
+                  {currentLang?.code === 'en' ? `Selected Creations (${items.length})` : `المنتجات المختارة (${items.length})`}
                 </div>
 
                 <div style={{ padding: '0 24px' }}>
@@ -186,7 +190,7 @@ export default function CartPage() {
                       <div style={{ width: '85px', height: '110px', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#f5f5f5', border: '1px solid #eee' }}>
                         <img 
                           src={getItemImage(item)} 
-                          alt={item.name}
+                          alt={tProduct ? tProduct(item.name) : item.name}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE_DATA_URI; }}
                         />
@@ -195,15 +199,15 @@ export default function CartPage() {
                       {/* Product Info */}
                       <div>
                         <h3 style={{ margin: '0 0 6px 0', fontSize: '1.05rem', color: 'var(--espresso)', fontWeight: '800' }}>
-                          {item.name}
+                          {tProduct ? tProduct(item.name) : item.name}
                         </h3>
                         {item.size && (
                           <div style={{ display: 'inline-block', backgroundColor: 'rgba(197, 168, 128, 0.15)', color: 'var(--gold-dim)', padding: '3px 10px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 'bold', marginBottom: '6px' }}>
-                            المقاس: {item.size}
+                            {t('sizeLabel') || 'المقاس'}: {item.size}
                           </div>
                         )}
                         <div style={{ color: '#777', fontSize: '0.85rem' }}>
-                          سعر القطعة: <strong style={{ color: '#1a1a1a' }}>{formatPrice(item.priceNum)}</strong>
+                          {currentLang?.code === 'en' ? 'Unit Price: ' : 'سعر القطعة: '}<strong style={{ color: '#1a1a1a' }}>{formatPrice(item.priceNum)}</strong>
                         </div>
                       </div>
 
@@ -246,7 +250,7 @@ export default function CartPage() {
                         style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer', fontSize: '1.2rem', padding: '6px', transition: 'color 0.2s' }}
                         onMouseEnter={e => e.currentTarget.style.color = '#e63946'}
                         onMouseLeave={e => e.currentTarget.style.color = '#999'}
-                        title="حذف من السلة"
+                        title={currentLang?.code === 'en' ? 'Remove from bag' : 'حذف من السلة'}
                       >
                         ✕
                       </button>
@@ -270,33 +274,33 @@ export default function CartPage() {
                     onChange={(e) => setIsGift(e.target.checked)}
                     style={{ width: '18px', height: '18px', accentColor: 'var(--gold)' }}
                   />
-                  <span>🎁 هل هذا الطلب هدية لشخص عزيز؟ (تغليف وبطاقة إهداء فاخرة)</span>
+                  <span>🎁 {currentLang?.code === 'en' ? 'Is this order a royal gift for someone special? (Luxury box & gift card)' : 'هل هذا الطلب هدية لشخص عزيز؟ (تغليف وبطاقة إهداء فاخرة)'}</span>
                 </label>
 
                 {isGift && (
                   <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #eee' }}>
                     <div style={{ marginBottom: '12px' }}>
                       <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.88rem', fontWeight: 'bold', color: '#555' }}>
-                        نوع التغليف الملكي:
+                        {currentLang?.code === 'en' ? 'Royal Packaging Type:' : 'نوع التغليف الملكي:'}
                       </label>
                       <select
                         value={giftPackaging}
                         onChange={(e) => setGiftPackaging(e.target.value)}
                         style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', fontFamily: 'inherit' }}
                       >
-                        <option value="luxury_box">صندوق زهرة بيسان الفاخر مع شريط حريري ملكي (مجاناً)</option>
-                        <option value="royal_bag">كيس إهداء كلاسيكي فخم مع بطاقة تهنئة (مجاناً)</option>
+                        <option value="luxury_box">{currentLang?.code === 'en' ? 'Luxury Zahrat Beesan Box with Royal Silk Ribbon (Free)' : 'صندوق زهرة بيسان الفاخر مع شريط حريري ملكي (مجاناً)'}</option>
+                        <option value="royal_bag">{currentLang?.code === 'en' ? 'Classic Luxury Gift Bag with Greeting Card (Free)' : 'كيس إهداء كلاسيكي فخم مع بطاقة تهنئة (مجاناً)'}</option>
                       </select>
                     </div>
 
                     <div>
                       <label style={{ display: 'block', marginBottom: '6px', fontSize: '0.88rem', fontWeight: 'bold', color: '#555' }}>
-                        نص بطاقة الإهداء المرفقة:
+                        {currentLang?.code === 'en' ? 'Attached Gift Card Message:' : 'نص بطاقة الإهداء المرفقة:'}
                       </label>
                       <textarea
                         value={giftMessage}
                         onChange={(e) => setGiftMessage(e.target.value)}
-                        placeholder="اكتبي كلمات الإهداء التي ترغبين بطباعتها على البطاقة..."
+                        placeholder={currentLang?.code === 'en' ? 'Write your personal gift message to be printed on the card...' : 'اكتبي كلمات الإهداء التي ترغبين بطباعتها على البطاقة...'}
                         style={{ width: '100%', padding: '10px 14px', borderRadius: '10px', border: '1px solid #ddd', minHeight: '65px', fontFamily: 'inherit' }}
                       />
                     </div>
@@ -313,14 +317,14 @@ export default function CartPage() {
                 boxShadow: '0 10px 30px rgba(0,0,0,0.02)'
               }}>
                 <h4 style={{ margin: '0 0 12px 0', fontSize: '1rem', color: 'var(--espresso)' }}>
-                  🏷️ كود الخصم أو قسيمة الشراء
+                  {currentLang?.code === 'en' ? '🏷️ Promo Code or Coupon' : '🏷️ كود الخصم أو قسيمة الشراء'}
                 </h4>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <input
                     type="text"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                    placeholder="أدخلي كود الخصم (مثال: BEESAN2026)"
+                    placeholder={currentLang?.code === 'en' ? 'Enter promo code (e.g. BEESAN2026)' : 'أدخلي كود الخصم (مثال: BEESAN2026)'}
                     style={{
                       flex: 1,
                       padding: '12px 16px',
@@ -346,12 +350,12 @@ export default function CartPage() {
                       transition: 'opacity 0.2s'
                     }}
                   >
-                    {couponLoading ? 'جاري التحقق...' : 'تطبيق'}
+                    {couponLoading ? (currentLang?.code === 'en' ? 'Validating...' : 'جاري التحقق...') : (currentLang?.code === 'en' ? 'Apply' : 'تطبيق')}
                   </button>
                 </div>
                 {couponApplied && (
                   <div style={{ marginTop: '10px', color: '#15803d', fontSize: '0.88rem', fontWeight: 'bold' }}>
-                    ✓ تم تطبيق كود الخصم بنجاح!
+                    {currentLang?.code === 'en' ? '✓ Promo code applied successfully!' : '✓ تم تطبيق كود الخصم بنجاح!'}
                   </div>
                 )}
                 {couponError && (
@@ -373,26 +377,26 @@ export default function CartPage() {
                 boxShadow: '0 15px 40px rgba(0,0,0,0.05)'
               }}>
                 <h2 style={{ fontSize: '1.35rem', color: 'var(--espresso)', margin: '0 0 18px 0', borderBottom: '1px solid #f0f0f0', paddingBottom: '12px', fontFamily: 'var(--font-primary, serif)', fontWeight: '800' }}>
-                  ملخص الطلب
+                  {t('orderSummary') || 'ملخص الطلب'}
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '18px', fontSize: '0.95rem' }}>
                   {/* مجموع المنتجات */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                    <span>مجموع المنتجات:</span>
+                    <span>{t('subtotal') || 'مجموع المنتجات:'}</span>
                     <strong style={{ color: '#1a1a1a', fontWeight: '700' }}>{formatPrice(subTotal)}</strong>
                   </div>
 
                   {/* تكلفة الشحن */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#555' }}>
-                    <span>تكلفة الشحن:</span>
-                    <strong style={{ color: '#15803d', fontWeight: '700' }}>0 JOD (أو يُحسب لاحقاً)</strong>
+                    <span>{t('shippingCost') || 'تكلفة الشحن:'}</span>
+                    <strong style={{ color: '#15803d', fontWeight: '700' }}>{currentLang?.code === 'en' ? '0 JOD (Calculated at checkout)' : '0 JOD (أو يُحسب لاحقاً)'}</strong>
                   </div>
 
                   {/* الخصم باللون الأحمر */}
                   {(discountAmount > 0 || bundleDiscount > 0) && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#dc2626', fontWeight: 'bold' }}>
-                      <span>الخصم {couponApplied ? `(${couponApplied.code})` : ''}:</span>
+                      <span>{t('discount') || 'الخصم'} {couponApplied ? `(${couponApplied.code})` : ''}:</span>
                       <span>-{formatPrice(discountAmount + bundleDiscount)}</span>
                     </div>
                   )}
@@ -408,7 +412,7 @@ export default function CartPage() {
                   alignItems: 'center'
                 }}>
                   <span style={{ fontSize: '1.15rem', fontWeight: '800', color: 'var(--espresso)' }}>
-                    الإجمالي ({items.reduce((s, i) => s + i.qty, 0)} {items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات'}):
+                    {t('total') || 'الإجمالي'} ({items.reduce((s, i) => s + i.qty, 0)} {currentLang?.code === 'en' ? (items.reduce((s, i) => s + i.qty, 0) === 1 ? 'item' : 'items') : (items.reduce((s, i) => s + i.qty, 0) === 1 ? 'منتج' : 'منتجات')}):
                   </span>
                   <div style={{ textAlign: 'left', display: 'flex', alignItems: 'baseline', gap: '8px' }}>
                     {(discountAmount > 0 || bundleDiscount > 0) && (
@@ -438,7 +442,7 @@ export default function CartPage() {
                     marginBottom: '20px'
                   }}>
                     <span>🎉</span>
-                    <span>التوفير {formatPrice(discountAmount + bundleDiscount)}</span>
+                    <span>{t('savings') || 'التوفير'} {formatPrice(discountAmount + bundleDiscount)}</span>
                   </div>
                 )}
 
@@ -466,8 +470,8 @@ export default function CartPage() {
                   onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.backgroundColor = '#1f1a15'; }}
                   onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.backgroundColor = '#302820'; }}
                 >
-                  <span>إتمام الطلب</span>
-                  <span style={{ fontSize: '1.2rem' }}>←</span>
+                  <span>{t('checkout') || 'إتمام الطلب'}</span>
+                  <span style={{ fontSize: '1.2rem' }}>{currentLang?.dir === 'ltr' ? '→' : '←'}</span>
                 </button>
 
                 {/* Safe Shopping Guarantee Badges */}
@@ -483,15 +487,15 @@ export default function CartPage() {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>🔒</span>
-                    <span>دفع إلكتروني مشفر وآمن 100% (Visa, MasterCard, PayPal)</span>
+                    <span>{currentLang?.code === 'en' ? '100% Encrypted & Secure Payment (Visa, MasterCard, Apple Pay)' : 'دفع إلكتروني مشفر وآمن 100% (Visa, MasterCard, Apple Pay)'}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>🚚</span>
-                    <span>شحن سريع وموثوق لكافة دول العالم عبر فيدكس</span>
+                    <span>{currentLang?.code === 'en' ? 'Express Tracked Global Delivery via FedEx' : 'شحن سريع وموثوق لكافة دول العالم عبر فيدكس'}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span>👑</span>
-                    <span>ضمان الجودة والأقمشة الملكية الأصلية</span>
+                    <span>{currentLang?.code === 'en' ? 'Guaranteed Haute Couture Fabrics & Authentic Quality' : 'ضمان الجودة والأقمشة الملكية الأصلية'}</span>
                   </div>
                 </div>
               </div>

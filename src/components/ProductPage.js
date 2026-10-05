@@ -4,7 +4,7 @@ import { useCart, FALLBACK_IMAGE_DATA_URI } from '../context/CartContext';
 import { useCurrency } from '../context/CurrencyContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useLanguage } from '../context/LanguageContext';
-import { shopInfo } from '../data/shopData';
+import { shopInfo, featuredItems } from '../data/shopData';
 import { trackViewContent } from '../utils/socialPixel';
 import ImageZoomViewer from './ImageZoomViewer';
 import { 
@@ -53,7 +53,7 @@ export default function ProductPage() {
   const { addItem } = useCart();
   const { format } = useCurrency();
   const { toggleWishlist, isWishlisted, isInWishlist } = useWishlist();
-  const { t, tProduct } = useLanguage();
+  const { t, tProduct, langCode, currentLang } = useLanguage();
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -88,8 +88,14 @@ export default function ProductPage() {
         return r.json();
       })
       .then(data => {
-        setProduct(data);
-        try { trackViewContent(data); } catch (_) {}
+        const fallbackItem = featuredItems?.find(f => Number(f.id) === Number(data.id) || f.name === data.name);
+        const mergedData = {
+          ...data,
+          description: data.description || fallbackItem?.desc || fallbackItem?.description || '',
+          subtitle: data.subtitle || fallbackItem?.subtitle || ''
+        };
+        setProduct(mergedData);
+        try { trackViewContent(mergedData); } catch (_) {}
         setReviews(data.reviews || []);
         
         let pChart = [];
@@ -103,10 +109,12 @@ export default function ProductPage() {
         if (pSizes && pSizes.length > 0) setSelectedSize(String(pSizes[0]));
 
         // SEO Title & Meta Description
-        document.title = `${data.name} | زهرة بيسان - الزي الملكي الفاخر`;
+        document.title = currentLang?.code === 'en'
+          ? `${tProduct ? tProduct(data.name) : data.name} | Zahrat Beesan - Royal Luxury Fashion`
+          : `${data.name} | زهرة بيسان - الزي الملكي الفاخر`;
         let metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) {
-          metaDesc.setAttribute('content', data.description || data.subtitle || data.name);
+          metaDesc.setAttribute('content', mergedData.description || mergedData.subtitle || mergedData.name);
         } else {
           const m = document.createElement('meta');
           m.name = 'description';
@@ -295,23 +303,23 @@ export default function ProductPage() {
       `}</style>
 
       {/* Sticky Header Breadcrumb Nav */}
-      <div style={{ background: 'var(--bg-card, rgba(255,255,255,0.95))', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(197,163,106,0.2)', position: 'sticky', top: 0, zIndex: 50, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ background: 'var(--bg-card, rgba(255,255,255,0.95))', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(197,163,106,0.2)', position: 'sticky', top: 0, zIndex: 50, padding: '14px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', direction: currentLang?.dir || 'rtl' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--espresso-dim, #776655)', flexWrap: 'wrap' }}>
-          <Link to="/" style={{ color: 'var(--gold, #c5a36a)', textDecoration: 'none', fontWeight: 800 }}>الرئيسية</Link>
-          <ChevronLeft size={14} style={{ opacity: 0.5 }} />
-          <Link to="/#collection" style={{ color: 'var(--espresso-dim, #776655)', textDecoration: 'none', fontWeight: 600 }}>التشكيلة</Link>
-          <ChevronLeft size={14} style={{ opacity: 0.5 }} />
-          <span style={{ color: 'var(--espresso, #2b2015)', fontWeight: 800 }}>{product.name}</span>
+          <Link to="/" style={{ color: 'var(--gold, #c5a36a)', textDecoration: 'none', fontWeight: 800 }}>{t('home')}</Link>
+          <ChevronLeft size={14} style={{ opacity: 0.5, transform: currentLang?.dir === 'ltr' ? 'rotate(180deg)' : 'none' }} />
+          <Link to="/#collection" style={{ color: 'var(--espresso-dim, #776655)', textDecoration: 'none', fontWeight: 600 }}>{t('collection')}</Link>
+          <ChevronLeft size={14} style={{ opacity: 0.5, transform: currentLang?.dir === 'ltr' ? 'rotate(180deg)' : 'none' }} />
+          <span style={{ color: 'var(--espresso, #2b2015)', fontWeight: 800 }}>{tProduct(product.name)}</span>
         </div>
 
         <button className="pp-back-btn" onClick={() => navigate(-1)} style={{ background: 'none', border: 'none', color: 'var(--espresso-dim, #776655)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 800, fontSize: '0.9rem', transition: 'color 0.2s' }}>
-          <ArrowRight size={18} />
-          <span>رجوع</span>
+          {currentLang?.dir === 'ltr' ? <ArrowLeft size={18} /> : <ArrowRight size={18} />}
+          <span>{t('back')}</span>
         </button>
       </div>
 
       {/* Main Product Container */}
-      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '35px 20px 80px', animation: 'fadeInUp 0.4s ease' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '35px 20px 80px', animation: 'fadeInUp 0.4s ease', direction: currentLang?.dir || 'rtl' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '45px', alignItems: 'start' }}>
 
           {/* LEFT COLUMN: Interactive Magnifier Gallery */}
@@ -321,24 +329,24 @@ export default function ProductPage() {
               activeImg={currentImg}
               setActiveImg={setCurrentImg}
               videoUrl={videoUrlFormatted}
-              productName={product.name}
+              productName={tProduct(product.name)}
               isPlayingVideo={isPlayingVideo}
               setIsPlayingVideo={setIsPlayingVideo}
             />
 
             {/* Quick Guarantee Badges */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '20px', padding: '16px', borderRadius: '16px', background: 'var(--bg-card, #fff)', border: '1px solid rgba(197, 168, 128, 0.2)', textAling: 'center' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginTop: '20px', padding: '16px', borderRadius: '16px', background: 'var(--bg-card, #fff)', border: '1px solid rgba(197, 168, 128, 0.2)', textAlign: 'center' }}>
               <div style={{ textAlign: 'center' }}>
                 <Truck size={20} color="var(--gold, #c5a36a)" style={{ margin: '0 auto 6px', display: 'block' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--espresso)' }}>توصيل سريع</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--espresso)' }}>{t('expressDelivery')}</span>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <ShieldCheck size={20} color="var(--gold, #c5a36a)" style={{ margin: '0 auto 6px', display: 'block' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--espresso)' }}>جودة ملكية</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--espresso)' }}>{t('royalQuality')}</span>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <RotateCcw size={20} color="var(--gold, #c5a36a)" style={{ margin: '0 auto 6px', display: 'block' }} />
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--espresso)' }}>تبديل ميسر</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--espresso)' }}>{t('easyExchange')}</span>
               </div>
             </div>
           </div>
@@ -404,14 +412,14 @@ export default function ProductPage() {
             {((product.variants && product.variants.length > 0) || product.image_url) && (
               <div>
                 <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--espresso, #2b2015)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  اللون المختار: <span style={{ color: 'var(--gold, #c5a36a)' }}>{selectedVariant ? selectedVariant.color_name : 'اللون الأصلي'}</span>
+                  {t('selectedColor')} <span style={{ color: 'var(--gold, #c5a36a)' }}>{selectedVariant ? tProduct(selectedVariant.color_name) : t('originalColor')}</span>
                 </h3>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
                   {product.variants && product.variants.length > 0 && (
                     <button 
                       type="button"
                       className="pp-swatch" 
-                      title="اللون الأصلي" 
+                      title={t('originalColor')} 
                       onClick={() => { setSelectedVariant(null); setCurrentImg(0); }}
                       style={{ 
                         width: '38px', height: '38px', borderRadius: '50%', 
@@ -434,7 +442,7 @@ export default function ProductPage() {
                       <button 
                         key={v.id} 
                         className="pp-swatch" 
-                        title={v.color_name} 
+                        title={tProduct(v.color_name)} 
                         onClick={() => { setSelectedVariant(v); setCurrentImg(0); }}
                         style={{ 
                           width: '38px', height: '38px', borderRadius: '50%', 
@@ -456,14 +464,14 @@ export default function ProductPage() {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
                 <h3 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--espresso, #2b2015)', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
-                  المقاس المطلوب: <span style={{ color: 'var(--gold, #c5a36a)' }}>{selectedSize}</span>
+                  {t('requestedSize')} <span style={{ color: 'var(--gold, #c5a36a)' }}>{selectedSize}</span>
                 </h3>
                 <button 
                   type="button" 
                   onClick={() => setShowSizeModal(true)} 
                   style={{ background: 'none', border: 'none', color: 'var(--gold, #c5a36a)', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline', padding: 0 }}
                 >
-                  📏 جدول القياسات ومساعد المقاس الذكي
+                  {t('sizeGuideModalBtn')}
                 </button>
               </div>
 
@@ -507,7 +515,7 @@ export default function ProductPage() {
                   }}
                 >
                   <ShoppingBag size={20} />
-                  {product.isOutOfStock ? 'نفذت الكمية' : addedToCart ? 'تمت الإضافة للسلة!' : 'أضف إلى السلة'}
+                  {product.isOutOfStock ? t('outOfStock') : addedToCart ? t('addedToCart') : t('addToCart')}
                 </button>
                 
                 {/* Buy Now */}
@@ -525,7 +533,7 @@ export default function ProductPage() {
                   }}
                 >
                   <Sparkles size={18} />
-                  اشترِ الآن
+                  {t('buyNow')}
                 </button>
               </div>
 
@@ -551,7 +559,7 @@ export default function ProductPage() {
                   }}
                 >
                   <PhoneCall size={18} />
-                  استفسار وتواصل عبر الواتساب
+                  {t('whatsappInquiry')}
                 </button>
 
                 <button 
@@ -567,7 +575,7 @@ export default function ProductPage() {
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
-                  title="المفضلة"
+                  title={t('wishlist')}
                 >
                   <Heart size={20} fill={wishlisted ? '#ef4444' : 'none'} />
                 </button>
@@ -585,7 +593,7 @@ export default function ProductPage() {
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
-                  title="مشاركة المنتج"
+                  title={t('shareProduct')}
                 >
                   <Share2 size={20} />
                 </button>
@@ -596,12 +604,12 @@ export default function ProductPage() {
             <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center', paddingTop: '4px' }}>
               {currentWeight && (
                 <span style={{ padding: '6px 14px', borderRadius: '20px', background: 'rgba(197,163,106,0.15)', color: 'var(--espresso, #2b2015)', fontSize: '0.82rem', fontWeight: 800, border: '1px solid rgba(197,163,106,0.3)' }}>
-                  ⚖️ الوزن التقريبي: {currentWeight}
+                  {t('approxWeight')} {currentWeight}
                 </span>
               )}
               {product.tags && (Array.isArray(product.tags) ? product.tags : String(product.tags).split(',')).filter(Boolean).map((tag, i) => (
                 <span key={i} style={{ padding: '6px 12px', borderRadius: '20px', background: 'rgba(197,163,106,0.1)', color: 'var(--espresso-dim, #776655)', fontSize: '0.78rem', fontWeight: 600, border: '1px solid rgba(197,163,106,0.2)' }}>
-                  #{typeof tag === 'object' ? tag.name : String(tag).trim()}
+                  #{tProduct(typeof tag === 'object' ? tag.name : String(tag).trim())}
                 </span>
               ))}
             </div>
@@ -612,31 +620,31 @@ export default function ProductPage() {
         {/* Detailed Tabs Section */}
         <div style={{ marginTop: '70px', background: 'var(--bg-card, #fff)', borderRadius: '20px', border: '1px solid rgba(197, 168, 128, 0.2)', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', borderBottom: '1px solid rgba(197,163,106,0.2)', marginBottom: '20px', overflowX: 'auto' }}>
-            <button className={`pp-tab-btn ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>✨ التفاصيل والخامة</button>
-            <button className={`pp-tab-btn ${activeTab === 'sizechart' ? 'active' : ''}`} onClick={() => setActiveTab('sizechart')}>📏 جدول القياسات (الصدر والحوض)</button>
-            <button className={`pp-tab-btn ${activeTab === 'shipping' ? 'active' : ''}`} onClick={() => setActiveTab('shipping')}>🚚 الشحن والتوصيل</button>
+            <button className={`pp-tab-btn ${activeTab === 'details' ? 'active' : ''}`} onClick={() => setActiveTab('details')}>{t('tabDetails')}</button>
+            <button className={`pp-tab-btn ${activeTab === 'sizechart' ? 'active' : ''}`} onClick={() => setActiveTab('sizechart')}>{t('tabSizeChart')}</button>
+            <button className={`pp-tab-btn ${activeTab === 'shipping' ? 'active' : ''}`} onClick={() => setActiveTab('shipping')}>{t('tabShipping')}</button>
           </div>
 
           {activeTab === 'details' && (
             <div style={{ lineHeight: 1.8, color: 'var(--espresso-dim, #665544)', fontSize: '0.96rem' }}>
-              <p>تم تصميم وتطريز هذا القطعة بعناية فائقة بأيدي أمهر المصممين، باستخدام أجود أنواع الأقمشة الفاخرة التي تمنحك إطلالة ملكية راقية تليق بالمناسبات الخاصة.</p>
-              <ul style={{ paddingRight: '20px', margin: '15px 0 0' }}>
-                <li>تطريز خاص عالي الدقة والمتقن.</li>
-                <li>قماش ناعم مريح ومناسب لكافة الفصول.</li>
-                <li>تعليمات العناية: غسيل يدوي بماء بارد أو تنظيف جاف (Dry Clean) للحفاظ على بريق التطريز.</li>
+              <p>{t('detailsTabDesc')}</p>
+              <ul style={{ paddingInlineStart: '20px', margin: '15px 0 0' }}>
+                <li>{t('detailsTabBullet1')}</li>
+                <li>{t('detailsTabBullet2')}</li>
+                <li>{t('detailsTabBullet3')}</li>
               </ul>
             </div>
           )}
 
           {activeTab === 'sizechart' && (
             <div style={{ overflowX: 'auto' }}>
-              <p style={{ fontSize: '0.92rem', color: '#1a1a1a', fontWeight: 700, marginBottom: '14px' }}>جدول المقاسات الرسمي المعتمد (القياسات بالسنتيمتر):</p>
+              <p style={{ fontSize: '0.92rem', color: '#1a1a1a', fontWeight: 700, marginBottom: '14px' }}>{t('sizeChartOfficial')}</p>
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', border: '1.5px solid rgba(197,163,106,0.35)', fontSize: '0.95rem', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
                 <thead>
                   <tr style={{ background: 'linear-gradient(135deg, rgba(197,168,128,0.25) 0%, rgba(197,168,128,0.12) 100%)', color: '#1a1a1a', fontWeight: 'bold' }}>
-                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#8a6538', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
-                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الصدر</th>
-                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الحوض</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#8a6538', fontSize: '1rem', fontWeight: 900 }}>{t('size')}</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>{t('chestBust')}</th>
+                    <th style={{ padding: '14px 10px', border: '1px solid rgba(197,163,106,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>{t('hipCircumference')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -650,8 +658,8 @@ export default function ProductPage() {
                   ]).map((row, idx) => (
                     <tr key={idx} style={{ background: selectedSize === String(row.size) ? 'rgba(197,163,106,0.25)' : (idx % 2 === 0 ? '#ffffff' : '#fbf9f6'), cursor: 'pointer' }} onClick={() => setSelectedSize(String(row.size))}>
                       <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{row.size}</td>
-                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.chest || '—'}</td>
-                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.hip || row.waist || '—'}</td>
+                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.chest ? (tProduct ? tProduct(row.chest) : row.chest) : '—'}</td>
+                      <td style={{ padding: '12px 10px', border: '1px solid rgba(197,163,106,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{(row.hip || row.waist) ? (tProduct ? tProduct(row.hip || row.waist) : (row.hip || row.waist)) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -661,8 +669,8 @@ export default function ProductPage() {
 
           {activeTab === 'shipping' && (
             <div style={{ lineHeight: 1.8, color: 'var(--espresso-dim, #665544)', fontSize: '0.96rem' }}>
-              <p>🟢 **التوصيل المحلي والخليجي والعالمي**: يتم شحن وتوصيل الطلب لجميع دول العالم.</p>
-              <p>🟢 **التغليف الفاخر**: توضع كل قطعة داخل كيس وقائي فاخر ومعطر بعطر بيسان الملكي.</p>
+              <p>{t('shippingTabLocalGlobal')}</p>
+              <p>{t('shippingTabPackaging')}</p>
             </div>
           )}
         </div>
@@ -679,14 +687,14 @@ export default function ProductPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '15px', marginBottom: '24px' }}>
             <div>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase', letterSpacing: '1.5px' }}>
-                ✨ التنسيق الملكي الموصى به من المعرض
+                {t('recommendedStyling')}
               </span>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--espresso, #1a1a1a)', margin: '4px 0 0' }}>
-                قطع زهرة بيسان المكملة للإطلالة
+                {t('complementaryPieces')}
               </h2>
             </div>
             <span style={{ fontSize: '0.85rem', color: 'var(--espresso-dim)', fontWeight: 600 }}>
-              نصيحة خبيرة الأناقة يافا لربط هذه العباية / القفطان
+              {t('stylistAdvice')}
             </span>
           </div>
 
@@ -710,13 +718,13 @@ export default function ProductPage() {
                 }}>
                   <div>
                     <div style={{ width: '100%', height: '160px', borderRadius: '12px', overflow: 'hidden', marginBottom: '12px', backgroundColor: '#FAF8F5' }}>
-                      <img src={itemImg} alt={styleItem.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }} />
+                      <img src={itemImg} alt={tProduct(styleItem.name)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.target.onerror = null; e.target.src = '/12.png'; }} />
                     </div>
                     <span style={{ fontSize: '0.75rem', fontWeight: 800, color: 'var(--gold, #c5a880)', textTransform: 'uppercase' }}>
-                      {styleItem.category || 'عباية ملكية'}
+                      {tProduct(styleItem.category || 'عباية ملكية')}
                     </span>
                     <h4 style={{ fontSize: '0.98rem', fontWeight: 800, color: 'var(--espresso, #1a1a1a)', margin: '4px 0 8px' }}>
-                      {styleItem.name}
+                      {tProduct(styleItem.name)}
                     </h4>
                   </div>
                   <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px solid rgba(197,168,128,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -737,7 +745,7 @@ export default function ProductPage() {
                         transition: 'all 0.25s ease'
                       }}
                     >
-                      تسوقي القطعة ✦
+                      {t('shopPiece')}
                     </button>
                   </div>
                 </div>
@@ -751,7 +759,7 @@ export default function ProductPage() {
           <div style={{ marginTop: '70px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '30px' }}>
               <div style={{ width: '4px', height: '30px', background: 'var(--gold, #c5a36a)', borderRadius: '2px' }} />
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', margin: 0 }}>منتجات ذات صلة قد تعجبكِ</h2>
+              <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', margin: 0 }}>{t('relatedProductsTitle')}</h2>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '24px' }}>
               {relatedProducts.map(rp => (
@@ -772,7 +780,7 @@ export default function ProductPage() {
                     />
                   </div>
                   <div style={{ padding: '16px' }}>
-                    <h4 style={{ fontSize: '1rem', color: 'var(--espresso)', margin: '0 0 6px', fontWeight: 800 }}>{rp.name}</h4>
+                    <h4 style={{ fontSize: '1rem', color: 'var(--espresso)', margin: '0 0 6px', fontWeight: 800 }}>{tProduct(rp.name)}</h4>
                     <div style={{ color: 'var(--gold)', fontWeight: 900, fontSize: '0.95rem' }}>{rp.price_display}</div>
                   </div>
                 </Link>
@@ -785,15 +793,15 @@ export default function ProductPage() {
         <div style={{ marginTop: '70px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '30px' }}>
             <div style={{ width: '4px', height: '30px', background: 'var(--gold, #c5a36a)', borderRadius: '2px' }} />
-            <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', margin: 0 }}>آراء وتقييمات العملاء</h2>
+            <h2 style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', margin: 0 }}>{t('customerReviews')}</h2>
             {reviews.length > 0 && (<span style={{ background: 'var(--gold, #c5a36a)', color: '#fff', borderRadius: '20px', padding: '2px 14px', fontSize: '0.82rem', fontWeight: 900 }}>{reviews.length}</span>)}
           </div>
 
           {reviews.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', borderRadius: '20px', border: '1.5px dashed rgba(197,163,106,0.3)', color: 'var(--espresso-dim, #776655)', background: 'var(--bg-card, #fff)' }}>
               <MessageSquare size={44} style={{ opacity: 0.3, display: 'block', margin: '0 auto 12px' }} />
-              <p style={{ fontWeight: 800, fontSize: '1.05rem' }}>لا توجد تقييمات مسجلة بعد لهذا التصميم.</p>
-              <p style={{ fontSize: '0.88rem' }}>كوني أول من يضع لمسته ويقيّم هذا المنتج!</p>
+              <p style={{ fontWeight: 800, fontSize: '1.05rem' }}>{t('noReviewsYet')}</p>
+              <p style={{ fontSize: '0.88rem' }}>{t('beFirstToReview')}</p>
             </div>
           ) : (
             <div style={{ display: 'grid', gap: '18px', marginBottom: '40px' }}>
@@ -805,13 +813,13 @@ export default function ProductPage() {
                         {(r.reviewer_name || 'ع')[0]}
                       </div>
                       <div>
-                        <div style={{ fontWeight: 800, color: 'var(--espresso, #2b2015)', fontSize: '0.98rem' }}>{r.reviewer_name || 'عميل متميز'}</div>
-                        <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{r.created_at ? new Date(r.created_at).toLocaleDateString('ar-JO', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</div>
+                        <div style={{ fontWeight: 800, color: 'var(--espresso, #2b2015)', fontSize: '0.98rem' }}>{r.reviewer_name || t('distinguishedClient')}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#aaa' }}>{r.created_at ? new Date(r.created_at).toLocaleDateString(langCode === 'en' ? 'en-US' : 'ar-JO', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</div>
                       </div>
                     </div>
                     <StarRating rating={r.rating} size={16} />
                   </div>
-                  {r.comment && <p style={{ color: 'var(--espresso-dim, #665544)', lineHeight: 1.7, margin: 0, fontSize: '0.95rem' }}>{r.comment}</p>}
+                  {r.comment && <p style={{ color: 'var(--espresso-dim, #665544)', lineHeight: 1.7, margin: 0, fontSize: '0.95rem' }}>{tProduct(r.comment)}</p>}
                 </div>
               ))}
             </div>
@@ -819,16 +827,16 @@ export default function ProductPage() {
 
           {/* Review Form */}
           <div style={{ padding: '35px', borderRadius: '22px', background: 'var(--bg-card, #fff)', boxShadow: '0 8px 30px rgba(0,0,0,0.05)', border: '1px solid rgba(197,163,106,0.2)' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', marginBottom: '20px' }}>✍️ شاركينا تقييمك وانطباعك</h3>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--espresso, #2b2015)', marginBottom: '20px' }}>{t('writeReview')}</h3>
             {reviewSuccess && (
               <div style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '14px', padding: '14px 20px', marginBottom: '18px', color: '#15803d', fontWeight: 800 }}>
-                ✓ شكراً لكِ! تم تسجيل تقييمك بنجاح.
+                {t('reviewSuccess')}
               </div>
             )}
             <form onSubmit={handleReviewSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <input className="pp-review-input" type="text" placeholder="اسمك الكريم (اختياري)" value={reviewName} onChange={e => setReviewName(e.target.value)} style={inputStyle} />
+              <input className="pp-review-input" type="text" placeholder={t('nameOptional')} value={reviewName} onChange={e => setReviewName(e.target.value)} style={inputStyle} />
               <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                <span style={{ color: 'var(--espresso-dim, #665544)', fontWeight: 800, fontSize: '0.92rem' }}>تقييمك:</span>
+                <span style={{ color: 'var(--espresso-dim, #665544)', fontWeight: 800, fontSize: '0.92rem' }}>{t('yourRating')}</span>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {[1, 2, 3, 4, 5].map(s => (
                     <button key={s} type="button" onClick={() => setReviewRating(s)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px' }}>
@@ -837,10 +845,10 @@ export default function ProductPage() {
                   ))}
                 </div>
               </div>
-              <textarea className="pp-review-input" placeholder="شاركينا تجريبتك وانطباعك عن خام وتطريز ومقاس هذا المنتج..." value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={4} style={{ ...inputStyle, resize: 'vertical', minHeight: '110px' }} />
+              <textarea className="pp-review-input" placeholder={t('reviewPlaceholder')} value={reviewComment} onChange={e => setReviewComment(e.target.value)} required rows={4} style={{ ...inputStyle, resize: 'vertical', minHeight: '110px' }} />
               <button type="submit" disabled={reviewSubmitting || !reviewComment.trim()}
                 style={{ ...btnStyle, opacity: reviewSubmitting || !reviewComment.trim() ? 0.6 : 1, cursor: reviewSubmitting || !reviewComment.trim() ? 'not-allowed' : 'pointer', alignSelf: 'flex-start' }}>
-                {reviewSubmitting ? 'جاري الإرسال...' : 'إرسال التقييم الملكي'}
+                {reviewSubmitting ? t('submitting') : t('submitRoyalReview')}
               </button>
             </form>
           </div>
@@ -849,23 +857,23 @@ export default function ProductPage() {
 
       {/* Interactive Size Calculator Modal */}
       {showSizeModal && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px', backdropFilter: 'blur(6px)', direction: 'rtl' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '20px', backdropFilter: 'blur(6px)', direction: currentLang?.dir || 'rtl' }}>
           <div style={{ background: '#ffffff', width: '95%', maxWidth: '600px', borderRadius: '24px', border: '1.5px solid #c5a880', padding: '32px', position: 'relative', boxShadow: '0 25px 60px rgba(0,0,0,0.25)', maxHeight: '90vh', overflowY: 'auto' }}>
-            <button onClick={() => setShowSizeModal(false)} style={{ position: 'absolute', top: '22px', left: '22px', background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', padding: 0 }} title="إغلاق">
+            <button onClick={() => setShowSizeModal(false)} style={{ position: 'absolute', top: '22px', [currentLang?.dir === 'ltr' ? 'right' : 'left']: '22px', background: 'none', border: 'none', color: '#1a1a1a', cursor: 'pointer', padding: 0 }} title={t('closeLabel')}>
               <X size={26} />
             </button>
 
             <h3 style={{ margin: '0 0 22px 0', color: '#1a1a1a', fontSize: '1.45rem', fontWeight: 900, textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-              📏 دليل ومساعد المقاسات الذكي
+              {t('smartSizeGuideTitle')}
             </h3>
 
             {/* Interactive Calculator */}
             <div style={{ background: '#fcfaf6', padding: '22px', borderRadius: '18px', border: '1px solid rgba(197, 168, 128, 0.35)', marginBottom: '25px' }}>
-              <h4 style={{ margin: '0 0 15px 0', color: '#8a6538', fontSize: '1.05rem', fontWeight: 900 }}>حاسبة الطول والمقاس التفاعلية</h4>
+              <h4 style={{ margin: '0 0 15px 0', color: '#8a6538', fontSize: '1.05rem', fontWeight: 900 }}>{t('interactiveHeightCalc')}</h4>
               
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '0.95rem', fontWeight: 900, color: '#1a1a1a', marginBottom: '10px' }}>
-                  طولكِ الكريم: <span style={{ color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{userHeight} سم</span>
+                  {t('yourHeight')} <span style={{ color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{userHeight} {tProduct('سم')}</span>
                 </label>
                 <input 
                   type="range" 
@@ -876,37 +884,37 @@ export default function ProductPage() {
                   style={{ width: '100%', accentColor: '#b8966c', cursor: 'pointer' }}
                 />
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#333333', marginTop: '8px', fontWeight: 700 }}>
-                  <span>145 سم</span>
-                  <span>165 سم</span>
-                  <span>185 سم</span>
+                  <span>145 {tProduct('سم')}</span>
+                  <span>165 {tProduct('سم')}</span>
+                  <span>185 {tProduct('سم')}</span>
                 </div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#faf8f5', padding: '16px 22px', borderRadius: '16px', border: '1.5px solid rgba(197, 168, 128, 0.45)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                 <div>
-                  <span style={{ fontSize: '0.88rem', color: '#665b52', display: 'block', fontWeight: 700 }}>المقاس الموصى به:</span>
-                  <strong style={{ fontSize: '1.6rem', color: '#b8860b', fontWeight: 900 }}>مقاس {currentRecommendedSize}</strong>
+                  <span style={{ fontSize: '0.88rem', color: '#665b52', display: 'block', fontWeight: 700 }}>{t('recommendedSize')}</span>
+                  <strong style={{ fontSize: '1.6rem', color: '#b8860b', fontWeight: 900 }}>{t('sizePrefix')}{currentRecommendedSize}</strong>
                 </div>
                 <button 
                   type="button" 
                   onClick={() => { setSelectedSize(currentRecommendedSize); setShowSizeModal(false); }}
                   style={{ padding: '12px 24px', background: 'linear-gradient(135deg, #c5a880 0%, #a6865d 100%)', color: '#ffffff', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '0.95rem', boxShadow: '0 4px 12px rgba(197, 168, 128, 0.35)' }}
                 >
-                  اعتماد المقاس
+                  {t('confirmSize')}
                 </button>
               </div>
             </div>
 
             {/* Detailed Table STRICTLY Chest and Hip */}
             <div>
-              <h4 style={{ margin: '0 0 15px 0', color: '#1a1a1a', fontSize: '1.05rem', fontWeight: 900 }}>📏 جدول القياسات (الصدر والحوض فقط)</h4>
+              <h4 style={{ margin: '0 0 15px 0', color: '#1a1a1a', fontSize: '1.05rem', fontWeight: 900 }}>{t('sizeTableTitle')}</h4>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.95rem', textAlign: 'center', border: '1.5px solid rgba(197, 168, 128, 0.35)', borderRadius: '12px', overflow: 'hidden', background: '#ffffff' }}>
                   <thead>
                     <tr style={{ background: 'linear-gradient(135deg, rgba(197,168,128,0.25) 0%, rgba(197,168,128,0.12) 100%)', color: '#1a1a1a', fontWeight: 'bold' }}>
-                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#8a6538', fontSize: '1rem', fontWeight: 900 }}>المقاس</th>
-                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الصدر</th>
-                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>محيط الحوض</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#8a6538', fontSize: '1rem', fontWeight: 900 }}>{t('size')}</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>{t('chestBust')}</th>
+                      <th style={{ padding: '14px 10px', border: '1px solid rgba(197,168,128,0.3)', color: '#1a1a1a', fontSize: '1rem', fontWeight: 900 }}>{t('hipCircumference')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -929,8 +937,8 @@ export default function ProductPage() {
                         }}
                       >
                         <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#b8966c', fontWeight: 900, fontSize: '1.1rem' }}>{row.size}</td>
-                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.chest || '—'}</td>
-                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.hip || row.waist || '—'}</td>
+                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{row.chest ? (tProduct ? tProduct(row.chest) : row.chest) : '—'}</td>
+                        <td style={{ padding: '12px 10px', border: '1px solid rgba(197,168,128,0.25)', color: '#111111', fontWeight: 800, fontSize: '0.95rem' }}>{(row.hip || row.waist) ? (tProduct ? tProduct(row.hip || row.waist) : (row.hip || row.waist)) : '—'}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -957,11 +965,12 @@ export default function ProductPage() {
           alignItems: 'center',
           justifyContent: 'space-between',
           zIndex: 90,
-          boxShadow: '0 -10px 25px rgba(0,0,0,0.08)'
+          boxShadow: '0 -10px 25px rgba(0,0,0,0.08)',
+          direction: currentLang?.dir || 'rtl'
         }}
       >
         <div>
-          <div style={{ fontSize: '0.78rem', color: 'var(--espresso-dim)' }}>السعر الكلي:</div>
+          <div style={{ fontSize: '0.78rem', color: 'var(--espresso-dim)' }}>{t('totalPrice')}</div>
           <div style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--gold)' }}>{price}</div>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
@@ -970,14 +979,14 @@ export default function ProductPage() {
             disabled={!!product.isOutOfStock}
             style={{ padding: '12px 16px', borderRadius: '12px', background: 'transparent', border: '1.5px solid var(--gold)', color: 'var(--gold)', fontWeight: 800, fontSize: '0.9rem', cursor: 'pointer' }}
           >
-            أضف بالسلة
+            {t('addToCart')}
           </button>
           <button 
             onClick={() => { handleAddToCart(); navigate('/checkout'); }} 
             disabled={!!product.isOutOfStock}
             style={{ padding: '12px 22px', borderRadius: '12px', background: 'linear-gradient(135deg, var(--gold), #8f6e40)', color: '#fff', border: 'none', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 4px 15px rgba(197,163,106,0.3)' }}
           >
-            اشترِ الآن
+            {t('buyNow')}
           </button>
         </div>
       </div>
@@ -997,14 +1006,15 @@ export default function ProductPage() {
         justifyContent: 'space-between',
         gap: '12px',
         zIndex: 9990,
-        boxShadow: '0 -8px 25px rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 -8px 25px rgba(0, 0, 0, 0.4)',
+        direction: currentLang?.dir || 'rtl'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span style={{ color: 'var(--gold, #c5a880)', fontSize: '1.15rem', fontWeight: 900 }}>
             {price}
           </span>
           <span style={{ color: '#aaa', fontSize: '0.72rem' }}>
-            المقاس: {selectedSize}
+            {t('size')}: {selectedSize}
           </span>
         </div>
 
@@ -1028,7 +1038,7 @@ export default function ProductPage() {
             }}
           >
             <ShoppingBag size={16} />
-            <span>{addedToCart ? (t('addedToCart') || 'تمت الإضافة!') : (t('addToCart') || 'أضف للسلة')}</span>
+            <span>{addedToCart ? t('addedToCart') : t('addToCart')}</span>
           </button>
 
           <button
@@ -1044,7 +1054,7 @@ export default function ProductPage() {
               alignItems: 'center',
               justifyContent: 'center'
             }}
-            title="واتساب"
+            title={t('whatsapp')}
           >
             <PhoneCall size={18} />
           </button>

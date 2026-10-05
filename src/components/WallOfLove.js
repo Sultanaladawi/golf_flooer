@@ -13,7 +13,7 @@ const FALLBACK_REVIEWS = [
 ];
 
 export default function WallOfLove() {
-  const { t } = useLanguage();
+  const { t, tProduct, currentLang } = useLanguage();
   const [reviews, setReviews]     = useState([]);
   const [loading, setLoading]     = useState(true);
   const [active, setActive]       = useState(0);
@@ -71,14 +71,14 @@ export default function WallOfLove() {
             {t('reviewsTitle')}
           </h2>
           <p className={styles.subtitle}>
-            آراء حقيقية من نساء يحملن إبداعنا في كل مناسبة
+            {t('reviewsSubtitle')}
           </p>
         </div>
 
         {/* Carousel */}
         <div className={styles.carousel}>
           {/* Prev */}
-          <button className={styles.arrow} onClick={prev} aria-label="السابق">
+          <button className={styles.arrow} onClick={prev} aria-label={t('previous') || 'السابق'}>
             <ChevronRight size={20} />
           </button>
 
@@ -87,6 +87,7 @@ export default function WallOfLove() {
             {[-1, 0, 1].map((offset) => {
               const r   = list[getIdx(offset)];
               const pos = offset === 0 ? styles.cardCenter : offset === -1 ? styles.cardLeft : styles.cardRight;
+              const reviewerName = (tProduct ? tProduct(r.customerName) : r.customerName) || (currentLang?.code === 'en' ? 'Valued Client' : 'عميلة مميزة');
               return (
                 <div
                   key={getIdx(offset)}
@@ -100,17 +101,17 @@ export default function WallOfLove() {
                   <div className={styles.stars}>{stars(r.rating || 5)}</div>
 
                   {/* Comment */}
-                  <p className={styles.comment}>{r.comment}</p>
+                  <p className={styles.comment}>{tProduct ? tProduct(r.comment) : r.comment}</p>
 
                   {/* Reviewer */}
                   <div className={styles.reviewer}>
                     <div className={styles.avatar}>
-                      {(r.customerName || 'ع').charAt(0)}
+                      {reviewerName.charAt(0)}
                     </div>
                     <div>
-                      <div className={styles.name}>{r.customerName || 'عميلة مميزة'}</div>
+                      <div className={styles.name}>{reviewerName}</div>
                       {r.productName && (
-                        <div className={styles.productTag}>✦ {r.productName}</div>
+                        <div className={styles.productTag}>✦ {tProduct ? tProduct(r.productName) : r.productName}</div>
                       )}
                     </div>
                   </div>
@@ -120,7 +121,7 @@ export default function WallOfLove() {
           </div>
 
           {/* Next */}
-          <button className={styles.arrow} onClick={next} aria-label="التالي">
+          <button className={styles.arrow} onClick={next} aria-label={t('next') || 'التالي'}>
             <ChevronLeft size={20} />
           </button>
         </div>
