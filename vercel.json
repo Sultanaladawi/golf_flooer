@@ -5,10 +5,6 @@
       "root": ".",
       "framework": "create-react-app"
     },
-    "release": {
-      "root": "release",
-      "framework": "create-react-app"
-    },
     "test_stage": {
       "root": "test_stage",
       "framework": "express"
