@@ -1,0 +1,43 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "app": {
+      "root": ".",
+      "framework": "create-react-app"
+    },
+    "release": {
+      "root": "release",
+      "framework": "create-react-app"
+    },
+    "test_stage": {
+      "root": "test_stage",
+      "framework": "express"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": {
+        "service": "test_stage"
+      }
+    },
+    {
+      "source": "/images/(.*)",
+      "destination": {
+        "service": "test_stage"
+      }
+    },
+    {
+      "source": "/videos/(.*)",
+      "destination": {
+        "service": "test_stage"
+      }
+    },
+    {
+      "source": "/(.*)",
+      "destination": {
+        "service": "app"
+      }
+    }
+  ]
+}
